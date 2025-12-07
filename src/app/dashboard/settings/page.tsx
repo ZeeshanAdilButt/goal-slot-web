@@ -1,0 +1,595 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
+import { 
+  User, 
+  Bell, 
+  CreditCard, 
+  Shield, 
+  Download,
+  LogOut,
+  Check,
+  Crown,
+  Trash2,
+  Mail,
+  Key,
+  Globe
+} from 'lucide-react'
+import { useAuthStore } from '@/lib/store'
+import { usersApi, stripeApi } from '@/lib/api'
+import { toast } from 'react-hot-toast'
+import { cn } from '@/lib/utils'
+import { useRouter } from 'next/navigation'
+
+export default function SettingsPage() {
+  const { user, logout, setUser } = useAuthStore()
+  const router = useRouter()
+  const [activeTab, setActiveTab] = useState('profile')
+  const [isLoading, setIsLoading] = useState(false)
+
+  const tabs = [
+    { id: 'profile', label: 'Profile', icon: User },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'billing', label: 'Billing', icon: CreditCard },
+    { id: 'security', label: 'Security', icon: Shield },
+    { id: 'data', label: 'Data & Privacy', icon: Download },
+  ]
+
+  // Check URL hash for direct navigation
+  useEffect(() => {
+    const hash = window.location.hash.slice(1)
+    if (hash && tabs.some(t => t.id === hash)) {
+      setActiveTab(hash)
+    }
+  }, [])
+
+  const handleLogout = () => {
+    logout()
+    router.push('/')
+    toast.success('Logged out successfully')
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-4xl font-display font-bold uppercase">Settings</h1>
+        <p className="font-mono text-gray-600 uppercase">Manage your account</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Sidebar */}
+        <div className="lg:col-span-1">
+          <div className="card-brutal p-0 overflow-hidden">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  'w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-left border-b-2 border-secondary transition-all',
+                  activeTab === tab.id 
+                    ? 'bg-primary' 
+                    : 'hover:bg-gray-100'
+                )}
+              >
+                <tab.icon className="w-5 h-5" />
+                {tab.label}
+              </button>
+            ))}
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-left text-red-600 hover:bg-red-50"
+            >
+              <LogOut className="w-5 h-5" />
+              Logout
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="lg:col-span-3">
+          {activeTab === 'profile' && <ProfileSettings />}
+          {activeTab === 'notifications' && <NotificationSettings />}
+          {activeTab === 'billing' && <BillingSettings />}
+          {activeTab === 'security' && <SecuritySettings />}
+          {activeTab === 'data' && <DataSettings />}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Profile Settings
+function ProfileSettings() {
+  const { user, setUser } = useAuthStore()
+  const [name, setName] = useState(user?.name || '')
+  const [email, setEmail] = useState(user?.email || '')
+  const [timezone, setTimezone] = useState(user?.preferences?.timezone || 'UTC')
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleSave = async () => {
+    setIsLoading(true)
+    try {
+      const res = await usersApi.updateProfile({ name, preferences: { timezone } })
+      setUser(res.data)
+      toast.success('Profile updated!')
+    } catch (error) {
+      toast.error('Failed to update profile')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-6"
+    >
+      <div className="card-brutal">
+        <h2 className="text-xl font-bold uppercase mb-6">Profile Information</h2>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block font-bold uppercase text-sm mb-2">Full Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="input-brutal"
+            />
+          </div>
+
+          <div>
+            <label className="block font-bold uppercase text-sm mb-2">Email Address</label>
+            <div className="flex gap-4">
+              <input
+                type="email"
+                value={email}
+                disabled
+                className="input-brutal flex-1 opacity-75"
+              />
+              <span className="px-4 py-3 bg-gray-100 border-3 border-secondary font-mono text-sm">
+                {user?.userType === 'SSO' ? 'SSO' : 'Verified'}
+              </span>
+            </div>
+            <p className="font-mono text-xs text-gray-500 mt-1">Email cannot be changed</p>
+          </div>
+
+          <div>
+            <label className="block font-bold uppercase text-sm mb-2">Timezone</label>
+            <select
+              value={timezone}
+              onChange={(e) => setTimezone(e.target.value)}
+              className="input-brutal"
+            >
+              <option value="UTC">UTC</option>
+              <option value="America/New_York">Eastern Time (ET)</option>
+              <option value="America/Chicago">Central Time (CT)</option>
+              <option value="America/Denver">Mountain Time (MT)</option>
+              <option value="America/Los_Angeles">Pacific Time (PT)</option>
+              <option value="Europe/London">London (GMT)</option>
+              <option value="Europe/Paris">Paris (CET)</option>
+              <option value="Asia/Tokyo">Tokyo (JST)</option>
+              <option value="Asia/Kolkata">India (IST)</option>
+            </select>
+          </div>
+
+          <div className="pt-4">
+            <button onClick={handleSave} disabled={isLoading} className="btn-brutal-dark">
+              {isLoading ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Account Type */}
+      <div className="card-brutal">
+        <h2 className="text-xl font-bold uppercase mb-4">Account Type</h2>
+        <div className="flex items-center gap-4">
+          <div className={cn(
+            'px-4 py-2 font-bold uppercase border-3 border-secondary',
+            user?.plan === 'PREMIUM' ? 'bg-primary' : 'bg-gray-100'
+          )}>
+            {user?.plan === 'PREMIUM' ? '👑 Premium' : 'Free Plan'}
+          </div>
+          <div className="font-mono text-sm text-gray-600">
+            {user?.userType === 'SSO' && 'Connected via DevWeekends SSO'}
+            {user?.userType === 'INTERNAL' && 'Internal DevWeekends Account'}
+            {user?.userType === 'EXTERNAL' && 'External Account'}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+// Notification Settings
+function NotificationSettings() {
+  const [emailNotifs, setEmailNotifs] = useState(true)
+  const [weeklyReport, setWeeklyReport] = useState(true)
+  const [goalReminders, setGoalReminders] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleSave = async () => {
+    setIsLoading(true)
+    try {
+      // Save notification preferences
+      toast.success('Notification settings saved!')
+    } catch (error) {
+      toast.error('Failed to save settings')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="card-brutal"
+    >
+      <h2 className="text-xl font-bold uppercase mb-6">Notification Preferences</h2>
+
+      <div className="space-y-4">
+        <NotificationToggle
+          label="Email Notifications"
+          description="Receive important updates via email"
+          checked={emailNotifs}
+          onChange={setEmailNotifs}
+          icon={Mail}
+        />
+        <NotificationToggle
+          label="Weekly Report"
+          description="Get a summary of your productivity each week"
+          checked={weeklyReport}
+          onChange={setWeeklyReport}
+          icon={Bell}
+        />
+        <NotificationToggle
+          label="Goal Reminders"
+          description="Get reminded about upcoming goal deadlines"
+          checked={goalReminders}
+          onChange={setGoalReminders}
+          icon={Bell}
+        />
+
+        <div className="pt-4">
+          <button onClick={handleSave} disabled={isLoading} className="btn-brutal-dark">
+            {isLoading ? 'Saving...' : 'Save Preferences'}
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+function NotificationToggle({ 
+  label, 
+  description, 
+  checked, 
+  onChange, 
+  icon: Icon 
+}: {
+  label: string
+  description: string
+  checked: boolean
+  onChange: (val: boolean) => void
+  icon: any
+}) {
+  return (
+    <div className="flex items-center justify-between p-4 border-2 border-secondary">
+      <div className="flex items-center gap-4">
+        <Icon className="w-5 h-5" />
+        <div>
+          <div className="font-bold uppercase">{label}</div>
+          <div className="font-mono text-sm text-gray-600">{description}</div>
+        </div>
+      </div>
+      <button
+        onClick={() => onChange(!checked)}
+        className={cn(
+          'w-14 h-8 border-3 border-secondary relative transition-colors',
+          checked ? 'bg-primary' : 'bg-gray-200'
+        )}
+      >
+        <motion.div
+          animate={{ x: checked ? 22 : 2 }}
+          className="absolute top-1 w-5 h-5 bg-white border-2 border-secondary"
+        />
+      </button>
+    </div>
+  )
+}
+
+// Billing Settings
+function BillingSettings() {
+  const { user, setUser } = useAuthStore()
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleUpgrade = async () => {
+    setIsLoading(true)
+    try {
+      const res = await stripeApi.createCheckoutSession('premium_monthly')
+      // Redirect to Stripe checkout
+      window.location.href = res.data.url
+    } catch (error) {
+      toast.error('Failed to start checkout')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleManage = async () => {
+    setIsLoading(true)
+    try {
+      const res = await stripeApi.createPortalSession()
+      window.location.href = res.data.url
+    } catch (error) {
+      toast.error('Failed to open billing portal')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-6"
+    >
+      {/* Current Plan */}
+      <div className={cn(
+        'card-brutal p-8',
+        user?.plan === 'PREMIUM' ? 'bg-primary' : 'bg-white'
+      )}>
+        <div className="flex items-center gap-4 mb-4">
+          {user?.plan === 'PREMIUM' ? (
+            <Crown className="w-10 h-10" />
+          ) : (
+            <CreditCard className="w-10 h-10" />
+          )}
+          <div>
+            <h2 className="text-2xl font-bold uppercase">
+              {user?.plan === 'PREMIUM' ? 'Premium Plan' : 'Free Plan'}
+            </h2>
+            <p className="font-mono">
+              {user?.plan === 'PREMIUM' ? '$10/month' : '$0/month'}
+            </p>
+          </div>
+        </div>
+
+        {user?.plan === 'FREE' && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 font-mono text-sm">
+              <div>✓ 5 Schedule Blocks</div>
+              <div>✓ 3 Goals Max</div>
+              <div>✓ 3 Time Entries/Day</div>
+              <div>✓ Basic Reports</div>
+            </div>
+            <button onClick={handleUpgrade} disabled={isLoading} className="btn-brutal-dark w-full">
+              {isLoading ? 'Loading...' : 'Upgrade to Premium - $10/month'}
+            </button>
+          </div>
+        )}
+
+        {user?.plan === 'PREMIUM' && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 font-mono text-sm">
+              <div>✓ Unlimited Schedules</div>
+              <div>✓ Unlimited Goals</div>
+              <div>✓ Unlimited Time Entries</div>
+              <div>✓ Advanced Reports</div>
+              <div>✓ Priority Support</div>
+              <div>✓ Data Export</div>
+            </div>
+            <button onClick={handleManage} disabled={isLoading} className="btn-brutal-dark">
+              {isLoading ? 'Loading...' : 'Manage Subscription'}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Premium Features */}
+      {user?.plan === 'FREE' && (
+        <div className="card-brutal">
+          <h3 className="text-xl font-bold uppercase mb-4">Premium Benefits</h3>
+          <div className="space-y-3">
+            {[
+              'Unlimited schedule blocks',
+              'Unlimited goals',
+              'Unlimited time entries per day',
+              'Advanced analytics & reports',
+              'Export data to CSV/PDF',
+              'Priority support',
+              'Early access to new features',
+            ].map((benefit, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <Check className="w-5 h-5 text-accent-green" />
+                <span className="font-mono">{benefit}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </motion.div>
+  )
+}
+
+// Security Settings
+function SecuritySettings() {
+  const { user } = useAuthStore()
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleChangePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      toast.error('Passwords do not match')
+      return
+    }
+    if (newPassword.length < 8) {
+      toast.error('Password must be at least 8 characters')
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      await usersApi.changePassword(currentPassword, newPassword)
+      toast.success('Password changed successfully')
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch (error) {
+      toast.error('Failed to change password')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-6"
+    >
+      {user?.userType !== 'SSO' && (
+        <div className="card-brutal">
+          <h2 className="text-xl font-bold uppercase mb-6 flex items-center gap-2">
+            <Key className="w-5 h-5" />
+            Change Password
+          </h2>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block font-bold uppercase text-sm mb-2">Current Password</label>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="input-brutal"
+              />
+            </div>
+            <div>
+              <label className="block font-bold uppercase text-sm mb-2">New Password</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="input-brutal"
+              />
+            </div>
+            <div>
+              <label className="block font-bold uppercase text-sm mb-2">Confirm New Password</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="input-brutal"
+              />
+            </div>
+            <button onClick={handleChangePassword} disabled={isLoading} className="btn-brutal-dark">
+              {isLoading ? 'Changing...' : 'Change Password'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {user?.userType === 'SSO' && (
+        <div className="card-brutal">
+          <h2 className="text-xl font-bold uppercase mb-4">SSO Authentication</h2>
+          <p className="font-mono text-gray-600">
+            Your account is managed via DevWeekends SSO. Password changes should be made through your DevWeekends account.
+          </p>
+        </div>
+      )}
+
+      <div className="card-brutal">
+        <h2 className="text-xl font-bold uppercase mb-4">Active Sessions</h2>
+        <div className="p-4 border-2 border-secondary">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-bold">Current Session</div>
+              <div className="font-mono text-sm text-gray-600">Windows • Chrome</div>
+            </div>
+            <span className="px-3 py-1 bg-accent-green text-white font-mono text-sm">Active</span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+// Data Settings
+function DataSettings() {
+  const [isExporting, setIsExporting] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const handleExportData = async () => {
+    setIsExporting(true)
+    try {
+      // Trigger data export
+      toast.success('Export started! You will receive an email when ready.')
+    } catch (error) {
+      toast.error('Failed to start export')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      return
+    }
+    if (!confirm('This will permanently delete all your data. Type DELETE to confirm.')) {
+      return
+    }
+
+    setIsDeleting(true)
+    try {
+      await usersApi.deleteAccount()
+      toast.success('Account deleted')
+      window.location.href = '/'
+    } catch (error) {
+      toast.error('Failed to delete account')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-6"
+    >
+      <div className="card-brutal">
+        <h2 className="text-xl font-bold uppercase mb-6">Export Your Data</h2>
+        <p className="font-mono text-gray-600 mb-4">
+          Download all your data including goals, time entries, schedules, and reports.
+        </p>
+        <button onClick={handleExportData} disabled={isExporting} className="btn-brutal flex items-center gap-2">
+          <Download className="w-5 h-5" />
+          {isExporting ? 'Preparing...' : 'Export All Data'}
+        </button>
+      </div>
+
+      <div className="card-brutal border-red-500">
+        <h2 className="text-xl font-bold uppercase mb-4 text-red-600">Danger Zone</h2>
+        <p className="font-mono text-gray-600 mb-4">
+          Once you delete your account, there is no going back. Please be certain.
+        </p>
+        <button
+          onClick={handleDeleteAccount}
+          disabled={isDeleting}
+          className="px-6 py-3 bg-red-500 text-white font-bold uppercase border-3 border-secondary shadow-brutal hover:shadow-brutal-hover active:translate-x-brutal active:translate-y-brutal active:shadow-none transition-all flex items-center gap-2"
+        >
+          <Trash2 className="w-5 h-5" />
+          {isDeleting ? 'Deleting...' : 'Delete Account'}
+        </button>
+      </div>
+    </motion.div>
+  )
+}

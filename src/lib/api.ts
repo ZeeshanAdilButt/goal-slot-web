@@ -1,0 +1,136 @@
+import axios from 'axios'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+
+export const api = axios.create({
+  baseURL: `${API_URL}/api`,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
+
+// Add auth token to requests
+api.interceptors.request.use((config) => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('accessToken')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+  }
+  return config
+})
+
+// Handle auth errors
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('accessToken')
+        localStorage.removeItem('refreshToken')
+        window.location.href = '/login'
+      }
+    }
+    return Promise.reject(error)
+  }
+)
+
+// Auth API
+export const authApi = {
+  register: (data: { email: string; password: string; name: string }) =>
+    api.post('/auth/register', data),
+  login: (data: { email: string; password: string }) =>
+    api.post('/auth/login', data),
+  ssoLogin: (data: { token: string; email: string; name?: string }) =>
+    api.post('/auth/sso', data),
+  getProfile: () => api.get('/auth/me'),
+  refresh: () => api.post('/auth/refresh'),
+}
+
+// Goals API
+export const goalsApi = {
+  getAll: (status?: string) => api.get('/goals', { params: { status } }),
+  getOne: (id: string) => api.get(`/goals/${id}`),
+  create: (data: any) => api.post('/goals', data),
+  update: (id: string, data: any) => api.put(`/goals/${id}`, data),
+  delete: (id: string) => api.delete(`/goals/${id}`),
+  getStats: () => api.get('/goals/stats'),
+}
+
+// Time Entries API
+export const timeEntriesApi = {
+  getByWeek: (weekStart: string) => api.get('/time-entries/week', { params: { weekStart } }),
+  getByRange: (startDate: string, endDate: string) => 
+    api.get('/time-entries/range', { params: { startDate, endDate } }),
+  getByDateRange: (startDate: string, endDate: string) => 
+    api.get('/time-entries/range', { params: { startDate, endDate } }),
+  getToday: () => api.get('/time-entries/today'),
+  getWeeklyTotal: () => api.get('/time-entries/weekly-total'),
+  getRecent: (limit?: number) => api.get('/time-entries/recent', { params: { limit } }),
+  create: (data: any) => api.post('/time-entries', data),
+  update: (id: string, data: any) => api.put(`/time-entries/${id}`, data),
+  delete: (id: string) => api.delete(`/time-entries/${id}`),
+}
+
+// Schedule API
+export const scheduleApi = {
+  getAll: () => api.get('/schedule'),
+  getWeekly: () => api.get('/schedule/week'),
+  getByDay: (dayOfWeek: number) => api.get(`/schedule/day/${dayOfWeek}`),
+  create: (data: any) => api.post('/schedule', data),
+  update: (id: string, data: any) => api.put(`/schedule/${id}`, data),
+  delete: (id: string) => api.delete(`/schedule/${id}`),
+}
+
+// Reports API
+export const reportsApi = {
+  getDashboard: () => api.get('/reports/dashboard'),
+  getWeekly: (weekStart?: string) => api.get('/reports/weekly', { params: { weekStart } }),
+  getWeeklySummary: (weekOffset?: number) => api.get('/reports/weekly-summary', { params: { weekOffset } }),
+  getGoalsProgress: () => api.get('/reports/goals-progress'),
+  getGoalProgress: () => api.get('/reports/goal-progress'),
+  getMonthly: (year: number, month: number) => 
+    api.get('/reports/monthly', { params: { year, month } }),
+}
+
+// Sharing API
+export const sharingApi = {
+  invite: (email: string) => api.post('/sharing/invite', { email }),
+  share: (data: { email: string; accessLevel: 'VIEW' | 'EDIT' }) => api.post('/sharing', data),
+  accept: (token: string) => api.post('/sharing/accept', null, { params: { token } }),
+  getAll: () => api.get('/sharing'),
+  getMyShares: () => api.get('/sharing/my-shares'),
+  getPendingInvites: () => api.get('/sharing/pending-invites'),
+  getSharedData: (ownerId: string) => api.get(`/sharing/user/${ownerId}`),
+  revoke: (shareId: string) => api.delete(`/sharing/${shareId}`),
+  remove: (shareId: string) => api.delete(`/sharing/remove/${shareId}`),
+  acceptInvite: (inviteId: string) => api.post(`/sharing/accept/${inviteId}`),
+  declineInvite: (inviteId: string) => api.post(`/sharing/decline/${inviteId}`),
+}
+
+// Stripe API
+export const stripeApi = {
+  createCheckout: () => api.post('/stripe/create-checkout-session'),
+  createCheckoutSession: (plan: string) => api.post('/stripe/create-checkout-session', { plan }),
+  createPortal: () => api.post('/stripe/create-portal-session'),
+  createPortalSession: () => api.post('/stripe/create-portal-session'),
+  getStatus: () => api.get('/stripe/subscription-status'),
+  mockActivate: () => api.post('/stripe/mock/activate'),
+  mockCancel: () => api.post('/stripe/mock/cancel'),
+}
+
+// Users API (Admin)
+export const usersApi = {
+  getProfile: () => api.get('/users/profile'),
+  updateProfile: (data: { name?: string; avatar?: string; preferences?: any }) => api.put('/users/profile', data),
+  changePassword: (currentPassword: string, newPassword: string) => 
+    api.put('/users/password', { currentPassword, newPassword }),
+  deleteAccount: () => api.delete('/users/account'),
+  listUsers: (page?: number, limit?: number) => 
+    api.get('/users/admin/list', { params: { page, limit } }),
+  createInternal: (data: { email: string; password: string; name: string; role?: string }) =>
+    api.post('/users/admin/internal', data),
+  grantAccess: (userId: string) => api.post(`/users/admin/grant-access/${userId}`),
+  revokeAccess: (userId: string) => api.post(`/users/admin/revoke-access/${userId}`),
+  promote: (userId: string) => api.post(`/users/admin/promote/${userId}`),
+}
