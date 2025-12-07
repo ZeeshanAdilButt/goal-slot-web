@@ -93,6 +93,16 @@ export const reportsApi = {
     api.get('/reports/monthly', { params: { year, month } }),
 }
 
+// Tasks API
+export const tasksApi = {
+  create: (data: any) => api.post('/tasks', data),
+  list: (params?: any) => api.get('/tasks', { params }),
+  getOne: (id: string) => api.get(`/tasks/${id}`),
+  update: (id: string, data: any) => api.put(`/tasks/${id}`, data),
+  complete: (id: string, data: { actualMinutes: number; notes?: string; date?: string }) =>
+    api.post(`/tasks/${id}/complete`, data),
+}
+
 // Sharing API
 export const sharingApi = {
   invite: (email: string) => api.post('/sharing/invite', { email }),

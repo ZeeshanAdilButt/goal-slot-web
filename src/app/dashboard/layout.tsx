@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { 
   Zap, LayoutDashboard, Target, Calendar, Clock, 
-  FileText, BarChart3, Settings, LogOut, Users, Shield, Share2
+  FileText, BarChart3, Settings, LogOut, Users, Shield, Share2, CheckSquare
 } from 'lucide-react'
 import { useAuthStore, useIsAdmin } from '@/lib/store'
 import { cn } from '@/lib/utils'
@@ -15,6 +15,7 @@ const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/goals', label: 'Goals', icon: Target },
   { href: '/dashboard/schedule', label: 'Schedule', icon: Calendar },
+  { href: '/dashboard/tasks', label: 'Tasks', icon: CheckSquare },
   { href: '/dashboard/time-tracker', label: 'Time Tracker', icon: Clock },
   { href: '/dashboard/weekly-log', label: 'Weekly Log', icon: FileText },
   { href: '/dashboard/reports', label: 'Reports', icon: BarChart3 },
