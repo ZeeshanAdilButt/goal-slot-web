@@ -1,12 +1,19 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, X, Edit2, Trash2, Clock } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Plus, X } from 'lucide-react'
 import { scheduleApi, goalsApi } from '@/lib/api'
 import { toast } from 'react-hot-toast'
 import { cn, SCHEDULE_CATEGORIES, DAYS_OF_WEEK_FULL, TIME_OPTIONS, timeToMinutes, getCategoryColor } from '@/lib/utils'
 import { useHasProAccess } from '@/lib/store'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 interface ScheduleBlock {
   id: string
@@ -353,161 +360,141 @@ function ScheduleBlockModal({
   }
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="absolute inset-0 bg-black/50"
-          />
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="modal-brutal w-full max-w-lg">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0">
+          <DialogTitle className="text-2xl font-bold uppercase">
+            {block ? 'Edit Block' : 'New Block'}
+          </DialogTitle>
+        </DialogHeader>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="modal-brutal w-full max-w-lg relative z-10"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold uppercase">
-                {block ? 'Edit Block' : 'New Block'}
-              </h2>
-              <button onClick={onClose} className="w-10 h-10 border-3 border-secondary flex items-center justify-center hover:bg-gray-100">
-                <X className="w-5 h-5" />
-              </button>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block font-bold uppercase text-sm mb-2">Title</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Deep Work"
+              className="input-brutal"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block font-bold uppercase text-sm mb-2">
+              {block ? 'Day' : 'Days (select multiple)'}
+            </label>
+            {block ? (
+              <select
+                value={selectedDays[0]}
+                onChange={(e) => setSelectedDays([parseInt(e.target.value)])}
+                className="input-brutal"
+              >
+                {DAYS_OF_WEEK_FULL.map((d, i) => (
+                  <option key={d} value={i}>{d}</option>
+                ))}
+              </select>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {DAYS_OF_WEEK_FULL.map((d, i) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => toggleDay(i)}
+                    className={cn(
+                      "px-3 py-2 border-3 border-secondary font-bold uppercase text-sm transition-all",
+                      selectedDays.includes(i)
+                        ? "bg-primary shadow-brutal"
+                        : "bg-white hover:bg-gray-100"
+                    )}
+                  >
+                    {d.slice(0, 3)}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block font-bold uppercase text-sm mb-2">Category</label>
+            <select
+              value={category}
+              onChange={(e) => {
+                setCategory(e.target.value)
+                const cat = SCHEDULE_CATEGORIES.find(c => c.value === e.target.value)
+                if (cat) {
+                  const colorMap: Record<string, string> = {
+                    'bg-primary': '#FFD700',
+                    'bg-accent-green': '#22C55E',
+                    'bg-accent-orange': '#F97316',
+                    'bg-accent-pink': '#EC4899',
+                    'bg-accent-purple': '#8B5CF6',
+                    'bg-gray-300': '#D1D5DB',
+                    'bg-gray-400': '#9CA3AF',
+                  }
+                  setColor(colorMap[cat.color] || '#FFD700')
+                }
+              }}
+              className="input-brutal"
+            >
+              {SCHEDULE_CATEGORIES.map((cat) => (
+                <option key={cat.value} value={cat.value}>{cat.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block font-bold uppercase text-sm mb-2">Start Time</label>
+              <select
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="input-brutal"
+              >
+                {TIME_OPTIONS.map((t) => (
+                  <option key={t.value} value={t.value}>{t.label}</option>
+                ))}
+              </select>
             </div>
+            <div>
+              <label className="block font-bold uppercase text-sm mb-2">End Time</label>
+              <select
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="input-brutal"
+              >
+                {TIME_OPTIONS.map((t) => (
+                  <option key={t.value} value={t.value}>{t.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block font-bold uppercase text-sm mb-2">Title</label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Deep Work"
-                  className="input-brutal"
-                  required
-                />
-              </div>
+          <div>
+            <label className="block font-bold uppercase text-sm mb-2">Link to Goal (Optional)</label>
+            <select
+              value={goalId}
+              onChange={(e) => setGoalId(e.target.value)}
+              className="input-brutal"
+            >
+              <option value="">No Goal</option>
+              {goals.map((goal) => (
+                <option key={goal.id} value={goal.id}>{goal.title}</option>
+              ))}
+            </select>
+          </div>
 
-              <div>
-                <label className="block font-bold uppercase text-sm mb-2">
-                  {block ? 'Day' : 'Days (select multiple)'}
-                </label>
-                {block ? (
-                  <select
-                    value={selectedDays[0]}
-                    onChange={(e) => setSelectedDays([parseInt(e.target.value)])}
-                    className="input-brutal"
-                  >
-                    {DAYS_OF_WEEK_FULL.map((d, i) => (
-                      <option key={d} value={i}>{d}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {DAYS_OF_WEEK_FULL.map((d, i) => (
-                      <button
-                        key={d}
-                        type="button"
-                        onClick={() => toggleDay(i)}
-                        className={cn(
-                          "px-3 py-2 border-3 border-secondary font-bold uppercase text-sm transition-all",
-                          selectedDays.includes(i)
-                            ? "bg-primary shadow-brutal"
-                            : "bg-white hover:bg-gray-100"
-                        )}
-                      >
-                        {d.slice(0, 3)}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block font-bold uppercase text-sm mb-2">Category</label>
-                <select
-                  value={category}
-                  onChange={(e) => {
-                    setCategory(e.target.value)
-                    const cat = SCHEDULE_CATEGORIES.find(c => c.value === e.target.value)
-                    if (cat) {
-                      const colorMap: Record<string, string> = {
-                        'bg-primary': '#FFD700',
-                        'bg-accent-green': '#22C55E',
-                        'bg-accent-orange': '#F97316',
-                        'bg-accent-pink': '#EC4899',
-                        'bg-accent-purple': '#8B5CF6',
-                        'bg-gray-300': '#D1D5DB',
-                        'bg-gray-400': '#9CA3AF',
-                      }
-                      setColor(colorMap[cat.color] || '#FFD700')
-                    }
-                  }}
-                  className="input-brutal"
-                >
-                  {SCHEDULE_CATEGORIES.map((cat) => (
-                    <option key={cat.value} value={cat.value}>{cat.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-bold uppercase text-sm mb-2">Start Time</label>
-                  <select
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    className="input-brutal"
-                  >
-                    {TIME_OPTIONS.map((t) => (
-                      <option key={t.value} value={t.value}>{t.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-bold uppercase text-sm mb-2">End Time</label>
-                  <select
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    className="input-brutal"
-                  >
-                    {TIME_OPTIONS.map((t) => (
-                      <option key={t.value} value={t.value}>{t.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-bold uppercase text-sm mb-2">Link to Goal (Optional)</label>
-                <select
-                  value={goalId}
-                  onChange={(e) => setGoalId(e.target.value)}
-                  className="input-brutal"
-                >
-                  <option value="">No Goal</option>
-                  {goals.map((goal) => (
-                    <option key={goal.id} value={goal.id}>{goal.title}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex gap-4 pt-4">
-                <button type="button" onClick={onClose} className="flex-1 btn-brutal-secondary">
-                  Cancel
-                </button>
-                <button type="submit" disabled={isLoading} className="flex-1 btn-brutal-dark">
-                  {isLoading ? 'Saving...' : block ? 'Update' : 'Create'}
-                </button>
-              </div>
-            </form>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+          <DialogFooter className="pt-4 gap-4">
+            <button type="button" onClick={onClose} className="flex-1 btn-brutal-secondary">
+              Cancel
+            </button>
+            <button type="submit" disabled={isLoading} className="flex-1 btn-brutal-dark">
+              {isLoading ? 'Saving...' : block ? 'Update' : 'Create'}
+            </button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }

@@ -6,16 +6,68 @@
 
 @layer base {
   :root {
-    --background: 45 100% 94%;
-    --foreground: 0 0% 0%;
+    /* Exact match to original neo-brutalist palette */
+    --background: 48 96% 89%; /* #FEF3C7 */
+    --foreground: 0 0% 0%;    /* #000000 */
+    --card: 0 0% 100%;        /* #FFFFFF */
+    --card-foreground: 0 0% 0%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 51 100% 50%;   /* #FFD700 */
+    --primary-foreground: 0 0% 0%; /* black text on gold */
+    --secondary: 0 0% 0%;     /* #000000 */
+    --secondary-foreground: 0 0% 98%; /* near-white */
+    --muted: 48 96% 89%;      /* match background */
+    --muted-foreground: 0 0% 35%;
+    --accent: 48 96% 89%;     /* match background */
+    --accent-foreground: 0 0% 10%;
+    --destructive: 0 84% 60%; /* default red */
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 0%;        /* black outlines */
+    --input: 0 0% 0%;
+    --ring: 51 100% 50%;      /* gold focus ring */
+    --chart-1: 51 100% 50%;   /* gold */
+    --chart-2: 142 72% 47%;   /* #22C55E */
+    --chart-3: 25 95% 53%;    /* #F97316 */
+    --chart-4: 330 79% 59%;   /* #EC4899 */
+    --chart-5: 258 91% 67%;   /* #8B5CF6 */
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Dark theme aligned to the same palette (gold on near-black) */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 51 100% 50%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 20%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 80%;
+    --accent: 0 0% 18%;
+    --accent-foreground: 0 0% 90%;
+    --destructive: 0 62.8% 55%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 24%;
+    --input: 0 0% 24%;
+    --ring: 51 100% 50%;
+    --chart-1: 51 100% 50%;
+    --chart-2: 142 72% 47%;
+    --chart-3: 25 95% 53%;
+    --chart-4: 330 79% 59%;
+    --chart-5: 258 91% 67%;
   }
 
   * {
-    @apply border-secondary;
+    @apply border-border;
   }
 
   body {
-    @apply bg-brutalist-bg text-secondary font-sans antialiased;
+    @apply bg-background text-foreground font-sans antialiased;
   }
 
   /* Neo-brutalism selection */
