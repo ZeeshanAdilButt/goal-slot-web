@@ -1,48 +1,37 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { 
-  User, 
-  Bell, 
-  CreditCard, 
-  Shield, 
-  Download,
-  LogOut,
-  Check,
-  Crown,
-  Trash2,
-  Mail,
-  Key,
-  Globe
-} from 'lucide-react'
-import { useAuthStore } from '@/lib/store'
-import { usersApi, stripeApi } from '@/lib/api'
-import { toast } from 'react-hot-toast'
-import { cn } from '@/lib/utils'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+
+import { motion } from 'framer-motion'
+import { Bell, Check, CreditCard, Crown, Download, Globe, Key, LogOut, Mail, Shield, Trash2, User } from 'lucide-react'
+import { toast } from 'react-hot-toast'
+
+import { stripeApi, usersApi } from '@/lib/api'
+import { useAuthStore } from '@/lib/store'
+import { cn } from '@/lib/utils'
+
+const TABS = [
+  { id: 'profile', label: 'Profile', icon: User },
+  { id: 'notifications', label: 'Notifications', icon: Bell },
+  { id: 'billing', label: 'Billing', icon: CreditCard },
+  { id: 'security', label: 'Security', icon: Shield },
+  { id: 'data', label: 'Data & Privacy', icon: Download },
+]
 
 export default function SettingsPage() {
   const { user, logout, setUser } = useAuthStore()
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState('profile')
-  const [isLoading, setIsLoading] = useState(false)
-
-  const tabs = [
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'billing', label: 'Billing', icon: CreditCard },
-    { id: 'security', label: 'Security', icon: Shield },
-    { id: 'data', label: 'Data & Privacy', icon: Download },
-  ]
-
-  // Check URL hash for direct navigation
-  useEffect(() => {
-    const hash = window.location.hash.slice(1)
-    if (hash && tabs.some(t => t.id === hash)) {
-      setActiveTab(hash)
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.slice(1)
+      if (hash && TABS.some((t) => t.id === hash)) {
+        return hash
+      }
     }
-  }, [])
+    return 'profile'
+  })
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleLogout = () => {
     logout()
@@ -54,34 +43,32 @@ export default function SettingsPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-4xl font-display font-bold uppercase">Settings</h1>
-        <p className="font-mono text-gray-600 uppercase">Manage your account</p>
+        <h1 className="font-display text-4xl font-bold uppercase">Settings</h1>
+        <p className="font-mono uppercase text-gray-600">Manage your account</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
         {/* Sidebar */}
         <div className="lg:col-span-1">
-          <div className="card-brutal p-0 overflow-hidden">
-            {tabs.map((tab) => (
+          <div className="card-brutal overflow-hidden p-0">
+            {TABS.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
                   'w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-left border-b-2 border-secondary transition-all',
-                  activeTab === tab.id 
-                    ? 'bg-primary' 
-                    : 'hover:bg-gray-100'
+                  activeTab === tab.id ? 'bg-primary' : 'hover:bg-gray-100',
                 )}
               >
-                <tab.icon className="w-5 h-5" />
+                <tab.icon className="h-5 w-5" />
                 {tab.label}
               </button>
             ))}
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-left text-red-600 hover:bg-red-50"
+              className="flex w-full items-center gap-3 px-4 py-3 text-left font-bold uppercase text-red-600 hover:bg-red-50"
             >
-              <LogOut className="w-5 h-5" />
+              <LogOut className="h-5 w-5" />
               Logout
             </button>
           </div>
@@ -122,48 +109,30 @@ function ProfileSettings() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
-    >
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       <div className="card-brutal">
-        <h2 className="text-xl font-bold uppercase mb-6">Profile Information</h2>
+        <h2 className="mb-6 text-xl font-bold uppercase">Profile Information</h2>
 
         <div className="space-y-4">
           <div>
-            <label className="block font-bold uppercase text-sm mb-2">Full Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="input-brutal"
-            />
+            <label className="mb-2 block text-sm font-bold uppercase">Full Name</label>
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="input-brutal" />
           </div>
 
           <div>
-            <label className="block font-bold uppercase text-sm mb-2">Email Address</label>
+            <label className="mb-2 block text-sm font-bold uppercase">Email Address</label>
             <div className="flex gap-4">
-              <input
-                type="email"
-                value={email}
-                disabled
-                className="input-brutal flex-1 opacity-75"
-              />
-              <span className="px-4 py-3 bg-gray-100 border-3 border-secondary font-mono text-sm">
+              <input type="email" value={email} disabled className="input-brutal flex-1 opacity-75" />
+              <span className="border-3 border-secondary bg-gray-100 px-4 py-3 font-mono text-sm">
                 {user?.userType === 'SSO' ? 'SSO' : 'Verified'}
               </span>
             </div>
-            <p className="font-mono text-xs text-gray-500 mt-1">Email cannot be changed</p>
+            <p className="mt-1 font-mono text-xs text-gray-500">Email cannot be changed</p>
           </div>
 
           <div>
-            <label className="block font-bold uppercase text-sm mb-2">Timezone</label>
-            <select
-              value={timezone}
-              onChange={(e) => setTimezone(e.target.value)}
-              className="input-brutal"
-            >
+            <label className="mb-2 block text-sm font-bold uppercase">Timezone</label>
+            <select value={timezone} onChange={(e) => setTimezone(e.target.value)} className="input-brutal">
               <option value="UTC">UTC</option>
               <option value="America/New_York">Eastern Time (ET)</option>
               <option value="America/Chicago">Central Time (CT)</option>
@@ -186,12 +155,14 @@ function ProfileSettings() {
 
       {/* Account Type */}
       <div className="card-brutal">
-        <h2 className="text-xl font-bold uppercase mb-4">Account Type</h2>
+        <h2 className="mb-4 text-xl font-bold uppercase">Account Type</h2>
         <div className="flex items-center gap-4">
-          <div className={cn(
-            'px-4 py-2 font-bold uppercase border-3 border-secondary',
-            user?.plan === 'PREMIUM' ? 'bg-primary' : 'bg-gray-100'
-          )}>
+          <div
+            className={cn(
+              'px-4 py-2 font-bold uppercase border-3 border-secondary',
+              user?.plan === 'PREMIUM' ? 'bg-primary' : 'bg-gray-100',
+            )}
+          >
             {user?.plan === 'PREMIUM' ? '👑 Premium' : 'Free Plan'}
           </div>
           <div className="font-mono text-sm text-gray-600">
@@ -225,12 +196,8 @@ function NotificationSettings() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="card-brutal"
-    >
-      <h2 className="text-xl font-bold uppercase mb-6">Notification Preferences</h2>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="card-brutal">
+      <h2 className="mb-6 text-xl font-bold uppercase">Notification Preferences</h2>
 
       <div className="space-y-4">
         <NotificationToggle
@@ -265,12 +232,12 @@ function NotificationSettings() {
   )
 }
 
-function NotificationToggle({ 
-  label, 
-  description, 
-  checked, 
-  onChange, 
-  icon: Icon 
+function NotificationToggle({
+  label,
+  description,
+  checked,
+  onChange,
+  icon: Icon,
 }: {
   label: string
   description: string
@@ -279,9 +246,9 @@ function NotificationToggle({
   icon: any
 }) {
   return (
-    <div className="flex items-center justify-between p-4 border-2 border-secondary">
+    <div className="flex items-center justify-between border-2 border-secondary p-4">
       <div className="flex items-center gap-4">
-        <Icon className="w-5 h-5" />
+        <Icon className="h-5 w-5" />
         <div>
           <div className="font-bold uppercase">{label}</div>
           <div className="font-mono text-sm text-gray-600">{description}</div>
@@ -291,12 +258,12 @@ function NotificationToggle({
         onClick={() => onChange(!checked)}
         className={cn(
           'w-14 h-8 border-3 border-secondary relative transition-colors',
-          checked ? 'bg-primary' : 'bg-gray-200'
+          checked ? 'bg-primary' : 'bg-gray-200',
         )}
       >
         <motion.div
           animate={{ x: checked ? 22 : 2 }}
-          className="absolute top-1 w-5 h-5 bg-white border-2 border-secondary"
+          className="absolute top-1 h-5 w-5 border-2 border-secondary bg-white"
         />
       </button>
     </div>
@@ -334,29 +301,14 @@ function BillingSettings() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
-    >
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       {/* Current Plan */}
-      <div className={cn(
-        'card-brutal p-8',
-        user?.plan === 'PREMIUM' ? 'bg-primary' : 'bg-white'
-      )}>
-        <div className="flex items-center gap-4 mb-4">
-          {user?.plan === 'PREMIUM' ? (
-            <Crown className="w-10 h-10" />
-          ) : (
-            <CreditCard className="w-10 h-10" />
-          )}
+      <div className={cn('card-brutal p-8', user?.plan === 'PREMIUM' ? 'bg-primary' : 'bg-white')}>
+        <div className="mb-4 flex items-center gap-4">
+          {user?.plan === 'PREMIUM' ? <Crown className="h-10 w-10" /> : <CreditCard className="h-10 w-10" />}
           <div>
-            <h2 className="text-2xl font-bold uppercase">
-              {user?.plan === 'PREMIUM' ? 'Premium Plan' : 'Free Plan'}
-            </h2>
-            <p className="font-mono">
-              {user?.plan === 'PREMIUM' ? '$10/month' : '$0/month'}
-            </p>
+            <h2 className="text-2xl font-bold uppercase">{user?.plan === 'PREMIUM' ? 'Premium Plan' : 'Free Plan'}</h2>
+            <p className="font-mono">{user?.plan === 'PREMIUM' ? '$10/month' : '$0/month'}</p>
           </div>
         </div>
 
@@ -394,7 +346,7 @@ function BillingSettings() {
       {/* Premium Features */}
       {user?.plan === 'FREE' && (
         <div className="card-brutal">
-          <h3 className="text-xl font-bold uppercase mb-4">Premium Benefits</h3>
+          <h3 className="mb-4 text-xl font-bold uppercase">Premium Benefits</h3>
           <div className="space-y-3">
             {[
               'Unlimited schedule blocks',
@@ -406,7 +358,7 @@ function BillingSettings() {
               'Early access to new features',
             ].map((benefit, i) => (
               <div key={i} className="flex items-center gap-3">
-                <Check className="w-5 h-5 text-accent-green" />
+                <Check className="h-5 w-5 text-accent-green" />
                 <span className="font-mono">{benefit}</span>
               </div>
             ))}
@@ -450,21 +402,17 @@ function SecuritySettings() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
-    >
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       {user?.userType !== 'SSO' && (
         <div className="card-brutal">
-          <h2 className="text-xl font-bold uppercase mb-6 flex items-center gap-2">
-            <Key className="w-5 h-5" />
+          <h2 className="mb-6 flex items-center gap-2 text-xl font-bold uppercase">
+            <Key className="h-5 w-5" />
             Change Password
           </h2>
 
           <div className="space-y-4">
             <div>
-              <label className="block font-bold uppercase text-sm mb-2">Current Password</label>
+              <label className="mb-2 block text-sm font-bold uppercase">Current Password</label>
               <input
                 type="password"
                 value={currentPassword}
@@ -473,7 +421,7 @@ function SecuritySettings() {
               />
             </div>
             <div>
-              <label className="block font-bold uppercase text-sm mb-2">New Password</label>
+              <label className="mb-2 block text-sm font-bold uppercase">New Password</label>
               <input
                 type="password"
                 value={newPassword}
@@ -482,7 +430,7 @@ function SecuritySettings() {
               />
             </div>
             <div>
-              <label className="block font-bold uppercase text-sm mb-2">Confirm New Password</label>
+              <label className="mb-2 block text-sm font-bold uppercase">Confirm New Password</label>
               <input
                 type="password"
                 value={confirmPassword}
@@ -499,22 +447,23 @@ function SecuritySettings() {
 
       {user?.userType === 'SSO' && (
         <div className="card-brutal">
-          <h2 className="text-xl font-bold uppercase mb-4">SSO Authentication</h2>
+          <h2 className="mb-4 text-xl font-bold uppercase">SSO Authentication</h2>
           <p className="font-mono text-gray-600">
-            Your account is managed via DevWeekends SSO. Password changes should be made through your DevWeekends account.
+            Your account is managed via DevWeekends SSO. Password changes should be made through your DevWeekends
+            account.
           </p>
         </div>
       )}
 
       <div className="card-brutal">
-        <h2 className="text-xl font-bold uppercase mb-4">Active Sessions</h2>
-        <div className="p-4 border-2 border-secondary">
+        <h2 className="mb-4 text-xl font-bold uppercase">Active Sessions</h2>
+        <div className="border-2 border-secondary p-4">
           <div className="flex items-center justify-between">
             <div>
               <div className="font-bold">Current Session</div>
               <div className="font-mono text-sm text-gray-600">Windows • Chrome</div>
             </div>
-            <span className="px-3 py-1 bg-accent-green text-white font-mono text-sm">Active</span>
+            <span className="bg-accent-green px-3 py-1 font-mono text-sm text-white">Active</span>
           </div>
         </div>
       </div>
@@ -560,33 +509,29 @@ function DataSettings() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
-    >
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       <div className="card-brutal">
-        <h2 className="text-xl font-bold uppercase mb-6">Export Your Data</h2>
-        <p className="font-mono text-gray-600 mb-4">
+        <h2 className="mb-6 text-xl font-bold uppercase">Export Your Data</h2>
+        <p className="mb-4 font-mono text-gray-600">
           Download all your data including goals, time entries, schedules, and reports.
         </p>
         <button onClick={handleExportData} disabled={isExporting} className="btn-brutal flex items-center gap-2">
-          <Download className="w-5 h-5" />
+          <Download className="h-5 w-5" />
           {isExporting ? 'Preparing...' : 'Export All Data'}
         </button>
       </div>
 
       <div className="card-brutal border-red-500">
-        <h2 className="text-xl font-bold uppercase mb-4 text-red-600">Danger Zone</h2>
-        <p className="font-mono text-gray-600 mb-4">
+        <h2 className="mb-4 text-xl font-bold uppercase text-red-600">Danger Zone</h2>
+        <p className="mb-4 font-mono text-gray-600">
           Once you delete your account, there is no going back. Please be certain.
         </p>
         <button
           onClick={handleDeleteAccount}
           disabled={isDeleting}
-          className="px-6 py-3 bg-red-500 text-white font-bold uppercase border-3 border-secondary shadow-brutal hover:shadow-brutal-hover active:translate-x-brutal active:translate-y-brutal active:shadow-none transition-all flex items-center gap-2"
+          className="active:translate-x-brutal active:translate-y-brutal flex items-center gap-2 border-3 border-secondary bg-red-500 px-6 py-3 font-bold uppercase text-white shadow-brutal transition-all hover:shadow-brutal-hover active:shadow-none"
         >
-          <Trash2 className="w-5 h-5" />
+          <Trash2 className="h-5 w-5" />
           {isDeleting ? 'Deleting...' : 'Delete Account'}
         </button>
       </div>

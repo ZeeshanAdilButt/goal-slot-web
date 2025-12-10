@@ -32,17 +32,14 @@ api.interceptors.response.use(
       }
     }
     return Promise.reject(error)
-  }
+  },
 )
 
 // Auth API
 export const authApi = {
-  register: (data: { email: string; password: string; name: string }) =>
-    api.post('/auth/register', data),
-  login: (data: { email: string; password: string }) =>
-    api.post('/auth/login', data),
-  ssoLogin: (data: { token: string; email: string; name?: string }) =>
-    api.post('/auth/sso', data),
+  register: (data: { email: string; password: string; name: string }) => api.post('/auth/register', data),
+  login: (data: { email: string; password: string }) => api.post('/auth/login', data),
+  ssoLogin: (data: { token: string; email: string; name?: string }) => api.post('/auth/sso', data),
   getProfile: () => api.get('/auth/me'),
   refresh: () => api.post('/auth/refresh'),
 }
@@ -60,9 +57,9 @@ export const goalsApi = {
 // Time Entries API
 export const timeEntriesApi = {
   getByWeek: (weekStart: string) => api.get('/time-entries/week', { params: { weekStart } }),
-  getByRange: (startDate: string, endDate: string) => 
+  getByRange: (startDate: string, endDate: string) =>
     api.get('/time-entries/range', { params: { startDate, endDate } }),
-  getByDateRange: (startDate: string, endDate: string) => 
+  getByDateRange: (startDate: string, endDate: string) =>
     api.get('/time-entries/range', { params: { startDate, endDate } }),
   getToday: () => api.get('/time-entries/today'),
   getWeeklyTotal: () => api.get('/time-entries/weekly-total'),
@@ -89,8 +86,7 @@ export const reportsApi = {
   getWeeklySummary: (weekOffset?: number) => api.get('/reports/weekly-summary', { params: { weekOffset } }),
   getGoalsProgress: () => api.get('/reports/goals-progress'),
   getGoalProgress: () => api.get('/reports/goal-progress'),
-  getMonthly: (year: number, month: number) => 
-    api.get('/reports/monthly', { params: { year, month } }),
+  getMonthly: (year: number, month: number) => api.get('/reports/monthly', { params: { year, month } }),
 }
 
 // Tasks API
@@ -133,11 +129,10 @@ export const stripeApi = {
 export const usersApi = {
   getProfile: () => api.get('/users/profile'),
   updateProfile: (data: { name?: string; avatar?: string; preferences?: any }) => api.put('/users/profile', data),
-  changePassword: (currentPassword: string, newPassword: string) => 
+  changePassword: (currentPassword: string, newPassword: string) =>
     api.put('/users/password', { currentPassword, newPassword }),
   deleteAccount: () => api.delete('/users/account'),
-  listUsers: (page?: number, limit?: number) => 
-    api.get('/users/admin/list', { params: { page, limit } }),
+  listUsers: (page?: number, limit?: number) => api.get('/users/admin/list', { params: { page, limit } }),
   createInternal: (data: { email: string; password: string; name: string; role?: string }) =>
     api.post('/users/admin/internal', data),
   grantAccess: (userId: string) => api.post(`/users/admin/grant-access/${userId}`),

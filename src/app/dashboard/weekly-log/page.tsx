@@ -1,22 +1,15 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  Plus, 
-  X, 
-  Clock,
-  Target,
-  Edit2,
-  Trash2,
-  Calendar
-} from 'lucide-react'
-import { timeEntriesApi, goalsApi } from '@/lib/api'
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useEffect, useMemo, useState } from 'react'
+
+import { AnimatePresence, motion } from 'framer-motion'
+import { Calendar, ChevronLeft, ChevronRight, Clock, Edit2, Plus, Target, Trash2, X } from 'lucide-react'
 import { toast } from 'react-hot-toast'
-import { cn, formatDuration, formatDate, getWeekDates, TASK_CATEGORIES, getCategoryColor } from '@/lib/utils'
+
+import { goalsApi, timeEntriesApi } from '@/lib/api'
 import { useHasProAccess } from '@/lib/store'
+import { cn, formatDate, formatDuration, getCategoryColor, getWeekDates, TASK_CATEGORIES } from '@/lib/utils'
 
 interface TimeEntry {
   id: string
@@ -66,24 +59,24 @@ export default function WeeklyLogPage() {
     try {
       const startDate = weekDates.start.toISOString().split('T')[0]
       const endDate = weekDates.end.toISOString().split('T')[0]
-      
+
       const [entriesRes, goalsRes] = await Promise.all([
         timeEntriesApi.getByRange(startDate, endDate),
         goalsApi.getAll('ACTIVE'),
       ])
-      
+
       // Group entries by date
       const grouped: WeekData = {}
-      weekDates.days.forEach(day => {
+      weekDates.days.forEach((day) => {
         grouped[day.toISOString().split('T')[0]] = []
       })
-      
+
       entriesRes.data.forEach((entry: TimeEntry) => {
         if (grouped[entry.date]) {
           grouped[entry.date].push(entry)
         }
       })
-      
+
       setWeekData(grouped)
       setGoals(goalsRes.data)
     } catch (error) {
@@ -100,7 +93,7 @@ export default function WeeklyLogPage() {
       toast.error('Free plan limit: 3 entries per day. Upgrade to Pro for unlimited!')
       return
     }
-    
+
     setSelectedDate(date)
     setEditingEntry(null)
     setShowEntryModal(true)
@@ -114,7 +107,7 @@ export default function WeeklyLogPage() {
 
   const handleDeleteEntry = async (id: string) => {
     if (!confirm('Delete this entry?')) return
-    
+
     try {
       await timeEntriesApi.delete(id)
       toast.success('Entry deleted')
@@ -153,14 +146,14 @@ export default function WeeklyLogPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-display font-bold uppercase">Weekly Log</h1>
-          <p className="font-mono text-gray-600 uppercase">Track your time day by day</p>
+          <h1 className="font-display text-4xl font-bold uppercase">Weekly Log</h1>
+          <p className="font-mono uppercase text-gray-600">Track your time day by day</p>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="card-brutal-sm py-2 px-4 bg-primary">
+          <div className="card-brutal-sm bg-primary px-4 py-2">
             <span className="font-mono font-bold">{formatDuration(weeklyTotal)}</span>
-            <span className="text-xs uppercase ml-1">this week</span>
+            <span className="ml-1 text-xs uppercase">this week</span>
           </div>
         </div>
       </div>
@@ -169,15 +162,19 @@ export default function WeeklyLogPage() {
       <div className="card-brutal">
         <div className="flex items-center justify-between">
           <button
-            onClick={() => setWeekOffset(w => w - 1)}
-            className="w-12 h-12 border-3 border-secondary flex items-center justify-center hover:bg-gray-100 transition-colors"
+            onClick={() => setWeekOffset((w) => w - 1)}
+            className="flex h-12 w-12 items-center justify-center border-3 border-secondary transition-colors hover:bg-gray-100"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="h-6 w-6" />
           </button>
-          
+
           <div className="text-center">
             <div className="text-2xl font-bold uppercase">
-              {weekOffset === 0 ? 'This Week' : weekOffset === -1 ? 'Last Week' : `${Math.abs(weekOffset)} Weeks ${weekOffset < 0 ? 'Ago' : 'Ahead'}`}
+              {weekOffset === 0
+                ? 'This Week'
+                : weekOffset === -1
+                  ? 'Last Week'
+                  : `${Math.abs(weekOffset)} Weeks ${weekOffset < 0 ? 'Ago' : 'Ahead'}`}
             </div>
             <div className="font-mono text-gray-600">
               {formatDate(weekDates.start, 'MMM d')} - {formatDate(weekDates.end, 'MMM d, yyyy')}
@@ -185,10 +182,10 @@ export default function WeeklyLogPage() {
           </div>
 
           <button
-            onClick={() => setWeekOffset(w => w + 1)}
-            className="w-12 h-12 border-3 border-secondary flex items-center justify-center hover:bg-gray-100 transition-colors"
+            onClick={() => setWeekOffset((w) => w + 1)}
+            className="flex h-12 w-12 items-center justify-center border-3 border-secondary transition-colors hover:bg-gray-100"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronRight className="h-6 w-6" />
           </button>
         </div>
       </div>
@@ -209,17 +206,17 @@ export default function WeeklyLogPage() {
 
       {/* Weekly Grid */}
       {isLoading ? (
-        <div className="h-96 flex items-center justify-center">
-          <div className="animate-spin w-12 h-12 border-4 border-secondary border-t-primary" />
+        <div className="flex h-96 items-center justify-center">
+          <div className="h-12 w-12 animate-spin border-4 border-secondary border-t-primary" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-7">
           {weekDates.days.map((day) => {
             const dateStr = day.toISOString().split('T')[0]
             const entries = weekData[dateStr] || []
             const dayTotal = dailyTotals[dateStr] || 0
             const today = isToday(day)
-            
+
             return (
               <motion.div
                 key={dateStr}
@@ -227,29 +224,20 @@ export default function WeeklyLogPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className={cn(
                   'card-brutal p-0 overflow-hidden flex flex-col',
-                  today && 'ring-4 ring-primary ring-offset-2'
+                  today && 'ring-4 ring-primary ring-offset-2',
                 )}
               >
                 {/* Day Header */}
-                <div className={cn(
-                  'p-3 border-b-3 border-secondary',
-                  today ? 'bg-primary' : 'bg-gray-100'
-                )}>
+                <div className={cn('p-3 border-b-3 border-secondary', today ? 'bg-primary' : 'bg-gray-100')}>
                   <div className="text-center">
-                    <div className="font-bold uppercase text-sm">
-                      {formatDate(day, 'EEE')}
-                    </div>
-                    <div className="font-mono text-lg font-bold">
-                      {formatDate(day, 'd')}
-                    </div>
-                    <div className="font-mono text-xs text-gray-600">
-                      {formatDuration(dayTotal)}
-                    </div>
+                    <div className="text-sm font-bold uppercase">{formatDate(day, 'EEE')}</div>
+                    <div className="font-mono text-lg font-bold">{formatDate(day, 'd')}</div>
+                    <div className="font-mono text-xs text-gray-600">{formatDuration(dayTotal)}</div>
                   </div>
                 </div>
 
                 {/* Entries */}
-                <div className="flex-1 p-2 space-y-2 min-h-[200px] bg-white">
+                <div className="min-h-[200px] flex-1 space-y-2 bg-white p-2">
                   <AnimatePresence>
                     {entries.map((entry) => (
                       <motion.div
@@ -257,31 +245,30 @@ export default function WeeklyLogPage() {
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.9 }}
-                        className="p-2 border-2 border-secondary bg-white hover:shadow-brutal-sm transition-all cursor-pointer group"
+                        className="group cursor-pointer border-2 border-secondary bg-white p-2 transition-all hover:shadow-brutal-sm"
                         onClick={() => handleEditEntry(entry)}
                       >
                         <div className="flex items-start justify-between gap-1">
-                          <div className="flex-1 min-w-0">
+                          <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1">
                               <div className={cn('w-2 h-2 flex-shrink-0', getCategoryColor(entry.category))} />
-                              <span className="font-bold text-xs truncate uppercase">
-                                {entry.title}
-                              </span>
+                              <span className="truncate text-xs font-bold uppercase">{entry.title}</span>
                             </div>
-                            <div className="font-mono text-xs text-gray-600 mt-1">
-                              {formatDuration(entry.duration)}
-                            </div>
+                            <div className="mt-1 font-mono text-xs text-gray-600">{formatDuration(entry.duration)}</div>
                             {entry.goal && (
-                              <div className="font-mono text-[10px] text-gray-500 truncate mt-0.5">
+                              <div className="mt-0.5 truncate font-mono text-[10px] text-gray-500">
                                 → {entry.goal.title}
                               </div>
                             )}
                           </div>
                           <button
-                            onClick={(e) => { e.stopPropagation(); handleDeleteEntry(entry.id) }}
-                            className="w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-100 transition-all"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDeleteEntry(entry.id)
+                            }}
+                            className="flex h-5 w-5 items-center justify-center opacity-0 transition-all hover:bg-red-100 group-hover:opacity-100"
                           >
-                            <X className="w-3 h-3" />
+                            <X className="h-3 w-3" />
                           </button>
                         </div>
                       </motion.div>
@@ -292,9 +279,9 @@ export default function WeeklyLogPage() {
                 {/* Add Button */}
                 <button
                   onClick={() => handleAddEntry(dateStr)}
-                  className="w-full p-2 border-t-2 border-secondary bg-gray-50 hover:bg-primary transition-colors flex items-center justify-center gap-1 font-bold text-sm uppercase"
+                  className="flex w-full items-center justify-center gap-1 border-t-2 border-secondary bg-gray-50 p-2 text-sm font-bold uppercase transition-colors hover:bg-primary"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="h-4 w-4" />
                   Add
                 </button>
               </motion.div>
@@ -304,7 +291,7 @@ export default function WeeklyLogPage() {
       )}
 
       {/* Category Legend */}
-      <div className="flex flex-wrap gap-4 justify-center">
+      <div className="flex flex-wrap justify-center gap-4">
         {TASK_CATEGORIES.map((cat) => (
           <div key={cat.value} className="flex items-center gap-2">
             <div className={cn('w-3 h-3 border border-secondary', cat.color)} />
@@ -424,27 +411,24 @@ function TimeEntryModal({
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="modal-brutal w-full max-w-md relative z-10"
+            className="modal-brutal relative z-10 w-full max-w-md"
           >
-            <div className="flex items-center justify-between mb-6">
+            <div className="mb-6 flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold uppercase">
-                  {entry ? 'Edit Entry' : 'New Entry'}
-                </h2>
-                {date && (
-                  <p className="font-mono text-sm text-gray-600">
-                    {formatDate(date, 'EEEE, MMM d')}
-                  </p>
-                )}
+                <h2 className="text-2xl font-bold uppercase">{entry ? 'Edit Entry' : 'New Entry'}</h2>
+                {date && <p className="font-mono text-sm text-gray-600">{formatDate(date, 'EEEE, MMM d')}</p>}
               </div>
-              <button onClick={onClose} className="w-10 h-10 border-3 border-secondary flex items-center justify-center hover:bg-gray-100">
-                <X className="w-5 h-5" />
+              <button
+                onClick={onClose}
+                className="flex h-10 w-10 items-center justify-center border-3 border-secondary hover:bg-gray-100"
+              >
+                <X className="h-5 w-5" />
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block font-bold uppercase text-sm mb-2">Task Title</label>
+                <label className="mb-2 block text-sm font-bold uppercase">Task Title</label>
                 <input
                   type="text"
                   value={title}
@@ -456,7 +440,7 @@ function TimeEntryModal({
               </div>
 
               <div>
-                <label className="block font-bold uppercase text-sm mb-2">Description (Optional)</label>
+                <label className="mb-2 block text-sm font-bold uppercase">Description (Optional)</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -467,8 +451,8 @@ function TimeEntryModal({
               </div>
 
               <div>
-                <label className="block font-bold uppercase text-sm mb-2">Duration (minutes)</label>
-                <div className="flex gap-2 flex-wrap">
+                <label className="mb-2 block text-sm font-bold uppercase">Duration (minutes)</label>
+                <div className="flex flex-wrap gap-2">
                   {[15, 30, 45, 60, 90, 120].map((min) => (
                     <button
                       key={min}
@@ -476,7 +460,7 @@ function TimeEntryModal({
                       onClick={() => setDuration(min)}
                       className={cn(
                         'px-3 py-2 border-2 border-secondary font-mono text-sm transition-all',
-                        duration === min ? 'bg-primary shadow-brutal-sm' : 'bg-white hover:bg-gray-100'
+                        duration === min ? 'bg-primary shadow-brutal-sm' : 'bg-white hover:bg-gray-100',
                       )}
                     >
                       {min}m
@@ -495,7 +479,7 @@ function TimeEntryModal({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold uppercase text-sm mb-2">Start Time</label>
+                  <label className="mb-2 block text-sm font-bold uppercase">Start Time</label>
                   <input
                     type="time"
                     value={startTime}
@@ -504,7 +488,7 @@ function TimeEntryModal({
                   />
                 </div>
                 <div>
-                  <label className="block font-bold uppercase text-sm mb-2">End Time</label>
+                  <label className="mb-2 block text-sm font-bold uppercase">End Time</label>
                   <input
                     type="time"
                     value={endTime}
@@ -515,7 +499,7 @@ function TimeEntryModal({
               </div>
 
               <div>
-                <label className="block font-bold uppercase text-sm mb-2">Category</label>
+                <label className="mb-2 block text-sm font-bold uppercase">Category</label>
                 <div className="grid grid-cols-4 gap-2">
                   {TASK_CATEGORIES.map((cat) => (
                     <button
@@ -524,7 +508,7 @@ function TimeEntryModal({
                       onClick={() => setCategory(cat.value)}
                       className={cn(
                         'p-2 border-2 border-secondary text-xs font-bold uppercase transition-all',
-                        category === cat.value ? `${cat.color} shadow-brutal-sm` : 'bg-white hover:bg-gray-100'
+                        category === cat.value ? `${cat.color} shadow-brutal-sm` : 'bg-white hover:bg-gray-100',
                       )}
                     >
                       {cat.label}
@@ -534,24 +518,22 @@ function TimeEntryModal({
               </div>
 
               <div>
-                <label className="block font-bold uppercase text-sm mb-2">Link to Goal (Optional)</label>
-                <select
-                  value={goalId}
-                  onChange={(e) => setGoalId(e.target.value)}
-                  className="input-brutal"
-                >
+                <label className="mb-2 block text-sm font-bold uppercase">Link to Goal (Optional)</label>
+                <select value={goalId} onChange={(e) => setGoalId(e.target.value)} className="input-brutal">
                   <option value="">No Goal</option>
                   {goals.map((goal) => (
-                    <option key={goal.id} value={goal.id}>{goal.title}</option>
+                    <option key={goal.id} value={goal.id}>
+                      {goal.title}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div className="flex gap-4 pt-4">
-                <button type="button" onClick={onClose} className="flex-1 btn-brutal-secondary">
+                <button type="button" onClick={onClose} className="btn-brutal-secondary flex-1">
                   Cancel
                 </button>
-                <button type="submit" disabled={isLoading} className="flex-1 btn-brutal-dark">
+                <button type="submit" disabled={isLoading} className="btn-brutal-dark flex-1">
                   {isLoading ? 'Saving...' : entry ? 'Update' : 'Add Entry'}
                 </button>
               </div>
