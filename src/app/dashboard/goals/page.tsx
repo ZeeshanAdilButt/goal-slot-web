@@ -1,16 +1,16 @@
 'use client'
 
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Plus, Target, Edit2, Trash2, X, Calendar,
-  CheckCircle, PauseCircle, Clock
-} from 'lucide-react'
+
 import { format } from 'date-fns'
-import { goalsApi } from '@/lib/api'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Calendar, CheckCircle, Clock, Edit2, PauseCircle, Plus, Target, Trash2, X } from 'lucide-react'
 import { toast } from 'react-hot-toast'
-import { cn, GOAL_CATEGORIES, COLOR_OPTIONS, getCategoryColor, getProgressColor } from '@/lib/utils'
+
+import { goalsApi } from '@/lib/api'
 import { useHasProAccess } from '@/lib/store'
+import { cn, COLOR_OPTIONS, getCategoryColor, getProgressColor, GOAL_CATEGORIES } from '@/lib/utils'
 
 interface Goal {
   id: string
@@ -70,9 +70,9 @@ export default function GoalsPage() {
   }
 
   const stats = {
-    active: goals.filter(g => g.status === 'ACTIVE').length,
-    completed: goals.filter(g => g.status === 'COMPLETED').length,
-    paused: goals.filter(g => g.status === 'PAUSED').length,
+    active: goals.filter((g) => g.status === 'ACTIVE').length,
+    completed: goals.filter((g) => g.status === 'COMPLETED').length,
+    paused: goals.filter((g) => g.status === 'PAUSED').length,
   }
 
   return (
@@ -80,15 +80,12 @@ export default function GoalsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-display font-bold uppercase">Goals</h1>
-          <p className="font-mono text-gray-600 uppercase">Track your objectives and targets</p>
+          <h1 className="font-display text-4xl font-bold uppercase">Goals</h1>
+          <p className="font-mono uppercase text-gray-600">Track your objectives and targets</p>
         </div>
 
-        <button 
-          onClick={() => setShowModal(true)}
-          className="btn-brutal flex items-center gap-2"
-        >
-          <Plus className="w-5 h-5" />
+        <button onClick={() => setShowModal(true)} className="btn-brutal flex items-center gap-2">
+          <Plus className="h-5 w-5" />
           New Goal
         </button>
       </div>
@@ -100,11 +97,8 @@ export default function GoalsPage() {
           { label: 'Completed', value: stats.completed, color: 'bg-accent-blue' },
           { label: 'Paused', value: stats.paused, color: 'bg-primary' },
         ].map((stat) => (
-          <div 
-            key={stat.label}
-            className={`${stat.color} border-3 border-secondary shadow-brutal p-6 text-center`}
-          >
-            <div className="text-4xl font-bold font-mono">{stat.value}</div>
+          <div key={stat.label} className={`${stat.color} border-3 border-secondary p-6 text-center shadow-brutal`}>
+            <div className="font-mono text-4xl font-bold">{stat.value}</div>
             <div className="font-bold uppercase">{stat.label}</div>
           </div>
         ))}
@@ -118,9 +112,7 @@ export default function GoalsPage() {
             onClick={() => setFilter(status)}
             className={cn(
               'px-4 py-2 font-bold uppercase text-sm border-3 border-secondary transition-all',
-              filter === status 
-                ? 'bg-secondary text-white' 
-                : 'bg-white hover:bg-gray-100'
+              filter === status ? 'bg-secondary text-white' : 'bg-white hover:bg-gray-100',
             )}
           >
             {status}
@@ -132,21 +124,21 @@ export default function GoalsPage() {
       {isLoading ? (
         <div className="grid grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-48 bg-gray-200 animate-pulse" />
+            <div key={i} className="h-48 animate-pulse bg-gray-200" />
           ))}
         </div>
       ) : goals.length === 0 ? (
-        <div className="card-brutal text-center py-16">
-          <Target className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-          <h3 className="font-bold uppercase text-xl mb-2">No {filter.toLowerCase()} Goals</h3>
-          <p className="font-mono text-gray-600 mb-6">
-            {filter === 'ACTIVE' 
-              ? "Create your first goal to start tracking your progress"
+        <div className="card-brutal py-16 text-center">
+          <Target className="mx-auto mb-4 h-16 w-16 text-gray-400" />
+          <h3 className="mb-2 text-xl font-bold uppercase">No {filter.toLowerCase()} Goals</h3>
+          <p className="mb-6 font-mono text-gray-600">
+            {filter === 'ACTIVE'
+              ? 'Create your first goal to start tracking your progress'
               : `No ${filter.toLowerCase()} goals yet`}
           </p>
           {filter === 'ACTIVE' && (
             <button onClick={() => setShowModal(true)} className="btn-brutal">
-              <Plus className="w-4 h-4 mr-2 inline" />
+              <Plus className="mr-2 inline h-4 w-4" />
               Create Goal
             </button>
           )}
@@ -154,9 +146,8 @@ export default function GoalsPage() {
       ) : (
         <div className="grid grid-cols-3 gap-6">
           {goals.map((goal, i) => {
-            const progress = goal.targetHours > 0 
-              ? Math.min(100, Math.round((goal.loggedHours / goal.targetHours) * 100))
-              : 0
+            const progress =
+              goal.targetHours > 0 ? Math.min(100, Math.round((goal.loggedHours / goal.targetHours) * 100)) : 0
 
             return (
               <motion.div
@@ -168,52 +159,50 @@ export default function GoalsPage() {
                 style={{ backgroundColor: goal.color + '40', borderLeftColor: goal.color, borderLeftWidth: '8px' }}
               >
                 {/* Actions */}
-                <div className="absolute top-4 right-4 flex gap-2">
+                <div className="absolute right-4 top-4 flex gap-2">
                   <button
                     onClick={() => handleEdit(goal)}
-                    className="w-8 h-8 bg-white border-2 border-secondary flex items-center justify-center hover:bg-gray-100 transition-colors"
+                    className="flex h-8 w-8 items-center justify-center border-2 border-secondary bg-white transition-colors hover:bg-gray-100"
                   >
-                    <Edit2 className="w-4 h-4" />
+                    <Edit2 className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(goal.id)}
-                    className="w-8 h-8 bg-white border-2 border-secondary flex items-center justify-center hover:bg-red-100 transition-colors text-red-500"
+                    className="flex h-8 w-8 items-center justify-center border-2 border-secondary bg-white text-red-500 transition-colors hover:bg-red-100"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
 
                 {/* Status Badge */}
-                <span className={cn(
-                  'badge-brutal text-xs',
-                  goal.status === 'ACTIVE' ? 'bg-accent-green text-white' :
-                  goal.status === 'COMPLETED' ? 'bg-accent-blue text-white' :
-                  'bg-gray-300'
-                )}>
+                <span
+                  className={cn(
+                    'badge-brutal text-xs',
+                    goal.status === 'ACTIVE'
+                      ? 'bg-accent-green text-white'
+                      : goal.status === 'COMPLETED'
+                        ? 'bg-accent-blue text-white'
+                        : 'bg-gray-300',
+                  )}
+                >
                   {goal.status}
                 </span>
 
                 {/* Title & Category */}
-                <h3 className="font-bold uppercase text-lg mt-3">{goal.title}</h3>
-                <span className="font-mono text-sm text-gray-600 uppercase">{goal.category}</span>
+                <h3 className="mt-3 text-lg font-bold uppercase">{goal.title}</h3>
+                <span className="font-mono text-sm uppercase text-gray-600">{goal.category}</span>
 
                 {/* Description */}
-                {goal.description && (
-                  <p className="font-mono text-sm mt-2 text-gray-700">{goal.description}</p>
-                )}
+                {goal.description && <p className="mt-2 font-mono text-sm text-gray-700">{goal.description}</p>}
 
                 {/* Progress */}
                 <div className="mt-4 flex items-center gap-3">
-                  <span className="font-mono text-sm font-bold">
-                    {goal.loggedHours.toFixed(1)}h logged
-                  </span>
-                  <span className="font-mono text-sm text-gray-500">
-                    {goal.targetHours}h target
-                  </span>
+                  <span className="font-mono text-sm font-bold">{goal.loggedHours.toFixed(1)}h logged</span>
+                  <span className="font-mono text-sm text-gray-500">{goal.targetHours}h target</span>
                 </div>
 
-                <div className="mt-2 progress-brutal">
-                  <div 
+                <div className="progress-brutal mt-2">
+                  <div
                     className={`progress-brutal-fill ${getProgressColor(progress)}`}
                     style={{ width: `${progress}%` }}
                   />
@@ -222,8 +211,8 @@ export default function GoalsPage() {
                 {/* Deadline */}
                 {goal.deadline && (
                   <div className="mt-4 flex items-center gap-2">
-                    <span className="font-bold text-xs uppercase">Deadline:</span>
-                    <span className="badge-brutal bg-secondary text-white text-xs">
+                    <span className="text-xs font-bold uppercase">Deadline:</span>
+                    <span className="badge-brutal bg-secondary text-xs text-white">
                       {format(new Date(goal.deadline), 'MMM d, yyyy')}
                     </span>
                   </div>
@@ -250,23 +239,18 @@ export default function GoalsPage() {
       )}
 
       {/* Create/Edit Modal */}
-      <GoalModal 
-        isOpen={showModal}
-        onClose={handleCloseModal}
-        onSuccess={loadGoals}
-        goal={editingGoal}
-      />
+      <GoalModal isOpen={showModal} onClose={handleCloseModal} onSuccess={loadGoals} goal={editingGoal} />
     </div>
   )
 }
 
 // Goal Modal Component
-function GoalModal({ 
-  isOpen, 
-  onClose, 
+function GoalModal({
+  isOpen,
+  onClose,
   onSuccess,
-  goal 
-}: { 
+  goal,
+}: {
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
@@ -357,25 +341,23 @@ function GoalModal({
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="modal-brutal w-full max-w-lg relative z-10"
+            className="modal-brutal relative z-10 w-full max-w-lg"
           >
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold uppercase">
-                {goal ? 'Edit Goal' : 'New Goal'}
-              </h2>
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-2xl font-bold uppercase">{goal ? 'Edit Goal' : 'New Goal'}</h2>
               <button
                 onClick={onClose}
-                className="w-10 h-10 border-3 border-secondary flex items-center justify-center hover:bg-gray-100"
+                className="flex h-10 w-10 items-center justify-center border-3 border-secondary hover:bg-gray-100"
               >
-                <X className="w-5 h-5" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Title */}
               <div>
-                <label className="block font-bold uppercase text-sm mb-2">Goal Title</label>
+                <label className="mb-2 block text-sm font-bold uppercase">Goal Title</label>
                 <input
                   type="text"
                   value={title}
@@ -388,7 +370,7 @@ function GoalModal({
 
               {/* Description */}
               <div>
-                <label className="block font-bold uppercase text-sm mb-2">Description</label>
+                <label className="mb-2 block text-sm font-bold uppercase">Description</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -401,26 +383,20 @@ function GoalModal({
               {/* Category & Status */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold uppercase text-sm mb-2">Category</label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="input-brutal"
-                  >
+                  <label className="mb-2 block text-sm font-bold uppercase">Category</label>
+                  <select value={category} onChange={(e) => setCategory(e.target.value)} className="input-brutal">
                     {GOAL_CATEGORIES.map((cat) => (
-                      <option key={cat.value} value={cat.value}>{cat.label}</option>
+                      <option key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 {goal && (
                   <div>
-                    <label className="block font-bold uppercase text-sm mb-2">Status</label>
-                    <select
-                      value={status}
-                      onChange={(e) => setStatus(e.target.value)}
-                      className="input-brutal"
-                    >
+                    <label className="mb-2 block text-sm font-bold uppercase">Status</label>
+                    <select value={status} onChange={(e) => setStatus(e.target.value)} className="input-brutal">
                       <option value="ACTIVE">Active</option>
                       <option value="COMPLETED">Completed</option>
                       <option value="PAUSED">Paused</option>
@@ -432,7 +408,7 @@ function GoalModal({
               {/* Target Hours & Deadline */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold uppercase text-sm mb-2">Target Hours</label>
+                  <label className="mb-2 block text-sm font-bold uppercase">Target Hours</label>
                   <input
                     type="number"
                     value={targetHours}
@@ -445,7 +421,7 @@ function GoalModal({
                 </div>
 
                 <div>
-                  <label className="block font-bold uppercase text-sm mb-2">Deadline</label>
+                  <label className="mb-2 block text-sm font-bold uppercase">Deadline</label>
                   <input
                     type="date"
                     value={deadline}
@@ -457,7 +433,7 @@ function GoalModal({
 
               {/* Color */}
               <div>
-                <label className="block font-bold uppercase text-sm mb-2">Color</label>
+                <label className="mb-2 block text-sm font-bold uppercase">Color</label>
                 <div className="flex gap-2">
                   {COLOR_OPTIONS.map((c) => (
                     <button
@@ -466,7 +442,7 @@ function GoalModal({
                       onClick={() => setColor(c)}
                       className={cn(
                         'w-10 h-10 border-3 border-secondary transition-transform',
-                        color === c && 'scale-110 shadow-brutal-sm'
+                        color === c && 'scale-110 shadow-brutal-sm',
                       )}
                       style={{ backgroundColor: c }}
                     />
@@ -476,18 +452,10 @@ function GoalModal({
 
               {/* Actions */}
               <div className="flex gap-4 pt-4">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex-1 btn-brutal-secondary"
-                >
+                <button type="button" onClick={onClose} className="btn-brutal-secondary flex-1">
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="flex-1 btn-brutal-dark"
-                >
+                <button type="submit" disabled={isLoading} className="btn-brutal-dark flex-1">
                   {isLoading ? 'Saving...' : goal ? 'Update' : 'Create'}
                 </button>
               </div>

@@ -1,24 +1,25 @@
 'use client'
 
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from 'react'
-
-import { reportsApi } from '@/lib/api'
-import { toast } from 'react-hot-toast'
-import { cn, formatDuration, TASK_CATEGORIES, getCategoryColor } from '@/lib/utils'
 
 import { motion } from 'framer-motion'
 import {
+  Activity,
   BarChart3,
-  PieChart,
-  TrendingUp,
   Calendar,
-  Clock,
-  Target,
-  Download,
   ChevronLeft,
   ChevronRight,
-  Activity,
+  Clock,
+  Download,
+  PieChart,
+  Target,
+  TrendingUp,
 } from 'lucide-react'
+import { toast } from 'react-hot-toast'
+
+import { reportsApi } from '@/lib/api'
+import { cn, formatDuration, getCategoryColor, TASK_CATEGORIES } from '@/lib/utils'
 
 interface DailySummary {
   date: string
@@ -51,6 +52,7 @@ export default function ReportsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedWeek, setSelectedWeek] = useState(0) // 0 = current week, -1 = last week, etc.
 
+   
   useEffect(() => {
     loadReports()
   }, [selectedWeek])

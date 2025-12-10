@@ -1,22 +1,13 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Play, 
-  Pause, 
-  Square, 
-  RefreshCw, 
-  Clock, 
-  Plus,
-  Target,
-  Calendar,
-  Timer,
-  History
-} from 'lucide-react'
-import { timeEntriesApi, goalsApi } from '@/lib/api'
+import { useEffect, useRef, useState } from 'react'
+
+import { AnimatePresence, motion } from 'framer-motion'
+import { Calendar, Clock, History, Pause, Play, Plus, RefreshCw, Square, Target, Timer } from 'lucide-react'
 import { toast } from 'react-hot-toast'
-import { cn, formatDuration, TASK_CATEGORIES, formatDate } from '@/lib/utils'
+
+import { goalsApi, timeEntriesApi } from '@/lib/api'
+import { cn, formatDate, formatDuration, TASK_CATEGORIES } from '@/lib/utils'
 
 interface Goal {
   id: string
@@ -97,7 +88,7 @@ export default function TimeTrackerPage() {
       setCurrentTask(savedState.currentTask)
       setCurrentCategory(savedState.currentCategory)
       setCurrentGoalId(savedState.currentGoalId)
-      
+
       if (savedState.timerState === 'RUNNING' && savedState.startTimestamp) {
         // Calculate elapsed time since start
         const now = Date.now()
@@ -106,10 +97,11 @@ export default function TimeTrackerPage() {
         startTimeRef.current = new Date(savedState.startTimestamp)
         pausedElapsedRef.current = savedState.pausedElapsedTime
         setTimerState('RUNNING')
-        
+
         // Resume the interval
         timerRef.current = setInterval(() => {
-          const currentElapsed = Math.floor((Date.now() - savedState.startTimestamp!) / 1000) + savedState.pausedElapsedTime
+          const currentElapsed =
+            Math.floor((Date.now() - savedState.startTimestamp!) / 1000) + savedState.pausedElapsedTime
           setElapsedTime(currentElapsed)
         }, 1000)
       } else if (savedState.timerState === 'PAUSED') {
@@ -118,7 +110,7 @@ export default function TimeTrackerPage() {
         setTimerState('PAUSED')
       }
     }
-    
+
     loadData()
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
@@ -131,7 +123,7 @@ export default function TimeTrackerPage() {
         goalsApi.getAll('ACTIVE'),
         timeEntriesApi.getByDateRange(
           new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          new Date().toISOString().split('T')[0]
+          new Date().toISOString().split('T')[0],
         ),
       ])
       setGoals(goalsRes.data)
@@ -155,7 +147,7 @@ export default function TimeTrackerPage() {
     pausedElapsedRef.current = 0
     setTimerState('RUNNING')
     setElapsedTime(0)
-    
+
     // Save to localStorage
     saveTimerState({
       timerState: 'RUNNING',
@@ -165,7 +157,7 @@ export default function TimeTrackerPage() {
       currentCategory,
       currentGoalId,
     })
-    
+
     timerRef.current = setInterval(() => {
       setElapsedTime((prev) => prev + 1)
     }, 1000)
@@ -175,7 +167,7 @@ export default function TimeTrackerPage() {
     if (timerRef.current) clearInterval(timerRef.current)
     pausedElapsedRef.current = elapsedTime
     setTimerState('PAUSED')
-    
+
     // Save paused state
     saveTimerState({
       timerState: 'PAUSED',
@@ -190,7 +182,7 @@ export default function TimeTrackerPage() {
   const resumeTimer = () => {
     const now = Date.now()
     setTimerState('RUNNING')
-    
+
     // Save resumed state
     saveTimerState({
       timerState: 'RUNNING',
@@ -200,7 +192,7 @@ export default function TimeTrackerPage() {
       currentCategory,
       currentGoalId,
     })
-    
+
     timerRef.current = setInterval(() => {
       const currentElapsed = Math.floor((Date.now() - now) / 1000) + pausedElapsedRef.current
       setElapsedTime(currentElapsed)
@@ -209,7 +201,7 @@ export default function TimeTrackerPage() {
 
   const stopTimer = async () => {
     if (timerRef.current) clearInterval(timerRef.current)
-    
+
     if (elapsedTime < 60) {
       toast.error('Minimum duration is 1 minute')
       return
@@ -224,7 +216,7 @@ export default function TimeTrackerPage() {
         notes: `Timer session`,
         goalId: currentGoalId || undefined,
       })
-      
+
       toast.success(`Logged ${formatDuration(duration)}!`)
       resetTimer()
       loadData()
@@ -252,7 +244,7 @@ export default function TimeTrackerPage() {
   }
 
   const todayTotalMinutes = recentEntries
-    .filter(e => e.date === new Date().toISOString().split('T')[0])
+    .filter((e) => e.date === new Date().toISOString().split('T')[0])
     .reduce((sum, e) => sum + e.duration, 0)
 
   return (
@@ -260,25 +252,30 @@ export default function TimeTrackerPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-display font-bold uppercase">Time Tracker</h1>
-          <p className="font-mono text-gray-600 uppercase">Track time with precision</p>
+          <h1 className="font-display text-4xl font-bold uppercase">Time Tracker</h1>
+          <p className="font-mono uppercase text-gray-600">Track time with precision</p>
         </div>
 
-        <button 
-          onClick={() => setShowManualEntry(true)}
-          className="btn-brutal flex items-center gap-2"
-        >
-          <Plus className="w-5 h-5" />
+        <button onClick={() => setShowManualEntry(true)} className="btn-brutal flex items-center gap-2">
+          <Plus className="h-5 w-5" />
           Manual Entry
         </button>
       </div>
 
       {/* Timer Section */}
-      <motion.div 
-        className="card-brutal-colored bg-secondary text-white p-8"
-        animate={timerState === 'RUNNING' ? { 
-          boxShadow: ['8px 8px 0 0 rgba(250,204,21,1)', '12px 12px 0 0 rgba(250,204,21,1)', '8px 8px 0 0 rgba(250,204,21,1)']
-        } : {}}
+      <motion.div
+        className="card-brutal-colored bg-secondary p-8 text-white"
+        animate={
+          timerState === 'RUNNING'
+            ? {
+                boxShadow: [
+                  '8px 8px 0 0 rgba(250,204,21,1)',
+                  '12px 12px 0 0 rgba(250,204,21,1)',
+                  '8px 8px 0 0 rgba(250,204,21,1)',
+                ],
+              }
+            : {}
+        }
         transition={{ duration: 1, repeat: timerState === 'RUNNING' ? Infinity : 0 }}
       >
         {/* Task Input */}
@@ -289,19 +286,19 @@ export default function TimeTrackerPage() {
             onChange={(e) => setCurrentTask(e.target.value)}
             placeholder="What are you working on?"
             disabled={timerState !== 'STOPPED'}
-            className="w-full px-4 py-3 text-xl font-bold bg-white/10 border-3 border-white/30 text-white placeholder-white/50 focus:outline-none focus:border-primary disabled:opacity-50"
+            className="w-full border-3 border-white/30 bg-white/10 px-4 py-3 text-xl font-bold text-white placeholder-white/50 focus:border-primary focus:outline-none disabled:opacity-50"
           />
         </div>
 
         {/* Category and Goal Selection */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="mb-6 grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-bold mb-2 uppercase opacity-75">Category</label>
+            <label className="mb-2 block text-sm font-bold uppercase opacity-75">Category</label>
             <select
               value={currentCategory}
               onChange={(e) => setCurrentCategory(e.target.value)}
               disabled={timerState !== 'STOPPED'}
-              className="w-full px-4 py-2 bg-white/10 border-2 border-white/30 text-white focus:outline-none focus:border-primary disabled:opacity-50"
+              className="w-full border-2 border-white/30 bg-white/10 px-4 py-2 text-white focus:border-primary focus:outline-none disabled:opacity-50"
             >
               {TASK_CATEGORIES.map((cat) => (
                 <option key={cat.value} value={cat.value} className="text-secondary">
@@ -311,14 +308,16 @@ export default function TimeTrackerPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-bold mb-2 uppercase opacity-75">Link to Goal</label>
+            <label className="mb-2 block text-sm font-bold uppercase opacity-75">Link to Goal</label>
             <select
               value={currentGoalId}
               onChange={(e) => setCurrentGoalId(e.target.value)}
               disabled={timerState !== 'STOPPED'}
-              className="w-full px-4 py-2 bg-white/10 border-2 border-white/30 text-white focus:outline-none focus:border-primary disabled:opacity-50"
+              className="w-full border-2 border-white/30 bg-white/10 px-4 py-2 text-white focus:border-primary focus:outline-none disabled:opacity-50"
             >
-              <option value="" className="text-secondary">No Goal</option>
+              <option value="" className="text-secondary">
+                No Goal
+              </option>
               {goals.map((goal) => (
                 <option key={goal.id} value={goal.id} className="text-secondary">
                   {goal.title}
@@ -329,15 +328,15 @@ export default function TimeTrackerPage() {
         </div>
 
         {/* Timer Display */}
-        <div className="text-center mb-8">
-          <motion.div 
-            className="text-7xl md:text-8xl font-mono font-bold tracking-wider"
+        <div className="mb-8 text-center">
+          <motion.div
+            className="font-mono text-7xl font-bold tracking-wider md:text-8xl"
             animate={timerState === 'RUNNING' ? { scale: [1, 1.02, 1] } : {}}
             transition={{ duration: 1, repeat: timerState === 'RUNNING' ? Infinity : 0 }}
           >
             {formatTimerDisplay(elapsedTime)}
           </motion.div>
-          <div className="mt-2 text-lg font-mono opacity-75">
+          <div className="mt-2 font-mono text-lg opacity-75">
             {timerState === 'STOPPED' && 'Ready to start'}
             {timerState === 'RUNNING' && '⏱ Timer running...'}
             {timerState === 'PAUSED' && '⏸ Paused'}
@@ -351,9 +350,9 @@ export default function TimeTrackerPage() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={startTimer}
-              className="w-20 h-20 bg-primary text-secondary border-4 border-white flex items-center justify-center shadow-brutal"
+              className="flex h-20 w-20 items-center justify-center border-4 border-white bg-primary text-secondary shadow-brutal"
             >
-              <Play className="w-10 h-10" />
+              <Play className="h-10 w-10" />
             </motion.button>
           )}
 
@@ -363,17 +362,17 @@ export default function TimeTrackerPage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={pauseTimer}
-                className="w-16 h-16 bg-accent-orange text-white border-4 border-white flex items-center justify-center shadow-brutal"
+                className="flex h-16 w-16 items-center justify-center border-4 border-white bg-accent-orange text-white shadow-brutal"
               >
-                <Pause className="w-8 h-8" />
+                <Pause className="h-8 w-8" />
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={stopTimer}
-                className="w-16 h-16 bg-red-500 text-white border-4 border-white flex items-center justify-center shadow-brutal"
+                className="flex h-16 w-16 items-center justify-center border-4 border-white bg-red-500 text-white shadow-brutal"
               >
-                <Square className="w-8 h-8" />
+                <Square className="h-8 w-8" />
               </motion.button>
             </>
           )}
@@ -384,25 +383,25 @@ export default function TimeTrackerPage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={resumeTimer}
-                className="w-16 h-16 bg-primary text-secondary border-4 border-white flex items-center justify-center shadow-brutal"
+                className="flex h-16 w-16 items-center justify-center border-4 border-white bg-primary text-secondary shadow-brutal"
               >
-                <Play className="w-8 h-8" />
+                <Play className="h-8 w-8" />
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={stopTimer}
-                className="w-16 h-16 bg-accent-green text-white border-4 border-white flex items-center justify-center shadow-brutal"
+                className="flex h-16 w-16 items-center justify-center border-4 border-white bg-accent-green text-white shadow-brutal"
               >
-                <Square className="w-8 h-8" />
+                <Square className="h-8 w-8" />
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={resetTimer}
-                className="w-16 h-16 bg-gray-500 text-white border-4 border-white flex items-center justify-center shadow-brutal"
+                className="flex h-16 w-16 items-center justify-center border-4 border-white bg-gray-500 text-white shadow-brutal"
               >
-                <RefreshCw className="w-8 h-8" />
+                <RefreshCw className="h-8 w-8" />
               </motion.button>
             </>
           )}
@@ -410,38 +409,40 @@ export default function TimeTrackerPage() {
       </motion.div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <div className="card-brutal text-center">
-          <Timer className="w-8 h-8 mx-auto mb-2" />
+          <Timer className="mx-auto mb-2 h-8 w-8" />
           <div className="text-3xl font-bold">{formatDuration(todayTotalMinutes)}</div>
-          <div className="font-mono text-sm text-gray-600 uppercase">Today's Total</div>
+          <div className="font-mono text-sm uppercase text-gray-600">Today's Total</div>
         </div>
         <div className="card-brutal-colored bg-primary text-center">
-          <Target className="w-8 h-8 mx-auto mb-2" />
-          <div className="text-3xl font-bold">{recentEntries.filter(e => e.date === new Date().toISOString().split('T')[0]).length}</div>
+          <Target className="mx-auto mb-2 h-8 w-8" />
+          <div className="text-3xl font-bold">
+            {recentEntries.filter((e) => e.date === new Date().toISOString().split('T')[0]).length}
+          </div>
           <div className="font-mono text-sm uppercase">Tasks Today</div>
         </div>
         <div className="card-brutal text-center">
-          <History className="w-8 h-8 mx-auto mb-2" />
+          <History className="mx-auto mb-2 h-8 w-8" />
           <div className="text-3xl font-bold">{recentEntries.length}</div>
-          <div className="font-mono text-sm text-gray-600 uppercase">Last 7 Days</div>
+          <div className="font-mono text-sm uppercase text-gray-600">Last 7 Days</div>
         </div>
       </div>
 
       {/* Recent Entries */}
       <div className="card-brutal">
-        <h2 className="text-2xl font-bold uppercase mb-6 flex items-center gap-2">
-          <History className="w-6 h-6" />
+        <h2 className="mb-6 flex items-center gap-2 text-2xl font-bold uppercase">
+          <History className="h-6 w-6" />
           Recent Time Entries
         </h2>
 
         {isLoading ? (
-          <div className="h-32 flex items-center justify-center">
-            <div className="animate-spin w-8 h-8 border-4 border-secondary border-t-primary" />
+          <div className="flex h-32 items-center justify-center">
+            <div className="h-8 w-8 animate-spin border-4 border-secondary border-t-primary" />
           </div>
         ) : recentEntries.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <Clock className="w-12 h-12 mx-auto mb-4 opacity-50" />
+          <div className="py-8 text-center text-gray-500">
+            <Clock className="mx-auto mb-4 h-12 w-12 opacity-50" />
             <p className="font-mono uppercase">No entries yet</p>
             <p className="text-sm">Start tracking your time!</p>
           </div>
@@ -452,10 +453,10 @@ export default function TimeTrackerPage() {
                 key={entry.id}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="flex items-center justify-between p-4 border-2 border-secondary bg-white hover:shadow-brutal transition-all"
+                className="flex items-center justify-between border-2 border-secondary bg-white p-4 transition-all hover:shadow-brutal"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-3 h-3 rounded-full bg-primary" />
+                  <div className="h-3 w-3 rounded-full bg-primary" />
                   <div>
                     <div className="font-bold">{entry.taskName}</div>
                     <div className="font-mono text-xs text-gray-500">
@@ -465,7 +466,7 @@ export default function TimeTrackerPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold font-mono">{formatDuration(entry.duration)}</div>
+                  <div className="font-mono font-bold">{formatDuration(entry.duration)}</div>
                   <div className="font-mono text-xs text-gray-500">{formatDate(entry.date)}</div>
                 </div>
               </motion.div>
@@ -546,13 +547,13 @@ function ManualEntryModal({
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="modal-brutal w-full max-w-md relative z-10"
+            className="modal-brutal relative z-10 w-full max-w-md"
           >
-            <h2 className="text-2xl font-bold uppercase mb-6">Manual Time Entry</h2>
+            <h2 className="mb-6 text-2xl font-bold uppercase">Manual Time Entry</h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block font-bold uppercase text-sm mb-2">Task Title</label>
+                <label className="mb-2 block text-sm font-bold uppercase">Task Title</label>
                 <input
                   type="text"
                   value={title}
@@ -565,7 +566,7 @@ function ManualEntryModal({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold uppercase text-sm mb-2">Date</label>
+                  <label className="mb-2 block text-sm font-bold uppercase">Date</label>
                   <input
                     type="date"
                     value={date}
@@ -575,7 +576,7 @@ function ManualEntryModal({
                   />
                 </div>
                 <div>
-                  <label className="block font-bold uppercase text-sm mb-2">Start Time</label>
+                  <label className="mb-2 block text-sm font-bold uppercase">Start Time</label>
                   <input
                     type="time"
                     value={startTime}
@@ -586,7 +587,7 @@ function ManualEntryModal({
               </div>
 
               <div>
-                <label className="block font-bold uppercase text-sm mb-2">Duration (minutes)</label>
+                <label className="mb-2 block text-sm font-bold uppercase">Duration (minutes)</label>
                 <div className="flex gap-2">
                   {[15, 30, 45, 60, 90, 120].map((min) => (
                     <button
@@ -595,7 +596,7 @@ function ManualEntryModal({
                       onClick={() => setDuration(min)}
                       className={cn(
                         'flex-1 py-2 border-2 border-secondary font-mono text-sm transition-all',
-                        duration === min ? 'bg-primary shadow-brutal-sm' : 'bg-white hover:bg-gray-100'
+                        duration === min ? 'bg-primary shadow-brutal-sm' : 'bg-white hover:bg-gray-100',
                       )}
                     >
                       {min}m
@@ -613,37 +614,33 @@ function ManualEntryModal({
               </div>
 
               <div>
-                <label className="block font-bold uppercase text-sm mb-2">Category</label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="input-brutal"
-                >
+                <label className="mb-2 block text-sm font-bold uppercase">Category</label>
+                <select value={category} onChange={(e) => setCategory(e.target.value)} className="input-brutal">
                   {TASK_CATEGORIES.map((cat) => (
-                    <option key={cat.value} value={cat.value}>{cat.label}</option>
+                    <option key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block font-bold uppercase text-sm mb-2">Link to Goal (Optional)</label>
-                <select
-                  value={goalId}
-                  onChange={(e) => setGoalId(e.target.value)}
-                  className="input-brutal"
-                >
+                <label className="mb-2 block text-sm font-bold uppercase">Link to Goal (Optional)</label>
+                <select value={goalId} onChange={(e) => setGoalId(e.target.value)} className="input-brutal">
                   <option value="">No Goal</option>
                   {goals.map((goal) => (
-                    <option key={goal.id} value={goal.id}>{goal.title}</option>
+                    <option key={goal.id} value={goal.id}>
+                      {goal.title}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div className="flex gap-4 pt-4">
-                <button type="button" onClick={onClose} className="flex-1 btn-brutal-secondary">
+                <button type="button" onClick={onClose} className="btn-brutal-secondary flex-1">
                   Cancel
                 </button>
-                <button type="submit" disabled={isLoading} className="flex-1 btn-brutal-dark">
+                <button type="submit" disabled={isLoading} className="btn-brutal-dark flex-1">
                   {isLoading ? 'Adding...' : 'Add Entry'}
                 </button>
               </div>
