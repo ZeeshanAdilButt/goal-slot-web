@@ -1,28 +1,30 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Users, 
-  UserPlus, 
-  Shield, 
-  ShieldCheck,
-  Crown,
-  X,
+
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  BadgeCheck,
+  BadgeX,
+  Calendar,
   Check,
-  Search,
   ChevronLeft,
   ChevronRight,
+  Crown,
   Loader2,
   Mail,
-  Calendar,
-  BadgeCheck,
-  BadgeX
+  Search,
+  Shield,
+  ShieldCheck,
+  UserPlus,
+  Users,
+  X,
 } from 'lucide-react'
-import { usersApi } from '@/lib/api'
 import { toast } from 'react-hot-toast'
-import { cn } from '@/lib/utils'
+
+import { usersApi } from '@/lib/api'
 import { useAuthStore } from '@/lib/store'
+import { cn } from '@/lib/utils'
 
 interface User {
   id: string
@@ -55,7 +57,7 @@ export default function AdminUsersPage() {
     email: '',
     password: '',
     name: '',
-    role: 'USER'
+    role: 'USER',
   })
   const [isCreating, setIsCreating] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
@@ -130,7 +132,7 @@ export default function AdminUsersPage() {
 
   const handlePromote = async (userId: string) => {
     if (!confirm('Are you sure you want to promote this user to Admin?')) return
-    
+
     setActionLoading(userId)
     try {
       await usersApi.promote(userId)
@@ -145,10 +147,14 @@ export default function AdminUsersPage() {
 
   const getRoleIcon = (role: string) => {
     switch (role) {
-      case 'SUPER_ADMIN': return <Crown className="w-4 h-4 text-yellow-500" />
-      case 'ADMIN': return <ShieldCheck className="w-4 h-4 text-purple-500" />
-      case 'MENTOR': return <Shield className="w-4 h-4 text-blue-500" />
-      default: return <Users className="w-4 h-4 text-gray-500" />
+      case 'SUPER_ADMIN':
+        return <Crown className="h-4 w-4 text-yellow-500" />
+      case 'ADMIN':
+        return <ShieldCheck className="h-4 w-4 text-purple-500" />
+      case 'MENTOR':
+        return <Shield className="h-4 w-4 text-blue-500" />
+      default:
+        return <Users className="h-4 w-4 text-gray-500" />
     }
   }
 
@@ -162,9 +168,10 @@ export default function AdminUsersPage() {
     return colors[role] || colors.USER
   }
 
-  const filteredUsers = users.filter(user => 
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = users.filter(
+    (user) =>
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
   const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN'
@@ -175,28 +182,28 @@ export default function AdminUsersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-black uppercase tracking-tight">User Management</h1>
-          <p className="text-gray-600 mt-1">Manage users, roles, and access permissions</p>
+          <p className="mt-1 text-gray-600">Manage users, roles, and access permissions</p>
         </div>
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary border-4 border-black font-bold shadow-brutal hover:shadow-brutal-sm transition-all"
+          className="flex items-center gap-2 border-4 border-black bg-primary px-4 py-2 font-bold shadow-brutal transition-all hover:shadow-brutal-sm"
         >
-          <UserPlus className="w-5 h-5" />
+          <UserPlus className="h-5 w-5" />
           Add Internal User
         </motion.button>
       </div>
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+        <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500" />
         <input
           type="text"
           placeholder="Search by name or email..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-12 pr-4 py-3 border-4 border-black font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full border-4 border-black py-3 pl-12 pr-4 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
 
@@ -204,116 +211,124 @@ export default function AdminUsersPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white border-4 border-black shadow-brutal overflow-hidden"
+        className="overflow-hidden border-4 border-black bg-white shadow-brutal"
       >
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin" />
+            <Loader2 className="h-8 w-8 animate-spin" />
           </div>
         ) : filteredUsers.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-gray-500">
-            <Users className="w-16 h-16 mb-4" />
+            <Users className="mb-4 h-16 w-16" />
             <p className="font-bold">No users found</p>
           </div>
         ) : (
           <table className="w-full">
             <thead className="bg-black text-white">
               <tr>
-                <th className="px-4 py-3 text-left font-bold uppercase text-sm">User</th>
-                <th className="px-4 py-3 text-left font-bold uppercase text-sm">Role</th>
-                <th className="px-4 py-3 text-left font-bold uppercase text-sm">Type</th>
-                <th className="px-4 py-3 text-left font-bold uppercase text-sm">Plan</th>
-                <th className="px-4 py-3 text-left font-bold uppercase text-sm">Joined</th>
-                <th className="px-4 py-3 text-right font-bold uppercase text-sm">Actions</th>
+                <th className="px-4 py-3 text-left text-sm font-bold uppercase">User</th>
+                <th className="px-4 py-3 text-left text-sm font-bold uppercase">Role</th>
+                <th className="px-4 py-3 text-left text-sm font-bold uppercase">Type</th>
+                <th className="px-4 py-3 text-left text-sm font-bold uppercase">Plan</th>
+                <th className="px-4 py-3 text-left text-sm font-bold uppercase">Joined</th>
+                <th className="px-4 py-3 text-right text-sm font-bold uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y-4 divide-black">
               {filteredUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={user.id} className="transition-colors hover:bg-gray-50">
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-primary border-2 border-black flex items-center justify-center font-black text-lg">
+                      <div className="flex h-10 w-10 items-center justify-center border-2 border-black bg-primary text-lg font-black">
                         {user.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
                         <p className="font-bold">{user.name}</p>
-                        <p className="text-sm text-gray-500 flex items-center gap-1">
-                          <Mail className="w-3 h-3" />
+                        <p className="flex items-center gap-1 text-sm text-gray-500">
+                          <Mail className="h-3 w-3" />
                           {user.email}
                         </p>
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-4">
-                    <span className={cn(
-                      "inline-flex items-center gap-1 px-2 py-1 border-2 font-bold text-xs uppercase",
-                      getRoleBadge(user.role)
-                    )}>
+                    <span
+                      className={cn(
+                        'inline-flex items-center gap-1 border-2 px-2 py-1 text-xs font-bold uppercase',
+                        getRoleBadge(user.role),
+                      )}
+                    >
                       {getRoleIcon(user.role)}
                       {user.role.replace('_', ' ')}
                     </span>
                   </td>
                   <td className="px-4 py-4">
-                    <span className={cn(
-                      "px-2 py-1 border-2 font-bold text-xs uppercase",
-                      user.userType === 'INTERNAL' 
-                        ? 'bg-green-200 text-green-800 border-green-400'
-                        : 'bg-gray-200 text-gray-800 border-gray-400'
-                    )}>
+                    <span
+                      className={cn(
+                        'border-2 px-2 py-1 text-xs font-bold uppercase',
+                        user.userType === 'INTERNAL'
+                          ? 'border-green-400 bg-green-200 text-green-800'
+                          : 'border-gray-400 bg-gray-200 text-gray-800',
+                      )}
+                    >
                       {user.userType}
                     </span>
                   </td>
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-2">
-                      <span className={cn(
-                        "px-2 py-1 border-2 font-bold text-xs uppercase",
-                        user.plan === 'PRO' || user.hasFreeAccess
-                          ? 'bg-primary border-black'
-                          : 'bg-gray-200 text-gray-800 border-gray-400'
-                      )}>
+                      <span
+                        className={cn(
+                          'border-2 px-2 py-1 text-xs font-bold uppercase',
+                          user.plan === 'PRO' || user.hasFreeAccess
+                            ? 'border-black bg-primary'
+                            : 'border-gray-400 bg-gray-200 text-gray-800',
+                        )}
+                      >
                         {user.hasFreeAccess ? 'PRO (FREE)' : user.plan}
                       </span>
                       {user.hasFreeAccess && (
-                        <BadgeCheck className="w-4 h-4 text-green-500" title="Free access granted" />
+                        <BadgeCheck className="h-4 w-4 text-green-500" title="Free access granted" />
                       )}
                     </div>
                   </td>
                   <td className="px-4 py-4 text-sm text-gray-600">
                     <div className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
+                      <Calendar className="h-3 w-3" />
                       {new Date(user.createdAt).toLocaleDateString()}
                     </div>
                   </td>
                   <td className="px-4 py-4">
                     <div className="flex items-center justify-end gap-2">
                       {actionLoading === user.id ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <Loader2 className="h-5 w-5 animate-spin" />
                       ) : (
                         <>
                           {user.hasFreeAccess ? (
                             <button
                               onClick={() => handleRevokeAccess(user.id)}
-                              className="p-2 bg-red-100 border-2 border-red-400 hover:bg-red-200 transition-colors"
+                              className="border-2 border-red-400 bg-red-100 p-2 transition-colors hover:bg-red-200"
                               title="Revoke Pro Access"
                             >
-                              <BadgeX className="w-4 h-4 text-red-600" />
+                              <BadgeX className="h-4 w-4 text-red-600" />
                             </button>
-                          ) : user.plan !== 'PRO' && (
-                            <button
-                              onClick={() => handleGrantAccess(user.id)}
-                              className="p-2 bg-green-100 border-2 border-green-400 hover:bg-green-200 transition-colors"
-                              title="Grant Pro Access"
-                            >
-                              <BadgeCheck className="w-4 h-4 text-green-600" />
-                            </button>
+                          ) : (
+                            user.plan !== 'PRO' && (
+                              <button
+                                onClick={() => handleGrantAccess(user.id)}
+                                className="border-2 border-green-400 bg-green-100 p-2 transition-colors hover:bg-green-200"
+                                title="Grant Pro Access"
+                              >
+                                <BadgeCheck className="h-4 w-4 text-green-600" />
+                              </button>
+                            )
                           )}
                           {isSuperAdmin && user.role === 'USER' && (
                             <button
                               onClick={() => handlePromote(user.id)}
-                              className="p-2 bg-purple-100 border-2 border-purple-400 hover:bg-purple-200 transition-colors"
+                              className="border-2 border-purple-400 bg-purple-100 p-2 transition-colors hover:bg-purple-200"
                               title="Promote to Admin"
                             >
-                              <ShieldCheck className="w-4 h-4 text-purple-600" />
+                              <ShieldCheck className="h-4 w-4 text-purple-600" />
                             </button>
                           )}
                         </>
@@ -328,24 +343,24 @@ export default function AdminUsersPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t-4 border-black bg-gray-50">
+          <div className="flex items-center justify-between border-t-4 border-black bg-gray-50 px-4 py-3">
             <p className="text-sm font-medium">
               Page {currentPage} of {totalPages}
             </p>
             <div className="flex gap-2">
               <button
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="p-2 border-2 border-black disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                className="border-2 border-black p-2 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="h-4 w-4" />
               </button>
               <button
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="p-2 border-2 border-black disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                className="border-2 border-black p-2 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="h-4 w-4" />
               </button>
             </div>
           </div>
@@ -359,55 +374,55 @@ export default function AdminUsersPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
             onClick={() => setIsModalOpen(false)}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white border-4 border-black shadow-brutal w-full max-w-md"
-              onClick={e => e.stopPropagation()}
+              className="w-full max-w-md border-4 border-black bg-white shadow-brutal"
+              onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between p-4 border-b-4 border-black bg-primary">
+              <div className="flex items-center justify-between border-b-4 border-black bg-primary p-4">
                 <h2 className="text-xl font-black uppercase">Create Internal User</h2>
                 <button onClick={() => setIsModalOpen(false)}>
-                  <X className="w-6 h-6" />
+                  <X className="h-6 w-6" />
                 </button>
               </div>
 
-              <form onSubmit={handleCreateUser} className="p-6 space-y-4">
+              <form onSubmit={handleCreateUser} className="space-y-4 p-6">
                 <div>
-                  <label className="block font-bold mb-2 uppercase text-sm">Name</label>
+                  <label className="mb-2 block text-sm font-bold uppercase">Name</label>
                   <input
                     type="text"
                     value={newUser.name}
                     onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-                    className="w-full px-4 py-2 border-4 border-black font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full border-4 border-black px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="John Doe"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold mb-2 uppercase text-sm">Email</label>
+                  <label className="mb-2 block text-sm font-bold uppercase">Email</label>
                   <input
                     type="email"
                     value={newUser.email}
                     onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                    className="w-full px-4 py-2 border-4 border-black font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full border-4 border-black px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="john@devweekends.com"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold mb-2 uppercase text-sm">Password</label>
+                  <label className="mb-2 block text-sm font-bold uppercase">Password</label>
                   <input
                     type="password"
                     value={newUser.password}
                     onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                    className="w-full px-4 py-2 border-4 border-black font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full border-4 border-black px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="••••••••"
                     required
                     minLength={8}
@@ -415,11 +430,11 @@ export default function AdminUsersPage() {
                 </div>
 
                 <div>
-                  <label className="block font-bold mb-2 uppercase text-sm">Role</label>
+                  <label className="mb-2 block text-sm font-bold uppercase">Role</label>
                   <select
                     value={newUser.role}
                     onChange={(e) => setNewUser({ ...newUser, role: e.target.value as any })}
-                    className="w-full px-4 py-2 border-4 border-black font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full border-4 border-black px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <option value="USER">User</option>
                     <option value="MENTOR">Mentor</option>
@@ -431,20 +446,20 @@ export default function AdminUsersPage() {
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="flex-1 px-4 py-2 border-4 border-black font-bold hover:bg-gray-100 transition-colors"
+                    className="flex-1 border-4 border-black px-4 py-2 font-bold transition-colors hover:bg-gray-100"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isCreating}
-                    className="flex-1 px-4 py-2 bg-primary border-4 border-black font-bold shadow-brutal hover:shadow-brutal-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="flex flex-1 items-center justify-center gap-2 border-4 border-black bg-primary px-4 py-2 font-bold shadow-brutal transition-all hover:shadow-brutal-sm disabled:opacity-50"
                   >
                     {isCreating ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
                       <>
-                        <Check className="w-5 h-5" />
+                        <Check className="h-5 w-5" />
                         Create
                       </>
                     )}
