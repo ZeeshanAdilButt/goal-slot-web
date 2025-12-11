@@ -1,11 +1,15 @@
 import type { Metadata } from 'next'
+
 import './globals.css'
+
 import { Toaster } from 'react-hot-toast'
+
 import { ReactQueryProvider } from '@/lib/react-query-provider'
 
 export const metadata: Metadata = {
   title: 'DevWeekends Time Master | Productivity Tracking',
-  description: 'Track your goals, log time, plan schedules, and analyze your productivity patterns. Built for DevWeekends mentees and mentors.',
+  description:
+    'Track your goals, log time, plan schedules, and analyze your productivity patterns. Built for DevWeekends mentees and mentors.',
   keywords: ['productivity', 'time tracking', 'goals', 'devweekends', 'mentorship'],
   authors: [{ name: 'DevWeekends' }],
   openGraph: {
@@ -15,11 +19,7 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>

@@ -1,10 +1,13 @@
 'use client'
 
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useMemo, useState } from 'react'
-import { tasksApi, scheduleApi, goalsApi } from '@/lib/api'
+
+import { Calendar, CheckCircle2, Clock, Link2, Plus, Target } from 'lucide-react'
 import { toast } from 'react-hot-toast'
+
+import { goalsApi, scheduleApi, tasksApi } from '@/lib/api'
 import { cn, DAYS_OF_WEEK_FULL, formatDuration } from '@/lib/utils'
-import { Plus, Clock, CheckCircle2, Calendar, Link2, Target } from 'lucide-react'
 
 type TaskStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED'
 
@@ -64,6 +67,7 @@ export default function TasksPage() {
     dueDate: '',
   })
 
+   
   useEffect(() => {
     loadData()
   }, [statusFilter])
@@ -159,8 +163,8 @@ export default function TasksPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-display font-bold uppercase">Tasks</h1>
-          <p className="font-mono text-gray-600 uppercase">
+          <h1 className="font-display text-4xl font-bold uppercase">Tasks</h1>
+          <p className="font-mono uppercase text-gray-600">
             Link tasks to schedule blocks and goals. Completing logs time automatically.
           </p>
         </div>
@@ -178,19 +182,19 @@ export default function TasksPage() {
             ))}
           </select>
           <button onClick={() => setShowCreate(true)} className="btn-brutal flex items-center gap-2">
-            <Plus className="w-5 h-5" />
+            <Plus className="h-5 w-5" />
             Add Task
           </button>
         </div>
       </div>
 
       {isLoading ? (
-        <div className="card-brutal h-64 flex items-center justify-center">
-          <div className="animate-spin w-12 h-12 border-4 border-secondary border-t-primary" />
+        <div className="card-brutal flex h-64 items-center justify-center">
+          <div className="h-12 w-12 animate-spin border-4 border-secondary border-t-primary" />
         </div>
       ) : (
         <div className="space-y-6">
-          {[0,1,2,3,4,5,6,'unscheduled'].map((key) => {
+          {[0, 1, 2, 3, 4, 5, 6, 'unscheduled'].map((key) => {
             const list = groupedTasks[key as string] || []
             if (!list.length) return null
 
@@ -198,22 +202,22 @@ export default function TasksPage() {
 
             return (
               <div key={key} className="card-brutal p-4">
-                <div className="flex items-center justify-between mb-3">
+                <div className="mb-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
+                    <Calendar className="h-4 w-4" />
                     <h3 className="font-display font-bold uppercase">{heading}</h3>
                   </div>
-                  <span className="badge-brutal text-xs">{list.length} task{list.length > 1 ? 's' : ''}</span>
+                  <span className="badge-brutal text-xs">
+                    {list.length} task{list.length > 1 ? 's' : ''}
+                  </span>
                 </div>
-                <div className="grid md:grid-cols-2 gap-3">
+                <div className="grid gap-3 md:grid-cols-2">
                   {list.map((task) => (
                     <div key={task.id} className="border-3 border-secondary bg-white p-4 shadow-brutal-sm">
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <div className="font-display font-bold uppercase">{task.title}</div>
-                          {task.description && (
-                            <p className="text-sm text-gray-600 mt-1">{task.description}</p>
-                          )}
+                          {task.description && <p className="mt-1 text-sm text-gray-600">{task.description}</p>}
                         </div>
                         <span
                           className={cn(
@@ -221,20 +225,21 @@ export default function TasksPage() {
                             task.status === 'COMPLETED'
                               ? 'bg-accent-green text-white'
                               : task.status === 'IN_PROGRESS'
-                              ? 'bg-primary text-secondary'
-                              : 'bg-gray-100'
+                                ? 'bg-primary text-secondary'
+                                : 'bg-gray-100',
                           )}
                         >
                           {task.status.replace('_', ' ')}
                         </span>
                       </div>
 
-                      <div className="mt-3 space-y-2 text-sm font-mono">
+                      <div className="mt-3 space-y-2 font-mono text-sm">
                         <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4" />
+                          <Clock className="h-4 w-4" />
                           {task.scheduleBlock ? (
                             <span>
-                              {DAYS_OF_WEEK_FULL[task.scheduleBlock.dayOfWeek]} • {task.scheduleBlock.startTime} - {task.scheduleBlock.endTime}
+                              {DAYS_OF_WEEK_FULL[task.scheduleBlock.dayOfWeek]} • {task.scheduleBlock.startTime} -{' '}
+                              {task.scheduleBlock.endTime}
                             </span>
                           ) : (
                             <span>No schedule linked</span>
@@ -242,14 +247,14 @@ export default function TasksPage() {
                         </div>
                         {task.goal && (
                           <div className="flex items-center gap-2">
-                            <Target className="w-4 h-4" />
-                            <span className="px-2 py-1 border border-secondary text-xs uppercase">
+                            <Target className="h-4 w-4" />
+                            <span className="border border-secondary px-2 py-1 text-xs uppercase">
                               {task.goal.title}
                             </span>
                           </div>
                         )}
                         <div className="flex items-center gap-2">
-                          <Link2 className="w-4 h-4" />
+                          <Link2 className="h-4 w-4" />
                           <span className="text-xs">
                             {task.estimatedMinutes ? `Est. ${formatDuration(task.estimatedMinutes)}` : 'No estimate'}
                             {task.actualMinutes ? ` • Spent ${formatDuration(task.actualMinutes)}` : ''}
@@ -263,7 +268,7 @@ export default function TasksPage() {
                             onClick={() => setCompletingTask(task)}
                             className="btn-brutal-secondary flex items-center gap-2 text-sm"
                           >
-                            <CheckCircle2 className="w-4 h-4" />
+                            <CheckCircle2 className="h-4 w-4" />
                             Complete & Log
                           </button>
                         )}
@@ -285,15 +290,12 @@ export default function TasksPage() {
 
       {/* Create Task Modal */}
       {showCreate && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white border-3 border-secondary shadow-brutal p-6 w-full max-w-xl relative">
-            <button
-              className="absolute top-3 right-3 text-sm font-bold"
-              onClick={() => setShowCreate(false)}
-            >
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="relative w-full max-w-xl border-3 border-secondary bg-white p-6 shadow-brutal">
+            <button className="absolute right-3 top-3 text-sm font-bold" onClick={() => setShowCreate(false)}>
               ✕
             </button>
-            <h3 className="text-2xl font-display font-bold uppercase mb-4">New Task</h3>
+            <h3 className="mb-4 font-display text-2xl font-bold uppercase">New Task</h3>
             <div className="space-y-4">
               <div>
                 <label className="font-mono text-sm uppercase">Title</label>
@@ -312,7 +314,7 @@ export default function TasksPage() {
                   rows={3}
                 />
               </div>
-              <div className="grid md:grid-cols-2 gap-3">
+              <div className="grid gap-3 md:grid-cols-2">
                 <div>
                   <label className="font-mono text-sm uppercase">Schedule Block</label>
                   <select
@@ -344,7 +346,7 @@ export default function TasksPage() {
                   </select>
                 </div>
               </div>
-              <div className="grid md:grid-cols-3 gap-3">
+              <div className="grid gap-3 md:grid-cols-3">
                 <div>
                   <label className="font-mono text-sm uppercase">Est. Minutes</label>
                   <input
@@ -380,17 +382,12 @@ export default function TasksPage() {
 
       {/* Complete Task Modal */}
       {completingTask && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white border-3 border-secondary shadow-brutal p-6 w-full max-w-md relative">
-            <button
-              className="absolute top-3 right-3 text-sm font-bold"
-              onClick={() => setCompletingTask(null)}
-            >
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="relative w-full max-w-md border-3 border-secondary bg-white p-6 shadow-brutal">
+            <button className="absolute right-3 top-3 text-sm font-bold" onClick={() => setCompletingTask(null)}>
               ✕
             </button>
-            <h3 className="text-2xl font-display font-bold uppercase mb-4">
-              Complete "{completingTask.title}"
-            </h3>
+            <h3 className="mb-4 font-display text-2xl font-bold uppercase">Complete "{completingTask.title}"</h3>
             <div className="space-y-3">
               <div>
                 <label className="font-mono text-sm uppercase">Minutes spent</label>
@@ -426,4 +423,3 @@ export default function TasksPage() {
     </div>
   )
 }
-

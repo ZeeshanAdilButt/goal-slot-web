@@ -2,15 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { 
-  Clock, TrendingUp, Target, CheckSquare, 
-  ArrowRight, Plus, Calendar
-} from 'lucide-react'
+
 import { format } from 'date-fns'
-import { reportsApi, goalsApi, timeEntriesApi } from '@/lib/api'
-import { formatDuration, getCategoryColor, getProgressColor } from '@/lib/utils'
+import { motion } from 'framer-motion'
+import { ArrowRight, Calendar, CheckSquare, Clock, Plus, Target, TrendingUp } from 'lucide-react'
 import { toast } from 'react-hot-toast'
+
+import { goalsApi, reportsApi, timeEntriesApi } from '@/lib/api'
+import { formatDuration, getCategoryColor, getProgressColor } from '@/lib/utils'
 
 interface DashboardStats {
   todayFormatted: string
@@ -71,10 +70,10 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <div className="animate-pulse space-y-6">
-        <div className="h-8 bg-gray-200 w-64 rounded" />
+        <div className="h-8 w-64 rounded bg-gray-200" />
         <div className="grid grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-32 bg-gray-200 rounded" />
+            <div key={i} className="h-32 rounded bg-gray-200" />
           ))}
         </div>
       </div>
@@ -86,17 +85,17 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-display font-bold uppercase">Dashboard</h1>
-          <p className="font-mono text-gray-600 uppercase">{today}</p>
+          <h1 className="font-display text-4xl font-bold uppercase">Dashboard</h1>
+          <p className="font-mono uppercase text-gray-600">{today}</p>
         </div>
 
         <div className="flex gap-4">
           <Link href="/dashboard/time-tracker" className="btn-brutal-secondary flex items-center gap-2">
-            <Clock className="w-5 h-5" />
+            <Clock className="h-5 w-5" />
             Log Time
           </Link>
           <Link href="/dashboard/goals" className="btn-brutal flex items-center gap-2">
-            <Plus className="w-5 h-5" />
+            <Plus className="h-5 w-5" />
             New Goal
           </Link>
         </div>
@@ -105,29 +104,29 @@ export default function DashboardPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-4 gap-6">
         {[
-          { 
-            label: "Today's Focus", 
-            value: stats?.todayFormatted || '0m', 
-            icon: Clock, 
-            color: 'bg-accent-pink' 
+          {
+            label: "Today's Focus",
+            value: stats?.todayFormatted || '0m',
+            icon: Clock,
+            color: 'bg-accent-pink',
           },
-          { 
-            label: 'Weekly Total', 
-            value: stats?.weeklyFormatted || '0m', 
-            icon: TrendingUp, 
-            color: 'bg-accent-blue' 
+          {
+            label: 'Weekly Total',
+            value: stats?.weeklyFormatted || '0m',
+            icon: TrendingUp,
+            color: 'bg-accent-blue',
           },
-          { 
-            label: 'Active Goals', 
-            value: stats?.activeGoals || 0, 
-            icon: Target, 
-            color: 'bg-accent-green' 
+          {
+            label: 'Active Goals',
+            value: stats?.activeGoals || 0,
+            icon: Target,
+            color: 'bg-accent-green',
           },
-          { 
-            label: 'Tasks Logged', 
-            value: stats?.tasksLogged || 0, 
-            icon: CheckSquare, 
-            color: 'bg-primary' 
+          {
+            label: 'Tasks Logged',
+            value: stats?.tasksLogged || 0,
+            icon: CheckSquare,
+            color: 'bg-primary',
           },
         ].map((stat, i) => (
           <motion.div
@@ -135,10 +134,10 @@ export default function DashboardPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className={`${stat.color} border-3 border-secondary shadow-brutal p-6`}
+            className={`${stat.color} border-3 border-secondary p-6 shadow-brutal`}
           >
-            <stat.icon className="w-8 h-8 mb-4" />
-            <div className="text-3xl font-bold font-mono">{stat.value}</div>
+            <stat.icon className="mb-4 h-8 w-8" />
+            <div className="font-mono text-3xl font-bold">{stat.value}</div>
             <div className="text-sm font-bold uppercase">{stat.label}</div>
           </motion.div>
         ))}
@@ -148,28 +147,30 @@ export default function DashboardPage() {
       <div className="grid grid-cols-3 gap-6">
         {/* Active Goals */}
         <div className="col-span-2">
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xl font-bold uppercase">Active Goals</h2>
-            <Link href="/dashboard/goals" className="flex items-center gap-2 font-bold text-sm uppercase hover:text-primary transition-colors">
-              View All <ArrowRight className="w-4 h-4" />
+            <Link
+              href="/dashboard/goals"
+              className="flex items-center gap-2 text-sm font-bold uppercase transition-colors hover:text-primary"
+            >
+              View All <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
 
           <div className="space-y-4">
             {goals.length === 0 ? (
-              <div className="card-brutal text-center py-12">
-                <Target className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <p className="font-bold uppercase mb-2">No Active Goals</p>
-                <p className="font-mono text-gray-600 mb-4">Create your first goal to start tracking</p>
+              <div className="card-brutal py-12 text-center">
+                <Target className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+                <p className="mb-2 font-bold uppercase">No Active Goals</p>
+                <p className="mb-4 font-mono text-gray-600">Create your first goal to start tracking</p>
                 <Link href="/dashboard/goals" className="btn-brutal inline-flex items-center gap-2">
-                  <Plus className="w-4 h-4" /> Create Goal
+                  <Plus className="h-4 w-4" /> Create Goal
                 </Link>
               </div>
             ) : (
               goals.slice(0, 4).map((goal, i) => {
-                const progress = goal.targetHours > 0 
-                  ? Math.min(100, Math.round((goal.loggedHours / goal.targetHours) * 100))
-                  : 0
+                const progress =
+                  goal.targetHours > 0 ? Math.min(100, Math.round((goal.loggedHours / goal.targetHours) * 100)) : 0
 
                 return (
                   <motion.div
@@ -179,21 +180,21 @@ export default function DashboardPage() {
                     transition={{ delay: i * 0.1 }}
                     className="card-brutal flex items-center gap-4"
                   >
-                    <div 
-                      className="w-3 h-full min-h-[80px] border-r-3 border-secondary"
+                    <div
+                      className="h-full min-h-[80px] w-3 border-r-3 border-secondary"
                       style={{ backgroundColor: goal.color }}
                     />
-                    
+
                     <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="mb-2 flex items-center justify-between">
                         <div>
-                          <span className={`badge-brutal ${getCategoryColor(goal.category)} text-xs mr-2`}>
+                          <span className={`badge-brutal ${getCategoryColor(goal.category)} mr-2 text-xs`}>
                             {goal.category}
                           </span>
                           <span className="font-bold uppercase">{goal.title}</span>
                         </div>
                         {goal.deadline && (
-                          <span className="badge-brutal bg-secondary text-white text-xs">
+                          <span className="badge-brutal bg-secondary text-xs text-white">
                             {format(new Date(goal.deadline), 'MMM d')}
                           </span>
                         )}
@@ -202,7 +203,7 @@ export default function DashboardPage() {
                       <div className="flex items-center gap-4">
                         <div className="flex-1">
                           <div className="progress-brutal">
-                            <div 
+                            <div
                               className={`progress-brutal-fill ${getProgressColor(progress)}`}
                               style={{ width: `${progress}%` }}
                             />
@@ -222,28 +223,29 @@ export default function DashboardPage() {
         <div className="space-y-6">
           {/* Recent Activity */}
           <div>
-            <h2 className="text-xl font-bold uppercase mb-4">Recent Activity</h2>
+            <h2 className="mb-4 text-xl font-bold uppercase">Recent Activity</h2>
             <div className="card-brutal">
               {recentActivity.length === 0 ? (
-                <div className="text-center py-8">
-                  <Clock className="w-10 h-10 mx-auto mb-3 text-gray-400" />
+                <div className="py-8 text-center">
+                  <Clock className="mx-auto mb-3 h-10 w-10 text-gray-400" />
                   <p className="font-mono text-sm text-gray-600">No activity yet</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {recentActivity.map((entry) => (
-                    <div key={entry.id} className="flex items-center gap-3 p-3 bg-brutalist-bg border-2 border-secondary">
-                      <div 
-                        className="w-10 h-10 flex items-center justify-center font-bold font-mono text-sm border-2 border-secondary"
+                    <div
+                      key={entry.id}
+                      className="flex items-center gap-3 border-2 border-secondary bg-brutalist-bg p-3"
+                    >
+                      <div
+                        className="flex h-10 w-10 items-center justify-center border-2 border-secondary font-mono text-sm font-bold"
                         style={{ backgroundColor: entry.goal?.color || '#FFD700' }}
                       >
                         {formatDuration(entry.duration).replace(' ', '')}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-bold text-sm truncate">{entry.taskName}</p>
-                        <p className="font-mono text-xs text-gray-600">
-                          {entry.goal?.title || 'No Goal'}
-                        </p>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-bold">{entry.taskName}</p>
+                        <p className="font-mono text-xs text-gray-600">{entry.goal?.title || 'No Goal'}</p>
                       </div>
                     </div>
                   ))}
@@ -253,16 +255,16 @@ export default function DashboardPage() {
           </div>
 
           {/* View Schedule CTA */}
-          <Link 
+          <Link
             href="/dashboard/schedule"
-            className="card-brutal-colored bg-primary flex items-center justify-between group cursor-pointer hover:shadow-brutal-lg transition-shadow"
+            className="card-brutal-colored group flex cursor-pointer items-center justify-between bg-primary transition-shadow hover:shadow-brutal-lg"
           >
             <div>
-              <Calendar className="w-8 h-8 mb-2" />
+              <Calendar className="mb-2 h-8 w-8" />
               <span className="font-bold uppercase">View Schedule</span>
               <p className="font-mono text-sm">Plan your week</p>
             </div>
-            <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="h-6 w-6 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from 'clsx'
+import { addDays, endOfWeek, format, parseISO, startOfWeek } from 'date-fns'
 import { twMerge } from 'tailwind-merge'
-import { format, startOfWeek, endOfWeek, addDays, parseISO } from 'date-fns'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -17,12 +17,12 @@ export function formatDuration(minutes: number): string {
 export function getWeekDates(date: Date = new Date()) {
   const start = startOfWeek(date, { weekStartsOn: 1 }) // Monday
   const end = endOfWeek(date, { weekStartsOn: 1 })
-  
+
   const days = []
   for (let i = 0; i < 7; i++) {
     days.push(addDays(start, i))
   }
-  
+
   return { start, end, days }
 }
 
