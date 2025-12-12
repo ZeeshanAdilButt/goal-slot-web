@@ -106,12 +106,15 @@ export const COLOR_OPTIONS = [
   '#F97316', // Orange
 ]
 
-export const TIME_OPTIONS = Array.from({ length: 24 }, (_, i) => {
-  const hour = i
+export const TIME_OPTIONS = Array.from({ length: (24 * 60) / 15 }, (_, i) => {
+  const totalMinutes = i * 15
+  const hour = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
   const ampm = hour >= 12 ? 'PM' : 'AM'
   const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
+  const minuteLabel = minutes.toString().padStart(2, '0')
   return {
-    value: `${hour.toString().padStart(2, '0')}:00`,
-    label: `${displayHour} ${ampm}`,
+    value: `${hour.toString().padStart(2, '0')}:${minuteLabel}`,
+    label: `${displayHour}:${minuteLabel} ${ampm}`,
   }
 })

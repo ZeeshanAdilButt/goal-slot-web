@@ -9,6 +9,11 @@ export const scheduleQueries = {
 
   weeklyKey: () => [...scheduleQueries.root(), 'weekly'] as const,
   goalsKey: () => [...scheduleQueries.root(), 'goals'] as const,
+  mutation: {
+    update: () => [...scheduleQueries.root(), 'update'] as const,
+    create: () => [...scheduleQueries.root(), 'create'] as const,
+    delete: () => [...scheduleQueries.root(), 'delete'] as const,
+  },
 
   weekly: () =>
     queryOptions({

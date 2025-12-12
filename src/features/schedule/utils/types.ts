@@ -28,3 +28,9 @@ export type SchedulePayload = {
   color: string
   goalId?: string
 }
+
+export type DraftSelection = {
+  dayOfWeek: number
+  start: number
+  end: number
+}

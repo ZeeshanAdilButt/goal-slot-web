@@ -13,9 +13,10 @@ type ScheduleBlockModalProps = {
   onClose: () => void
   block: ScheduleBlock | null
   dayOfWeek: number | null
+  presetTimes?: { startTime: string; endTime: string } | null
 }
 
-export function ScheduleBlockModal({ isOpen, onClose, block, dayOfWeek }: ScheduleBlockModalProps) {
+export function ScheduleBlockModal({ isOpen, onClose, block, dayOfWeek, presetTimes }: ScheduleBlockModalProps) {
   const [title, setTitle] = useState('')
   const [startTime, setStartTime] = useState('09:00')
   const [endTime, setEndTime] = useState('10:00')
@@ -41,9 +42,13 @@ export function ScheduleBlockModal({ isOpen, onClose, block, dayOfWeek }: Schedu
     } else {
       resetForm()
       if (dayOfWeek !== null) setSelectedDays([dayOfWeek])
+      if (presetTimes) {
+        setStartTime(presetTimes.startTime)
+        setEndTime(presetTimes.endTime)
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [block, dayOfWeek])
+  }, [block, dayOfWeek, presetTimes])
 
   const resetForm = () => {
     setTitle('')
@@ -110,13 +115,13 @@ export function ScheduleBlockModal({ isOpen, onClose, block, dayOfWeek }: Schedu
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="modal-brutal">
-        <DialogHeader className="flex-row items-center justify-between mb-2">
+        <DialogHeader className="mb-2 flex-row items-center justify-between">
           <DialogTitle className="text-2xl font-bold uppercase">{block ? 'Edit Block' : 'New Block'}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block font-bold uppercase text-sm mb-2">Title</label>
+            <label className="mb-2 block text-sm font-bold uppercase">Title</label>
             <input
               type="text"
               value={title}
@@ -128,7 +133,7 @@ export function ScheduleBlockModal({ isOpen, onClose, block, dayOfWeek }: Schedu
           </div>
 
           <div>
-            <label className="block font-bold uppercase text-sm mb-2">{block ? 'Day' : 'Days (select multiple)'}</label>
+            <label className="mb-2 block text-sm font-bold uppercase">{block ? 'Day' : 'Days (select multiple)'}</label>
             {block ? (
               <select
                 value={selectedDays[0]}
@@ -161,7 +166,7 @@ export function ScheduleBlockModal({ isOpen, onClose, block, dayOfWeek }: Schedu
           </div>
 
           <div>
-            <label className="block font-bold uppercase text-sm mb-2">Category</label>
+            <label className="mb-2 block text-sm font-bold uppercase">Category</label>
             <select
               value={category}
               onChange={(e) => {
@@ -192,7 +197,7 @@ export function ScheduleBlockModal({ isOpen, onClose, block, dayOfWeek }: Schedu
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block font-bold uppercase text-sm mb-2">Start Time</label>
+              <label className="mb-2 block text-sm font-bold uppercase">Start Time</label>
               <select value={startTime} onChange={(e) => setStartTime(e.target.value)} className="input-brutal">
                 {TIME_OPTIONS.map((t) => (
                   <option key={t.value} value={t.value}>
@@ -202,7 +207,7 @@ export function ScheduleBlockModal({ isOpen, onClose, block, dayOfWeek }: Schedu
               </select>
             </div>
             <div>
-              <label className="block font-bold uppercase text-sm mb-2">End Time</label>
+              <label className="mb-2 block text-sm font-bold uppercase">End Time</label>
               <select value={endTime} onChange={(e) => setEndTime(e.target.value)} className="input-brutal">
                 {TIME_OPTIONS.map((t) => (
                   <option key={t.value} value={t.value}>
@@ -214,7 +219,7 @@ export function ScheduleBlockModal({ isOpen, onClose, block, dayOfWeek }: Schedu
           </div>
 
           <div>
-            <label className="block font-bold uppercase text-sm mb-2">Link to Goal (Optional)</label>
+            <label className="mb-2 block text-sm font-bold uppercase">Link to Goal (Optional)</label>
             <select
               value={goalId}
               onChange={(e) => setGoalId(e.target.value)}
@@ -231,10 +236,10 @@ export function ScheduleBlockModal({ isOpen, onClose, block, dayOfWeek }: Schedu
           </div>
 
           <DialogFooter className="flex-row gap-4 pt-4">
-            <button type="button" onClick={onClose} className="flex-1 btn-brutal-secondary">
+            <button type="button" onClick={onClose} className="btn-brutal-secondary flex-1">
               Cancel
             </button>
-            <button type="submit" disabled={isSaving} className="flex-1 btn-brutal-dark">
+            <button type="submit" disabled={isSaving} className="btn-brutal-dark flex-1">
               {isSaving ? 'Saving...' : block ? 'Update' : 'Create'}
             </button>
           </DialogFooter>

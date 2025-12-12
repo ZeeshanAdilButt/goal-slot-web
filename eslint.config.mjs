@@ -24,6 +24,7 @@ export default defineConfig([
     rules: {
       'tailwindcss/classnames-order': 'error',
       'react/no-unescaped-entities': 'off',
+      'eslint(react-hooks/set-state-in-effect)': 'off',
     },
   },
   eslintConfigPrettier,
