@@ -1,21 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
-
 @layer base {
   :root {
-    --background: 45 100% 94%;
-    --foreground: 0 0% 0%;
+    /* Exact match to original neo-brutalist palette */
+    --background: 48 96% 89%; /* #FEF3C7 */
+    --foreground: 0 0% 0%; /* #000000 */
+    --card: 0 0% 100%; /* #FFFFFF */
+    --card-foreground: 0 0% 0%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 51 100% 50%; /* #FFD700 */
+    --primary-foreground: 0 0% 0%; /* black text on gold */
+    --secondary: 0 0% 0%; /* #000000 */
+    --secondary-foreground: 0 0% 98%; /* near-white */
+    --muted: 48 96% 89%; /* match background */
+    --muted-foreground: 0 0% 35%;
+    --accent: 48 96% 89%; /* match background */
+    --accent-foreground: 0 0% 10%;
+    --destructive: 0 84% 60%; /* default red */
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 0%; /* black outlines */
+    --input: 0 0% 0%;
+    --ring: 51 100% 50%; /* gold focus ring */
+    --chart-1: 51 100% 50%; /* gold */
+    --chart-2: 142 72% 47%; /* #22C55E */
+    --chart-3: 25 95% 53%; /* #F97316 */
+    --chart-4: 330 79% 59%; /* #EC4899 */
+    --chart-5: 258 91% 67%; /* #8B5CF6 */
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Dark theme aligned to the same palette (gold on near-black) */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 51 100% 50%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 20%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 80%;
+    --accent: 0 0% 18%;
+    --accent-foreground: 0 0% 90%;
+    --destructive: 0 62.8% 55%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 24%;
+    --input: 0 0% 24%;
+    --ring: 51 100% 50%;
+    --chart-1: 51 100% 50%;
+    --chart-2: 142 72% 47%;
+    --chart-3: 25 95% 53%;
+    --chart-4: 330 79% 59%;
+    --chart-5: 258 91% 67%;
   }
 
   * {
-    @apply border-secondary;
+    @apply border-border;
   }
 
   body {
-    @apply bg-brutalist-bg text-secondary font-sans antialiased;
+    @apply bg-background text-foreground font-sans antialiased;
   }
 
   /* Neo-brutalism selection */
@@ -142,19 +194,41 @@
   }
 
   /* Color variations for cards */
-  .bg-goal-learning { @apply bg-blue-400; }
-  .bg-goal-work { @apply bg-cyan-400; }
-  .bg-goal-health { @apply bg-green-400; }
-  .bg-goal-creative { @apply bg-pink-400; }
+  .bg-goal-learning {
+    @apply bg-blue-400;
+  }
+  .bg-goal-work {
+    @apply bg-cyan-400;
+  }
+  .bg-goal-health {
+    @apply bg-green-400;
+  }
+  .bg-goal-creative {
+    @apply bg-pink-400;
+  }
 
   /* Schedule category colors */
-  .bg-schedule-deep-work { @apply bg-primary; }
-  .bg-schedule-learning { @apply bg-green-400; }
-  .bg-schedule-exercise { @apply bg-orange-400; }
-  .bg-schedule-side-project { @apply bg-pink-400; }
-  .bg-schedule-dsa { @apply bg-primary; }
-  .bg-schedule-meeting { @apply bg-purple-400; }
-  .bg-schedule-break { @apply bg-gray-300; }
+  .bg-schedule-deep-work {
+    @apply bg-primary;
+  }
+  .bg-schedule-learning {
+    @apply bg-green-400;
+  }
+  .bg-schedule-exercise {
+    @apply bg-orange-400;
+  }
+  .bg-schedule-side-project {
+    @apply bg-pink-400;
+  }
+  .bg-schedule-dsa {
+    @apply bg-primary;
+  }
+  .bg-schedule-meeting {
+    @apply bg-purple-400;
+  }
+  .bg-schedule-break {
+    @apply bg-gray-300;
+  }
 }
 
 /* Scrollbar styling */
@@ -176,11 +250,11 @@
 }
 
 /* Custom checkbox */
-input[type="checkbox"] {
+input[type='checkbox'] {
   @apply w-5 h-5 border-3 border-secondary bg-white appearance-none cursor-pointer;
 }
 
-input[type="checkbox"]:checked {
+input[type='checkbox']:checked {
   @apply bg-primary;
   background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='black' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
 }

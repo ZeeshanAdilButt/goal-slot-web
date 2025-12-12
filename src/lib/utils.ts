@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from 'clsx'
+import { addDays, endOfWeek, format, parseISO, startOfWeek } from 'date-fns'
 import { twMerge } from 'tailwind-merge'
-import { format, startOfWeek, endOfWeek, addDays, parseISO } from 'date-fns'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -17,12 +17,12 @@ export function formatDuration(minutes: number): string {
 export function getWeekDates(date: Date = new Date()) {
   const start = startOfWeek(date, { weekStartsOn: 1 }) // Monday
   const end = endOfWeek(date, { weekStartsOn: 1 })
-  
+
   const days = []
   for (let i = 0; i < 7; i++) {
     days.push(addDays(start, i))
   }
-  
+
   return { start, end, days }
 }
 
@@ -106,12 +106,15 @@ export const COLOR_OPTIONS = [
   '#F97316', // Orange
 ]
 
-export const TIME_OPTIONS = Array.from({ length: 24 }, (_, i) => {
-  const hour = i
+export const TIME_OPTIONS = Array.from({ length: (24 * 60) / 15 }, (_, i) => {
+  const totalMinutes = i * 15
+  const hour = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
   const ampm = hour >= 12 ? 'PM' : 'AM'
   const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
+  const minuteLabel = minutes.toString().padStart(2, '0')
   return {
-    value: `${hour.toString().padStart(2, '0')}:00`,
-    label: `${displayHour} ${ampm}`,
+    value: `${hour.toString().padStart(2, '0')}:${minuteLabel}`,
+    label: `${displayHour}:${minuteLabel} ${ampm}`,
   }
 })
