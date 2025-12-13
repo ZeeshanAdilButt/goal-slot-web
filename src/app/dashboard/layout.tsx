@@ -23,6 +23,7 @@ import {
 
 import { useAuthStore, useIsAdmin } from '@/lib/store'
 import { cn } from '@/lib/utils'
+import { TimeEntryBanner } from '@/components/time-entry-banner'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -178,6 +179,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Main Content */}
       <main className="ml-64 flex-1">
+        <TimeEntryBanner />
         <div className="p-8">{children}</div>
       </main>
     </div>
