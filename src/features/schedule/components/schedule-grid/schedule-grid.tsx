@@ -20,11 +20,10 @@ type ScheduleGridProps = {
   isPending: boolean
   onAddBlock: (dayOfWeek: number, preset?: { startTime: string; endTime: string }) => void
   onEdit: (block: ScheduleBlock) => void
-  onDelete: (id: string) => void
   draftKey: number
 }
 
-export function ScheduleGrid({ weekSchedule, isPending, onAddBlock, onEdit, onDelete, draftKey }: ScheduleGridProps) {
+export function ScheduleGrid({ weekSchedule, isPending, onAddBlock, onEdit, draftKey }: ScheduleGridProps) {
   const { activeId, preview, pendingDraft, setPendingDraft, handleDragStart, handleDragMove, handleDragEnd } =
     useScheduleDrag({ weekSchedule, draftKey })
   const [draftSelection, setDraftSelection] = useState<DraftSelection | null>(null)
@@ -98,13 +97,12 @@ export function ScheduleGrid({ weekSchedule, isPending, onAddBlock, onEdit, onDe
         height={height}
         isActiveDrag={activeId === block.id}
         onEdit={() => onEdit(block)}
-        onDelete={() => onDelete(block.id)}
       />
     )
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div>
       <div className="min-w-[960px]">
         <div className="grid grid-cols-[5rem_repeat(7,minmax(0,1fr))] border-b-3 border-secondary">
           <div className="w-20 bg-secondary p-4 text-center font-bold uppercase text-white">Time</div>

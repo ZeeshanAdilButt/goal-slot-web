@@ -41,9 +41,13 @@ interface WeeklySummary {
 interface GoalProgress {
   id: string
   title: string
+  color?: string
   targetHours: number
   loggedHours: number
-  progressPercent: number
+  progress: number
+  deadline?: string
+  daysLeft?: number | null
+  status?: string
 }
 
 export default function ReportsPage() {
@@ -52,7 +56,6 @@ export default function ReportsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedWeek, setSelectedWeek] = useState(0) // 0 = current week, -1 = last week, etc.
 
-   
   useEffect(() => {
     loadReports()
   }, [selectedWeek])
@@ -65,7 +68,27 @@ export default function ReportsPage() {
         reportsApi.getGoalProgress(),
       ])
       setWeeklyReport(weeklyRes.data)
-      setGoalProgress(goalsRes.data)
+      const rawGoals = Array.isArray(goalsRes.data) ? goalsRes.data : []
+      setGoalProgress(
+        rawGoals.map((g: any) => {
+          const loggedHours = Number(g?.loggedHours ?? 0)
+          const targetHours = Number(g?.targetHours ?? 0)
+          const computedProgress = targetHours > 0 ? (loggedHours / targetHours) * 100 : 0
+          const progress = Number(g?.progress ?? g?.progressPercent ?? computedProgress) || 0
+
+          return {
+            id: String(g?.id ?? ''),
+            title: String(g?.title ?? ''),
+            color: g?.color,
+            loggedHours,
+            targetHours,
+            progress,
+            deadline: g?.deadline,
+            daysLeft: g?.daysLeft,
+            status: g?.status,
+          } satisfies GoalProgress
+        }),
+      )
     } catch (error) {
       toast.error('Failed to load reports')
     } finally {
@@ -324,20 +347,20 @@ export default function ReportsPage() {
                     <div className="mb-2 flex items-center justify-between">
                       <div className="font-bold uppercase">{goal.title}</div>
                       <div className="font-mono text-sm">
-                        <span className="font-bold">{goal.loggedHours.toFixed(1)}</span>
-                        <span className="text-gray-500"> / {goal.targetHours}h</span>
+                        <span className="font-bold">{Number(goal.loggedHours ?? 0).toFixed(1)}</span>
+                        <span className="text-gray-500"> / {Number(goal.targetHours ?? 0)}h</span>
                       </div>
                     </div>
                     <div className="h-4 overflow-hidden border-2 border-secondary bg-gray-200">
                       <motion.div
                         initial={{ width: 0 }}
-                        animate={{ width: `${Math.min(goal.progressPercent, 100)}%` }}
+                        animate={{ width: `${Math.min(Number(goal.progress ?? 0), 100)}%` }}
                         transition={{ duration: 0.5, delay: i * 0.1 }}
-                        className={cn('h-full', goal.progressPercent >= 100 ? 'bg-accent-green' : 'bg-primary')}
+                        className={cn('h-full', Number(goal.progress ?? 0) >= 100 ? 'bg-accent-green' : 'bg-primary')}
                       />
                     </div>
                     <div className="mt-1 text-right font-mono text-xs text-gray-600">
-                      {goal.progressPercent.toFixed(0)}% complete
+                      {Number(goal.progress ?? 0).toFixed(0)}% complete
                     </div>
                   </motion.div>
                 ))}
@@ -397,7 +420,7 @@ export default function ReportsPage() {
             <div className="card-brutal-colored bg-accent-orange text-white">
               <h3 className="mb-4 text-lg font-bold uppercase">🎯 Next Steps</h3>
               <p className="font-mono">
-                {goalProgress.some((g) => g.progressPercent >= 80)
+                {goalProgress.some((g) => Number(g.progress ?? 0) >= 80)
                   ? "You're close to completing a goal! Keep pushing to finish strong."
                   : 'Set specific time blocks for your most important goals to make steady progress.'}
               </p>

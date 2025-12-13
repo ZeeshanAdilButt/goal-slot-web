@@ -1,15 +1,18 @@
 'use client'
 
-import { type CSSProperties } from 'react'
+import { useState, type CSSProperties } from 'react'
 
 import { ScheduleBlock } from '@/features/schedule/utils/types'
 import { useDraggable } from '@dnd-kit/core'
 import { useIsMutating } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { Loader2, X } from 'lucide-react'
+import { toast } from 'react-hot-toast'
 
 import { getCategoryColor } from '@/lib/utils'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 
+import { useDeleteScheduleBlock } from '../../hooks/use-schedule-mutations'
 import { scheduleQueries } from '../../utils/queries'
 
 type DraggableBlockProps = {
@@ -18,10 +21,11 @@ type DraggableBlockProps = {
   height: number
   isActiveDrag?: boolean
   onEdit: () => void
-  onDelete: () => void
 }
 
-export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onDelete }: DraggableBlockProps) {
+export function DraggableBlock({ block, top, height, isActiveDrag, onEdit }: DraggableBlockProps) {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const { mutateAsync: deleteBlock } = useDeleteScheduleBlock()
   const draggableId = block.id
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: draggableId,
@@ -32,6 +36,25 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onDel
       mutationKey: scheduleQueries.mutation.update(),
       predicate: (mutation) => (mutation.state.variables as { id?: string })?.id === block.id,
     }) > 0
+
+  const handleDeleteClick = (event: React.MouseEvent) => {
+    event.stopPropagation()
+    setDeleteDialogOpen(true)
+  }
+
+  const handleBlockClick = (event: React.MouseEvent) => {
+    if (deleteDialogOpen) return
+    onEdit()
+  }
+
+  const confirmDelete = async () => {
+    try {
+      await deleteBlock(block.id)
+      toast.success('Block deleted')
+    } catch (error) {
+      toast.error('Failed to delete')
+    }
+  }
 
   const blockStyle: CSSProperties = {
     backgroundColor: block.color || getCategoryColor(block.category),
@@ -53,17 +76,15 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onDel
       className="group absolute left-1 right-1 z-10 cursor-grab border-2 border-secondary p-2 shadow-brutal-sm"
       data-block
       style={blockStyle}
-      onClick={onEdit}
+      onClick={handleBlockClick}
       {...attributes}
       {...listeners}
     >
       <div className="flex items-start justify-between">
         <div className="truncate pr-6 text-xs font-bold uppercase">{block.title}</div>
         <button
-          onClick={(event) => {
-            event.stopPropagation()
-            onDelete()
-          }}
+          onClick={handleDeleteClick}
+          onPointerDown={(event) => event.stopPropagation()}
           className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center border border-secondary bg-white opacity-0 transition-opacity group-hover:opacity-100"
         >
           <X className="h-3 w-3" />
@@ -84,6 +105,16 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onDel
 
       <ResizeHandle position="top" block={block} />
       <ResizeHandle position="bottom" block={block} />
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete Schedule Block"
+        description="Are you sure you want to delete this schedule block? This action cannot be undone."
+        onConfirm={confirmDelete}
+        confirmButtonText="Delete"
+        variant="destructive"
+      />
     </motion.div>
   )
 }
