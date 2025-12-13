@@ -83,7 +83,11 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks }: ManualEntryM
                     const id = value === 'no_task' ? '' : value
                     setTaskId(id)
                     const t = tasks.find((task) => task.id === id)
-                    if (t) setTitle(t.title)
+                    if (t) {
+                      setTitle(t.title)
+                      if (t.category) setCategory(t.category)
+                      if (t.goalId) setGoalId(t.goalId)
+                    }
                   }}
                 >
                   <SelectTrigger>
@@ -161,8 +165,10 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks }: ManualEntryM
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-bold uppercase">Category</label>
-                <Select value={category} onValueChange={setCategory}>
+                <label className="mb-2 block text-sm font-bold uppercase">
+                  Category {taskId && <span className="text-xs opacity-70">(From Task)</span>}
+                </label>
+                <Select value={category} onValueChange={setCategory} disabled={!!taskId}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
@@ -177,10 +183,13 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks }: ManualEntryM
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-bold uppercase">Link to Goal (Optional)</label>
+                <label className="mb-2 block text-sm font-bold uppercase">
+                  Link to Goal {taskId && goalId && <span className="text-xs opacity-70">(From Task)</span>}
+                </label>
                 <Select
                   value={goalId || 'no_goal'}
                   onValueChange={(value) => setGoalId(value === 'no_goal' ? '' : value)}
+                  disabled={!!taskId}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select goal" />

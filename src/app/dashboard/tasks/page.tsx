@@ -7,7 +7,7 @@ import { Calendar, CheckCircle2, Clock, Link2, Plus, Target } from 'lucide-react
 import { toast } from 'react-hot-toast'
 
 import { goalsApi, scheduleApi, tasksApi } from '@/lib/api'
-import { cn, DAYS_OF_WEEK_FULL, formatDuration } from '@/lib/utils'
+import { cn, DAYS_OF_WEEK_FULL, formatDuration, TASK_CATEGORIES } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 type TaskStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED'
@@ -31,6 +31,7 @@ interface Task {
   title: string
   description?: string
   status: TaskStatus
+  category?: string
   estimatedMinutes?: number
   actualMinutes?: number
   dueDate?: string
@@ -62,6 +63,7 @@ export default function TasksPage() {
   const [form, setForm] = useState({
     title: '',
     description: '',
+    category: '',
     estimatedMinutes: '',
     goalId: '',
     scheduleBlockId: '',
@@ -108,6 +110,7 @@ export default function TasksPage() {
       goalId: '',
       scheduleBlockId: '',
       dueDate: '',
+      category: '',
     })
   }
 
@@ -120,8 +123,9 @@ export default function TasksPage() {
     try {
       await tasksApi.create({
         title: form.title,
-        description: form.description || undefined,
-        estimatedMinutes: form.estimatedMinutes ? Number(form.estimatedMinutes) : undefined,
+        description: form.description,
+        category: form.category,
+        estimatedMinutes: form.estimatedMinutes ? parseInt(form.estimatedMinutes) : undefined,
         goalId: form.goalId || undefined,
         scheduleBlockId: form.scheduleBlockId || undefined,
         dueDate: form.dueDate || undefined,
@@ -317,6 +321,25 @@ export default function TasksPage() {
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   rows={3}
                 />
+              </div>
+              <div>
+                <label className="font-mono text-sm uppercase">Category</label>
+                <Select
+                  value={form.category || 'none'}
+                  onValueChange={(value) => setForm({ ...form, category: value === 'none' ? '' : value })}
+                >
+                  <SelectTrigger className="input-brutal mt-1 w-full">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Select category</SelectItem>
+                    {TASK_CATEGORIES.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid gap-3 md:grid-cols-2">
                 <div>

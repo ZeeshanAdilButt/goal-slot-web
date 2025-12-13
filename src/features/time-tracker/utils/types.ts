@@ -20,6 +20,8 @@ export interface TimeEntry {
 export interface Task {
   id: string
   title: string
+  category?: string
+  goalId?: string
   status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED'
 }
 

@@ -130,8 +130,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
 
         {/* User Section */}
-        <div className="border-t-3 border-secondary p-2">
-          <div className="card-brutal mb-3 p-4">
+        <div className="border-t-3 border-secondary p-4">
+          <div className="card-brutal mb-3 p-2">
             <div className="mb-3 flex items-center gap-3">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center border-2 border-secondary bg-primary text-lg font-bold uppercase shadow-brutal-sm">
                 {user.name.charAt(0)}

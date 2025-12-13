@@ -1,5 +1,7 @@
 import { History, Target, Timer } from 'lucide-react'
+
 import { formatDuration } from '@/lib/utils'
+
 import { TimeEntry } from '../utils/types'
 
 interface StatsCardsProps {
@@ -7,9 +9,15 @@ interface StatsCardsProps {
 }
 
 export function StatsCards({ recentEntries }: StatsCardsProps) {
-  const todayTotalMinutes = recentEntries
-    .filter((e) => e.date === new Date().toISOString().split('T')[0])
-    .reduce((sum, e) => sum + e.duration, 0)
+  // Normalize date to YYYY-MM-DD format for comparison
+  const today = new Date().toISOString().split('T')[0]
+  const normalizeDate = (date: string) => {
+    // Handle both "YYYY-MM-DD" and "YYYY-MM-DDTHH:mm:ss.sssZ" formats
+    return date.split('T')[0]
+  }
+
+  const todayEntries = recentEntries.filter((e) => normalizeDate(e.date) === today)
+  const todayTotalMinutes = todayEntries.reduce((sum, e) => sum + e.duration, 0)
 
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -20,9 +28,7 @@ export function StatsCards({ recentEntries }: StatsCardsProps) {
       </div>
       <div className="card-brutal-colored bg-primary text-center">
         <Target className="mx-auto mb-2 h-8 w-8" />
-        <div className="text-3xl font-bold">
-          {recentEntries.filter((e) => e.date === new Date().toISOString().split('T')[0]).length}
-        </div>
+        <div className="text-3xl font-bold">{todayEntries.length}</div>
         <div className="font-mono text-sm uppercase">Tasks Today</div>
       </div>
       <div className="card-brutal text-center">

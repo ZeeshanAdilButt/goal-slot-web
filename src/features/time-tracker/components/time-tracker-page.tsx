@@ -1,22 +1,24 @@
 'use client'
 
 import { useState } from 'react'
+
 import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { toast } from 'react-hot-toast'
+
 import { formatDuration } from '@/lib/utils'
 
-import { useTimeTrackerData } from '../hooks/use-time-tracker-queries'
 import { useCreateTimeEntry } from '../hooks/use-time-tracker-mutations'
+import { useTimeTrackerData } from '../hooks/use-time-tracker-queries'
 import { useTimer } from '../hooks/use-timer'
-
-import { TimerDisplay } from './timer-display'
-import { TimerControls } from './timer-controls'
-import { TaskSelector } from './task-selector'
-import { TimerSettings } from './timer-settings'
-import { StatsCards } from './stats-cards'
-import { RecentEntries } from './recent-entries'
+import { Task } from '../utils/types'
 import { ManualEntryModal } from './manual-entry-modal'
+import { RecentEntries } from './recent-entries'
+import { StatsCards } from './stats-cards'
+import { TaskSelector } from './task-selector'
+import { TimerControls } from './timer-controls'
+import { TimerDisplay } from './timer-display'
+import { TimerSettings } from './timer-settings'
 
 export function TimeTrackerPage() {
   const {
@@ -42,9 +44,24 @@ export function TimeTrackerPage() {
   const createEntry = useCreateTimeEntry()
   const [showManualEntry, setShowManualEntry] = useState(false)
 
+  const handleTaskChange = (taskId: string) => {
+    setTaskId(taskId)
+    if (taskId) {
+      const task = tasks.find((t: Task) => t.id === taskId)
+      if (task) {
+        setTask(task.title)
+        if (task.category) setCategory(task.category)
+        if (task.goalId) setGoalId(task.goalId)
+      }
+    } else {
+      setTask('')
+      // Don't reset category/goal as user might want to set them manually
+    }
+  }
+
   const startTimer = () => {
     const selectedTaskTitle = currentTaskId
-      ? tasks.find((t) => t.id === currentTaskId)?.title
+      ? tasks.find((t: Task) => t.id === currentTaskId)?.title
       : currentTask.trim()
 
     if (!selectedTaskTitle) {
@@ -73,7 +90,7 @@ export function TimeTrackerPage() {
 
     const duration = Math.floor(elapsedTime / 60)
     const taskTitle = currentTaskId
-      ? tasks.find((t) => t.id === currentTaskId)?.title || currentTask
+      ? tasks.find((t: Task) => t.id === currentTaskId)?.title || currentTask
       : currentTask
 
     createEntry.mutate(
@@ -138,28 +155,19 @@ export function TimeTrackerPage() {
           currentTaskId={currentTaskId}
           currentTask={currentTask}
           timerState={timerState}
-          onTaskIdChange={(id) => {
-            setTaskId(id)
-            const title = tasks.find((t) => t.id === id)?.title || ''
-            setTask(title)
-          }}
-          onTaskTitleChange={(title) => {
-            setTask(title)
-            setTaskId('')
-          }}
+          onTaskIdChange={handleTaskChange}
+          onTaskTitleChange={setTask}
         />
-
         <TimerSettings
           goals={goals}
           currentCategory={currentCategory}
           currentGoalId={currentGoalId}
           timerState={timerState}
+          isTaskSelected={!!currentTaskId}
           onCategoryChange={setCategory}
           onGoalIdChange={setGoalId}
         />
-
         <TimerDisplay elapsedTime={elapsedTime} timerState={timerState} />
-
         <TimerControls
           timerState={timerState}
           onStart={startTimer}
