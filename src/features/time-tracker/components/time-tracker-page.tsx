@@ -2,23 +2,22 @@
 
 import { useState } from 'react'
 
+import { ManualEntryModal } from '@/features/time-tracker/components/manual-entry-modal'
+import { RecentEntries } from '@/features/time-tracker/components/recent-entries'
+import { StatsCards } from '@/features/time-tracker/components/stats-cards'
+import { TaskSelector } from '@/features/time-tracker/components/task-selector'
+import { TimerControls } from '@/features/time-tracker/components/timer-controls'
+import { TimerDisplay } from '@/features/time-tracker/components/timer-display'
+import { TimerSettings } from '@/features/time-tracker/components/timer-settings'
+import { useCreateTimeEntry } from '@/features/time-tracker/hooks/use-time-tracker-mutations'
+import { useTimeTrackerData } from '@/features/time-tracker/hooks/use-time-tracker-queries'
+import { useTimer } from '@/features/time-tracker/hooks/use-timer'
+import { Task } from '@/features/time-tracker/utils/types'
 import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { formatDuration } from '@/lib/utils'
-
-import { useCreateTimeEntry } from '../hooks/use-time-tracker-mutations'
-import { useTimeTrackerData } from '../hooks/use-time-tracker-queries'
-import { useTimer } from '../hooks/use-timer'
-import { Task } from '../utils/types'
-import { ManualEntryModal } from './manual-entry-modal'
-import { RecentEntries } from './recent-entries'
-import { StatsCards } from './stats-cards'
-import { TaskSelector } from './task-selector'
-import { TimerControls } from './timer-controls'
-import { TimerDisplay } from './timer-display'
-import { TimerSettings } from './timer-settings'
 
 export function TimeTrackerPage() {
   const {

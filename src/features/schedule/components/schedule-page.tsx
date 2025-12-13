@@ -2,15 +2,14 @@
 
 import { useState } from 'react'
 
+import { ScheduleBlockModal } from '@/features/schedule/components/schedule-block-modal'
+import { ScheduleGrid } from '@/features/schedule/components/schedule-grid/schedule-grid'
 import { useWeeklySchedule } from '@/features/schedule/hooks/use-schedule-queries'
 import { ScheduleBlock, WeekSchedule } from '@/features/schedule/utils/types'
 import { Plus } from 'lucide-react'
 
 import { useHasProAccess } from '@/lib/store'
 import { SCHEDULE_CATEGORIES } from '@/lib/utils'
-
-import { ScheduleBlockModal } from './schedule-block-modal'
-import { ScheduleGrid } from './schedule-grid/schedule-grid'
 
 export function SchedulePage() {
   const [showModal, setShowModal] = useState(false)

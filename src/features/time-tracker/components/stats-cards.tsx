@@ -1,8 +1,7 @@
+import { TimeEntry } from '@/features/time-tracker/utils/types'
 import { History, Target, Timer } from 'lucide-react'
 
 import { formatDuration } from '@/lib/utils'
-
-import { TimeEntry } from '../utils/types'
 
 interface StatsCardsProps {
   recentEntries: TimeEntry[]

@@ -1,6 +1,6 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Task } from '@/features/time-tracker/utils/types'
 
-import { Task } from '../utils/types'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface TaskSelectorProps {
   tasks: Task[]

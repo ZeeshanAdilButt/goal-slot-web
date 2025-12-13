@@ -1,12 +1,11 @@
 import { useState } from 'react'
 
+import { useCreateTimeEntry } from '@/features/time-tracker/hooks/use-time-tracker-mutations'
+import { Goal, Task } from '@/features/time-tracker/utils/types'
 import { AnimatePresence, motion } from 'framer-motion'
 
 import { cn, TASK_CATEGORIES } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-
-import { useCreateTimeEntry } from '../hooks/use-time-tracker-mutations'
-import { Goal, Task } from '../utils/types'
 
 interface ManualEntryModalProps {
   isOpen: boolean

@@ -95,6 +95,7 @@ export const tasksApi = {
   list: (params?: any) => api.get('/tasks', { params }),
   getOne: (id: string) => api.get(`/tasks/${id}`),
   update: (id: string, data: any) => api.put(`/tasks/${id}`, data),
+  delete: (id: string) => api.delete(`/tasks/${id}`),
   complete: (id: string, data: { actualMinutes: number; notes?: string; date?: string }) =>
     api.post(`/tasks/${id}/complete`, data),
 }

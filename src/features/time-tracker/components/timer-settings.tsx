@@ -1,7 +1,7 @@
+import { Goal } from '@/features/time-tracker/utils/types'
+
 import { TASK_CATEGORIES } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-
-import { Goal } from '../utils/types'
 
 interface TimerSettingsProps {
   goals: Goal[]

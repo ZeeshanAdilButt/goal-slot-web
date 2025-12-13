@@ -1,8 +1,9 @@
+import { timeTrackerQueries } from '@/features/time-tracker/utils/queries'
+import { CreateTimeEntryPayload } from '@/features/time-tracker/utils/types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { timeEntriesApi } from '@/lib/api'
-import { timeTrackerQueries } from '../utils/queries'
-import { CreateTimeEntryPayload } from '../utils/types'
 import { toast } from 'react-hot-toast'
+
+import { timeEntriesApi } from '@/lib/api'
 
 export function useCreateTimeEntry() {
   const queryClient = useQueryClient()

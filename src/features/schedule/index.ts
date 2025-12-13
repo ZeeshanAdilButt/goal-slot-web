@@ -1,1 +1,1 @@
-export * from './components/schedule-page'
+export * from '@/features/schedule/components/schedule-page'

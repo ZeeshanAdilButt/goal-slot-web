@@ -5,6 +5,11 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    /* Always show scrollbar to prevent layout shift */
+    overflow-y: scroll;
+  }
+
   :root {
     /* Exact match to original neo-brutalist palette */
     --background: 48 96% 89%; /* #FEF3C7 */
@@ -228,6 +233,11 @@
   }
   .bg-schedule-break {
     @apply bg-gray-300;
+  }
+
+  /* Utility class for scrollable containers */
+  .scrollable {
+    scrollbar-gutter: stable;
   }
 }
 

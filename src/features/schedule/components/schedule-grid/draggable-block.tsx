@@ -2,6 +2,8 @@
 
 import { useState, type CSSProperties } from 'react'
 
+import { useDeleteScheduleBlock } from '@/features/schedule/hooks/use-schedule-mutations'
+import { scheduleQueries } from '@/features/schedule/utils/queries'
 import { ScheduleBlock } from '@/features/schedule/utils/types'
 import { useDraggable } from '@dnd-kit/core'
 import { useIsMutating } from '@tanstack/react-query'
@@ -11,9 +13,6 @@ import { toast } from 'react-hot-toast'
 
 import { getCategoryColor } from '@/lib/utils'
 import { ConfirmDialog } from '@/components/confirm-dialog'
-
-import { useDeleteScheduleBlock } from '../../hooks/use-schedule-mutations'
-import { scheduleQueries } from '../../utils/queries'
 
 type DraggableBlockProps = {
   block: ScheduleBlock

@@ -1,1 +1,1 @@
-export { TimeTrackerPage } from './components/time-tracker-page'
+export { TimeTrackerPage } from '@/features/time-tracker/components/time-tracker-page'

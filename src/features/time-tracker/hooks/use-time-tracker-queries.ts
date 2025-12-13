@@ -1,5 +1,6 @@
+import { useTasksQuery } from '@/features/tasks'
+import { fetchGoals, fetchRecentEntries, timeTrackerQueries } from '@/features/time-tracker/utils/queries'
 import { useQuery } from '@tanstack/react-query'
-import { fetchGoals, fetchRecentEntries, fetchTasks, timeTrackerQueries } from '../utils/queries'
 
 export function useTimeTrackerData() {
   const goalsQuery = useQuery({
@@ -7,10 +8,7 @@ export function useTimeTrackerData() {
     queryFn: fetchGoals,
   })
 
-  const tasksQuery = useQuery({
-    queryKey: timeTrackerQueries.tasks(),
-    queryFn: fetchTasks,
-  })
+  const tasksQuery = useTasksQuery()
 
   const recentEntriesQuery = useQuery({
     queryKey: timeTrackerQueries.recentEntries(),

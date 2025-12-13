@@ -1,7 +1,8 @@
+import { TimeEntry } from '@/features/time-tracker/utils/types'
 import { motion } from 'framer-motion'
 import { Clock, History } from 'lucide-react'
+
 import { formatDate, formatDuration } from '@/lib/utils'
-import { TimeEntry } from '../utils/types'
 
 interface RecentEntriesProps {
   recentEntries: TimeEntry[]
