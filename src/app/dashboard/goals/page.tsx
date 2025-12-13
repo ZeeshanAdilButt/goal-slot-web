@@ -11,6 +11,7 @@ import { toast } from 'react-hot-toast'
 import { goalsApi } from '@/lib/api'
 import { useHasProAccess } from '@/lib/store'
 import { cn, COLOR_OPTIONS, getCategoryColor, getProgressColor, GOAL_CATEGORIES } from '@/lib/utils'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface Goal {
   id: string
@@ -384,23 +385,33 @@ function GoalModal({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="mb-2 block text-sm font-bold uppercase">Category</label>
-                  <select value={category} onChange={(e) => setCategory(e.target.value)} className="input-brutal">
-                    {GOAL_CATEGORIES.map((cat) => (
-                      <option key={cat.value} value={cat.value}>
-                        {cat.label}
-                      </option>
-                    ))}
-                  </select>
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {GOAL_CATEGORIES.map((cat) => (
+                        <SelectItem key={cat.value} value={cat.value}>
+                          {cat.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {goal && (
                   <div>
                     <label className="mb-2 block text-sm font-bold uppercase">Status</label>
-                    <select value={status} onChange={(e) => setStatus(e.target.value)} className="input-brutal">
-                      <option value="ACTIVE">Active</option>
-                      <option value="COMPLETED">Completed</option>
-                      <option value="PAUSED">Paused</option>
-                    </select>
+                    <Select value={status} onValueChange={setStatus}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ACTIVE">Active</SelectItem>
+                        <SelectItem value="COMPLETED">Completed</SelectItem>
+                        <SelectItem value="PAUSED">Paused</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 )}
               </div>

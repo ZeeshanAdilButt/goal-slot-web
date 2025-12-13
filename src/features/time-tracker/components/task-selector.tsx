@@ -1,3 +1,5 @@
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
 import { Task } from '../utils/types'
 
 interface TaskSelectorProps {
@@ -21,21 +23,23 @@ export function TaskSelector({
     <div className="mb-6 space-y-3">
       <div>
         <label className="mb-2 block text-sm font-bold uppercase opacity-75">Select Task</label>
-        <select
-          value={currentTaskId}
-          onChange={(e) => onTaskIdChange(e.target.value)}
+        <Select
+          value={currentTaskId || 'unselected'}
+          onValueChange={(val) => onTaskIdChange(val === 'unselected' ? '' : val)}
           disabled={timerState !== 'STOPPED'}
-          className="w-full border-3 border-white/30 bg-white/10 px-4 py-3 text-lg font-bold text-white focus:border-primary focus:outline-none disabled:opacity-50"
         >
-          <option value="" className="text-secondary">
-            Select a task
-          </option>
-          {tasks.map((task) => (
-            <option key={task.id} value={task.id} className="text-secondary">
-              {task.title}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="h-auto w-full border-3 border-white/30 bg-white/10 px-4 py-3 text-lg font-bold text-white shadow-none hover:border-white/50 hover:bg-white/20 hover:text-white hover:shadow-none focus:border-primary focus:ring-0 disabled:opacity-50 data-[state=open]:bg-white/20 data-[state=open]:text-white">
+            <SelectValue placeholder="Select a task" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="unselected">Select a task</SelectItem>
+            {tasks.map((task) => (
+              <SelectItem key={task.id} value={task.id}>
+                {task.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <label className="mb-2 block text-sm font-bold uppercase opacity-75">Or enter a custom title</label>

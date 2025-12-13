@@ -10,6 +10,7 @@ import { toast } from 'react-hot-toast'
 import { goalsApi, timeEntriesApi } from '@/lib/api'
 import { useHasProAccess } from '@/lib/store'
 import { cn, formatDate, formatDuration, getCategoryColor, getWeekDates, TASK_CATEGORIES } from '@/lib/utils'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface TimeEntry {
   id: string
@@ -519,14 +520,22 @@ function TimeEntryModal({
 
               <div>
                 <label className="mb-2 block text-sm font-bold uppercase">Link to Goal (Optional)</label>
-                <select value={goalId} onChange={(e) => setGoalId(e.target.value)} className="input-brutal">
-                  <option value="">No Goal</option>
-                  {goals.map((goal) => (
-                    <option key={goal.id} value={goal.id}>
-                      {goal.title}
-                    </option>
-                  ))}
-                </select>
+                <Select
+                  value={goalId || 'no_goal'}
+                  onValueChange={(value) => setGoalId(value === 'no_goal' ? '' : value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select goal" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="no_goal">No Goal</SelectItem>
+                    {goals.map((goal) => (
+                      <SelectItem key={goal.id} value={goal.id}>
+                        {goal.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="flex gap-4 pt-4">

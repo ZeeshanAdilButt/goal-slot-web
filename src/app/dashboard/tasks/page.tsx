@@ -8,6 +8,7 @@ import { toast } from 'react-hot-toast'
 
 import { goalsApi, scheduleApi, tasksApi } from '@/lib/api'
 import { cn, DAYS_OF_WEEK_FULL, formatDuration } from '@/lib/utils'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 type TaskStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED'
 
@@ -67,7 +68,6 @@ export default function TasksPage() {
     dueDate: '',
   })
 
-   
   useEffect(() => {
     loadData()
   }, [statusFilter])
@@ -169,18 +169,22 @@ export default function TasksPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as TaskStatus | '')}
-            className="border-2 border-secondary px-3 py-2 font-mono text-sm uppercase"
+          <Select
+            value={statusFilter || 'all'}
+            onValueChange={(value) => setStatusFilter(value === 'all' ? '' : (value as TaskStatus))}
           >
-            <option value="">All Statuses</option>
-            {STATUS_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="All Statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              {STATUS_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <button onClick={() => setShowCreate(true)} className="btn-brutal flex items-center gap-2">
             <Plus className="h-5 w-5" />
             Add Task
@@ -317,33 +321,41 @@ export default function TasksPage() {
               <div className="grid gap-3 md:grid-cols-2">
                 <div>
                   <label className="font-mono text-sm uppercase">Schedule Block</label>
-                  <select
-                    className="input-brutal mt-1 w-full"
-                    value={form.scheduleBlockId}
-                    onChange={(e) => setForm({ ...form, scheduleBlockId: e.target.value })}
+                  <Select
+                    value={form.scheduleBlockId || 'none'}
+                    onValueChange={(value) => setForm({ ...form, scheduleBlockId: value === 'none' ? '' : value })}
                   >
-                    <option value="">No schedule</option>
-                    {scheduleBlocks.map((block) => (
-                      <option key={block.id} value={block.id}>
-                        {DAYS_OF_WEEK_FULL[block.dayOfWeek]} • {block.startTime}-{block.endTime} • {block.title}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="input-brutal mt-1 w-full">
+                      <SelectValue placeholder="No schedule" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No schedule</SelectItem>
+                      {scheduleBlocks.map((block) => (
+                        <SelectItem key={block.id} value={block.id}>
+                          {DAYS_OF_WEEK_FULL[block.dayOfWeek]} • {block.startTime}-{block.endTime} • {block.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <label className="font-mono text-sm uppercase">Goal</label>
-                  <select
-                    className="input-brutal mt-1 w-full"
-                    value={form.goalId}
-                    onChange={(e) => setForm({ ...form, goalId: e.target.value })}
+                  <Select
+                    value={form.goalId || 'none'}
+                    onValueChange={(value) => setForm({ ...form, goalId: value === 'none' ? '' : value })}
                   >
-                    <option value="">No goal</option>
-                    {goals.map((goal) => (
-                      <option key={goal.id} value={goal.id}>
-                        {goal.title}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="input-brutal mt-1 w-full">
+                      <SelectValue placeholder="No goal" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No goal</SelectItem>
+                      {goals.map((goal) => (
+                        <SelectItem key={goal.id} value={goal.id}>
+                          {goal.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="grid gap-3 md:grid-cols-3">

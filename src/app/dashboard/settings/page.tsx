@@ -10,6 +10,7 @@ import { toast } from 'react-hot-toast'
 import { stripeApi, usersApi } from '@/lib/api'
 import { useAuthStore } from '@/lib/store'
 import { cn } from '@/lib/utils'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const TABS = [
   { id: 'profile', label: 'Profile', icon: User },
@@ -132,17 +133,22 @@ function ProfileSettings() {
 
           <div>
             <label className="mb-2 block text-sm font-bold uppercase">Timezone</label>
-            <select value={timezone} onChange={(e) => setTimezone(e.target.value)} className="input-brutal">
-              <option value="UTC">UTC</option>
-              <option value="America/New_York">Eastern Time (ET)</option>
-              <option value="America/Chicago">Central Time (CT)</option>
-              <option value="America/Denver">Mountain Time (MT)</option>
-              <option value="America/Los_Angeles">Pacific Time (PT)</option>
-              <option value="Europe/London">London (GMT)</option>
-              <option value="Europe/Paris">Paris (CET)</option>
-              <option value="Asia/Tokyo">Tokyo (JST)</option>
-              <option value="Asia/Kolkata">India (IST)</option>
-            </select>
+            <Select value={timezone} onValueChange={setTimezone}>
+              <SelectTrigger className="input-brutal">
+                <SelectValue placeholder="Select timezone" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="UTC">UTC</SelectItem>
+                <SelectItem value="America/New_York">Eastern Time (ET)</SelectItem>
+                <SelectItem value="America/Chicago">Central Time (CT)</SelectItem>
+                <SelectItem value="America/Denver">Mountain Time (MT)</SelectItem>
+                <SelectItem value="America/Los_Angeles">Pacific Time (PT)</SelectItem>
+                <SelectItem value="Europe/London">London (GMT)</SelectItem>
+                <SelectItem value="Europe/Paris">Paris (CET)</SelectItem>
+                <SelectItem value="Asia/Tokyo">Tokyo (JST)</SelectItem>
+                <SelectItem value="Asia/Kolkata">India (IST)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="pt-4">

@@ -1,8 +1,12 @@
 import { useState } from 'react'
+
 import { AnimatePresence, motion } from 'framer-motion'
+
 import { cn, TASK_CATEGORIES } from '@/lib/utils'
-import { Goal, Task } from '../utils/types'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
 import { useCreateTimeEntry } from '../hooks/use-time-tracker-mutations'
+import { Goal, Task } from '../utils/types'
 
 interface ManualEntryModalProps {
   isOpen: boolean
@@ -73,23 +77,27 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks }: ManualEntryM
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="mb-2 block text-sm font-bold uppercase">Select Task</label>
-                <select
-                  value={taskId}
-                  onChange={(e) => {
-                    const id = e.target.value
+                <Select
+                  value={taskId || 'no_task'}
+                  onValueChange={(value) => {
+                    const id = value === 'no_task' ? '' : value
                     setTaskId(id)
                     const t = tasks.find((task) => task.id === id)
                     if (t) setTitle(t.title)
                   }}
-                  className="input-brutal"
                 >
-                  <option value="">Choose a task</option>
-                  {tasks.map((task) => (
-                    <option key={task.id} value={task.id}>
-                      {task.title}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a task" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="no_task">Choose a task</SelectItem>
+                    {tasks.map((task) => (
+                      <SelectItem key={task.id} value={task.id}>
+                        {task.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
@@ -149,42 +157,50 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks }: ManualEntryM
                   onChange={(e) => setDuration(parseInt(e.target.value) || 0)}
                   min={1}
                   className="input-brutal mt-2"
-                  placeholder="Custom duration"
                 />
               </div>
 
               <div>
                 <label className="mb-2 block text-sm font-bold uppercase">Category</label>
-                <select value={category} onChange={(e) => setCategory(e.target.value)} className="input-brutal">
-                  {TASK_CATEGORIES.map((cat) => (
-                    <option key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </option>
-                  ))}
-                </select>
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TASK_CATEGORIES.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
                 <label className="mb-2 block text-sm font-bold uppercase">Link to Goal (Optional)</label>
-                <select value={goalId} onChange={(e) => setGoalId(e.target.value)} className="input-brutal">
-                  <option value="">No Goal</option>
-                  {goals.map((goal) => (
-                    <option key={goal.id} value={goal.id}>
-                      {goal.title}
-                    </option>
-                  ))}
-                </select>
+                <Select
+                  value={goalId || 'no_goal'}
+                  onValueChange={(value) => setGoalId(value === 'no_goal' ? '' : value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select goal" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="no_goal">No Goal</SelectItem>
+                    {goals.map((goal) => (
+                      <SelectItem key={goal.id} value={goal.id}>
+                        {goal.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="flex gap-4 pt-4">
                 <button type="button" onClick={onClose} className="btn-brutal-secondary flex-1">
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  disabled={createEntry.isPending}
-                  className="btn-brutal-dark flex-1"
-                >
+                <button type="submit" disabled={createEntry.isPending} className="btn-brutal-dark flex-1">
                   {createEntry.isPending ? 'Adding...' : 'Add Entry'}
                 </button>
               </div>

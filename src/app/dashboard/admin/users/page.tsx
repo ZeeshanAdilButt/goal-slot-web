@@ -26,6 +26,7 @@ import { toast } from 'react-hot-toast'
 import { usersApi } from '@/lib/api'
 import { useAuthStore } from '@/lib/store'
 import { cn } from '@/lib/utils'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface User {
   id: string
@@ -432,15 +433,19 @@ export default function AdminUsersPage() {
 
                 <div>
                   <label className="mb-2 block text-sm font-bold uppercase">Role</label>
-                  <select
+                  <Select
                     value={newUser.role}
-                    onChange={(e) => setNewUser({ ...newUser, role: e.target.value as any })}
-                    className="w-full border-4 border-black px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                    onValueChange={(value) => setNewUser({ ...newUser, role: value as any })}
                   >
-                    <option value="USER">User</option>
-                    <option value="MENTOR">Mentor</option>
-                    {isSuperAdmin && <option value="ADMIN">Admin</option>}
-                  </select>
+                    <SelectTrigger className="w-full border-4 border-black px-4 py-2 font-medium focus:ring-2 focus:ring-primary h-auto rounded-none shadow-none">
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USER">User</SelectItem>
+                      <SelectItem value="MENTOR">Mentor</SelectItem>
+                      {isSuperAdmin && <SelectItem value="ADMIN">Admin</SelectItem>}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="flex gap-3 pt-4">

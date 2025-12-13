@@ -1,4 +1,6 @@
 import { TASK_CATEGORIES } from '@/lib/utils'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
 import { Goal } from '../utils/types'
 
 interface TimerSettingsProps {
@@ -22,36 +24,38 @@ export function TimerSettings({
     <div className="mb-6 grid grid-cols-2 gap-4">
       <div>
         <label className="mb-2 block text-sm font-bold uppercase opacity-75">Category</label>
-        <select
-          value={currentCategory}
-          onChange={(e) => onCategoryChange(e.target.value)}
-          disabled={timerState !== 'STOPPED'}
-          className="w-full border-2 border-white/30 bg-white/10 px-4 py-2 text-white focus:border-primary focus:outline-none disabled:opacity-50"
-        >
-          {TASK_CATEGORIES.map((cat) => (
-            <option key={cat.value} value={cat.value} className="text-secondary">
-              {cat.label}
-            </option>
-          ))}
-        </select>
+        <Select value={currentCategory} onValueChange={onCategoryChange} disabled={timerState !== 'STOPPED'}>
+          <SelectTrigger className="h-auto w-full border-2 border-white/30 bg-white/10 px-4 py-2 text-white shadow-none hover:border-white/50 hover:bg-white/20 hover:text-white hover:shadow-none focus:border-primary focus:ring-0 disabled:opacity-50 data-[state=open]:bg-white/20 data-[state=open]:text-white">
+            <SelectValue placeholder="Select category" />
+          </SelectTrigger>
+          <SelectContent>
+            {TASK_CATEGORIES.map((cat) => (
+              <SelectItem key={cat.value} value={cat.value}>
+                {cat.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <label className="mb-2 block text-sm font-bold uppercase opacity-75">Link to Goal</label>
-        <select
-          value={currentGoalId}
-          onChange={(e) => onGoalIdChange(e.target.value)}
+        <Select
+          value={currentGoalId || 'no_goal'}
+          onValueChange={(val) => onGoalIdChange(val === 'no_goal' ? '' : val)}
           disabled={timerState !== 'STOPPED'}
-          className="w-full border-2 border-white/30 bg-white/10 px-4 py-2 text-white focus:border-primary focus:outline-none disabled:opacity-50"
         >
-          <option value="" className="text-secondary">
-            No Goal
-          </option>
-          {goals.map((goal) => (
-            <option key={goal.id} value={goal.id} className="text-secondary">
-              {goal.title}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="h-auto w-full border-2 border-white/30 bg-white/10 px-4 py-2 text-white shadow-none hover:border-white/50 hover:bg-white/20 hover:text-white hover:shadow-none focus:border-primary focus:ring-0 disabled:opacity-50 data-[state=open]:bg-white/20 data-[state=open]:text-white">
+            <SelectValue placeholder="Select goal" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="no_goal">No Goal</SelectItem>
+            {goals.map((goal) => (
+              <SelectItem key={goal.id} value={goal.id}>
+                {goal.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   )

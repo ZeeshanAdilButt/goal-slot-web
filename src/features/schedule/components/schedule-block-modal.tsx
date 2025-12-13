@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast'
 
 import { cn, DAYS_OF_WEEK_FULL, SCHEDULE_CATEGORIES, TIME_OPTIONS } from '@/lib/utils'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 type ScheduleBlockModalProps = {
   isOpen: boolean
@@ -135,17 +136,18 @@ export function ScheduleBlockModal({ isOpen, onClose, block, dayOfWeek, presetTi
           <div>
             <label className="mb-2 block text-sm font-bold uppercase">{block ? 'Day' : 'Days (select multiple)'}</label>
             {block ? (
-              <select
-                value={selectedDays[0]}
-                onChange={(e) => setSelectedDays([parseInt(e.target.value)])}
-                className="input-brutal"
-              >
-                {DAYS_OF_WEEK_FULL.map((d, i) => (
-                  <option key={d} value={i}>
-                    {d}
-                  </option>
-                ))}
-              </select>
+              <Select value={selectedDays[0].toString()} onValueChange={(value) => setSelectedDays([parseInt(value)])}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select day" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DAYS_OF_WEEK_FULL.map((d, i) => (
+                    <SelectItem key={d} value={i.toString()}>
+                      {d}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             ) : (
               <div className="flex flex-wrap gap-2">
                 {DAYS_OF_WEEK_FULL.map((d, i) => (
@@ -167,11 +169,11 @@ export function ScheduleBlockModal({ isOpen, onClose, block, dayOfWeek, presetTi
 
           <div>
             <label className="mb-2 block text-sm font-bold uppercase">Category</label>
-            <select
+            <Select
               value={category}
-              onChange={(e) => {
-                setCategory(e.target.value)
-                const cat = SCHEDULE_CATEGORIES.find((c) => c.value === e.target.value)
+              onValueChange={(value) => {
+                setCategory(value)
+                const cat = SCHEDULE_CATEGORIES.find((c) => c.value === value)
                 if (cat) {
                   const colorMap: Record<string, string> = {
                     'bg-primary': '#FFD700',
@@ -185,54 +187,72 @@ export function ScheduleBlockModal({ isOpen, onClose, block, dayOfWeek, presetTi
                   setColor(colorMap[cat.color] || '#FFD700')
                 }
               }}
-              className="input-brutal"
             >
-              {SCHEDULE_CATEGORIES.map((cat) => (
-                <option key={cat.value} value={cat.value}>
-                  {cat.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {SCHEDULE_CATEGORIES.map((cat) => (
+                  <SelectItem key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="mb-2 block text-sm font-bold uppercase">Start Time</label>
-              <select value={startTime} onChange={(e) => setStartTime(e.target.value)} className="input-brutal">
-                {TIME_OPTIONS.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
+              <Select value={startTime} onValueChange={setStartTime}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Start time" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TIME_OPTIONS.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <label className="mb-2 block text-sm font-bold uppercase">End Time</label>
-              <select value={endTime} onChange={(e) => setEndTime(e.target.value)} className="input-brutal">
-                {TIME_OPTIONS.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
+              <Select value={endTime} onValueChange={setEndTime}>
+                <SelectTrigger>
+                  <SelectValue placeholder="End time" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TIME_OPTIONS.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
           <div>
             <label className="mb-2 block text-sm font-bold uppercase">Link to Goal (Optional)</label>
-            <select
-              value={goalId}
-              onChange={(e) => setGoalId(e.target.value)}
-              className="input-brutal"
+            <Select
+              value={goalId || 'no_goal'}
+              onValueChange={(value) => setGoalId(value === 'no_goal' ? '' : value)}
               disabled={isGoalsPending}
             >
-              <option value="">No Goal</option>
-              {goals.map((goal) => (
-                <option key={goal.id} value={goal.id}>
-                  {goal.title}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="Select goal" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="no_goal">No Goal</SelectItem>
+                {goals.map((goal) => (
+                  <SelectItem key={goal.id} value={goal.id}>
+                    {goal.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <DialogFooter className="flex-row gap-4 pt-4">
