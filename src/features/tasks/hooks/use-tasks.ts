@@ -8,8 +8,12 @@ import { goalsApi, scheduleApi } from '@/lib/api'
 
 export function useTasks() {
   const [statusFilter, setStatusFilter] = useState<TaskStatus | ''>('')
+  const [goalFilter, setGoalFilter] = useState<string | ''>('')
 
-  const tasksQuery = useTasksQuery(statusFilter ? { status: statusFilter } : undefined)
+  const tasksQuery = useTasksQuery({
+    status: statusFilter || undefined,
+    goalId: goalFilter || undefined,
+  })
 
   const scheduleQuery = useQuery({
     queryKey: ['schedule-blocks'],
@@ -34,6 +38,8 @@ export function useTasks() {
     isLoading: tasksQuery.isLoading || scheduleQuery.isLoading || goalsQuery.isLoading,
     statusFilter,
     setStatusFilter,
+    goalFilter,
+    setGoalFilter,
     refresh: tasksQuery.refetch,
   }
 }

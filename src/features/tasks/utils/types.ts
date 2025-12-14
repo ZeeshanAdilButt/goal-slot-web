@@ -41,6 +41,6 @@ export interface CreateTaskForm {
   dueDate: string
 }
 
-export type GroupBy = 'status' | 'day'
+export type GroupBy = 'status' | 'day' | 'schedule'
 
 export type GroupedTasks = Array<[string, Task[]]>
