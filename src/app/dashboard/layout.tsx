@@ -10,7 +10,6 @@ import {
   Calendar,
   CheckSquare,
   Clock,
-  FileText,
   LayoutDashboard,
   LogOut,
   Settings,
@@ -31,7 +30,6 @@ const navItems = [
   { href: '/dashboard/schedule', label: 'Schedule', icon: Calendar },
   { href: '/dashboard/tasks', label: 'Tasks', icon: CheckSquare },
   { href: '/dashboard/time-tracker', label: 'Time Tracker', icon: Clock },
-  { href: '/dashboard/weekly-log', label: 'Weekly Log', icon: FileText },
   { href: '/dashboard/reports', label: 'Reports', icon: BarChart3 },
   { href: '/dashboard/sharing', label: 'Sharing', icon: Share2 },
 ]
