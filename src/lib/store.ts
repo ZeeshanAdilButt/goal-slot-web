@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-import { authApi } from './api'
+import { authApi } from '@/lib/api'
 
 export interface User {
   id: string

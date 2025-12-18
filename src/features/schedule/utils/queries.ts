@@ -1,8 +1,7 @@
+import { Goal, WeekSchedule } from '@/features/schedule/utils/types'
 import { queryOptions } from '@tanstack/react-query'
 
 import { goalsApi, scheduleApi } from '@/lib/api'
-
-import { Goal, WeekSchedule } from './types'
 
 export const scheduleQueries = {
   root: () => ['schedule'] as const,

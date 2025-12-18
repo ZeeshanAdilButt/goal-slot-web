@@ -2,17 +2,14 @@
 
 import { useState } from 'react'
 
-import { useDeleteScheduleBlock } from '@/features/schedule/hooks/use-schedule-mutations'
+import { ScheduleBlockModal } from '@/features/schedule/components/schedule-block-modal'
+import { ScheduleGrid } from '@/features/schedule/components/schedule-grid/schedule-grid'
 import { useWeeklySchedule } from '@/features/schedule/hooks/use-schedule-queries'
 import { ScheduleBlock, WeekSchedule } from '@/features/schedule/utils/types'
 import { Plus } from 'lucide-react'
-import { toast } from 'react-hot-toast'
 
 import { useHasProAccess } from '@/lib/store'
 import { SCHEDULE_CATEGORIES } from '@/lib/utils'
-
-import { ScheduleBlockModal } from './schedule-block-modal'
-import { ScheduleGrid } from './schedule-grid/schedule-grid'
 
 export function SchedulePage() {
   const [showModal, setShowModal] = useState(false)
@@ -22,18 +19,6 @@ export function SchedulePage() {
   const [draftKey, setDraftKey] = useState(0) // Reset the draft when modal is closed (to clear any draft blocks).
   const hasProAccess = useHasProAccess()
   const { data: weekSchedule = {} as WeekSchedule, isPending: isSchedulePending } = useWeeklySchedule()
-  const { mutateAsync: deleteBlock } = useDeleteScheduleBlock()
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Delete this schedule block?')) return
-
-    try {
-      await deleteBlock(id)
-      toast.success('Block deleted')
-    } catch (error) {
-      toast.error('Failed to delete')
-    }
-  }
 
   const handleEdit = (block: ScheduleBlock) => {
     setEditingBlock(block)
@@ -92,7 +77,6 @@ export function SchedulePage() {
           isPending={isSchedulePending}
           onAddBlock={handleAddBlock}
           onEdit={handleEdit}
-          onDelete={handleDelete}
           draftKey={draftKey}
         />
       </div>

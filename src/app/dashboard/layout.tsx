@@ -23,6 +23,7 @@ import {
 
 import { useAuthStore, useIsAdmin } from '@/lib/store'
 import { cn } from '@/lib/utils'
+import { TimeEntryBanner } from '@/components/time-entry-banner'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -130,32 +131,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* User Section */}
         <div className="border-t-3 border-secondary p-4">
-          <div className="card-brutal mb-3 p-4">
+          <div className="card-brutal mb-3 p-2">
             <div className="mb-3 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center border-2 border-secondary bg-primary font-bold uppercase">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center border-2 border-secondary bg-primary text-lg font-bold uppercase shadow-brutal-sm">
                 {user.name.charAt(0)}
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-bold">{user.name}</p>
-                <p className="truncate font-mono text-xs text-gray-500">{user.email}</p>
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {user.role !== 'USER' && (
+                    <span className="badge-brutal bg-accent-pink px-1.5 py-0 text-[10px] text-white">{user.role}</span>
+                  )}
+                  {user.userType === 'INTERNAL' && (
+                    <span className="badge-brutal bg-accent-blue px-1.5 py-0 text-[10px] text-white">DW</span>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-2 border-t-2 border-secondary/10 pt-3">
+              <p className="truncate font-mono text-xs text-gray-500" title={user.email}>
+                {user.email}
+              </p>
               <span
                 className={cn(
-                  'badge-brutal text-xs',
+                  'badge-brutal shrink-0 px-2 py-0 text-[10px]',
                   user.plan === 'PRO' || user.unlimitedAccess ? 'bg-primary' : 'bg-gray-100',
                 )}
               >
                 {user.plan}
               </span>
-              {user.userType === 'INTERNAL' && (
-                <span className="badge-brutal bg-accent-blue text-xs text-white">DW</span>
-              )}
-              {user.role !== 'USER' && (
-                <span className="badge-brutal bg-accent-pink text-xs text-white">{user.role}</span>
-              )}
             </div>
           </div>
 
@@ -178,6 +183,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Main Content */}
       <main className="ml-64 flex-1">
+        <TimeEntryBanner />
         <div className="p-8">{children}</div>
       </main>
     </div>

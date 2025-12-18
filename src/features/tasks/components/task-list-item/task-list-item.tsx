@@ -1,0 +1,92 @@
+import { useState } from 'react'
+
+import { TaskActions } from '@/features/tasks/components/task-list-item/task-actions'
+import { TaskCompleteButton } from '@/features/tasks/components/task-list-item/task-complete-button'
+import { TaskHeader } from '@/features/tasks/components/task-list-item/task-header'
+import { TaskMetadata } from '@/features/tasks/components/task-list-item/task-metadata'
+import { TaskProgress } from '@/features/tasks/components/task-list-item/task-progress'
+import { TaskStatusBadge } from '@/features/tasks/components/task-list-item/task-status-badge'
+import { useDeleteTaskMutation, useUpdateTaskMutation } from '@/features/tasks/hooks/use-tasks-mutations'
+import { taskStatusStyles } from '@/features/tasks/utils/task-status-styles'
+import { Task } from '@/features/tasks/utils/types'
+
+import { cn } from '@/lib/utils'
+import { ConfirmDialog } from '@/components/confirm-dialog'
+
+interface TaskListItemProps {
+  task: Task
+  onComplete?: (task: Task) => void
+  onEdit?: (task: Task) => void
+}
+
+export function TaskListItem({ task, onComplete, onEdit }: TaskListItemProps) {
+  const [isHovered, setIsHovered] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+
+  const deleteTaskMutation = useDeleteTaskMutation()
+  const updateTaskMutation = useUpdateTaskMutation()
+
+  const handleDelete = async (): Promise<void> => {
+    await deleteTaskMutation.mutateAsync(task.id)
+  }
+
+  const handleRestore = async (): Promise<void> => {
+    await updateTaskMutation.mutateAsync({ taskId: task.id, data: { status: 'PENDING' } })
+  }
+
+  const statusStyle = taskStatusStyles[task.status]
+
+  return (
+    <div
+      className={cn(
+        'card-brutal relative h-full overflow-hidden p-4 transition-all duration-150 sm:p-5',
+        'hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal',
+        task.status === 'COMPLETED' ? 'opacity-90' : '',
+      )}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div
+        aria-hidden
+        className={cn('pointer-events-none absolute inset-0 bg-gradient-to-br opacity-80', statusStyle.glow)}
+      />
+
+      <div className="relative flex h-full flex-col gap-3">
+        <div className="flex-1 space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <TaskHeader task={task} />
+            <div className="flex shrink-0 items-center gap-2">
+              <TaskStatusBadge task={task} />
+              <TaskActions
+                task={task}
+                isHovered={isHovered}
+                onEdit={onEdit}
+                onDelete={() => setShowDeleteConfirm(true)}
+                onRestore={handleRestore}
+              />
+            </div>
+          </div>
+
+          <TaskMetadata task={task} />
+        </div>
+
+        <div className="mt-auto grid gap-3 border-t border-dashed border-secondary/20 pt-3 sm:grid-cols-[1fr_auto] sm:items-center">
+          <TaskProgress task={task} />
+          <TaskCompleteButton task={task} onComplete={onComplete} />
+        </div>
+      </div>
+
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Delete Task"
+        description={`Are you sure you want to delete "${task.title}"? This action cannot be undone.`}
+        onConfirm={handleDelete}
+        confirmButtonText="Delete"
+        cancelButtonText="Cancel"
+        variant="destructive"
+        isLoading={deleteTaskMutation.isPending}
+      />
+    </div>
+  )
+}
