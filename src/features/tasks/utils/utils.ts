@@ -46,10 +46,35 @@ export function groupTasksByDay(tasks: Task[]): GroupedTasks {
   return sortedGroups
 }
 
+export function groupTasksBySchedule(tasks: Task[]): GroupedTasks {
+  const groups: Record<string, Task[]> = {}
+
+  tasks.forEach((task) => {
+    let key = 'Unscheduled'
+    if (task.scheduleBlock) {
+      key = task.scheduleBlock.title
+    }
+    if (!groups[key]) {
+      groups[key] = []
+    }
+    groups[key].push(task)
+  })
+
+  const sortedGroups = Object.entries(groups).sort((a, b) => {
+    if (a[0] === 'Unscheduled') return 1
+    if (b[0] === 'Unscheduled') return -1
+    return a[0].localeCompare(b[0])
+  })
+
+  return sortedGroups
+}
+
 export function groupTasks(tasks: Task[], groupBy: GroupBy): GroupedTasks {
   if (groupBy === 'status') {
     return groupTasksByStatus(tasks)
-  } else {
+  } else if (groupBy === 'day') {
     return groupTasksByDay(tasks)
+  } else {
+    return groupTasksBySchedule(tasks)
   }
 }

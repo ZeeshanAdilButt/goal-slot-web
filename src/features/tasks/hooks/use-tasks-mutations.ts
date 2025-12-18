@@ -41,8 +41,12 @@ export function useCompleteTaskMutation() {
     onSuccess: () => {
       toast.success('Task completed and logged')
       queryClient.invalidateQueries({ queryKey: taskQueries.all })
-      // Also invalidate time entries if we had a way to reference them easily,
-      // but for now tasks list update is most important
+      // Invalidate time entries cache
+      queryClient.invalidateQueries({ queryKey: ['time-tracker', 'recent-entries'] })
+      // Invalidate goals cache because loggedHours changes
+      queryClient.invalidateQueries({ queryKey: ['goals', 'active'] })
+      queryClient.invalidateQueries({ queryKey: ['schedule', 'goals', 'active'] })
+      queryClient.invalidateQueries({ queryKey: ['time-tracker', 'goals'] })
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Failed to complete task')
@@ -86,6 +90,21 @@ export function useDeleteTaskMutation() {
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Failed to delete task')
+    },
+  })
+}
+
+export function useRestoreTaskMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (taskId: string) => tasksApi.restore(taskId),
+    onSuccess: () => {
+      toast.success('Task restored')
+      queryClient.invalidateQueries({ queryKey: taskQueries.all })
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Failed to restore task')
     },
   })
 }

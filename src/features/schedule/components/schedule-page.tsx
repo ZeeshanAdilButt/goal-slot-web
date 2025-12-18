@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 
+import { ScheduleBlockDetailDialog } from '@/features/schedule/components/schedule-block-detail-dialog'
 import { ScheduleBlockModal } from '@/features/schedule/components/schedule-block-modal'
 import { ScheduleGrid } from '@/features/schedule/components/schedule-grid/schedule-grid'
 import { useWeeklySchedule } from '@/features/schedule/hooks/use-schedule-queries'
@@ -13,7 +14,9 @@ import { SCHEDULE_CATEGORIES } from '@/lib/utils'
 
 export function SchedulePage() {
   const [showModal, setShowModal] = useState(false)
+  const [showDetailDialog, setShowDetailDialog] = useState(false)
   const [editingBlock, setEditingBlock] = useState<ScheduleBlock | null>(null)
+  const [detailBlock, setDetailBlock] = useState<ScheduleBlock | null>(null)
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
   const [presetTimes, setPresetTimes] = useState<{ startTime: string; endTime: string } | null>(null)
   const [draftKey, setDraftKey] = useState(0) // Reset the draft when modal is closed (to clear any draft blocks).
@@ -25,6 +28,17 @@ export function SchedulePage() {
     setSelectedDay(block.dayOfWeek)
     setPresetTimes(null)
     setShowModal(true)
+  }
+
+  const handleViewDetail = (block: ScheduleBlock) => {
+    setDetailBlock(block)
+    setShowDetailDialog(true)
+  }
+
+  const handleEditFromDetail = () => {
+    if (detailBlock) {
+      handleEdit(detailBlock)
+    }
   }
 
   const handleAddBlock = (dayOfWeek: number, preset?: { startTime: string; endTime: string }) => {
@@ -77,6 +91,7 @@ export function SchedulePage() {
           isPending={isSchedulePending}
           onAddBlock={handleAddBlock}
           onEdit={handleEdit}
+          onViewDetail={handleViewDetail}
           draftKey={draftKey}
         />
       </div>
@@ -96,6 +111,16 @@ export function SchedulePage() {
         block={editingBlock}
         dayOfWeek={selectedDay}
         presetTimes={presetTimes}
+      />
+
+      <ScheduleBlockDetailDialog
+        isOpen={showDetailDialog}
+        onClose={() => {
+          setShowDetailDialog(false)
+          setDetailBlock(null)
+        }}
+        block={detailBlock}
+        onEdit={handleEditFromDetail}
       />
     </div>
   )

@@ -6,7 +6,11 @@ import { TaskHeader } from '@/features/tasks/components/task-list-item/task-head
 import { TaskMetadata } from '@/features/tasks/components/task-list-item/task-metadata'
 import { TaskProgress } from '@/features/tasks/components/task-list-item/task-progress'
 import { TaskStatusBadge } from '@/features/tasks/components/task-list-item/task-status-badge'
-import { useDeleteTaskMutation, useUpdateTaskMutation } from '@/features/tasks/hooks/use-tasks-mutations'
+import {
+  useDeleteTaskMutation,
+  useRestoreTaskMutation,
+  useUpdateTaskMutation,
+} from '@/features/tasks/hooks/use-tasks-mutations'
 import { taskStatusStyles } from '@/features/tasks/utils/task-status-styles'
 import { Task } from '@/features/tasks/utils/types'
 
@@ -25,13 +29,14 @@ export function TaskListItem({ task, onComplete, onEdit }: TaskListItemProps) {
 
   const deleteTaskMutation = useDeleteTaskMutation()
   const updateTaskMutation = useUpdateTaskMutation()
+  const restoreTaskMutation = useRestoreTaskMutation()
 
   const handleDelete = async (): Promise<void> => {
     await deleteTaskMutation.mutateAsync(task.id)
   }
 
   const handleRestore = async (): Promise<void> => {
-    await updateTaskMutation.mutateAsync({ taskId: task.id, data: { status: 'PENDING' } })
+    await restoreTaskMutation.mutateAsync(task.id)
   }
 
   const statusStyle = taskStatusStyles[task.status]

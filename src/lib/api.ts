@@ -98,6 +98,7 @@ export const tasksApi = {
   delete: (id: string) => api.delete(`/tasks/${id}`),
   complete: (id: string, data: { actualMinutes: number; notes?: string; date?: string }) =>
     api.post(`/tasks/${id}/complete`, data),
+  restore: (id: string) => api.post(`/tasks/${id}/restore`),
 }
 
 // Sharing API

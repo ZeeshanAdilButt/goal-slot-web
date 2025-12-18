@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type CSSProperties } from 'react'
+import { useRef, useState, type CSSProperties } from 'react'
 
 import { useDeleteScheduleBlock } from '@/features/schedule/hooks/use-schedule-mutations'
 import { scheduleQueries } from '@/features/schedule/utils/queries'
@@ -8,11 +8,13 @@ import { ScheduleBlock } from '@/features/schedule/utils/types'
 import { useDraggable } from '@dnd-kit/core'
 import { useIsMutating } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Loader2, X } from 'lucide-react'
+import { Loader2, Pencil, Target, X } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { getCategoryColor } from '@/lib/utils'
 import { ConfirmDialog } from '@/components/confirm-dialog'
+
+import { BlockTasksList } from './block-tasks-list'
 
 type DraggableBlockProps = {
   block: ScheduleBlock
@@ -20,10 +22,12 @@ type DraggableBlockProps = {
   height: number
   isActiveDrag?: boolean
   onEdit: () => void
+  onViewDetail: () => void
 }
 
-export function DraggableBlock({ block, top, height, isActiveDrag, onEdit }: DraggableBlockProps) {
+export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onViewDetail }: DraggableBlockProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const headerRef = useRef<HTMLDivElement>(null)
   const { mutateAsync: deleteBlock } = useDeleteScheduleBlock()
   const draggableId = block.id
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -41,9 +45,14 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit }: Dra
     setDeleteDialogOpen(true)
   }
 
+  const handleEditClick = (event: React.MouseEvent) => {
+    event.stopPropagation()
+    onEdit()
+  }
+
   const handleBlockClick = (event: React.MouseEvent) => {
     if (deleteDialogOpen) return
-    onEdit()
+    onViewDetail()
   }
 
   const confirmDelete = async () => {
@@ -59,6 +68,8 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit }: Dra
     backgroundColor: block.color || getCategoryColor(block.category),
     top,
     height,
+    minHeight: height,
+    zIndex: 10,
     transform: !isActiveDrag && transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
     opacity: isActiveDrag ? 0 : isDragging ? 0.7 : 1,
     visibility: isActiveDrag ? 'hidden' : 'visible',
@@ -72,27 +83,45 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit }: Dra
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: isActiveDrag ? 0 : 1, scale: isActiveDrag ? 1 : 1 }}
       transition={{ type: 'spring', stiffness: 500, damping: 40 }}
-      className="group absolute left-1 right-1 z-10 cursor-grab border-2 border-secondary p-2 shadow-brutal-sm"
+      className="group absolute left-1 right-1 cursor-grab overflow-hidden border-2 border-secondary p-2 shadow-brutal-sm"
       data-block
       style={blockStyle}
       onClick={handleBlockClick}
       {...attributes}
       {...listeners}
     >
-      <div className="flex items-start justify-between">
-        <div className="truncate pr-6 text-xs font-bold uppercase">{block.title}</div>
-        <button
-          onClick={handleDeleteClick}
-          onPointerDown={(event) => event.stopPropagation()}
-          className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center border border-secondary bg-white opacity-0 transition-opacity group-hover:opacity-100"
-        >
-          <X className="h-3 w-3" />
-        </button>
+      <div className="flex h-full min-h-0 flex-col overflow-clip">
+        <div ref={headerRef} className="flex shrink-0 flex-col">
+          <div className="flex items-start justify-between">
+            <div className="truncate pr-12 text-xs font-bold uppercase">{block.title}</div>
+            <div className="absolute right-1 top-1 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+              <button
+                onClick={handleEditClick}
+                onPointerDown={(event) => event.stopPropagation()}
+                className="flex h-5 w-5 items-center justify-center border border-secondary bg-white hover:bg-gray-100"
+              >
+                <Pencil className="h-3 w-3" />
+              </button>
+              <button
+                onClick={handleDeleteClick}
+                onPointerDown={(event) => event.stopPropagation()}
+                className="flex h-5 w-5 items-center justify-center border border-secondary bg-white hover:bg-red-50"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          </div>
+
+          {block.goal && (
+            <div className="mt-0.5 flex shrink-0 items-center gap-0.5 text-[9px] font-semibold uppercase leading-tight">
+              <Target className="h-2.5 w-2.5 shrink-0" />
+              <span className="truncate">{block.goal.title}</span>
+            </div>
+          )}
+        </div>
+
+        <BlockTasksList tasks={block.tasks} blockHeight={height} headerRef={headerRef} />
       </div>
-      <div className="font-mono text-[11px]">
-        {block.startTime} - {block.endTime}
-      </div>
-      {block.goal && <div className="mt-1 truncate font-mono text-[11px]">→ {block.goal.title}</div>}
 
       {isUpdating && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">

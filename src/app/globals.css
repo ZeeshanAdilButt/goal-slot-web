@@ -10,6 +10,10 @@
     overflow-y: scroll;
   }
 
+  body {
+    @apply !min-w-full; /* Prevent layout shift when scrollbar is hidden. Fixes layout shifts when shadcn dialog or select open. */
+  }
+
   :root {
     /* Exact match to original neo-brutalist palette */
     --background: 48 96% 89%; /* #FEF3C7 */

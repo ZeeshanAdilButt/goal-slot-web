@@ -1,5 +1,6 @@
 import { useTasksQuery } from '@/features/tasks'
 import { fetchGoals, fetchRecentEntries, timeTrackerQueries } from '@/features/time-tracker/utils/queries'
+import { Task } from '@/features/time-tracker/utils/types'
 import { useQuery } from '@tanstack/react-query'
 
 export function useTimeTrackerData() {
@@ -15,9 +16,12 @@ export function useTimeTrackerData() {
     queryFn: fetchRecentEntries,
   })
 
+  // Filter out completed tasks for time tracker
+  const tasks = (tasksQuery.data || []).filter((task: Task) => task.status !== 'COMPLETED')
+
   return {
     goals: goalsQuery.data || [],
-    tasks: tasksQuery.data || [],
+    tasks,
     recentEntries: recentEntriesQuery.data || [],
     isLoading: goalsQuery.isLoading || tasksQuery.isLoading || recentEntriesQuery.isLoading,
     isError: goalsQuery.isError || tasksQuery.isError || recentEntriesQuery.isError,

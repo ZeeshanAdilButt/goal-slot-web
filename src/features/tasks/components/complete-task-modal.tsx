@@ -25,6 +25,10 @@ export function CompleteTaskModal({ task, onClose, onConfirm }: CompleteTaskModa
 
   if (!task) return null
 
+  const totalMinutes = Number(minutes) || 0
+  const trackedMinutes = task.trackedMinutes || 0
+  const remainingMinutes = Math.max(0, totalMinutes - trackedMinutes)
+
   const handleSubmit = async () => {
     const mins = Number(minutes)
     if (!mins || mins < 1) return
@@ -46,7 +50,7 @@ export function CompleteTaskModal({ task, onClose, onConfirm }: CompleteTaskModa
         <h3 className="mb-4 font-display text-2xl font-bold uppercase">Complete "{task.title}"</h3>
         <div className="space-y-3">
           <div>
-            <label className="font-mono text-sm uppercase">Minutes spent</label>
+            <label className="font-mono text-sm uppercase">Total minutes spent</label>
             <input
               type="number"
               min={1}
@@ -54,9 +58,28 @@ export function CompleteTaskModal({ task, onClose, onConfirm }: CompleteTaskModa
               value={minutes}
               onChange={(e) => setMinutes(e.target.value)}
             />
-            {task.trackedMinutes ? (
-              <p className="mt-1 font-mono text-xs text-gray-500">Tracked time: {task.trackedMinutes} mins</p>
-            ) : null}
+            {trackedMinutes > 0 && (
+              <div className="mt-2 space-y-1 rounded border-2 border-gray-200 bg-gray-50 p-2">
+                <p className="font-mono text-xs text-gray-600">
+                  Already tracked: <span className="font-bold">{trackedMinutes} mins</span>
+                </p>
+                {totalMinutes > 0 && (
+                  <>
+                    <p className="font-mono text-xs text-gray-600">
+                      Total time: <span className="font-bold">{totalMinutes} mins</span>
+                    </p>
+                    <p className="font-mono text-xs text-gray-600">
+                      Will log additional: <span className="font-bold text-blue-600">{remainingMinutes} mins</span>
+                    </p>
+                    {remainingMinutes === 0 && totalMinutes > trackedMinutes && (
+                      <p className="font-mono text-xs text-orange-600">
+                        Note: All time already tracked. No additional entry will be created.
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
           </div>
           <div>
             <label className="font-mono text-sm uppercase">Note</label>

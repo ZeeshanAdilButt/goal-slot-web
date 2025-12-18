@@ -9,6 +9,7 @@ export interface ScheduleBlock {
   isRecurring: boolean
   goalId?: string
   goal?: { id: string; title: string; color: string }
+  tasks?: { id: string; title: string; status: string }[]
 }
 
 export interface Goal {

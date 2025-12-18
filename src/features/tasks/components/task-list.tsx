@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 
 import { GroupBy, Task } from '@/features/tasks/utils/types'
 import { groupTasks } from '@/features/tasks/utils/utils'
-import { Calendar, Layers } from 'lucide-react'
+import { Calendar, Clock, Layers } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
@@ -51,6 +51,16 @@ export function TaskList({ tasks, onComplete, onEdit }: TaskListProps) {
           >
             <Calendar className="h-3 w-3" />
             Day
+          </button>
+          <button
+            onClick={() => setGroupBy('schedule')}
+            className={cn(
+              'flex items-center gap-1 rounded px-2 py-1 text-xs font-bold uppercase transition-colors',
+              groupBy === 'schedule' ? 'bg-primary text-secondary' : 'hover:bg-gray-100',
+            )}
+          >
+            <Clock className="h-3 w-3" />
+            Schedule
           </button>
         </div>
       </div>

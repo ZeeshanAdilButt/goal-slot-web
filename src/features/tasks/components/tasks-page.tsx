@@ -23,7 +23,7 @@ const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
 ]
 
 export function TasksPage() {
-  const { tasks, scheduleBlocks, goals, isLoading, statusFilter, setStatusFilter } = useTasks()
+  const { tasks, scheduleBlocks, goals, isLoading, statusFilter, setStatusFilter, goalFilter, setGoalFilter } = useTasks()
 
   const createTaskMutation = useCreateTaskMutation()
   const updateTaskMutation = useUpdateTaskMutation()
@@ -70,6 +70,22 @@ export function TasksPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Select
+            value={goalFilter || 'all'}
+            onValueChange={(value) => setGoalFilter(value === 'all' ? '' : value)}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="All Goals" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Goals</SelectItem>
+              {goals.map((goal) => (
+                <SelectItem key={goal.id} value={goal.id}>
+                  {goal.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Select
             value={statusFilter || 'all'}
             onValueChange={(value) => setStatusFilter(value === 'all' ? '' : (value as TaskStatus))}
