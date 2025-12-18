@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 
@@ -10,7 +10,7 @@ import { toast } from 'react-hot-toast'
 
 import { useAuthStore } from '@/lib/store'
 
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const isPro = searchParams.get('plan') === 'pro'
@@ -181,5 +181,25 @@ export default function SignupPage() {
         </p>
       </motion.div>
     </div>
+  )
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-brutalist-bg p-6">
+          <div className="w-full max-w-md">
+            <div className="card-brutal">
+              <div className="flex items-center justify-center p-8">
+                <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <SignupForm />
+    </Suspense>
   )
 }

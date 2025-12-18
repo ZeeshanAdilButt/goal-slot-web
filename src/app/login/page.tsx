@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 import { motion } from 'framer-motion'
 import { ArrowRight, Loader2, Lock, Mail, Zap } from 'lucide-react'
@@ -12,7 +12,6 @@ import { useAuthStore } from '@/lib/store'
 
 export default function LoginPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
