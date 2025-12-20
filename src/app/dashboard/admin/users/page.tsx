@@ -288,9 +288,7 @@ export default function AdminUsersPage() {
                       >
                         {user.hasFreeAccess ? 'PRO (FREE)' : user.plan}
                       </span>
-                      {user.hasFreeAccess && (
-                        <BadgeCheck className="h-4 w-4 text-green-500" title="Free access granted" />
-                      )}
+                      {user.hasFreeAccess && <BadgeCheck className="h-4 w-4 text-green-500" />}
                     </div>
                   </td>
                   <td className="px-4 py-4 text-sm text-gray-600">
@@ -437,7 +435,7 @@ export default function AdminUsersPage() {
                     value={newUser.role}
                     onValueChange={(value) => setNewUser({ ...newUser, role: value as any })}
                   >
-                    <SelectTrigger className="w-full border-4 border-black px-4 py-2 font-medium focus:ring-2 focus:ring-primary h-auto rounded-none shadow-none">
+                    <SelectTrigger className="h-auto w-full rounded-none border-4 border-black px-4 py-2 font-medium shadow-none focus:ring-2 focus:ring-primary">
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
