@@ -41,7 +41,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-6">
       {/* Header */}
       <div>
         <h1 className="font-display text-4xl font-bold uppercase">Settings</h1>

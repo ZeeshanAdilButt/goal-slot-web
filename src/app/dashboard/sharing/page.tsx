@@ -89,7 +89,7 @@ export default function SharingPage() {
   const pendingShares = shares.filter((s) => s.status === 'PENDING')
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

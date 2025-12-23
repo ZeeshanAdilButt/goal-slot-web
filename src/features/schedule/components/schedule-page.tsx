@@ -58,7 +58,7 @@ export function SchedulePage() {
 
   const totalBlocks = Object.values(weekSchedule).flat().length
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-4xl font-bold uppercase">Schedule</h1>
