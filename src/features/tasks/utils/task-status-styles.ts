@@ -12,10 +12,10 @@ export const taskStatusStyles: Record<
     text: 'text-secondary',
   },
   IN_PROGRESS: {
-    badge: 'bg-primary text-secondary border-secondary',
-    dot: 'bg-primary',
-    fill: 'bg-primary',
-    glow: 'from-amber-50 via-white to-white',
+    badge: 'bg-accent-blue text-white border-secondary',
+    dot: 'bg-accent-blue',
+    fill: 'bg-accent-blue',
+    glow: 'from-accent-blue/10 via-white to-white',
     text: 'text-secondary',
   },
   COMPLETED: {

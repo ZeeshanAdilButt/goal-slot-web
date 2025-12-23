@@ -1,3 +1,4 @@
+import { useUpdateTaskMutation } from '@/features/tasks/hooks/use-tasks-mutations'
 import { Task } from '@/features/tasks/utils/types'
 import { Edit, Play, RotateCcw, Trash2 } from 'lucide-react'
 
@@ -14,8 +15,16 @@ interface TaskActionsProps {
 
 export function TaskActions({ task, isHovered, onEdit, onDelete, onRestore }: TaskActionsProps) {
   const { setTaskId, setTask, setCategory, setGoalId, start } = useTimerStore()
+  const updateTaskMutation = useUpdateTaskMutation()
 
   const handleStartTimer = (): void => {
+    if (task.status === 'PENDING') {
+      updateTaskMutation.mutate({
+        taskId: task.id,
+        data: { status: 'IN_PROGRESS' },
+      })
+    }
+
     setTaskId(task.id)
     setTask(task.title)
     setCategory(task.category || 'DEEP_WORK')
@@ -25,7 +34,11 @@ export function TaskActions({ task, isHovered, onEdit, onDelete, onRestore }: Ta
 
   return (
     <div
-      className={cn('flex items-center gap-1 transition-opacity duration-150', isHovered ? 'opacity-100' : 'opacity-0')}
+      className={cn(
+        'flex items-center gap-1 transition-opacity duration-150',
+        'opacity-100 sm:opacity-0',
+        isHovered && 'sm:opacity-100',
+      )}
     >
       {task.status !== 'COMPLETED' && (
         <button

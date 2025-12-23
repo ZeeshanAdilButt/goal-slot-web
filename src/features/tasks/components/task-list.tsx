@@ -1,8 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 
 import { GroupBy, Task } from '@/features/tasks/utils/types'
 import { groupTasks } from '@/features/tasks/utils/utils'
-import { Calendar, Clock, Layers } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
@@ -10,68 +9,43 @@ import { TaskListItem } from './task-list-item/task-list-item'
 
 interface TaskListProps {
   tasks: Task[]
+  groupBy: GroupBy
   onComplete?: (task: Task) => void
   onEdit?: (task: Task) => void
 }
 
-export function TaskList({ tasks, onComplete, onEdit }: TaskListProps) {
-  const [groupBy, setGroupBy] = useState<GroupBy>('status')
-
+export function TaskList({ tasks, groupBy, onComplete, onEdit }: TaskListProps) {
   const groupedTasks = useMemo(() => groupTasks(tasks, groupBy), [tasks, groupBy])
 
   if (!tasks.length) {
     return (
-      <div className="card-brutal p-6 text-center font-mono text-gray-600">
-        No tasks yet. Create one to link it to your schedule and goals.
+      <div className="px-4 md:-ml-[3px] md:px-0">
+        <div className="card-brutal p-6 text-center font-mono text-gray-600">
+          No tasks yet. Create one to link it to your schedule and goals.
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-end gap-2">
-        <span className="text-xs font-bold uppercase text-gray-500">Group by:</span>
-        <div className="flex rounded-md border-2 border-black bg-white p-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-          <button
-            onClick={() => setGroupBy('status')}
-            className={cn(
-              'flex items-center gap-1 rounded px-2 py-1 text-xs font-bold uppercase transition-colors',
-              groupBy === 'status' ? 'bg-primary text-secondary' : 'hover:bg-gray-100',
-            )}
-          >
-            <Layers className="h-3 w-3" />
-            Status
-          </button>
-          <button
-            onClick={() => setGroupBy('day')}
-            className={cn(
-              'flex items-center gap-1 rounded px-2 py-1 text-xs font-bold uppercase transition-colors',
-              groupBy === 'day' ? 'bg-primary text-secondary' : 'hover:bg-gray-100',
-            )}
-          >
-            <Calendar className="h-3 w-3" />
-            Day
-          </button>
-          <button
-            onClick={() => setGroupBy('schedule')}
-            className={cn(
-              'flex items-center gap-1 rounded px-2 py-1 text-xs font-bold uppercase transition-colors',
-              groupBy === 'schedule' ? 'bg-primary text-secondary' : 'hover:bg-gray-100',
-            )}
-          >
-            <Clock className="h-3 w-3" />
-            Schedule
-          </button>
-        </div>
-      </div>
-
+    <div className="space-y-4 px-4 md:-ml-[3px] md:space-y-6 md:px-0">
       {groupedTasks.map(([group, groupTasks]) => (
-        <div key={group} className={cn('card-brutal p-4', group === 'COMPLETED' ? 'bg-gray-50 opacity-75' : '')}>
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className={cn('font-display font-bold uppercase', group === 'IN_PROGRESS' ? 'text-primary' : '')}>
+        <div key={group} className={cn('card-brutal p-3 sm:p-4', group === 'COMPLETED' ? 'bg-gray-50 opacity-75' : '')}>
+          <div className="mb-2 flex items-center justify-between sm:mb-3">
+            <h3
+              className={cn(
+                'font-display text-sm sm:text-base font-bold uppercase',
+                group === 'IN_PROGRESS' ? 'text-accent-blue' : '',
+              )}
+            >
               {group.replace('_', ' ')}
             </h3>
-            <span className={cn('badge-brutal text-xs', group === 'IN_PROGRESS' ? 'bg-primary text-secondary' : '')}>
+            <span
+              className={cn(
+                'badge-brutal text-[10px] sm:text-xs flex-shrink-0',
+                group === 'IN_PROGRESS' ? 'bg-accent-blue text-white' : '',
+              )}
+            >
               {groupTasks.length}
             </span>
           </div>

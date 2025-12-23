@@ -9,6 +9,7 @@ import { goalsApi, scheduleApi } from '@/lib/api'
 export function useTasks() {
   const [statusFilter, setStatusFilter] = useState<TaskStatus | ''>('')
   const [goalFilter, setGoalFilter] = useState<string | ''>('')
+  const [goalStatus, setGoalStatus] = useState<string>('ACTIVE')
 
   const tasksQuery = useTasksQuery({
     status: statusFilter || undefined,
@@ -24,9 +25,9 @@ export function useTasks() {
   })
 
   const goalsQuery = useQuery({
-    queryKey: ['goals', 'active'],
+    queryKey: ['goals', goalStatus],
     queryFn: async () => {
-      const res = await goalsApi.getAll('ACTIVE')
+      const res = await goalsApi.getAll(goalStatus)
       return res.data
     },
   })
@@ -40,6 +41,8 @@ export function useTasks() {
     setStatusFilter,
     goalFilter,
     setGoalFilter,
+    goalStatus,
+    setGoalStatus,
     refresh: tasksQuery.refetch,
   }
 }

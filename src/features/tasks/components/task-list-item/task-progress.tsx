@@ -14,20 +14,22 @@ export function TaskProgress({ task }: TaskProgressProps) {
   const progress = estimatedMinutes ? Math.min(100, Math.round(((trackedMinutes || 0) / estimatedMinutes) * 100)) : 0
   const statusStyle = taskStatusStyles[task.status]
 
+  if (!estimatedMinutes && !trackedMinutes) return null
+
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-[11px] text-gray-700">
+    <div className="space-y-1.5 sm:space-y-2">
+      <div className="flex flex-col gap-1.5 font-mono text-[10px] text-gray-700 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:text-[11px]">
         <div className="flex items-center gap-1">
-          <Hourglass className="h-3 w-3" />
-          <span>{estimatedMinutes ? `Estimate ${formatDuration(estimatedMinutes)}` : 'No estimate set'}</span>
+          <Hourglass className="h-2.5 w-2.5 shrink-0 sm:h-3 sm:w-3" />
+          <span className="break-words">
+            {estimatedMinutes ? `Estimate ${formatDuration(estimatedMinutes)}` : 'No estimate'}
+          </span>
         </div>
-        {trackedMinutes !== undefined ? (
-          <span className="flex items-center gap-1 font-semibold text-secondary">
-            <CheckCircle2 className="h-3 w-3" />
+        {trackedMinutes !== undefined && trackedMinutes > 0 && (
+          <span className="flex items-center gap-1 whitespace-nowrap font-semibold text-secondary">
+            <CheckCircle2 className="h-2.5 w-2.5 shrink-0 sm:h-3 sm:w-3" />
             Logged {formatDuration(trackedMinutes)}
           </span>
-        ) : (
-          <span className="text-gray-400">Not logged yet</span>
         )}
       </div>
 
@@ -35,9 +37,7 @@ export function TaskProgress({ task }: TaskProgressProps) {
         <div className="progress-brutal rounded-sm">
           <div className={cn('progress-brutal-fill', statusStyle.fill)} style={{ width: `${progress}%` }} />
         </div>
-      ) : (
-        <div className="text-[11px] font-bold uppercase text-gray-400">Add an estimate to track progress</div>
-      )}
+      ) : null}
     </div>
   )
 }
