@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { CompleteTaskModal } from '@/features/tasks/components/complete-task-modal'
 import { CreateTaskModal } from '@/features/tasks/components/create-task-modal'
-import { TaskList } from '@/features/tasks/components/task-list'
+import { GoalsSidebar } from '@/features/tasks/components/goals-sidebar'
+import { TasksView } from '@/features/tasks/components/tasks-view'
 import { useTasks } from '@/features/tasks/hooks/use-tasks'
 import {
   useCompleteTaskMutation,
@@ -12,18 +13,9 @@ import {
   useUpdateTaskMutation,
 } from '@/features/tasks/hooks/use-tasks-mutations'
 import { CreateTaskForm, Task, TaskStatus } from '@/features/tasks/utils/types'
-import { Plus } from 'lucide-react'
-
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-
-const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
-  { value: 'PENDING', label: 'Pending' },
-  { value: 'IN_PROGRESS', label: 'In Progress' },
-  { value: 'COMPLETED', label: 'Completed' },
-]
 
 export function TasksPage() {
-  const { tasks, scheduleBlocks, goals, isLoading, statusFilter, setStatusFilter, goalFilter, setGoalFilter } = useTasks()
+  const { tasks, scheduleBlocks, goals, isLoading, goalStatus, setGoalStatus } = useTasks()
 
   const createTaskMutation = useCreateTaskMutation()
   const updateTaskMutation = useUpdateTaskMutation()
@@ -32,6 +24,19 @@ export function TasksPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [completingTask, setCompletingTask] = useState<Task | null>(null)
+  const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null)
+
+  // Auto-select first goal when goals change
+  useEffect(() => {
+    if (goals.length > 0 && (!selectedGoalId || !goals.some((g) => g.id === selectedGoalId))) {
+      setSelectedGoalId(goals[0].id)
+    } else if (goals.length === 0) {
+      setSelectedGoalId(null)
+    }
+  }, [goals, selectedGoalId])
+
+  // Filter tasks for selected goal
+  const tasksForGoal = selectedGoalId ? tasks.filter((t) => t.goalId === selectedGoalId) : []
 
   const createTask = async (form: CreateTaskForm) => {
     try {
@@ -61,89 +66,54 @@ export function TasksPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-4xl font-bold uppercase">Tasks</h1>
-          <p className="font-mono uppercase text-gray-600">
-            Link tasks to schedule blocks and goals. Completing logs time automatically.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Select
-            value={goalFilter || 'all'}
-            onValueChange={(value) => setGoalFilter(value === 'all' ? '' : value)}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="All Goals" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Goals</SelectItem>
-              {goals.map((goal) => (
-                <SelectItem key={goal.id} value={goal.id}>
-                  {goal.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={statusFilter || 'all'}
-            onValueChange={(value) => setStatusFilter(value === 'all' ? '' : (value as TaskStatus))}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="All Statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              {STATUS_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <button onClick={() => setShowCreate(true)} className="btn-brutal flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            Add Task
-          </button>
-        </div>
-      </div>
-
-      {isLoading ? (
-        <div className="card-brutal flex h-64 items-center justify-center">
-          <div className="h-12 w-12 animate-spin border-4 border-secondary border-t-primary" />
-        </div>
-      ) : (
-        <TaskList tasks={tasks} onComplete={setCompletingTask} onEdit={setEditingTask} />
-      )}
-
-      <CreateTaskModal
-        isOpen={showCreate}
-        onClose={() => setShowCreate(false)}
-        onSubmit={createTask}
-        scheduleBlocks={scheduleBlocks}
+    <div className="flex h-full flex-col gap-0 md:flex-row">
+      <GoalsSidebar
         goals={goals}
+        selectedGoalId={selectedGoalId}
+        onSelectGoal={setSelectedGoalId}
+        selectedStatus={goalStatus}
+        onSelectStatus={setGoalStatus}
       />
 
-      <CreateTaskModal
-        isOpen={!!editingTask}
-        onClose={() => setEditingTask(null)}
-        onSubmit={async (form) => {
-          if (editingTask) {
-            const success = await updateTask(editingTask.id, form)
-            if (success) {
-              setEditingTask(null)
-            }
-            return success
-          }
-          return false
-        }}
-        scheduleBlocks={scheduleBlocks}
-        goals={goals}
-        task={editingTask}
-      />
+      <main className="flex-1 overflow-y-auto border-l-0 border-t-3 border-secondary md:border-l-3 md:border-t-0">
+        <div className="h-full">
+          <TasksView
+            tasks={tasksForGoal}
+            onComplete={setCompletingTask}
+            onEdit={setEditingTask}
+            onCreate={() => setShowCreate(true)}
+            hasSelectedGoal={!!selectedGoalId}
+          />
 
-      <CompleteTaskModal task={completingTask} onClose={() => setCompletingTask(null)} onConfirm={completeTask} />
+          <CreateTaskModal
+            isOpen={showCreate}
+            onClose={() => setShowCreate(false)}
+            onSubmit={createTask}
+            scheduleBlocks={scheduleBlocks}
+            goals={goals}
+          />
+
+          <CreateTaskModal
+            isOpen={!!editingTask}
+            onClose={() => setEditingTask(null)}
+            onSubmit={async (form) => {
+              if (editingTask) {
+                const success = await updateTask(editingTask.id, form)
+                if (success) {
+                  setEditingTask(null)
+                }
+                return success
+              }
+              return false
+            }}
+            scheduleBlocks={scheduleBlocks}
+            goals={goals}
+            task={editingTask}
+          />
+
+          <CompleteTaskModal task={completingTask} onClose={() => setCompletingTask(null)} onConfirm={completeTask} />
+        </div>
+      </main>
     </div>
   )
 }

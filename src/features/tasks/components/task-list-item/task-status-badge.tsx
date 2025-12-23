@@ -11,7 +11,12 @@ export function TaskStatusBadge({ task }: TaskStatusBadgeProps) {
   const statusStyle = taskStatusStyles[task.status]
 
   return (
-    <span className={cn('badge-brutal rounded-sm px-2.5 py-1 text-[10px] tracking-widest', statusStyle.badge)}>
+    <span
+      className={cn(
+        'badge-brutal rounded-sm px-2 sm:px-2.5 py-0.5 sm:py-1 text-[9px] sm:text-[10px] tracking-widest flex-shrink-0',
+        statusStyle.badge,
+      )}
+    >
       {task.status.replace('_', ' ')}
     </span>
   )

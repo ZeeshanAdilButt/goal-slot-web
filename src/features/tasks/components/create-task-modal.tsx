@@ -16,6 +16,7 @@ interface CreateTaskModalProps {
 
 export function CreateTaskModal({ isOpen, onClose, onSubmit, scheduleBlocks, goals, task }: CreateTaskModalProps) {
   const [creating, setCreating] = useState(false)
+  //Status is set automatically by the backend to 'pending'
   const [form, setForm] = useState<CreateTaskForm>({
     title: '',
     description: '',
@@ -28,7 +29,6 @@ export function CreateTaskModal({ isOpen, onClose, onSubmit, scheduleBlocks, goa
 
   useEffect(() => {
     if (task && isOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm({
         title: task.title || '',
         description: task.description || '',
