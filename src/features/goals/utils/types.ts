@@ -19,7 +19,7 @@ export interface CreateGoalForm {
   targetHours: number
   deadline?: string
   color: string
-  status: GoalStatus
+  status?: GoalStatus
 }
 
 export interface GoalStats {
@@ -27,3 +27,19 @@ export interface GoalStats {
   completed: number
   paused: number
 }
+
+export interface GoalFormState {
+  title: string
+  description: string
+  category: string
+  targetHours: string
+  deadline: string
+  color: string
+  status: GoalStatus
+}
+
+export const GOAL_STATUS_OPTIONS: { value: GoalStatus; label: string }[] = [
+  { value: 'ACTIVE', label: 'Active' },
+  { value: 'PAUSED', label: 'Paused' },
+  { value: 'COMPLETED', label: 'Completed' },
+]
