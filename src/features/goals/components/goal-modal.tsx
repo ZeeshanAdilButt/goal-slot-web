@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { useCreateGoalMutation, useUpdateGoalMutation } from '@/features/goals/hooks/use-goals-mutations'
-import { CreateGoalForm, Goal, GoalStatus } from '@/features/goals/utils/types'
+import { CreateGoalForm, Goal, GOAL_STATUS_OPTIONS, GoalFormState, GoalStatus } from '@/features/goals/utils/types'
 import { Calendar, Clock } from 'lucide-react'
 
 import { COLOR_OPTIONS, GOAL_CATEGORIES } from '@/lib/utils'
@@ -14,65 +14,65 @@ interface GoalModalProps {
   goal: Goal | null
 }
 
-export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [category, setCategory] = useState('LEARNING')
-  const [targetHours, setTargetHours] = useState('')
-  const [deadline, setDeadline] = useState('')
-  const [color, setColor] = useState(COLOR_OPTIONS[0])
-  const [status, setStatus] = useState<GoalStatus>('ACTIVE')
+const getInitialFormState = (): GoalFormState => ({
+  title: '',
+  description: '',
+  category: 'LEARNING',
+  targetHours: '',
+  deadline: '',
+  color: COLOR_OPTIONS[0],
+  status: 'ACTIVE',
+})
 
+const formStateToApiData = (form: GoalFormState): CreateGoalForm => ({
+  title: form.title,
+  description: form.description,
+  category: form.category,
+  targetHours: parseFloat(form.targetHours),
+  deadline: form.deadline ? new Date(form.deadline).toISOString() : undefined,
+  color: form.color,
+})
+
+export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
+  const [form, setForm] = useState<GoalFormState>(getInitialFormState)
   const createMutation = useCreateGoalMutation()
   const updateMutation = useUpdateGoalMutation()
 
-  const resetForm = () => {
-    setTitle('')
-    setDescription('')
-    setCategory('LEARNING')
-    setTargetHours('')
-    setDeadline('')
-    setColor(COLOR_OPTIONS[0])
-    setStatus('ACTIVE')
-  }
-
   useEffect(() => {
     if (goal) {
-      setTitle(goal.title)
-      setDescription(goal.description || '')
-      setCategory(goal.category)
-      setTargetHours(goal.targetHours.toString())
-      setDeadline(goal.deadline ? goal.deadline.split('T')[0] : '')
-      setColor(goal.color)
-      setStatus(goal.status)
+      setForm({
+        title: goal.title,
+        description: goal.description || '',
+        category: goal.category,
+        targetHours: goal.targetHours.toString(),
+        deadline: goal.deadline ? goal.deadline.split('T')[0] : '',
+        color: goal.color,
+        status: goal.status,
+      })
     } else {
-      resetForm()
+      setForm(getInitialFormState())
     }
   }, [goal])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const data: CreateGoalForm = {
-      title,
-      description,
-      category,
-      targetHours: parseFloat(targetHours),
-      deadline: deadline ? new Date(deadline).toISOString() : undefined,
-      color,
-      status,
-    }
+    const apiData = formStateToApiData(form)
 
     if (goal) {
-      updateMutation.mutate({ id: goal.id, data }, { onSuccess: onClose })
+      updateMutation.mutate({ id: goal.id, data: { ...apiData, status: form.status } }, { onSuccess: onClose })
     } else {
-      createMutation.mutate(data, {
+      createMutation.mutate(apiData, {
         onSuccess: () => {
-          resetForm()
+          setForm(getInitialFormState())
           onClose()
         },
       })
     }
+  }
+
+  const updateField = <K extends keyof GoalFormState>(field: K, value: GoalFormState[K]) => {
+    setForm((prev) => ({ ...prev, [field]: value }))
   }
 
   return (
@@ -88,8 +88,8 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
             <label className="mb-2 block text-sm font-bold uppercase">Title</label>
             <input
               type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              value={form.title}
+              onChange={(e) => updateField('title', e.target.value)}
               className="input-brutal w-full"
               placeholder="e.g., Learn Rust"
               required
@@ -100,19 +100,20 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
           <div>
             <label className="mb-2 block text-sm font-bold uppercase">Description</label>
             <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              value={form.description}
+              onChange={(e) => updateField('description', e.target.value)}
               className="input-brutal w-full"
               rows={3}
               placeholder="What do you want to achieve?"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
+          {/* Category and Status */}
+          <div className={goal ? 'grid grid-cols-2 gap-6' : ''}>
             {/* Category */}
             <div>
               <label className="mb-2 block text-sm font-bold uppercase">Category</label>
-              <Select value={category} onValueChange={setCategory}>
+              <Select value={form.category} onValueChange={(value) => updateField('category', value)}>
                 <SelectTrigger className="input-brutal w-full">
                   <SelectValue />
                 </SelectTrigger>
@@ -126,22 +127,27 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
               </Select>
             </div>
 
-            {/* Status */}
-            <div>
-              <label className="mb-2 block text-sm font-bold uppercase">Status</label>
-              <Select value={status} onValueChange={(value) => setStatus(value as GoalStatus)}>
-                <SelectTrigger className="input-brutal w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="PAUSED">Paused</SelectItem>
-                  <SelectItem value="COMPLETED">Completed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Status - Only show when editing */}
+            {goal && (
+              <div>
+                <label className="mb-2 block text-sm font-bold uppercase">Status</label>
+                <Select value={form.status} onValueChange={(value) => updateField('status', value as GoalStatus)}>
+                  <SelectTrigger className="input-brutal w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {GOAL_STATUS_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
+          {/* Target Hours and Deadline */}
           <div className="grid grid-cols-2 gap-6">
             {/* Target Hours */}
             <div>
@@ -150,8 +156,8 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                 <Clock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                 <input
                   type="number"
-                  value={targetHours}
-                  onChange={(e) => setTargetHours(e.target.value)}
+                  value={form.targetHours}
+                  onChange={(e) => updateField('targetHours', e.target.value)}
                   className="input-brutal w-full pl-10"
                   placeholder="100"
                   min="1"
@@ -167,8 +173,8 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                 <Calendar className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                 <input
                   type="date"
-                  value={deadline}
-                  onChange={(e) => setDeadline(e.target.value)}
+                  value={form.deadline}
+                  onChange={(e) => updateField('deadline', e.target.value)}
                   className="input-brutal w-full pl-10"
                 />
               </div>
@@ -183,9 +189,9 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                 <button
                   key={c}
                   type="button"
-                  onClick={() => setColor(c)}
+                  onClick={() => updateField('color', c)}
                   className={`h-8 w-8 rounded-full border-2 border-black transition-transform hover:scale-110 ${
-                    color === c ? 'ring-2 ring-black ring-offset-2' : ''
+                    form.color === c ? 'ring-2 ring-black ring-offset-2' : ''
                   }`}
                   style={{ backgroundColor: c }}
                 />
