@@ -28,7 +28,7 @@ export function GoalsPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-6">
       <GoalsHeader onCreateClick={() => setShowModal(true)} />
 
       <GoalsStats />

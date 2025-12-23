@@ -1,46 +1,19 @@
 'use client'
 
 import { useEffect } from 'react'
-import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 import { motion } from 'framer-motion'
-import {
-  BarChart3,
-  Calendar,
-  CheckSquare,
-  Clock,
-  LayoutDashboard,
-  LogOut,
-  Settings,
-  Share2,
-  Shield,
-  Target,
-  Users,
-  Zap,
-} from 'lucide-react'
+import { Zap } from 'lucide-react'
 
-import { useAuthStore, useIsAdmin } from '@/lib/store'
-import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/lib/store'
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { AppSidebar } from '@/components/app-sidebar'
 import { TimeEntryBanner } from '@/components/time-entry-banner'
-
-const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/goals', label: 'Goals', icon: Target },
-  { href: '/dashboard/schedule', label: 'Schedule', icon: Calendar },
-  { href: '/dashboard/tasks', label: 'Tasks', icon: CheckSquare },
-  { href: '/dashboard/time-tracker', label: 'Time Tracker', icon: Clock },
-  { href: '/dashboard/reports', label: 'Reports', icon: BarChart3 },
-  { href: '/dashboard/sharing', label: 'Sharing', icon: Share2 },
-]
-
-const adminNavItems = [{ href: '/dashboard/admin/users', label: 'Users', icon: Users }]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const pathname = usePathname()
-  const { user, isLoading, isAuthenticated, loadUser, logout } = useAuthStore()
-  const isAdmin = useIsAdmin()
+  const { isLoading, isAuthenticated, loadUser } = useAuthStore()
 
   useEffect(() => {
     loadUser()
@@ -51,11 +24,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       router.push('/login')
     }
   }, [isLoading, isAuthenticated, router])
-
-  const handleLogout = () => {
-    logout()
-    router.push('/')
-  }
 
   if (isLoading) {
     return (
@@ -71,119 +39,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     )
   }
 
-  if (!isAuthenticated || !user) {
+  if (!isAuthenticated) {
     return null
   }
 
   return (
-    <div className="flex min-h-screen bg-brutalist-bg">
-      {/* Sidebar */}
-      <aside className="fixed flex h-full w-64 flex-col border-r-3 border-secondary bg-brutalist-bg">
-        {/* Logo */}
-        <div className="border-b-3 border-secondary p-6">
-          <Link href="/dashboard" className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center border-3 border-secondary bg-primary shadow-brutal">
-              <Zap className="h-7 w-7" />
-            </div>
-            <div>
-              <span className="font-display text-lg font-bold uppercase tracking-tight">DevWeekends</span>
-              <span className="block font-mono text-xs uppercase text-gray-600">Time Master</span>
-            </div>
-          </Link>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset className="bg-brutalist-bg">
+        <div className="flex h-16 items-center gap-2 border-b-3 border-secondary px-4 md:hidden">
+          <SidebarTrigger className="h-10 w-10 border-3 border-secondary !bg-primary !text-secondary shadow-brutal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:!bg-primary hover:shadow-brutal-hover active:translate-x-1 active:translate-y-1 active:shadow-none" />
         </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 space-y-2 overflow-y-auto p-4">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
-
-            return (
-              <Link key={item.href} href={item.href} className={cn(isActive ? 'nav-item-active' : 'nav-item')}>
-                <item.icon className="h-5 w-5" />
-                {item.label}
-              </Link>
-            )
-          })}
-
-          {/* Admin Section */}
-          {isAdmin && (
-            <>
-              <div className="pb-2 pt-4">
-                <div className="flex items-center gap-2 px-4 text-xs font-bold uppercase text-gray-500">
-                  <Shield className="h-4 w-4" />
-                  Admin
-                </div>
-              </div>
-              {adminNavItems.map((item) => {
-                const isActive = pathname.startsWith(item.href)
-                return (
-                  <Link key={item.href} href={item.href} className={cn(isActive ? 'nav-item-active' : 'nav-item')}>
-                    <item.icon className="h-5 w-5" />
-                    {item.label}
-                  </Link>
-                )
-              })}
-            </>
-          )}
-        </nav>
-
-        {/* User Section */}
-        <div className="border-t-3 border-secondary p-4">
-          <div className="card-brutal mb-3 p-2">
-            <div className="mb-3 flex items-center gap-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center border-2 border-secondary bg-primary text-lg font-bold uppercase shadow-brutal-sm">
-                {user.name.charAt(0)}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-bold">{user.name}</p>
-                <div className="mt-1 flex flex-wrap gap-1">
-                  {user.role !== 'USER' && (
-                    <span className="badge-brutal bg-accent-pink px-1.5 py-0 text-[10px] text-white">{user.role}</span>
-                  )}
-                  {user.userType === 'INTERNAL' && (
-                    <span className="badge-brutal bg-accent-blue px-1.5 py-0 text-[10px] text-white">DW</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between gap-2 border-t-2 border-secondary/10 pt-3">
-              <p className="truncate font-mono text-xs text-gray-500" title={user.email}>
-                {user.email}
-              </p>
-              <span
-                className={cn(
-                  'badge-brutal shrink-0 px-2 py-0 text-[10px]',
-                  user.plan === 'PRO' || user.unlimitedAccess ? 'bg-primary' : 'bg-gray-100',
-                )}
-              >
-                {user.plan}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <Link
-              href="/dashboard/settings"
-              className="btn-brutal-secondary flex flex-1 items-center justify-center gap-2 px-3 py-2 text-sm"
-            >
-              <Settings className="h-4 w-4" />
-            </Link>
-            <button
-              onClick={handleLogout}
-              className="flex flex-1 items-center justify-center gap-2 border-3 border-secondary bg-gray-100 px-3 py-2 text-sm font-bold uppercase shadow-brutal-sm transition-all hover:shadow-brutal"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="ml-64 flex-1">
         <TimeEntryBanner />
-        <div className="p-8">{children}</div>
-      </main>
-    </div>
+        {children}
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
