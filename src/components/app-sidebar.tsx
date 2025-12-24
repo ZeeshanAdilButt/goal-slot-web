@@ -60,8 +60,9 @@ export function AppSidebar() {
 
   const handleLogout = () => {
     logout()
-    router.push('/')
     setPopoverOpen(false)
+    // Refresh page to clear all cached data
+    window.location.href = '/'
   }
 
   return (

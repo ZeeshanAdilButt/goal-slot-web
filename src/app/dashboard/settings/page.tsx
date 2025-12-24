@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 
 import { motion } from 'framer-motion'
 import { Bell, Check, CreditCard, Crown, Download, Globe, Key, LogOut, Mail, Shield, Trash2, User } from 'lucide-react'
@@ -22,7 +21,6 @@ const TABS = [
 
 export default function SettingsPage() {
   const { user, logout, setUser } = useAuthStore()
-  const router = useRouter()
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.slice(1)
@@ -36,8 +34,9 @@ export default function SettingsPage() {
 
   const handleLogout = () => {
     logout()
-    router.push('/')
     toast.success('Logged out successfully')
+    // Refresh page to clear all cached data
+    window.location.href = '/'
   }
 
   return (
