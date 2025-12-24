@@ -38,23 +38,6 @@ export function getProgressColor(progress: number): string {
   return 'bg-accent-pink'
 }
 
-export function getCategoryColor(category: string): string {
-  const colors: Record<string, string> = {
-    LEARNING: 'bg-accent-blue',
-    WORK: 'bg-cyan-400',
-    HEALTH: 'bg-accent-green',
-    CREATIVE: 'bg-accent-pink',
-    DEEP_WORK: 'bg-primary',
-    EXERCISE: 'bg-accent-orange',
-    SIDE_PROJECT: 'bg-accent-pink',
-    DSA: 'bg-primary',
-    MEETING: 'bg-accent-purple',
-    BREAK: 'bg-gray-300',
-    OTHER: 'bg-gray-400',
-  }
-  return colors[category] || 'bg-gray-400'
-}
-
 export function timeToMinutes(time: string): number {
   const [hours, minutes] = time.split(':').map(Number)
   return hours * 60 + minutes
@@ -68,34 +51,6 @@ export function minutesToTime(minutes: number): string {
 
 export const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 export const DAYS_OF_WEEK_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-
-export const GOAL_CATEGORIES = [
-  { value: 'LEARNING', label: 'Learning', color: 'bg-accent-blue' },
-  { value: 'WORK', label: 'Work', color: 'bg-cyan-400' },
-  { value: 'HEALTH', label: 'Health', color: 'bg-accent-green' },
-  { value: 'CREATIVE', label: 'Creative', color: 'bg-accent-pink' },
-]
-
-export const SCHEDULE_CATEGORIES = [
-  { value: 'DEEP_WORK', label: 'Deep Work', color: 'bg-primary' },
-  { value: 'LEARNING', label: 'Learning', color: 'bg-accent-green' },
-  { value: 'EXERCISE', label: 'Exercise', color: 'bg-accent-orange' },
-  { value: 'SIDE_PROJECT', label: 'Side Project', color: 'bg-accent-pink' },
-  { value: 'DSA', label: 'DSA', color: 'bg-primary' },
-  { value: 'MEETING', label: 'Meeting', color: 'bg-accent-purple' },
-  { value: 'BREAK', label: 'Break', color: 'bg-gray-300' },
-  { value: 'OTHER', label: 'Other', color: 'bg-gray-400' },
-]
-
-export const TASK_CATEGORIES = [
-  { value: 'DEEP_WORK', label: 'Deep Work', color: 'bg-primary' },
-  { value: 'LEARNING', label: 'Learning', color: 'bg-accent-green' },
-  { value: 'MEETING', label: 'Meeting', color: 'bg-accent-orange' },
-  { value: 'CREATIVE', label: 'Creative', color: 'bg-accent-pink' },
-  { value: 'ADMIN', label: 'Admin', color: 'bg-gray-400' },
-  { value: 'BREAK', label: 'Break', color: 'bg-accent-purple' },
-  { value: 'OTHER', label: 'Other', color: 'bg-gray-300' },
-]
 
 export const COLOR_OPTIONS = [
   '#FFD700', // Yellow

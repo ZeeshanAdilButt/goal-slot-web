@@ -1,9 +1,10 @@
 'use client'
 
+import { useCategoriesQuery } from '@/features/categories'
 import { ScheduleBlock } from '@/features/schedule/utils/types'
 import { Pencil } from 'lucide-react'
 
-import { DAYS_OF_WEEK_FULL, getCategoryColor, SCHEDULE_CATEGORIES } from '@/lib/utils'
+import { DAYS_OF_WEEK_FULL } from '@/lib/utils'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 type ScheduleBlockDetailDialogProps = {
@@ -14,9 +15,11 @@ type ScheduleBlockDetailDialogProps = {
 }
 
 export function ScheduleBlockDetailDialog({ isOpen, onClose, block, onEdit }: ScheduleBlockDetailDialogProps) {
+  const { data: categories = [] } = useCategoriesQuery()
+
   if (!block) return null
 
-  const category = SCHEDULE_CATEGORIES.find((cat) => cat.value === block.category)
+  const category = categories.find((cat) => cat.value === block.category)
   const dayName = DAYS_OF_WEEK_FULL[block.dayOfWeek]
 
   const handleEdit = () => {
@@ -44,7 +47,7 @@ export function ScheduleBlockDetailDialog({ isOpen, onClose, block, onEdit }: Sc
           {/* Color indicator */}
           <div
             className="h-4 w-full border-2 border-secondary"
-            style={{ backgroundColor: block.color || getCategoryColor(block.category) }}
+            style={{ backgroundColor: block.color || category?.color || '#9CA3AF' }}
           />
 
           {/* Day and Time */}
@@ -65,8 +68,8 @@ export function ScheduleBlockDetailDialog({ isOpen, onClose, block, onEdit }: Sc
             <div className="space-y-2">
               <div className="font-mono text-sm uppercase text-gray-600">Category</div>
               <div className="flex items-center gap-2">
-                <div className={`h-4 w-4 border-2 border-secondary ${category.color}`} />
-                <span className="font-bold uppercase">{category.label}</span>
+                <div className="h-4 w-4 border-2 border-secondary" style={{ backgroundColor: category.color }} />
+                <span className="font-bold uppercase">{category.name}</span>
               </div>
             </div>
           )}

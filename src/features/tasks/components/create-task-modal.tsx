@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 
+import { useCategoriesQuery } from '@/features/categories'
 import { CreateTaskForm, Goal, ScheduleBlock, Task } from '@/features/tasks/utils/types'
 
-import { DAYS_OF_WEEK_FULL, TASK_CATEGORIES } from '@/lib/utils'
+import { DAYS_OF_WEEK_FULL } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface CreateTaskModalProps {
@@ -16,6 +17,7 @@ interface CreateTaskModalProps {
 
 export function CreateTaskModal({ isOpen, onClose, onSubmit, scheduleBlocks, goals, task }: CreateTaskModalProps) {
   const [creating, setCreating] = useState(false)
+  const { data: categories = [] } = useCategoriesQuery()
   //Status is set automatically by the backend to 'pending'
   const [form, setForm] = useState<CreateTaskForm>({
     title: '',
@@ -108,9 +110,9 @@ export function CreateTaskModal({ isOpen, onClose, onSubmit, scheduleBlocks, goa
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Select category</SelectItem>
-                {TASK_CATEGORIES.map((cat) => (
+                {categories.map((cat) => (
                   <SelectItem key={cat.value} value={cat.value}>
-                    {cat.label}
+                    {cat.name}
                   </SelectItem>
                 ))}
               </SelectContent>

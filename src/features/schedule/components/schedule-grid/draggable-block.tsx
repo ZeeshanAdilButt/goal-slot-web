@@ -2,6 +2,7 @@
 
 import { useRef, useState, type CSSProperties } from 'react'
 
+import { useCategoriesQuery } from '@/features/categories'
 import { useDeleteScheduleBlock } from '@/features/schedule/hooks/use-schedule-mutations'
 import { scheduleQueries } from '@/features/schedule/utils/queries'
 import { ScheduleBlock } from '@/features/schedule/utils/types'
@@ -11,7 +12,6 @@ import { motion } from 'framer-motion'
 import { Loader2, Pencil, Target, X } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
-import { getCategoryColor } from '@/lib/utils'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 
 import { BlockTasksList } from './block-tasks-list'
@@ -29,6 +29,7 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onVie
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const headerRef = useRef<HTMLDivElement>(null)
   const { mutateAsync: deleteBlock } = useDeleteScheduleBlock()
+  const { data: categories = [] } = useCategoriesQuery()
   const draggableId = block.id
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: draggableId,
@@ -39,6 +40,8 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onVie
       mutationKey: scheduleQueries.mutation.update(),
       predicate: (mutation) => (mutation.state.variables as { id?: string })?.id === block.id,
     }) > 0
+
+  const categoryColor = categories.find((cat) => cat.value === block.category)?.color
 
   const handleDeleteClick = (event: React.MouseEvent) => {
     event.stopPropagation()
@@ -65,7 +68,7 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onVie
   }
 
   const blockStyle: CSSProperties = {
-    backgroundColor: block.color || getCategoryColor(block.category),
+    backgroundColor: block.color || categoryColor || '#9CA3AF',
     top,
     height,
     minHeight: height,

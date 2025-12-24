@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 
+import { CategoryManagement } from '@/features/categories/components/category-management'
 import { motion } from 'framer-motion'
-import { Bell, Check, CreditCard, Crown, Download, Globe, Key, LogOut, Mail, Shield, Trash2, User } from 'lucide-react'
+import { Bell, Check, CreditCard, Crown, Download, Key, LogOut, Mail, Shield, Tag, Trash2, User } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { stripeApi, usersApi } from '@/lib/api'
@@ -13,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 const TABS = [
   { id: 'profile', label: 'Profile', icon: User },
+  { id: 'categories', label: 'Categories', icon: Tag },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'billing', label: 'Billing', icon: CreditCard },
   { id: 'security', label: 'Security', icon: Shield },
@@ -20,17 +23,18 @@ const TABS = [
 ]
 
 export default function SettingsPage() {
-  const { user, logout, setUser } = useAuthStore()
-  const [activeTab, setActiveTab] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const hash = window.location.hash.slice(1)
-      if (hash && TABS.some((t) => t.id === hash)) {
-        return hash
-      }
-    }
-    return 'profile'
-  })
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const { logout } = useAuthStore()
+
+  const tabFromUrl = searchParams.get('tab')
+  // Derive activeTab directly from URL query parameter
+  const activeTab = tabFromUrl && TABS.some((t) => t.id === tabFromUrl) ? tabFromUrl : 'profile'
+
+  const handleTabChange = (tabId: string) => {
+    // Update URL query parameter without scrolling - component will re-render with new activeTab
+    router.replace(`/dashboard/settings?tab=${tabId}`, { scroll: false })
+  }
 
   const handleLogout = () => {
     logout()
@@ -54,7 +58,7 @@ export default function SettingsPage() {
             {TABS.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabChange(tab.id)}
                 className={cn(
                   'w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-left border-b-2 border-secondary transition-all',
                   activeTab === tab.id ? 'bg-primary' : 'hover:bg-gray-100',
@@ -77,6 +81,7 @@ export default function SettingsPage() {
         {/* Content */}
         <div className="lg:col-span-3">
           {activeTab === 'profile' && <ProfileSettings />}
+          {activeTab === 'categories' && <CategoryManagement />}
           {activeTab === 'notifications' && <NotificationSettings />}
           {activeTab === 'billing' && <BillingSettings />}
           {activeTab === 'security' && <SecuritySettings />}

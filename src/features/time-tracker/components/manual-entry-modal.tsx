@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
+import { useCategoriesQuery } from '@/features/categories'
 import { useCreateTimeEntry } from '@/features/time-tracker/hooks/use-time-tracker-mutations'
 import { Goal, Task } from '@/features/time-tracker/utils/types'
 import { AnimatePresence, motion } from 'framer-motion'
 
-import { cn, TASK_CATEGORIES } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface ManualEntryModalProps {
@@ -17,13 +18,21 @@ interface ManualEntryModalProps {
 export function ManualEntryModal({ isOpen, onClose, goals, tasks }: ManualEntryModalProps) {
   const [title, setTitle] = useState('')
   const [duration, setDuration] = useState(30)
-  const [category, setCategory] = useState('DEEP_WORK')
+  const [category, setCategory] = useState('')
   const [goalId, setGoalId] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [startTime, setStartTime] = useState('09:00')
   const [taskId, setTaskId] = useState('')
 
   const createEntry = useCreateTimeEntry()
+  const { data: categories = [] } = useCategoriesQuery()
+
+  // Set default category when categories load
+  useEffect(() => {
+    if (categories.length > 0 && !category) {
+      setCategory(categories[0].value)
+    }
+  }, [categories, category])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -172,9 +181,9 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks }: ManualEntryM
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {TASK_CATEGORIES.map((cat) => (
+                    {categories.map((cat) => (
                       <SelectItem key={cat.value} value={cat.value}>
-                        {cat.label}
+                        {cat.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

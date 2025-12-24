@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
+import { useCategoriesQuery } from '@/features/categories'
 import { format } from 'date-fns'
 import { motion } from 'framer-motion'
-import { ArrowRight, Calendar, CheckSquare, Clock, Plus, Target, TrendingUp } from 'lucide-react'
+import { ArrowRight, Calendar, CheckSquare, Clock, Plus, Tag, Target, TrendingUp } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { goalsApi, reportsApi, timeEntriesApi } from '@/lib/api'
-import { formatDuration, getCategoryColor, getProgressColor } from '@/lib/utils'
+import { formatDuration, getProgressColor } from '@/lib/utils'
 
 interface DashboardStats {
   todayFormatted: string
@@ -42,6 +43,7 @@ export default function DashboardPage() {
   const [goals, setGoals] = useState<Goal[]>([])
   const [recentActivity, setRecentActivity] = useState<TimeEntry[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const { data: categories = [] } = useCategoriesQuery()
 
   useEffect(() => {
     loadDashboardData()
@@ -90,6 +92,10 @@ export default function DashboardPage() {
         </div>
 
         <div className="flex gap-4">
+          <Link href="/dashboard/settings?tab=categories" className="btn-brutal-secondary flex items-center gap-2">
+            <Tag className="h-5 w-5" />
+            Categories
+          </Link>
           <Link href="/dashboard/time-tracker" className="btn-brutal-secondary flex items-center gap-2">
             <Clock className="h-5 w-5" />
             Log Time
@@ -188,7 +194,13 @@ export default function DashboardPage() {
                     <div className="flex-1">
                       <div className="mb-2 flex items-center justify-between">
                         <div>
-                          <span className={`badge-brutal ${getCategoryColor(goal.category)} mr-2 text-xs`}>
+                          <span
+                            className="badge-brutal mr-2 text-xs"
+                            style={{
+                              backgroundColor:
+                                categories.find((cat) => cat.value === goal.category)?.color || '#9CA3AF',
+                            }}
+                          >
                             {goal.category}
                           </span>
                           <span className="font-bold uppercase">{goal.title}</span>

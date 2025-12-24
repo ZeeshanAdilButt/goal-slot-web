@@ -1,6 +1,6 @@
+import { useCategoriesQuery } from '@/features/categories'
 import { Goal } from '@/features/time-tracker/utils/types'
 
-import { TASK_CATEGORIES } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface TimerSettingsProps {
@@ -22,6 +22,8 @@ export function TimerSettings({
   onCategoryChange,
   onGoalIdChange,
 }: TimerSettingsProps) {
+  const { data: categories = [] } = useCategoriesQuery()
+
   return (
     <div className="mb-6 grid grid-cols-2 gap-4">
       <div>
@@ -37,9 +39,9 @@ export function TimerSettings({
             <SelectValue placeholder="Select category" />
           </SelectTrigger>
           <SelectContent>
-            {TASK_CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <SelectItem key={cat.value} value={cat.value}>
-                {cat.label}
+                {cat.name}
               </SelectItem>
             ))}
           </SelectContent>

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 
+import { useCategoriesQuery } from '@/features/categories'
 import { useCreateGoalMutation, useUpdateGoalMutation } from '@/features/goals/hooks/use-goals-mutations'
 import { CreateGoalForm, Goal, GOAL_STATUS_OPTIONS, GoalFormState, GoalStatus } from '@/features/goals/utils/types'
 import { Calendar, Clock } from 'lucide-react'
 
-import { COLOR_OPTIONS, GOAL_CATEGORIES } from '@/lib/utils'
+import { COLOR_OPTIONS } from '@/lib/utils'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
@@ -17,7 +18,7 @@ interface GoalModalProps {
 const getInitialFormState = (): GoalFormState => ({
   title: '',
   description: '',
-  category: 'LEARNING',
+  category: '',
   targetHours: '',
   deadline: '',
   color: COLOR_OPTIONS[0],
@@ -37,6 +38,7 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
   const [form, setForm] = useState<GoalFormState>(getInitialFormState)
   const createMutation = useCreateGoalMutation()
   const updateMutation = useUpdateGoalMutation()
+  const { data: categories = [] } = useCategoriesQuery()
 
   useEffect(() => {
     if (goal) {
@@ -50,9 +52,14 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
         status: goal.status,
       })
     } else {
-      setForm(getInitialFormState())
+      const initialState = getInitialFormState()
+      // Set first category as default if available
+      if (categories.length > 0 && !initialState.category) {
+        initialState.category = categories[0].value
+      }
+      setForm(initialState)
     }
-  }, [goal])
+  }, [goal, categories])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -118,9 +125,9 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {GOAL_CATEGORIES.map((cat) => (
+                  {categories.map((cat) => (
                     <SelectItem key={cat.value} value={cat.value}>
-                      {cat.label}
+                      {cat.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
