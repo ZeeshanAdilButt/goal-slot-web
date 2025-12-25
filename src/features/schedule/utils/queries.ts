@@ -27,7 +27,7 @@ export const scheduleQueries = {
     queryOptions({
       queryKey: [...scheduleQueries.goalsKey(), 'active'] as const,
       queryFn: async (): Promise<Goal[]> => {
-        const res = await goalsApi.getAll('ACTIVE')
+        const res = await goalsApi.getAll({ status: 'ACTIVE' })
         return res.data
       },
     }),

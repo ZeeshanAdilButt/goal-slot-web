@@ -411,7 +411,7 @@ export default function AdminUsersPage() {
                     value={newUser.email}
                     onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
                     className="w-full border-4 border-black px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="john@devweekends.com"
+                    placeholder="john@example.com"
                     required
                   />
                 </div>

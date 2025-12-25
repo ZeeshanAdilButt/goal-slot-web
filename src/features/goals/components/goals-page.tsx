@@ -8,14 +8,14 @@ import { GoalsHeader } from '@/features/goals/components/goals-header'
 import { GoalsList } from '@/features/goals/components/goals-list'
 import { GoalsStats } from '@/features/goals/components/goals-stats'
 import { useGoalsQuery } from '@/features/goals/hooks/use-goals-queries'
-import { Goal } from '@/features/goals/utils/types'
+import { Goal, GoalFilters } from '@/features/goals/utils/types'
 
 export function GoalsPage() {
-  const [filter, setFilter] = useState<string>('ACTIVE')
+  const [filters, setFilters] = useState<GoalFilters>({ status: 'ACTIVE' })
   const [showModal, setShowModal] = useState(false)
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null)
 
-  const goalsQuery = useGoalsQuery(filter)
+  const goalsQuery = useGoalsQuery(filters)
 
   const handleEdit = (goal: Goal) => {
     setEditingGoal(goal)
@@ -27,18 +27,22 @@ export function GoalsPage() {
     setEditingGoal(null)
   }
 
+  const handleFilterChange = (newFilters: GoalFilters) => {
+    setFilters(newFilters)
+  }
+
   return (
     <div className="space-y-8 p-6">
       <GoalsHeader onCreateClick={() => setShowModal(true)} />
 
       <GoalsStats />
 
-      <GoalsFilters filter={filter} onFilterChange={setFilter} />
+      <GoalsFilters filters={filters} onFilterChange={handleFilterChange} />
 
       <GoalsList
         goals={goalsQuery.data || []}
         isLoading={goalsQuery.isLoading}
-        filter={filter}
+        filter={filters.status || 'ACTIVE'}
         onEdit={handleEdit}
         onCreateClick={() => setShowModal(true)}
       />

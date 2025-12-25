@@ -65,10 +65,18 @@ export function CompactTaskListItem({
         onMouseLeave={() => onHover(null)}
       >
         {/* Collapsed View */}
-        <button
+        <div
+          role="button"
+          tabIndex={0}
           onClick={() => onExpand(isExpanded ? null : task.id)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              onExpand(isExpanded ? null : task.id)
+            }
+          }}
           className={cn(
-            'w-full flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 text-left',
+            'w-full flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 text-left cursor-pointer',
             'font-bold uppercase text-xs sm:text-sm',
           )}
         >
@@ -126,7 +134,7 @@ export function CompactTaskListItem({
               </span>
             )}
           </div>
-        </button>
+        </div>
 
         {/* Expanded View */}
         <AnimateChangeInHeight>{isExpanded && <CompactTaskExpanded task={task} />}</AnimateChangeInHeight>

@@ -176,8 +176,8 @@ function ProfileSettings() {
             {user?.plan === 'PREMIUM' ? '👑 Premium' : 'Free Plan'}
           </div>
           <div className="font-mono text-sm text-gray-600">
-            {user?.userType === 'SSO' && 'Connected via DevWeekends SSO'}
-            {user?.userType === 'INTERNAL' && 'Internal DevWeekends Account'}
+            {user?.userType === 'SSO' && 'Connected via SSO'}
+            {user?.userType === 'INTERNAL' && 'Internal Account'}
             {user?.userType === 'EXTERNAL' && 'External Account'}
           </div>
         </div>
@@ -459,7 +459,7 @@ function SecuritySettings() {
         <div className="card-brutal">
           <h2 className="mb-4 text-xl font-bold uppercase">SSO Authentication</h2>
           <p className="font-mono text-gray-600">
-            Your account is managed via DevWeekends SSO. Password changes should be made through your DevWeekends
+            Your account is managed via SSO. Password changes should be made through your SSO
             account.
           </p>
         </div>

@@ -52,7 +52,8 @@ export const authApi = {
 
 // Goals API
 export const goalsApi = {
-  getAll: (status?: string) => api.get('/goals', { params: { status } }),
+  getAll: (params?: { status?: string; category?: string; categories?: string; labelIds?: string }) =>
+    api.get('/goals', { params }),
   getOne: (id: string) => api.get(`/goals/${id}`),
   create: (data: any) => api.post('/goals', data),
   update: (id: string, data: any) => api.put(`/goals/${id}`, data),
@@ -110,16 +111,26 @@ export const tasksApi = {
 // Sharing API
 export const sharingApi = {
   invite: (email: string) => api.post('/sharing/invite', { email }),
-  share: (data: { email: string; accessLevel: 'VIEW' | 'EDIT' }) => api.post('/sharing', data),
+  share: (data: { email: string; accessLevel?: 'VIEW' | 'EDIT' }) => api.post('/sharing/invite', { email: data.email }),
   accept: (token: string) => api.post('/sharing/accept', null, { params: { token } }),
   getAll: () => api.get('/sharing'),
   getMyShares: () => api.get('/sharing/my-shares'),
   getPendingInvites: () => api.get('/sharing/pending-invites'),
   getSharedData: (ownerId: string) => api.get(`/sharing/user/${ownerId}`),
-  revoke: (shareId: string) => api.delete(`/sharing/${shareId}`),
+  revoke: (shareId: string) => api.delete(`/sharing/revoke/${shareId}`),
   remove: (shareId: string) => api.delete(`/sharing/remove/${shareId}`),
   acceptInvite: (inviteId: string) => api.post(`/sharing/accept/${inviteId}`),
   declineInvite: (inviteId: string) => api.post(`/sharing/decline/${inviteId}`),
+  // New methods for shared reports
+  getSharedWithMe: () => api.get('/sharing/shared-with-me'),
+  getSharedUserTimeEntries: (ownerId: string, startDate: string, endDate: string) =>
+    api.get(`/sharing/user/${ownerId}/time-entries`, { params: { startDate, endDate } }),
+  getSharedUserGoals: (ownerId: string) => api.get(`/sharing/user/${ownerId}/goals`),
+  // Public access methods (no auth required)
+  getPublicSharedData: (token: string) => api.get(`/public/share/view/${token}`),
+  getPublicSharedTimeEntries: (token: string, startDate: string, endDate: string) =>
+    api.get(`/public/share/view/${token}/time-entries`, { params: { startDate, endDate } }),
+  getPublicSharedGoals: (token: string) => api.get(`/public/share/view/${token}/goals`),
 }
 
 // Stripe API
@@ -156,4 +167,15 @@ export const categoriesApi = {
   update: (id: string, data: { name?: string; color?: string; order?: number; isDefault?: boolean }) =>
     api.put(`/categories/${id}`, data),
   delete: (id: string) => api.delete(`/categories/${id}`),
+}
+
+// Labels API
+export const labelsApi = {
+  getAll: () => api.get('/labels'),
+  getOne: (id: string) => api.get(`/labels/${id}`),
+  create: (data: { name: string; color?: string; order?: number }) => api.post('/labels', data),
+  update: (id: string, data: { name?: string; color?: string; order?: number }) => api.put(`/labels/${id}`, data),
+  delete: (id: string) => api.delete(`/labels/${id}`),
+  assignToGoal: (goalId: string, labelIds: string[]) => api.post(`/labels/goals/${goalId}/assign`, { labelIds }),
+  getForGoal: (goalId: string) => api.get(`/labels/goals/${goalId}`),
 }

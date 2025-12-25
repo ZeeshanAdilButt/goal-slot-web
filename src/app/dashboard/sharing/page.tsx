@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react'
 
 import { AnimatePresence, motion } from 'framer-motion'
-import { AlertCircle, Check, Clock, Edit3, Eye, Mail, Plus, Share2, Trash2, UserPlus, Users, X } from 'lucide-react'
+import { AlertCircle, Check, Clock, Edit3, Eye, Mail, Share2, Trash2, UserPlus, Users, X } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { sharingApi } from '@/lib/api'
 import { cn, formatDate } from '@/lib/utils'
+
+import { SharedReportsView } from './shared-reports-view'
 
 interface DataShare {
   id: string
@@ -20,20 +22,43 @@ interface DataShare {
     id: string
     name: string
     email: string
+    avatar?: string
   }
 }
 
 interface PendingInvite {
   id: string
-  ownerEmail: string
-  ownerName: string
+  owner: {
+    id: string
+    name: string
+    email: string
+    avatar?: string
+  }
+  ownerEmail?: string
+  ownerName?: string
   accessLevel: 'VIEW' | 'EDIT'
   createdAt: string
 }
 
+interface SharedWithMeUser {
+  id: string
+  ownerId: string
+  owner: {
+    id: string
+    name: string
+    email: string
+    avatar?: string
+  }
+  createdAt: string
+}
+
+type TabType = 'my' | 'shared-with-me'
+
 export default function SharingPage() {
+  const [activeTab, setActiveTab] = useState<TabType>('my')
   const [shares, setShares] = useState<DataShare[]>([])
   const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([])
+  const [sharedWithMe, setSharedWithMe] = useState<SharedWithMeUser[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showInviteModal, setShowInviteModal] = useState(false)
 
@@ -43,9 +68,14 @@ export default function SharingPage() {
 
   const loadData = async () => {
     try {
-      const [sharesRes, invitesRes] = await Promise.all([sharingApi.getMyShares(), sharingApi.getPendingInvites()])
+      const [sharesRes, invitesRes, sharedWithMeRes] = await Promise.all([
+        sharingApi.getMyShares(),
+        sharingApi.getPendingInvites(),
+        sharingApi.getSharedWithMe(),
+      ])
       setShares(sharesRes.data)
       setPendingInvites(invitesRes.data)
+      setSharedWithMe(sharedWithMeRes.data)
     } catch (error) {
       toast.error('Failed to load sharing data')
     } finally {
@@ -94,12 +124,56 @@ export default function SharingPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-4xl font-bold uppercase">Sharing</h1>
-          <p className="font-mono uppercase text-gray-600">Share your data with others</p>
+          <p className="font-mono uppercase text-gray-600">Manage shared access and view shared reports</p>
         </div>
 
-        <button onClick={() => setShowInviteModal(true)} className="btn-brutal flex items-center gap-2">
-          <UserPlus className="h-5 w-5" />
-          Invite User
+        {activeTab === 'my' && (
+          <button onClick={() => setShowInviteModal(true)} className="btn-brutal flex items-center gap-2">
+            <UserPlus className="h-5 w-5" />
+            Invite User
+          </button>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <div className="flex border-b-3 border-secondary">
+        <button
+          onClick={() => setActiveTab('my')}
+          className={cn(
+            'px-6 py-3 font-bold uppercase transition-colors border-b-4 -mb-[3px]',
+            activeTab === 'my'
+              ? 'border-primary bg-primary text-secondary'
+              : 'border-transparent hover:bg-gray-100',
+          )}
+        >
+          <div className="flex items-center gap-2">
+            <Share2 className="h-5 w-5" />
+            My
+            {activeShares.length > 0 && (
+              <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-white">
+                {activeShares.length}
+              </span>
+            )}
+          </div>
+        </button>
+        <button
+          onClick={() => setActiveTab('shared-with-me')}
+          className={cn(
+            'px-6 py-3 font-bold uppercase transition-colors border-b-4 -mb-[3px]',
+            activeTab === 'shared-with-me'
+              ? 'border-primary bg-primary text-secondary'
+              : 'border-transparent hover:bg-gray-100',
+          )}
+        >
+          <div className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Shared with me
+            {sharedWithMe.length > 0 && (
+              <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-white">
+                {sharedWithMe.length}
+              </span>
+            )}
+          </div>
         </button>
       </div>
 
@@ -110,31 +184,35 @@ export default function SharingPage() {
           animate={{ opacity: 1, y: 0 }}
           className="card-brutal-colored bg-accent-orange text-white"
         >
-          <h2 className="mb-4 flex items-center gap-2 text-xl font-bold uppercase">
+          <h2 className="mb-2 flex items-center gap-2 text-xl font-bold uppercase">
             <Mail className="h-5 w-5" />
             Pending Invitations ({pendingInvites.length})
           </h2>
+          <p className="mb-4 text-sm opacity-80">People who want to share their reports with you</p>
 
           <div className="space-y-3">
             {pendingInvites.map((invite) => (
               <div key={invite.id} className="flex items-center justify-between border border-white/30 bg-white/10 p-4">
                 <div>
-                  <div className="font-bold">{invite.ownerName}</div>
-                  <div className="font-mono text-sm opacity-75">{invite.ownerEmail}</div>
+                  <div className="text-xs font-medium uppercase tracking-wider opacity-70">Invitation from</div>
+                  <div className="font-bold">{invite.owner?.name || invite.ownerName}</div>
+                  <div className="font-mono text-sm opacity-75">{invite.owner?.email || invite.ownerEmail}</div>
                   <div className="mt-1 font-mono text-xs">
-                    {invite.accessLevel === 'VIEW' ? 'View Only' : 'Can Edit'} • {formatDate(invite.createdAt)}
+                    {invite.accessLevel === 'VIEW' ? '👁️ View their reports' : '📊 View their reports'} • {formatDate(invite.createdAt)}
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleAcceptInvite(invite.id)}
                     className="flex h-10 w-10 items-center justify-center border-2 border-white bg-white text-accent-green"
+                    title="Accept invitation"
                   >
                     <Check className="h-5 w-5" />
                   </button>
                   <button
                     onClick={() => handleDeclineInvite(invite.id)}
                     className="flex h-10 w-10 items-center justify-center border-2 border-white bg-white/20 text-white"
+                    title="Decline invitation"
                   >
                     <X className="h-5 w-5" />
                   </button>
@@ -150,74 +228,80 @@ export default function SharingPage() {
           <div className="h-12 w-12 animate-spin border-4 border-secondary border-t-primary" />
         </div>
       ) : (
-        <>
-          {/* Active Shares */}
-          <div className="card-brutal">
-            <h2 className="mb-6 flex items-center gap-2 text-xl font-bold uppercase">
-              <Users className="h-5 w-5" />
-              People with Access ({activeShares.length})
-            </h2>
+        <AnimatePresence mode="wait">
+          {activeTab === 'my' ? (
+            <motion.div
+              key="my-tab"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="space-y-6"
+            >
+              {/* Active Shares */}
+              <div className="card-brutal">
+                <h2 className="mb-6 flex items-center gap-2 text-xl font-bold uppercase">
+                  <Users className="h-5 w-5" />
+                  People with Access ({activeShares.length})
+                </h2>
 
-            {activeShares.length === 0 ? (
-              <div className="py-8 text-center text-gray-500">
-                <Share2 className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                <p className="font-mono uppercase">No active shares</p>
-                <p className="text-sm">Invite someone to view your data</p>
+                {activeShares.length === 0 ? (
+                  <div className="py-8 text-center text-gray-500">
+                    <Share2 className="mx-auto mb-4 h-12 w-12 opacity-50" />
+                    <p className="font-mono uppercase">No active shares</p>
+                    <p className="text-sm">Invite someone to view your data</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {activeShares.map((share) => (
+                      <ShareCard key={share.id} share={share} onRevoke={() => handleRevoke(share.id)} />
+                    ))}
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="space-y-3">
-                {activeShares.map((share) => (
-                  <ShareCard key={share.id} share={share} onRevoke={() => handleRevoke(share.id)} />
-                ))}
-              </div>
-            )}
-          </div>
 
-          {/* Pending Shares */}
-          {pendingShares.length > 0 && (
-            <div className="card-brutal">
-              <h2 className="mb-6 flex items-center gap-2 text-xl font-bold uppercase">
-                <Clock className="h-5 w-5" />
-                Pending Invites Sent ({pendingShares.length})
-              </h2>
+              {/* Pending Shares */}
+              {pendingShares.length > 0 && (
+                <div className="card-brutal">
+                  <h2 className="mb-6 flex items-center gap-2 text-xl font-bold uppercase">
+                    <Clock className="h-5 w-5" />
+                    Pending Invites Sent ({pendingShares.length})
+                  </h2>
 
-              <div className="space-y-3">
-                {pendingShares.map((share) => (
-                  <ShareCard key={share.id} share={share} onRevoke={() => handleRevoke(share.id)} isPending />
-                ))}
+                  <div className="space-y-3">
+                    {pendingShares.map((share) => (
+                      <ShareCard key={share.id} share={share} onRevoke={() => handleRevoke(share.id)} isPending />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Sharing Info */}
+              <div className="grid grid-cols-1 gap-6">
+                <div className="card-brutal">
+                  <h3 className="mb-4 flex items-center gap-2 font-bold uppercase">
+                    <Eye className="h-5 w-5" />
+                    View Access
+                  </h3>
+                  <ul className="space-y-2 font-mono text-sm">
+                    <li>• View your goals and progress</li>
+                    <li>• See your time entries</li>
+                    <li>• Access your schedule</li>
+                    <li>• View reports and analytics</li>
+                  </ul>
+                </div>
               </div>
-            </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="shared-with-me-tab"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            >
+              <SharedReportsView sharedWithMe={sharedWithMe} />
+            </motion.div>
           )}
-
-          {/* Sharing Info */}
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div className="card-brutal">
-              <h3 className="mb-4 flex items-center gap-2 font-bold uppercase">
-                <Eye className="h-5 w-5" />
-                View Access
-              </h3>
-              <ul className="space-y-2 font-mono text-sm">
-                <li>• View your goals and progress</li>
-                <li>• See your time entries</li>
-                <li>• Access your schedule</li>
-                <li>• View reports and analytics</li>
-              </ul>
-            </div>
-
-            <div className="card-brutal-colored bg-primary">
-              <h3 className="mb-4 flex items-center gap-2 font-bold uppercase">
-                <Edit3 className="h-5 w-5" />
-                Edit Access
-              </h3>
-              <ul className="space-y-2 font-mono text-sm">
-                <li>• Everything in View access</li>
-                <li>• Add time entries on your behalf</li>
-                <li>• Update schedule blocks</li>
-                <li>• Modify goal progress</li>
-              </ul>
-            </div>
-          </div>
-        </>
+        </AnimatePresence>
       )}
 
       {/* Invite Modal */}

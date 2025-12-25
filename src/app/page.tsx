@@ -27,8 +27,8 @@ export default function LandingPage() {
               <Zap className="h-7 w-7" />
             </div>
             <div>
-              <span className="font-display text-xl font-bold uppercase tracking-tight">DevWeekends</span>
-              <span className="block font-mono text-xs uppercase text-gray-600">Time Master</span>
+              <span className="font-display text-xl font-bold uppercase tracking-tight">Time Master</span>
+              <span className="block font-mono text-xs uppercase text-gray-600">Productivity Tracker</span>
             </div>
           </Link>
 
@@ -62,7 +62,7 @@ export default function LandingPage() {
             <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}>
               <div className="mb-6 inline-flex items-center gap-2 border-3 border-secondary bg-primary px-4 py-2 shadow-brutal-sm">
                 <Zap className="h-4 w-4" />
-                <span className="text-sm font-bold uppercase">For DevWeekends Community</span>
+                <span className="text-sm font-bold uppercase">Productivity Tracker</span>
               </div>
 
               <h1 className="mb-6 font-display text-5xl font-bold uppercase leading-tight md:text-7xl">
@@ -265,7 +265,7 @@ export default function LandingPage() {
             className="mb-16 text-center"
           >
             <h2 className="mb-4 font-display text-4xl font-bold uppercase md:text-5xl">Simple Pricing</h2>
-            <p className="font-mono text-xl text-gray-600">DevWeekends members get Pro for free!</p>
+            <p className="font-mono text-xl text-gray-600">Choose the plan that works for you</p>
           </motion.div>
 
           <div className="grid gap-8 md:grid-cols-2">
@@ -338,8 +338,6 @@ export default function LandingPage() {
               <Link href="/signup?plan=pro" className="btn-brutal-dark block w-full text-center">
                 Get Pro
               </Link>
-
-              <p className="mt-4 text-center font-mono text-sm">⚡ Free for DevWeekends Members</p>
             </motion.div>
           </div>
         </div>
@@ -367,12 +365,6 @@ export default function LandingPage() {
               <Link href="/signup" className="btn-brutal flex items-center gap-2">
                 Get Started Free <ArrowRight className="h-5 w-5" />
               </Link>
-              <Link
-                href="/login?sso=true"
-                className="flex items-center gap-2 border-3 border-white bg-white px-6 py-3 font-bold uppercase text-secondary shadow-brutal transition-all hover:shadow-brutal-hover"
-              >
-                DevWeekends SSO <ChevronRight className="h-5 w-5" />
-              </Link>
             </div>
           </motion.div>
         </div>
@@ -387,30 +379,23 @@ export default function LandingPage() {
                 <Zap className="h-5 w-5" />
               </div>
               <div>
-                <span className="font-display font-bold uppercase">DevWeekends Time Master</span>
+                <span className="font-display font-bold uppercase">Time Master</span>
               </div>
             </div>
 
             <div className="flex items-center gap-6">
-              <a href="#" className="font-mono text-sm transition-colors hover:text-primary">
+              <Link href="/privacy" className="font-mono text-sm transition-colors hover:text-primary">
                 Privacy
-              </a>
-              <a href="#" className="font-mono text-sm transition-colors hover:text-primary">
-                Terms
-              </a>
+              </Link>
+              <Link href="/faq" className="font-mono text-sm transition-colors hover:text-primary">
+                FAQ
+              </Link>
               <a href="#" className="font-mono text-sm transition-colors hover:text-primary">
                 Support
               </a>
-              <a
-                href="https://devweekends.com"
-                target="_blank"
-                className="font-mono text-sm transition-colors hover:text-primary"
-              >
-                DevWeekends
-              </a>
             </div>
 
-            <p className="font-mono text-sm text-gray-600">© 2025 DevWeekends. All rights reserved.</p>
+            <p className="font-mono text-sm text-gray-600">© 2025 Time Master. All rights reserved.</p>
           </div>
         </div>
       </footer>

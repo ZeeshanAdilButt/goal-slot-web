@@ -34,8 +34,8 @@ export default function LoginPage() {
   }
 
   const handleSSOLogin = () => {
-    // Redirect to DevWeekends platform for SSO
-    const dwPlatformUrl = process.env.NEXT_PUBLIC_DW_PLATFORM_URL || 'https://devweekends.com'
+    // Redirect to SSO platform
+    const dwPlatformUrl = process.env.NEXT_PUBLIC_DW_PLATFORM_URL || 'https://example.com'
     const returnUrl = `${window.location.origin}/auth/callback`
     window.location.href = `${dwPlatformUrl}/auth/sso?redirect=${encodeURIComponent(returnUrl)}`
   }
@@ -50,7 +50,7 @@ export default function LoginPage() {
           </div>
           <div>
             <span className="font-display text-2xl font-bold uppercase tracking-tight">Time Master</span>
-            <span className="block font-mono text-xs uppercase text-gray-600">DevWeekends</span>
+            <span className="block font-mono text-xs uppercase text-gray-600">Productivity Tracker</span>
           </div>
         </Link>
 
@@ -120,9 +120,6 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <p className="mt-6 text-center font-mono text-xs text-gray-500">
-          DevWeekends members get Pro access for free! ⚡
-        </p>
       </motion.div>
     </div>
   )

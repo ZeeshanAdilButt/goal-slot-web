@@ -22,6 +22,8 @@ export interface Task {
   title: string
   category?: string
   goalId?: string
+  goalTitle?: string
+  goal?: { id: string; title: string; color: string }
   status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED'
 }
 
