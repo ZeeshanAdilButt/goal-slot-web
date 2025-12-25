@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 import { motion } from 'framer-motion'
-import { ArrowRight, Loader2, Lock, Mail, Zap } from 'lucide-react'
+import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, Zap } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { useAuthStore } from '@/lib/store'
@@ -14,6 +14,7 @@ export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const login = useAuthStore((state) => state.login)
 
@@ -57,24 +58,6 @@ export default function LoginPage() {
         <div className="card-brutal">
           <h1 className="mb-6 text-center text-2xl font-bold uppercase">Welcome Back</h1>
 
-          {/* SSO Button */}
-          <button
-            onClick={handleSSOLogin}
-            className="btn-brutal-dark mb-6 flex w-full items-center justify-center gap-3"
-          >
-            <Zap className="h-5 w-5" />
-            Login with DevWeekends
-          </button>
-
-          <div className="relative mb-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t-2 border-gray-300" />
-            </div>
-            <div className="relative flex justify-center">
-              <span className="bg-white px-4 font-mono text-sm uppercase text-gray-500">Or continue with email</span>
-            </div>
-          </div>
-
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="mb-2 block text-sm font-bold uppercase">Email</label>
@@ -96,13 +79,21 @@ export default function LoginPage() {
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="input-brutal pl-12"
+                  className="input-brutal pl-12 pr-12"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
             </div>
 

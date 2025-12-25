@@ -1,5 +1,6 @@
 node_modules/
 .next/
+next-env.d.ts
 out/
 .env.local
 .env.*
