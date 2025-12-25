@@ -147,3 +147,13 @@ export const usersApi = {
   revokeAccess: (userId: string) => api.post(`/users/admin/revoke-access/${userId}`),
   promote: (userId: string) => api.post(`/users/admin/promote/${userId}`),
 }
+
+// Categories API
+export const categoriesApi = {
+  getAll: () => api.get('/categories'),
+  getOne: (id: string) => api.get(`/categories/${id}`),
+  create: (data: { name: string; color: string; order?: number }) => api.post('/categories', data),
+  update: (id: string, data: { name?: string; color?: string; order?: number; isDefault?: boolean }) =>
+    api.put(`/categories/${id}`, data),
+  delete: (id: string) => api.delete(`/categories/${id}`),
+}

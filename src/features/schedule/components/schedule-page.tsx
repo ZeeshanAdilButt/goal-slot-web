@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 
+import { useCategoriesQuery } from '@/features/categories'
 import { ScheduleBlockDetailDialog } from '@/features/schedule/components/schedule-block-detail-dialog'
 import { ScheduleBlockModal } from '@/features/schedule/components/schedule-block-modal'
 import { ScheduleGrid } from '@/features/schedule/components/schedule-grid/schedule-grid'
@@ -10,7 +11,6 @@ import { ScheduleBlock, WeekSchedule } from '@/features/schedule/utils/types'
 import { Plus } from 'lucide-react'
 
 import { useHasProAccess } from '@/lib/store'
-import { SCHEDULE_CATEGORIES } from '@/lib/utils'
 
 export function SchedulePage() {
   const [showModal, setShowModal] = useState(false)
@@ -22,6 +22,7 @@ export function SchedulePage() {
   const [draftKey, setDraftKey] = useState(0) // Reset the draft when modal is closed (to clear any draft blocks).
   const hasProAccess = useHasProAccess()
   const { data: weekSchedule = {} as WeekSchedule, isPending: isSchedulePending } = useWeeklySchedule()
+  const { data: categories = [] } = useCategoriesQuery()
 
   const handleEdit = (block: ScheduleBlock) => {
     setEditingBlock(block)
@@ -97,10 +98,10 @@ export function SchedulePage() {
       </div>
 
       <div className="flex flex-wrap gap-4">
-        {SCHEDULE_CATEGORIES.map((cat) => (
+        {categories.map((cat) => (
           <div key={cat.value} className="flex items-center gap-2">
-            <div className={`h-4 w-4 border-2 border-secondary ${cat.color}`} />
-            <span className="font-mono text-sm uppercase">{cat.label}</span>
+            <div className="h-4 w-4 border-2 border-secondary" style={{ backgroundColor: cat.color }} />
+            <span className="font-mono text-sm uppercase">{cat.name}</span>
           </div>
         ))}
       </div>

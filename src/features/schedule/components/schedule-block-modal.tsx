@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 
+import { useCategoriesQuery } from '@/features/categories'
 import { useCreateScheduleBlocks, useUpdateScheduleBlock } from '@/features/schedule/hooks/use-schedule-mutations'
 import { useActiveGoals } from '@/features/schedule/hooks/use-schedule-queries'
 import { ScheduleBlock, SchedulePayload } from '@/features/schedule/utils/types'
 import { toast } from 'react-hot-toast'
 
-import { cn, DAYS_OF_WEEK_FULL, SCHEDULE_CATEGORIES, TIME_OPTIONS } from '@/lib/utils'
+import { cn, DAYS_OF_WEEK_FULL, TIME_OPTIONS } from '@/lib/utils'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
@@ -21,13 +22,14 @@ export function ScheduleBlockModal({ isOpen, onClose, block, dayOfWeek, presetTi
   const [title, setTitle] = useState('')
   const [startTime, setStartTime] = useState('09:00')
   const [endTime, setEndTime] = useState('10:00')
-  const [category, setCategory] = useState('DEEP_WORK')
+  const [category, setCategory] = useState('')
   const [selectedDays, setSelectedDays] = useState<number[]>([1])
   const [goalId, setGoalId] = useState('')
   const [color, setColor] = useState('#FFD700')
   const { mutateAsync: createBlocks, isPending: isCreating } = useCreateScheduleBlocks()
   const { mutateAsync: updateBlock, isPending: isUpdating } = useUpdateScheduleBlock()
   const { data: goals = [], isPending: isGoalsPending } = useActiveGoals()
+  const { data: categories = [] } = useCategoriesQuery()
 
   const isSaving = isCreating || isUpdating
 
@@ -55,11 +57,18 @@ export function ScheduleBlockModal({ isOpen, onClose, block, dayOfWeek, presetTi
     setTitle('')
     setStartTime('09:00')
     setEndTime('10:00')
-    setCategory('DEEP_WORK')
+    setCategory(categories.length > 0 ? categories[0].value : '')
     setSelectedDays(dayOfWeek !== null ? [dayOfWeek] : [1])
     setGoalId('')
     setColor('#FFD700')
   }
+
+  useEffect(() => {
+    if (categories.length > 0 && !category) {
+      setCategory(categories[0].value)
+      setColor(categories[0].color)
+    }
+  }, [categories, category])
 
   const toggleDay = (dayIndex: number) => {
     setSelectedDays((prev) => {
@@ -173,18 +182,10 @@ export function ScheduleBlockModal({ isOpen, onClose, block, dayOfWeek, presetTi
               value={category}
               onValueChange={(value) => {
                 setCategory(value)
-                const cat = SCHEDULE_CATEGORIES.find((c) => c.value === value)
+                const cat = categories.find((c) => c.value === value)
                 if (cat) {
-                  const colorMap: Record<string, string> = {
-                    'bg-primary': '#FFD700',
-                    'bg-accent-green': '#22C55E',
-                    'bg-accent-orange': '#F97316',
-                    'bg-accent-pink': '#EC4899',
-                    'bg-accent-purple': '#8B5CF6',
-                    'bg-gray-300': '#D1D5DB',
-                    'bg-gray-400': '#9CA3AF',
-                  }
-                  setColor(colorMap[cat.color] || '#FFD700')
+                  // Use the hex color directly
+                  setColor(cat.color)
                 }
               }}
             >
@@ -192,9 +193,9 @@ export function ScheduleBlockModal({ isOpen, onClose, block, dayOfWeek, presetTi
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
-                {SCHEDULE_CATEGORIES.map((cat) => (
+                {categories.map((cat) => (
                   <SelectItem key={cat.value} value={cat.value}>
-                    {cat.label}
+                    {cat.name}
                   </SelectItem>
                 ))}
               </SelectContent>
