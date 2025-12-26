@@ -1,34 +1,13 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { Suspense, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
-import { motion } from 'framer-motion'
-import {
-  BarChart3,
-  Calendar,
-  Clock,
-  ExternalLink,
-  Lock,
-  Shield,
-  Target,
-  TrendingUp,
-  User,
-} from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
+import { motion } from 'framer-motion'
+import { BarChart3, Calendar, Clock, ExternalLink, Lock, Shield, Target, TrendingUp, User } from 'lucide-react'
+import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { sharingApi } from '@/lib/api'
 import { cn, formatDate, formatDuration } from '@/lib/utils'
@@ -83,7 +62,7 @@ function getRollingWeekRange(offset: number = 0) {
 
 const COLORS = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8']
 
-export default function PublicShareViewPage() {
+function PublicShareViewContent() {
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
   const [weekOffset, setWeekOffset] = useState(0)
@@ -225,11 +204,7 @@ export default function PublicShareViewPage() {
       <main className="container mx-auto max-w-6xl space-y-6 p-6">
         {/* Owner Info */}
         {owner && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="card-brutal"
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="card-brutal">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="flex h-14 w-14 items-center justify-center border-3 border-secondary bg-primary text-2xl font-bold">
@@ -240,10 +215,7 @@ export default function PublicShareViewPage() {
                   <p className="font-mono text-gray-600">{owner.email}</p>
                 </div>
               </div>
-              <a
-                href="/signup"
-                className="btn-brutal flex items-center gap-2"
-              >
+              <a href="/signup" className="btn-brutal flex items-center gap-2">
                 <ExternalLink className="h-4 w-4" />
                 Sign Up to Track Your Own Time
               </a>
@@ -255,8 +227,8 @@ export default function PublicShareViewPage() {
         <div className="flex items-start gap-3 border-2 border-secondary bg-blue-50 p-4">
           <Lock className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" />
           <div className="font-mono text-sm">
-            <strong>Secure View-Only Access:</strong> You&apos;re viewing shared focus time reports. 
-            This link is unique to you and provides read-only access. 
+            <strong>Secure View-Only Access:</strong> You&apos;re viewing shared focus time reports. This link is unique
+            to you and provides read-only access.
             <a href="/signup" className="ml-1 text-blue-600 underline">
               Create an account
             </a>{' '}
@@ -271,10 +243,7 @@ export default function PublicShareViewPage() {
             <span className="font-mono text-sm">{range.label}</span>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setWeekOffset((o) => o - 1)}
-              className="btn-brutal-secondary px-3 py-2 text-xs"
-            >
+            <button onClick={() => setWeekOffset((o) => o - 1)} className="btn-brutal-secondary px-3 py-2 text-xs">
               Prev Week
             </button>
             <button
@@ -434,10 +403,7 @@ export default function PublicShareViewPage() {
                     <div key={goal.id} className="space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div
-                            className="h-3 w-3 border border-secondary"
-                            style={{ backgroundColor: goal.color }}
-                          />
+                          <div className="h-3 w-3 border border-secondary" style={{ backgroundColor: goal.color }} />
                           <span className="font-bold">{goal.title}</span>
                         </div>
                         <span className="font-mono text-sm text-gray-600">
@@ -453,9 +419,7 @@ export default function PublicShareViewPage() {
                           }}
                         />
                       </div>
-                      <div className="text-right font-mono text-xs text-gray-500">
-                        {Math.round(progress)}% complete
-                      </div>
+                      <div className="text-right font-mono text-xs text-gray-500">{Math.round(progress)}% complete</div>
                     </div>
                   )
                 })}
@@ -468,9 +432,7 @@ export default function PublicShareViewPage() {
           <div className="card-brutal py-12 text-center">
             <Clock className="mx-auto mb-4 h-12 w-12 opacity-30" />
             <h3 className="mb-2 font-bold uppercase">No focus time logged</h3>
-            <p className="font-mono text-sm text-gray-600">
-              No focus time has been logged for this period.
-            </p>
+            <p className="font-mono text-sm text-gray-600">No focus time has been logged for this period.</p>
           </div>
         )}
 
@@ -499,5 +461,19 @@ export default function PublicShareViewPage() {
         </div>
       </footer>
     </div>
+  )
+}
+
+export default function PublicShareViewPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+          <div className="h-12 w-12 animate-spin border-4 border-secondary border-t-primary" />
+        </div>
+      }
+    >
+      <PublicShareViewContent />
+    </Suspense>
   )
 }
