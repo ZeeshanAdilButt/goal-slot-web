@@ -49,6 +49,12 @@ import {
   Redo,
   Copy,
   Check,
+  Plus,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -73,6 +79,7 @@ export function TiptapEditor({
   editable = true,
 }: TiptapEditorProps) {
   const [isCopied, setIsCopied] = useState(false)
+  const [isInTable, setIsInTable] = useState(false)
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -194,6 +201,9 @@ export function TiptapEditor({
     },
     onUpdate: ({ editor }) => {
       onChange?.(editor.getHTML(), editor.getJSON())
+    },
+    onSelectionUpdate: ({ editor }) => {
+      setIsInTable(editor.isActive('table'))
     },
   })
 
@@ -557,6 +567,74 @@ export function TiptapEditor({
             <LinkIcon className="h-4 w-4" />
           </button>
         </BubbleMenu>
+      )}
+
+      {/* Table Controls - appears when cursor is in a table */}
+      {editor && editable && isInTable && (
+        <div className="table-controls">
+          <div className="table-controls-group">
+            <span className="table-controls-label">Row</span>
+            <button
+              onClick={() => editor.chain().focus().addRowBefore().run()}
+              className="table-controls-btn"
+              title="Add row above"
+            >
+              <ArrowUp className="h-3 w-3" />
+              <Plus className="h-3 w-3" />
+            </button>
+            <button
+              onClick={() => editor.chain().focus().addRowAfter().run()}
+              className="table-controls-btn"
+              title="Add row below"
+            >
+              <ArrowDown className="h-3 w-3" />
+              <Plus className="h-3 w-3" />
+            </button>
+            <button
+              onClick={() => editor.chain().focus().deleteRow().run()}
+              className="table-controls-btn table-controls-btn-danger"
+              title="Delete row"
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
+          </div>
+          <div className="table-controls-divider" />
+          <div className="table-controls-group">
+            <span className="table-controls-label">Column</span>
+            <button
+              onClick={() => editor.chain().focus().addColumnBefore().run()}
+              className="table-controls-btn"
+              title="Add column left"
+            >
+              <ArrowLeft className="h-3 w-3" />
+              <Plus className="h-3 w-3" />
+            </button>
+            <button
+              onClick={() => editor.chain().focus().addColumnAfter().run()}
+              className="table-controls-btn"
+              title="Add column right"
+            >
+              <ArrowRight className="h-3 w-3" />
+              <Plus className="h-3 w-3" />
+            </button>
+            <button
+              onClick={() => editor.chain().focus().deleteColumn().run()}
+              className="table-controls-btn table-controls-btn-danger"
+              title="Delete column"
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
+          </div>
+          <div className="table-controls-divider" />
+          <button
+            onClick={() => editor.chain().focus().deleteTable().run()}
+            className="table-controls-btn table-controls-btn-danger"
+            title="Delete table"
+          >
+            <Trash2 className="h-4 w-4" />
+            <span className="text-xs">Table</span>
+          </button>
+        </div>
       )}
 
       {/* Editor Content */}

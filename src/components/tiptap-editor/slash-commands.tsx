@@ -162,12 +162,11 @@ const commands: CommandItem[] = [
     description: 'Add a table to organize data.',
     icon: <Table className="h-5 w-5" />,
     command: ({ editor, range }) => {
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-        .run()
+      editor.chain().focus().deleteRange(range).run()
+      // Insert table after clearing the range
+      setTimeout(() => {
+        editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+      }, 0)
     },
   },
 ]

@@ -150,33 +150,32 @@ const FragmentedToolsSVG = () => (
 
 const UnifiedSystemSVG = () => (
   <svg viewBox="0 0 300 200" className="w-full h-auto" fill="none" xmlns="http://www.w3.org/2000/svg">
-    {/* Central unified box */}
-    <rect x="75" y="50" width="150" height="100" fill="#FFD700" stroke="#000" strokeWidth="4"/>
-    <text x="105" y="95" fontSize="14" fontWeight="bold" fill="#000">TIME</text>
-    <text x="100" y="115" fontSize="14" fontWeight="bold" fill="#000">MASTER</text>
-    
-    {/* Connected feature circles */}
-    <circle cx="50" cy="60" r="25" fill="#22C55E" stroke="#000" strokeWidth="3"/>
-    <text x="40" y="65" fontSize="8" fontWeight="bold" fill="#000">Goals</text>
-    
-    <circle cx="250" cy="60" r="25" fill="#3B82F6" stroke="#000" strokeWidth="3"/>
-    <text x="238" y="65" fontSize="8" fontWeight="bold" fill="#FFF">Time</text>
-    
-    <circle cx="50" cy="140" r="25" fill="#EC4899" stroke="#000" strokeWidth="3"/>
-    <text x="35" y="145" fontSize="8" fontWeight="bold" fill="#FFF">Schedule</text>
-    
-    <circle cx="250" cy="140" r="25" fill="#8B5CF6" stroke="#000" strokeWidth="3"/>
-    <text x="235" y="145" fontSize="8" fontWeight="bold" fill="#FFF">Reports</text>
-    
-    {/* Connection lines */}
-    <line x1="75" y1="60" x2="75" y2="60" stroke="#000" strokeWidth="2"/>
+    {/* Connection lines - drawn first so they appear behind everything */}
     <line x1="75" y1="75" x2="50" y2="60" stroke="#000" strokeWidth="3"/>
     <line x1="225" y1="75" x2="250" y2="60" stroke="#000" strokeWidth="3"/>
     <line x1="75" y1="125" x2="50" y2="140" stroke="#000" strokeWidth="3"/>
     <line x1="225" y1="125" x2="250" y2="140" stroke="#000" strokeWidth="3"/>
     
+    {/* Central unified box */}
+    <rect x="75" y="50" width="150" height="100" fill="#FFD700" stroke="#000" strokeWidth="4"/>
+    <text x="150" y="95" fontSize="14" fontWeight="bold" fill="#000" textAnchor="middle">TIME</text>
+    <text x="150" y="115" fontSize="14" fontWeight="bold" fill="#000" textAnchor="middle">MASTER</text>
+    
+    {/* Connected feature circles with text centered */}
+    <circle cx="50" cy="60" r="25" fill="#22C55E" stroke="#000" strokeWidth="3"/>
+    <text x="50" y="64" fontSize="8" fontWeight="bold" fill="#000" textAnchor="middle">Goals</text>
+    
+    <circle cx="250" cy="60" r="25" fill="#3B82F6" stroke="#000" strokeWidth="3"/>
+    <text x="250" y="64" fontSize="8" fontWeight="bold" fill="#FFF" textAnchor="middle">Time</text>
+    
+    <circle cx="50" cy="140" r="25" fill="#EC4899" stroke="#000" strokeWidth="3"/>
+    <text x="50" y="144" fontSize="8" fontWeight="bold" fill="#FFF" textAnchor="middle">Schedule</text>
+    
+    <circle cx="250" cy="140" r="25" fill="#8B5CF6" stroke="#000" strokeWidth="3"/>
+    <text x="250" y="144" fontSize="8" fontWeight="bold" fill="#FFF" textAnchor="middle">Reports</text>
+    
     {/* Check mark */}
-    <text x="135" y="180" fontSize="24" fontWeight="bold" fill="#22C55E">✓</text>
+    <text x="150" y="180" fontSize="24" fontWeight="bold" fill="#22C55E" textAnchor="middle">✓</text>
   </svg>
 )
 

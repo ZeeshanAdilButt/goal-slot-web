@@ -321,6 +321,33 @@
   @apply bg-primary/10;
 }
 
+/* Table Controls */
+.table-controls {
+  @apply flex items-center gap-2 p-2 border-2 border-t-0 border-border bg-muted/50 flex-wrap;
+}
+
+.table-controls-group {
+  @apply flex items-center gap-1;
+}
+
+.table-controls-label {
+  @apply text-xs font-medium text-muted-foreground mr-1;
+}
+
+.table-controls-btn {
+  @apply flex items-center justify-center gap-0.5 h-7 px-2 rounded-md text-muted-foreground transition-colors;
+  @apply hover:bg-muted hover:text-foreground;
+  @apply border border-border bg-background;
+}
+
+.table-controls-btn-danger {
+  @apply hover:bg-destructive/10 hover:text-destructive hover:border-destructive;
+}
+
+.table-controls-divider {
+  @apply w-px h-6 bg-border mx-1;
+}
+
 /* Highlight */
 .tiptap-editor .ProseMirror mark {
   @apply bg-yellow-200 dark:bg-yellow-800 px-0.5 rounded;
