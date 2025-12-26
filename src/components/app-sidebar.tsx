@@ -15,6 +15,7 @@ import {
   Target,
   Users,
   Zap,
+  FileText,
 } from 'lucide-react'
 
 import { useAuthStore, useIsAdmin } from '@/lib/store'
@@ -41,6 +42,7 @@ const navItems = [
   { href: '/dashboard/goals', label: 'Goals', icon: Target },
   { href: '/dashboard/schedule', label: 'Schedule', icon: Calendar },
   { href: '/dashboard/tasks', label: 'Tasks', icon: CheckSquare },
+  { href: '/dashboard/notes', label: 'Notes', icon: FileText },
   { href: '/dashboard/time-tracker', label: 'Time Tracker', icon: Clock },
   { href: '/dashboard/reports', label: 'Reports', icon: BarChart3 },
   { href: '/dashboard/sharing', label: 'Sharing', icon: Share2 },

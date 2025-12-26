@@ -46,12 +46,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="bg-brutalist-bg">
-        <div className="flex h-16 items-center gap-2 border-b-3 border-secondary px-4 md:hidden">
+      <SidebarInset className="flex flex-col bg-brutalist-bg">
+        <div className="flex h-16 shrink-0 items-center gap-2 border-b-3 border-secondary px-4 md:hidden">
           <SidebarTrigger className="h-10 w-10 border-3 border-secondary !bg-primary !text-secondary shadow-brutal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:!bg-primary hover:shadow-brutal-hover active:translate-x-1 active:translate-y-1 active:shadow-none" />
         </div>
         <TimeEntryBanner />
-        {children}
+        <div className="flex-1 overflow-hidden">
+          {children}
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )
