@@ -1,0 +1,361 @@
+/* Tiptap Editor Styles */
+
+.tiptap-editor {
+  @apply flex flex-col h-full;
+}
+
+.tiptap-editor .tiptap {
+  @apply flex-1 flex flex-col;
+}
+
+/* Toolbar */
+.tiptap-toolbar {
+  @apply flex items-center gap-1 p-2 border-2 border-border rounded-t-lg bg-muted/30 flex-wrap shrink-0;
+}
+
+.toolbar-group {
+  @apply flex items-center gap-0.5;
+}
+
+.toolbar-divider {
+  @apply w-px h-6 bg-border mx-1;
+}
+
+.toolbar-btn {
+  @apply flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground transition-colors;
+  @apply hover:bg-muted hover:text-foreground;
+  @apply disabled:opacity-40 disabled:cursor-not-allowed;
+}
+
+.toolbar-btn.is-active {
+  @apply bg-primary text-primary-foreground;
+}
+
+.toolbar-btn.is-copied {
+  @apply bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300;
+}
+
+/* Bubble Menu */
+.bubble-menu {
+  @apply flex items-center gap-0.5 p-1 rounded-lg border-2 border-border bg-card shadow-brutal;
+}
+
+.bubble-btn {
+  @apply flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground transition-colors;
+  @apply hover:bg-muted hover:text-foreground;
+}
+
+.bubble-btn.is-active {
+  @apply bg-primary text-primary-foreground;
+}
+
+/* Floating Menu */
+.floating-menu {
+  @apply px-3 py-1.5 rounded-md border-2 border-border bg-muted/50 text-muted-foreground text-sm;
+}
+
+.floating-hint {
+  @apply opacity-60;
+}
+
+/* Slash Command Menu */
+.slash-menu {
+  @apply w-72 max-h-80 overflow-y-auto rounded-lg border-2 border-border bg-card shadow-brutal p-1;
+}
+
+.slash-menu-empty {
+  @apply p-4 text-center text-muted-foreground text-sm;
+}
+
+.slash-menu-item {
+  @apply flex items-center gap-3 w-full p-2 rounded-md text-left transition-colors;
+  @apply hover:bg-muted;
+}
+
+.slash-menu-item.is-selected {
+  @apply bg-primary text-primary-foreground;
+}
+
+.slash-menu-item.is-selected .slash-menu-description {
+  @apply text-primary-foreground/70;
+}
+
+.slash-menu-icon {
+  @apply flex items-center justify-center w-10 h-10 rounded-md border-2 border-border bg-muted shrink-0;
+}
+
+.slash-menu-item.is-selected .slash-menu-icon {
+  @apply border-primary-foreground/30 bg-primary-foreground/20;
+}
+
+.slash-menu-content {
+  @apply flex-1 min-w-0;
+}
+
+.slash-menu-title {
+  @apply font-medium text-sm;
+}
+
+.slash-menu-description {
+  @apply text-xs text-muted-foreground truncate;
+}
+
+/* Editor Content */
+.tiptap-editor-content {
+  @apply flex-1 overflow-y-auto p-4 outline-none;
+  @apply border-2 border-t-0 border-border rounded-b-lg bg-transparent;
+  min-height: 0; /* Important for flex children to scroll */
+}
+
+/* Without toolbar */
+.tiptap-editor:not(:has(.tiptap-toolbar)) .tiptap-editor-content {
+  @apply border-t-2 rounded-t-lg;
+}
+
+.tiptap-editor .ProseMirror {
+  @apply min-h-full outline-none h-full;
+}
+
+.tiptap-editor .ProseMirror > * + * {
+  @apply mt-3;
+}
+
+/* Placeholder */
+.tiptap-editor .ProseMirror p.is-editor-empty:first-child::before {
+  @apply text-muted-foreground/50 pointer-events-none;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+}
+
+/* Typography */
+.tiptap-editor .ProseMirror h1 {
+  @apply text-3xl font-bold mt-6 mb-4;
+}
+
+.tiptap-editor .ProseMirror h2 {
+  @apply text-2xl font-bold mt-5 mb-3;
+}
+
+.tiptap-editor .ProseMirror h3 {
+  @apply text-xl font-bold mt-4 mb-2;
+}
+
+.tiptap-editor .ProseMirror p {
+  @apply leading-relaxed;
+}
+
+/* Lists */
+.tiptap-editor .ProseMirror ul {
+  @apply list-disc pl-6;
+}
+
+.tiptap-editor .ProseMirror ol {
+  @apply list-decimal pl-6;
+}
+
+.tiptap-editor .ProseMirror li {
+  @apply my-1;
+}
+
+.tiptap-editor .ProseMirror li p {
+  @apply my-0;
+}
+
+/* Task List */
+.tiptap-editor .ProseMirror ul.task-list {
+  @apply list-none pl-0;
+}
+
+.tiptap-editor .ProseMirror li.task-item {
+  @apply flex items-start gap-2;
+}
+
+.tiptap-editor .ProseMirror li.task-item > label {
+  @apply flex items-center justify-center shrink-0 mt-1;
+}
+
+.tiptap-editor .ProseMirror li.task-item > label input[type="checkbox"] {
+  @apply w-4 h-4 rounded border-2 border-border cursor-pointer;
+  @apply checked:bg-primary checked:border-primary;
+}
+
+.tiptap-editor .ProseMirror li.task-item > div {
+  @apply flex-1;
+}
+
+.tiptap-editor .ProseMirror li.task-item[data-checked="true"] > div {
+  @apply line-through text-muted-foreground;
+}
+
+/* Nested lists indentation */
+.tiptap-editor .ProseMirror ul ul,
+.tiptap-editor .ProseMirror ol ol,
+.tiptap-editor .ProseMirror ul ol,
+.tiptap-editor .ProseMirror ol ul {
+  @apply mt-1;
+}
+
+.tiptap-editor .ProseMirror .task-list .task-list {
+  @apply pl-6 mt-1;
+}
+
+/* Blockquote */
+.tiptap-editor .ProseMirror blockquote {
+  @apply border-l-4 border-primary pl-4 italic text-muted-foreground my-4;
+}
+
+/* Code - Inline */
+.tiptap-editor .ProseMirror code {
+  @apply bg-muted px-1.5 py-0.5 rounded font-mono text-sm text-primary;
+}
+
+/* Code Block - Complete rewrite for reliability */
+.tiptap-editor .ProseMirror pre {
+  @apply bg-zinc-900 text-zinc-100 rounded-lg p-4 my-4 font-mono text-sm;
+  display: block;
+  width: 100%;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.tiptap-editor .ProseMirror pre code {
+  @apply bg-transparent p-0 text-inherit font-mono text-sm;
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Code block wrapper from CodeBlockLowlight */
+.tiptap-editor .ProseMirror .code-block {
+  @apply my-4;
+  display: block;
+}
+
+.tiptap-editor .ProseMirror .hljs-comment,
+.tiptap-editor .ProseMirror .hljs-quote {
+  @apply text-zinc-500;
+}
+
+.tiptap-editor .ProseMirror .hljs-keyword,
+.tiptap-editor .ProseMirror .hljs-selector-tag {
+  @apply text-purple-400;
+}
+
+.tiptap-editor .ProseMirror .hljs-string,
+.tiptap-editor .ProseMirror .hljs-addition {
+  @apply text-green-400;
+}
+
+.tiptap-editor .ProseMirror .hljs-number,
+.tiptap-editor .ProseMirror .hljs-literal {
+  @apply text-orange-400;
+}
+
+.tiptap-editor .ProseMirror .hljs-function,
+.tiptap-editor .ProseMirror .hljs-title {
+  @apply text-blue-400;
+}
+
+.tiptap-editor .ProseMirror .hljs-variable,
+.tiptap-editor .ProseMirror .hljs-attr {
+  @apply text-yellow-400;
+}
+
+/* Horizontal Rule */
+.tiptap-editor .ProseMirror hr {
+  @apply border-none h-0.5 bg-border my-6;
+}
+
+/* Links */
+.tiptap-editor .ProseMirror a {
+  @apply text-primary underline underline-offset-2 cursor-pointer;
+}
+
+.tiptap-editor .ProseMirror a:hover {
+  @apply text-primary/80;
+}
+
+/* Images */
+.tiptap-editor .ProseMirror img {
+  @apply max-w-full h-auto rounded-lg border-2 border-border cursor-pointer;
+}
+
+.tiptap-editor .ProseMirror img.ProseMirror-selectednode {
+  @apply ring-2 ring-primary ring-offset-2;
+}
+
+/* Image resizing container */
+.tiptap-editor .ProseMirror .image-resizer {
+  @apply relative inline-block;
+  max-width: 100%;
+}
+
+.tiptap-editor .ProseMirror .image-resizer img {
+  @apply m-0;
+}
+
+/* Tables */
+.tiptap-editor .ProseMirror table {
+  @apply w-full border-collapse my-4;
+}
+
+.tiptap-editor .ProseMirror table th,
+.tiptap-editor .ProseMirror table td {
+  @apply border-2 border-border p-2 text-left align-top min-w-[100px];
+}
+
+.tiptap-editor .ProseMirror table th {
+  @apply bg-muted font-bold;
+}
+
+.tiptap-editor .ProseMirror table td {
+  @apply bg-card;
+}
+
+.tiptap-editor .ProseMirror .tableWrapper {
+  @apply overflow-x-auto;
+}
+
+.tiptap-editor .ProseMirror table .selectedCell {
+  @apply bg-primary/10;
+}
+
+/* Highlight */
+.tiptap-editor .ProseMirror mark {
+  @apply bg-yellow-200 dark:bg-yellow-800 px-0.5 rounded;
+}
+
+/* Selection */
+.tiptap-editor .ProseMirror ::selection {
+  @apply bg-primary/30;
+}
+
+/* Text alignment */
+.tiptap-editor .ProseMirror [style*="text-align: center"] {
+  @apply text-center;
+}
+
+.tiptap-editor .ProseMirror [style*="text-align: right"] {
+  @apply text-right;
+}
+
+/* Drop cursor */
+.tiptap-editor .ProseMirror .ProseMirror-dropcursor {
+  @apply border-l-4 border-primary;
+}
+
+/* Gap cursor */
+.tiptap-editor .ProseMirror .ProseMirror-gapcursor {
+  @apply relative;
+}
+
+.tiptap-editor .ProseMirror .ProseMirror-gapcursor::after {
+  @apply absolute top-0 w-5 h-5 border-t-2 border-black pointer-events-none;
+  content: '';
+}
+
+/* Focus */
+.tiptap-editor .ProseMirror:focus {
+  @apply outline-none;
+}

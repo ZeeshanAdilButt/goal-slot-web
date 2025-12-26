@@ -151,12 +151,33 @@ export const usersApi = {
   changePassword: (currentPassword: string, newPassword: string) =>
     api.put('/users/password', { currentPassword, newPassword }),
   deleteAccount: () => api.delete('/users/account'),
-  listUsers: (page?: number, limit?: number) => api.get('/users/admin/list', { params: { page, limit } }),
+  // Admin: List users with optional search
+  listUsers: (page?: number, limit?: number, search?: string) => 
+    api.get('/users/admin/list', { params: { page, limit, search } }),
+  // Admin: Get user statistics
+  getStats: () => api.get('/users/admin/stats'),
+  // Admin: Get single user details
+  getUserDetails: (userId: string) => api.get(`/users/admin/user/${userId}`),
+  // Admin: Create internal user
   createInternal: (data: { email: string; password: string; name: string; role?: string }) =>
     api.post('/users/admin/internal', data),
+  // Admin: Grant free Pro access
   grantAccess: (userId: string) => api.post(`/users/admin/grant-access/${userId}`),
+  // Admin: Revoke free access
   revokeAccess: (userId: string) => api.post(`/users/admin/revoke-access/${userId}`),
+  // Admin: Toggle user disabled status
+  toggleStatus: (userId: string, data: { isDisabled: boolean; reason?: string }) =>
+    api.post(`/users/admin/toggle-status/${userId}`, data),
+  // Admin: Assign plan to user
+  assignPlan: (userId: string, data: { plan: 'FREE' | 'BASIC' | 'PRO'; note?: string }) =>
+    api.post(`/users/admin/assign-plan/${userId}`, data),
+  // Admin: Set email verification status
+  setEmailVerified: (userId: string, data: { emailVerified: boolean }) =>
+    api.post(`/users/admin/set-email-verified/${userId}`, data),
+  // Super Admin: Promote user to admin
   promote: (userId: string) => api.post(`/users/admin/promote/${userId}`),
+  // Super Admin: Demote admin to user
+  demote: (userId: string) => api.post(`/users/admin/demote/${userId}`),
 }
 
 // Categories API
@@ -179,3 +200,27 @@ export const labelsApi = {
   assignToGoal: (goalId: string, labelIds: string[]) => api.post(`/labels/goals/${goalId}/assign`, { labelIds }),
   getForGoal: (goalId: string) => api.get(`/labels/goals/${goalId}`),
 }
+
+// Notes API
+export const notesApi = {
+  getAll: () => api.get('/notes'),
+  getOne: (id: string) => api.get(`/notes/${id}`),
+  create: (data: { title: string; content?: string; icon?: string; color?: string; parentId?: string | null }) =>
+    api.post('/notes', data),
+  update: (
+    id: string,
+    data: {
+      title?: string
+      content?: string
+      icon?: string
+      color?: string
+      parentId?: string | null
+      order?: number
+      isExpanded?: boolean
+      isFavorite?: boolean
+    },
+  ) => api.put(`/notes/${id}`, data),
+  delete: (id: string) => api.delete(`/notes/${id}`),
+  reorder: (data: { noteId: string; parentId: string | null; order: number }[]) => api.put('/notes/reorder', data),
+}
+
