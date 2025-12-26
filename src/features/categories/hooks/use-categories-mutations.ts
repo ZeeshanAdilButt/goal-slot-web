@@ -13,12 +13,13 @@ export function useCreateCategoryMutation() {
       const res = await categoriesApi.create(data)
       return res.data
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: categoryQueries.all() })
       toast.success('Category created')
     },
-    onError: () => {
-      toast.error('Failed to create category')
+    onError: (error: any) => {
+      const message = error?.response?.data?.message || 'Failed to create category'
+      toast.error(message)
     },
   })
 }

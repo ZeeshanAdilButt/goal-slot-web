@@ -52,11 +52,10 @@ export function SidebarFooterContent({ onLogout }: SidebarFooterContentProps) {
       <div className="flex gap-2">
         <Link
           href="/dashboard/settings"
-          className="btn-brutal-secondary flex min-w-0 flex-1 items-center justify-center gap-2 px-2 py-2 text-sm"
+          className="btn-brutal-secondary flex h-10 w-10 items-center justify-center p-0"
           title="Settings"
         >
-          <Settings className="h-4 w-4 shrink-0" />
-          <span className="truncate">Settings</span>
+          <Settings className="h-4 w-4" />
         </Link>
         <button
           onClick={onLogout}

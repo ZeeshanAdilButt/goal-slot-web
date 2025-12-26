@@ -7,13 +7,13 @@ import { Toaster } from 'react-hot-toast'
 import { ReactQueryProvider } from '@/lib/react-query-provider'
 
 export const metadata: Metadata = {
-  title: 'DevWeekends Time Master | Productivity Tracking',
+  title: 'Time Master | Productivity Tracking',
   description:
-    'Track your goals, log time, plan schedules, and analyze your productivity patterns. Built for DevWeekends mentees and mentors.',
-  keywords: ['productivity', 'time tracking', 'goals', 'devweekends', 'mentorship'],
-  authors: [{ name: 'DevWeekends' }],
+    'Track your goals, log time, plan schedules, and analyze your productivity patterns.',
+  keywords: ['productivity', 'time tracking', 'goals', 'mentorship'],
+  authors: [{ name: 'Time Master' }],
   openGraph: {
-    title: 'DevWeekends Time Master',
+    title: 'Time Master',
     description: 'Master your time, achieve your goals',
     type: 'website',
   },

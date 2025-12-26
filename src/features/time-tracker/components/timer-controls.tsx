@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion'
-import { Pause, Play, RefreshCw, Square } from 'lucide-react'
+import { Loader2, Pause, Play, RefreshCw, Square } from 'lucide-react'
 
 interface TimerControlsProps {
   timerState: 'STOPPED' | 'RUNNING' | 'PAUSED'
+  isStopLoading?: boolean
   onStart: () => void
   onPause: () => void
   onResume: () => void
@@ -12,6 +13,7 @@ interface TimerControlsProps {
 
 export function TimerControls({
   timerState,
+  isStopLoading = false,
   onStart,
   onPause,
   onResume,
@@ -37,17 +39,23 @@ export function TimerControls({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={onPause}
-            className="flex h-16 w-16 items-center justify-center border-4 border-white bg-accent-orange text-white shadow-brutal"
+            disabled={isStopLoading}
+            className="flex h-16 w-16 items-center justify-center border-4 border-white bg-accent-orange text-white shadow-brutal disabled:opacity-50"
           >
             <Pause className="h-8 w-8" />
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={isStopLoading ? {} : { scale: 1.05 }}
+            whileTap={isStopLoading ? {} : { scale: 0.95 }}
             onClick={onStop}
-            className="flex h-16 w-16 items-center justify-center border-4 border-white bg-red-500 text-white shadow-brutal"
+            disabled={isStopLoading}
+            className="flex h-16 w-16 items-center justify-center border-4 border-white bg-red-500 text-white shadow-brutal disabled:opacity-70"
           >
-            <Square className="h-8 w-8" />
+            {isStopLoading ? (
+              <Loader2 className="h-8 w-8 animate-spin" />
+            ) : (
+              <Square className="h-8 w-8" />
+            )}
           </motion.button>
         </>
       )}
@@ -55,26 +63,33 @@ export function TimerControls({
       {timerState === 'PAUSED' && (
         <>
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={isStopLoading ? {} : { scale: 1.05 }}
+            whileTap={isStopLoading ? {} : { scale: 0.95 }}
             onClick={onResume}
-            className="flex h-16 w-16 items-center justify-center border-4 border-white bg-primary text-secondary shadow-brutal"
+            disabled={isStopLoading}
+            className="flex h-16 w-16 items-center justify-center border-4 border-white bg-primary text-secondary shadow-brutal disabled:opacity-50"
           >
             <Play className="h-8 w-8" />
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={isStopLoading ? {} : { scale: 1.05 }}
+            whileTap={isStopLoading ? {} : { scale: 0.95 }}
             onClick={onStop}
-            className="flex h-16 w-16 items-center justify-center border-4 border-white bg-accent-green text-white shadow-brutal"
+            disabled={isStopLoading}
+            className="flex h-16 w-16 items-center justify-center border-4 border-white bg-accent-green text-white shadow-brutal disabled:opacity-70"
           >
-            <Square className="h-8 w-8" />
+            {isStopLoading ? (
+              <Loader2 className="h-8 w-8 animate-spin" />
+            ) : (
+              <Square className="h-8 w-8" />
+            )}
           </motion.button>
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={isStopLoading ? {} : { scale: 1.05 }}
+            whileTap={isStopLoading ? {} : { scale: 0.95 }}
             onClick={onReset}
-            className="flex h-16 w-16 items-center justify-center border-4 border-white bg-gray-500 text-white shadow-brutal"
+            disabled={isStopLoading}
+            className="flex h-16 w-16 items-center justify-center border-4 border-white bg-gray-500 text-white shadow-brutal disabled:opacity-50"
           >
             <RefreshCw className="h-8 w-8" />
           </motion.button>

@@ -43,7 +43,7 @@ function SignupForm() {
   }
 
   const handleSSOSignup = () => {
-    const dwPlatformUrl = process.env.NEXT_PUBLIC_DW_PLATFORM_URL || 'https://devweekends.com'
+    const dwPlatformUrl = process.env.NEXT_PUBLIC_DW_PLATFORM_URL || 'https://example.com'
     const returnUrl = `${window.location.origin}/auth/callback`
     window.location.href = `${dwPlatformUrl}/auth/sso?redirect=${encodeURIComponent(returnUrl)}&signup=true`
   }
@@ -58,14 +58,14 @@ function SignupForm() {
           </div>
           <div>
             <span className="font-display text-2xl font-bold uppercase tracking-tight">Time Master</span>
-            <span className="block font-mono text-xs uppercase text-gray-600">DevWeekends</span>
+            <span className="block font-mono text-xs uppercase text-gray-600">Productivity Tracker</span>
           </div>
         </Link>
 
         {/* Plan Badge */}
         {isPro && (
           <div className="mb-6 border-3 border-secondary bg-primary p-4 text-center shadow-brutal">
-            <span className="font-bold uppercase">⚡ Pro Plan Selected</span>
+            <span className="font-bold uppercase">Pro Plan Selected</span>
             <p className="mt-1 font-mono text-sm">You'll be redirected to checkout after signup</p>
           </div>
         )}

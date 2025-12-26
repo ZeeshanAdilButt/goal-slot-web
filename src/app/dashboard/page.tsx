@@ -53,7 +53,7 @@ export default function DashboardPage() {
     try {
       const [statsRes, goalsRes, activityRes] = await Promise.all([
         reportsApi.getDashboard(),
-        goalsApi.getAll('ACTIVE'),
+        goalsApi.getAll({ status: 'ACTIVE' }),
         timeEntriesApi.getRecent(5),
       ])
 

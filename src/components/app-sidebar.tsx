@@ -74,8 +74,8 @@ export function AppSidebar() {
               <Zap className="h-7 w-7" />
             </div>
             <div>
-              <span className="font-display text-lg font-bold uppercase tracking-tight">DevWeekends</span>
-              <span className="block font-mono text-xs uppercase text-gray-600">Time Master</span>
+              <span className="font-display text-lg font-bold uppercase tracking-tight">Time Master</span>
+              <span className="block font-mono text-xs uppercase text-gray-600">Productivity Tracker</span>
             </div>
           </Link>
           <div className="hidden group-data-[collapsible=icon]:justify-center md:flex">

@@ -7,7 +7,7 @@ export const timeTrackerQueries = {
 }
 
 export const fetchGoals = async () => {
-  const res = await goalsApi.getAll('ACTIVE')
+  const res = await goalsApi.getAll({ status: 'ACTIVE' })
   return res.data
 }
 

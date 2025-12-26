@@ -13,10 +13,12 @@ import { useCreateTimeEntry } from '@/features/time-tracker/hooks/use-time-track
 import { useTimeTrackerData } from '@/features/time-tracker/hooks/use-time-tracker-queries'
 import { useTimer } from '@/features/time-tracker/hooks/use-timer'
 import { Task } from '@/features/time-tracker/utils/types'
+import { useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
+import { tasksApi } from '@/lib/api'
 import { formatDuration } from '@/lib/utils'
 
 export function TimeTrackerPage() {
@@ -41,7 +43,35 @@ export function TimeTrackerPage() {
 
   const { goals, tasks, recentEntries, isLoading } = useTimeTrackerData()
   const createEntry = useCreateTimeEntry()
+  const queryClient = useQueryClient()
   const [showManualEntry, setShowManualEntry] = useState(false)
+
+  const handleCreateTask = async (title: string): Promise<Task | null> => {
+    try {
+      // Create task with current goal if one is selected
+      const response = await tasksApi.create({
+        title,
+        goalId: currentGoalId || undefined,
+        category: currentCategory || undefined,
+      })
+      
+      // Invalidate tasks query to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['time-tracker'] })
+      
+      toast.success(`Task "${title}" created!`)
+      
+      // Set the goal if the task has one
+      if (response.data.goalId) {
+        setGoalId(response.data.goalId)
+      }
+      
+      return response.data as Task
+    } catch (error) {
+      toast.error('Failed to create task')
+      return null
+    }
+  }
 
   const handleTaskChange = (taskId: string) => {
     setTaskId(taskId)
@@ -82,12 +112,7 @@ export function TimeTrackerPage() {
   }
 
   const stopTimer = async () => {
-    if (elapsedTime < 60) {
-      toast.error('Minimum duration is 1 minute')
-      return
-    }
-
-    const duration = Math.floor(elapsedTime / 60)
+    const duration = Math.max(1, Math.floor(elapsedTime / 60)) // At least 1 minute for the entry
     const taskTitle = currentTaskId
       ? tasks.find((t: Task) => t.id === currentTaskId)?.title || currentTask
       : currentTask
@@ -156,6 +181,7 @@ export function TimeTrackerPage() {
           timerState={timerState}
           onTaskIdChange={handleTaskChange}
           onTaskTitleChange={setTask}
+          onCreateTask={handleCreateTask}
         />
         <TimerSettings
           goals={goals}
@@ -169,6 +195,7 @@ export function TimeTrackerPage() {
         <TimerDisplay elapsedTime={elapsedTime} timerState={timerState} />
         <TimerControls
           timerState={timerState}
+          isStopLoading={createEntry.isPending}
           onStart={startTimer}
           onPause={pauseTimer}
           onResume={resumeTimer}

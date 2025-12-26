@@ -27,7 +27,7 @@ export function useTasks() {
   const goalsQuery = useQuery({
     queryKey: ['goals', goalStatus],
     queryFn: async () => {
-      const res = await goalsApi.getAll(goalStatus)
+      const res = await goalsApi.getAll({ status: goalStatus || undefined })
       return res.data
     },
   })
