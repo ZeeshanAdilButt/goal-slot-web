@@ -37,9 +37,9 @@ const faqCategories: FAQCategory[] = [
     color: 'bg-primary',
     items: [
       {
-        question: 'What is Time Master?',
+        question: 'What is GoalSlot?',
         answer:
-          'Time Master is a productivity tracking application designed for developers and learners. It helps you set goals, track time, manage tasks, and visualize your progress.',
+          'GoalSlot is a productivity tracking application designed for developers and learners. It helps you set goals, track time, manage tasks, and visualize your progress.',
       },
       {
         question: 'How do I create an account?',
@@ -47,7 +47,7 @@ const faqCategories: FAQCategory[] = [
           'You can sign up using your email address. Click the "Get Started" button on our homepage, fill in your details, and you\'re ready to go!',
       },
       {
-        question: 'Is Time Master free to use?',
+        question: 'Is GoalSlot free to use?',
         answer:
           "Yes! We offer a generous free tier that includes all essential features. Premium features are available for users who want advanced analytics, team collaboration, and priority support.",
       },
@@ -98,7 +98,7 @@ const faqCategories: FAQCategory[] = [
       {
         question: 'What reports can I generate?',
         answer:
-          'Time Master offers daily, weekly, and monthly reports showing your productivity patterns. See breakdowns by goal, category, or time of day. Export reports as PDFs or share them with your mentor.',
+          'GoalSlot offers daily, weekly, and monthly reports showing your productivity patterns. See breakdowns by goal, category, or time of day. Export reports as PDFs or share them with your mentor.',
       },
       {
         question: 'Does the timer work offline?',
@@ -240,7 +240,7 @@ export default function FAQPage() {
               <Zap className="h-7 w-7" />
             </div>
             <div>
-              <span className="font-display text-xl font-bold uppercase tracking-tight">Time Master</span>
+              <span className="font-display text-xl font-bold uppercase tracking-tight">GoalSlot</span>
               <span className="block font-mono text-xs uppercase text-gray-600">Productivity Tracker</span>
             </div>
           </Link>
@@ -280,7 +280,7 @@ export default function FAQPage() {
                 Frequently Asked Questions
               </h1>
               <p className="font-mono text-lg text-gray-600">
-                Everything you need to know about Time Master
+                Everything you need to know about GoalSlot
               </p>
             </div>
 
@@ -364,7 +364,7 @@ export default function FAQPage() {
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">
                   <a
-                    href="mailto:support@timemaster.com"
+                    href="mailto:support@goalslot.com"
                     className="btn-brutal flex items-center gap-2"
                   >
                     Contact Support
@@ -385,7 +385,7 @@ export default function FAQPage() {
                 <Zap className="h-5 w-5" />
               </div>
               <div>
-                <span className="font-display font-bold uppercase">Time Master</span>
+                <span className="font-display font-bold uppercase">GoalSlot</span>
               </div>
             </div>
 
@@ -401,7 +401,7 @@ export default function FAQPage() {
               </a>
             </div>
 
-            <p className="font-mono text-sm text-gray-600">© 2025 Time Master. All rights reserved.</p>
+            <p className="font-mono text-sm text-gray-600">© 2025 GoalSlot. All rights reserved.</p>
           </div>
         </div>
       </footer>

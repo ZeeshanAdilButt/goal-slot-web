@@ -57,7 +57,7 @@ function SignupForm() {
             <Zap className="h-8 w-8" />
           </div>
           <div>
-            <span className="font-display text-2xl font-bold uppercase tracking-tight">Time Master</span>
+            <span className="font-display text-2xl font-bold uppercase tracking-tight">GoalSlot</span>
             <span className="block font-mono text-xs uppercase text-gray-600">Productivity Tracker</span>
           </div>
         </Link>

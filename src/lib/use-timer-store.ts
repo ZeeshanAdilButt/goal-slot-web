@@ -22,7 +22,7 @@ interface TimerStoreState {
   reset: () => void
 }
 
-const TIMER_STORAGE_KEY = 'dw-time-master-timer'
+const TIMER_STORAGE_KEY = 'goalslot-timer'
 
 export const useTimerStore = create<TimerStoreState>()(
   persist(

@@ -16,7 +16,7 @@ export default function PrivacyPolicyPage() {
               <Zap className="h-7 w-7" />
             </div>
             <div>
-              <span className="font-display text-xl font-bold uppercase tracking-tight">Time Master</span>
+              <span className="font-display text-xl font-bold uppercase tracking-tight">GoalSlot</span>
               <span className="block font-mono text-xs uppercase text-gray-600">Productivity Tracker</span>
             </div>
           </Link>
@@ -63,7 +63,7 @@ export default function PrivacyPolicyPage() {
               <section className="card-brutal">
                 <h2 className="mb-4 font-display text-2xl font-bold uppercase">1. Introduction</h2>
                 <p className="font-mono text-gray-700">
-                  Welcome to Time Master. We respect your privacy and are committed to protecting your
+                  Welcome to GoalSlot. We respect your privacy and are committed to protecting your
                   personal data. This privacy policy explains how we collect, use, and safeguard your information when
                   you use our productivity tracking application.
                 </p>
@@ -183,10 +183,10 @@ export default function PrivacyPolicyPage() {
                 </p>
                 <div className="mt-4 inline-block border-3 border-secondary bg-gray-100 px-4 py-2">
                   <a
-                    href="mailto:privacy@timemaster.com"
+                    href="mailto:privacy@goalslot.com"
                     className="font-mono font-bold transition-colors hover:text-primary"
                   >
-                    privacy@timemaster.com
+                    privacy@goalslot.com
                   </a>
                 </div>
               </section>
@@ -204,7 +204,7 @@ export default function PrivacyPolicyPage() {
                 <Zap className="h-5 w-5" />
               </div>
               <div>
-                <span className="font-display font-bold uppercase">Time Master</span>
+                <span className="font-display font-bold uppercase">GoalSlot</span>
               </div>
             </div>
 
@@ -220,7 +220,7 @@ export default function PrivacyPolicyPage() {
               </a>
             </div>
 
-            <p className="font-mono text-sm text-gray-600">© 2025 Time Master. All rights reserved.</p>
+            <p className="font-mono text-sm text-gray-600">© 2025 GoalSlot. All rights reserved.</p>
           </div>
         </div>
       </footer>

@@ -213,7 +213,7 @@ export default function PublicShareViewPage() {
         <div className="container mx-auto flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="border-3 border-secondary bg-primary p-2 text-xl font-bold">⏱️</div>
-            <span className="font-display text-xl font-bold uppercase">DW Time Master</span>
+            <span className="font-display text-xl font-bold uppercase">GoalSlot</span>
           </div>
           <div className="flex items-center gap-2 border-2 border-secondary bg-accent-green/20 px-3 py-1">
             <Shield className="h-4 w-4" />
@@ -483,7 +483,7 @@ export default function PublicShareViewPage() {
         >
           <h2 className="mb-2 text-xl font-bold uppercase">Want to track your own focus time?</h2>
           <p className="mb-4 font-mono text-sm">
-            Join DW Time Master and start building better productivity habits today!
+            Join GoalSlot and start building better productivity habits today!
           </p>
           <a href="/signup" className="btn-brutal-dark inline-flex items-center gap-2">
             <User className="h-4 w-4" />
@@ -495,7 +495,7 @@ export default function PublicShareViewPage() {
       {/* Footer */}
       <footer className="border-t-3 border-secondary bg-white py-6">
         <div className="container mx-auto px-6 text-center font-mono text-sm text-gray-600">
-          <p>© 2025 DW Time Master. Focus on what matters.</p>
+          <p>© 2025 GoalSlot. Focus on what matters.</p>
         </div>
       </footer>
     </div>
