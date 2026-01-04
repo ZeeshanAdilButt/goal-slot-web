@@ -7,13 +7,13 @@ import { Toaster } from 'react-hot-toast'
 import { ReactQueryProvider } from '@/lib/react-query-provider'
 
 export const metadata: Metadata = {
-  title: 'Time Master | Productivity Tracking',
+  title: 'GoalSlot | Productivity Tracking',
   description:
     'Track your goals, log time, plan schedules, and analyze your productivity patterns.',
   keywords: ['productivity', 'time tracking', 'goals', 'mentorship'],
-  authors: [{ name: 'Time Master' }],
+  authors: [{ name: 'GoalSlot' }],
   openGraph: {
-    title: 'Time Master',
+    title: 'GoalSlot',
     description: 'Master your time, achieve your goals',
     type: 'website',
   },
