@@ -40,26 +40,20 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks }: ManualEntryM
     const startedAt = startTime ? new Date(`${date}T${startTime}:00`).toISOString() : undefined
     const taskTitle = taskId ? tasks.find((t) => t.id === taskId)?.title || title : title
 
-    createEntry.mutate(
-      {
-        taskName: taskTitle,
-        taskId: taskId || undefined,
-        taskTitle,
-        startedAt,
-        duration,
-        date,
-        notes: `Manual entry`,
-        goalId: goalId || undefined,
-      },
-      {
-        onSuccess: () => {
-          onClose()
-          setTitle('')
-          setDuration(30)
-          setTaskId('')
-        },
-      },
-    )
+    createEntry.mutate({
+      taskName: taskTitle,
+      taskId: taskId || undefined,
+      taskTitle,
+      startedAt,
+      duration,
+      date,
+      notes: `Manual entry`,
+      goalId: goalId || undefined,
+    })
+    onClose()
+    setTitle('')
+    setDuration(30)
+    setTaskId('')
   }
 
   return (

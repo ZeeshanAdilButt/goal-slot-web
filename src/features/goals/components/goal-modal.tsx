@@ -117,14 +117,12 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
     const apiData = formStateToApiData(form)
 
     if (goal) {
-      updateMutation.mutate({ id: goal.id, data: { ...apiData, status: form.status } }, { onSuccess: onClose })
+      updateMutation.mutate({ id: goal.id, data: { ...apiData, status: form.status } })
+      onClose()
     } else {
-      createMutation.mutate(apiData, {
-        onSuccess: () => {
-          setForm(getInitialFormState())
-          onClose()
-        },
-      })
+      createMutation.mutate(apiData)
+      setForm(getInitialFormState())
+      onClose()
     }
   }
 

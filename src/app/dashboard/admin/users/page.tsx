@@ -5,8 +5,6 @@ import { useEffect, useState } from 'react'
 
 import { motion } from 'framer-motion'
 import {
-  BadgeCheck,
-  BadgeX,
   Ban,
   Calendar,
   Check,
@@ -20,7 +18,6 @@ import {
   MailX,
   MoreHorizontal,
   Search,
-  Shield,
   ShieldCheck,
   ShieldX,
   Sparkles,
@@ -41,6 +38,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Loading } from '@/components/ui/loading'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface User {
@@ -434,7 +432,7 @@ export default function AdminUsersPage() {
       >
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin" />
+            <Loading size="sm" />
           </div>
         ) : users.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-gray-500">
@@ -538,7 +536,7 @@ export default function AdminUsersPage() {
                         )}
                       >
                         {actionLoading === user.id ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
+                          <Loading size="sm" className="h-3 w-3" />
                         ) : user.emailVerified ? (
                           <>
                             <MailCheck className="h-3 w-3" />
@@ -561,7 +559,7 @@ export default function AdminUsersPage() {
                     <td className="px-4 py-4">
                       <div className="flex items-center justify-end gap-2">
                         {actionLoading === user.id ? (
-                          <Loader2 className="h-5 w-5 animate-spin" />
+                          <Loading size="sm" className="h-5 w-5" />
                         ) : (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -785,7 +783,7 @@ export default function AdminUsersPage() {
                   className="flex flex-1 items-center justify-center gap-2 border-4 border-black bg-red-500 px-4 py-2 font-bold text-white shadow-brutal transition-all hover:bg-red-600 disabled:opacity-50"
                 >
                   {isSubmitting ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <Loading size="sm" className="h-5 w-5" />
                   ) : (
                     <>
                       <Ban className="h-5 w-5" />
@@ -846,7 +844,7 @@ export default function AdminUsersPage() {
                   className="flex flex-1 items-center justify-center gap-2 border-4 border-black bg-primary px-4 py-2 font-bold shadow-brutal transition-all hover:shadow-brutal-sm disabled:opacity-50"
                 >
                   {isSubmitting ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <Loading size="sm" className="h-5 w-5" />
                   ) : (
                     <>
                       <Sparkles className="h-5 w-5" />

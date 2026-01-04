@@ -38,7 +38,7 @@ export function GoalItem({ goal, index, onEdit }: GoalItemProps) {
       style={{ backgroundColor: goal.color + '40', borderLeftColor: goal.color, borderLeftWidth: '8px' }}
     >
       {/* Header row: Status + Actions */}
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-2">
         <span
           className={cn(
             'badge-brutal text-xs shrink-0',

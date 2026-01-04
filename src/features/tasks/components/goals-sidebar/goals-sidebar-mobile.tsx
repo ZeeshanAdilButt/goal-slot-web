@@ -3,9 +3,10 @@ import { useState } from 'react'
 import { GoalModal } from '@/features/goals/components/goal-modal'
 import { Plus } from 'lucide-react'
 
+import { Loading } from '@/components/ui/loading'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
-import { GOAL_STATUS_OPTIONS, GoalsSidebarProps } from './types'
+import { GOAL_STATUS_OPTIONS, GoalsSidebarProps, WITHOUT_GOALS_ID } from './types'
 
 export function GoalsSidebarMobile({
   goals,
@@ -13,9 +14,11 @@ export function GoalsSidebarMobile({
   onSelectGoal,
   selectedStatus,
   onSelectStatus,
+  isLoading,
 }: GoalsSidebarProps) {
   const [showModal, setShowModal] = useState(false)
   const selectedGoal = goals.find((g) => g.id === selectedGoalId)
+  const isWithoutGoals = selectedGoalId === WITHOUT_GOALS_ID
 
   return (
     <>
@@ -45,42 +48,59 @@ export function GoalsSidebarMobile({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Select value={selectedGoalId || ''} onValueChange={onSelectGoal}>
-            <SelectTrigger className="h-11 min-w-0 flex-1 border-3 border-secondary bg-white shadow-brutal-sm">
-              {selectedGoal ? (
-                <div className="flex items-center gap-2 overflow-hidden">
-                  <span
-                    className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full border border-secondary"
-                    style={{ background: selectedGoal.color }}
-                  />
-                  <span className="truncate text-sm font-bold uppercase">{selectedGoal.title}</span>
-                </div>
-              ) : (
-                <SelectValue placeholder="SELECT A GOAL" />
-              )}
-            </SelectTrigger>
-            <SelectContent>
-              {goals.length === 0 ? (
-                <SelectItem value="no-goals" disabled>
-                  No goals
+        {isLoading ? (
+          <div className="flex min-h-[100px] items-center justify-center">
+            <Loading size="sm" />
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Select value={selectedGoalId || ''} onValueChange={(value) => onSelectGoal(value === '' ? null : value)}>
+              <SelectTrigger className="h-11 min-w-0 flex-1 border-3 border-secondary bg-white shadow-brutal-sm">
+                {isWithoutGoals ? (
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <span className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full border border-secondary bg-gray-400" />
+                    <span className="truncate text-sm font-bold uppercase">Without Goals</span>
+                  </div>
+                ) : selectedGoal ? (
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <span
+                      className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full border border-secondary"
+                      style={{ background: selectedGoal.color }}
+                    />
+                    <span className="truncate text-sm font-bold uppercase">{selectedGoal.title}</span>
+                  </div>
+                ) : (
+                  <SelectValue placeholder="SELECT A GOAL" />
+                )}
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={WITHOUT_GOALS_ID}>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-block h-2 w-2 shrink-0 rounded-full border border-secondary bg-gray-400" />
+                    <span className="text-xs font-bold uppercase">Without Goals</span>
+                  </div>
                 </SelectItem>
-              ) : (
-                goals.map((goal) => (
-                  <SelectItem key={goal.id} value={goal.id}>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="inline-block h-2 w-2 shrink-0 rounded-full border border-secondary bg-transparent"
-                        style={{ background: goal.color }}
-                      />
-                      <span className="text-xs font-bold uppercase">{goal.title}</span>
-                    </div>
+                {goals.length === 0 ? (
+                  <SelectItem value="no-goals" disabled>
+                    No goals
                   </SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
-        </div>
+                ) : (
+                  goals.map((goal) => (
+                    <SelectItem key={goal.id} value={goal.id}>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="inline-block h-2 w-2 shrink-0 rounded-full border border-secondary bg-transparent"
+                          style={{ background: goal.color }}
+                        />
+                        <span className="text-xs font-bold uppercase">{goal.title}</span>
+                      </div>
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       <GoalModal isOpen={showModal} onClose={() => setShowModal(false)} goal={null} />

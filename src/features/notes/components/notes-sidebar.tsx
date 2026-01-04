@@ -1,32 +1,27 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
 import {
-  ChevronRight,
   ChevronDown,
-  Plus,
-  MoreHorizontal,
-  Trash2,
-  Pencil,
-  Star,
-  StarOff,
+  ChevronRight,
   FileText,
   FolderPlus,
+  MoreHorizontal,
+  Pencil,
+  Plus,
   Search,
+  Star,
+  StarOff,
+  Trash2,
 } from 'lucide-react'
-
-import {
-  Note,
-  NoteTreeItem,
-  buildNoteTree,
-  NOTE_ICONS,
-} from '../utils/types'
-import { useNotesQuery, useCreateNoteMutation, useUpdateNoteMutation, useDeleteNoteMutation } from '../hooks/use-notes'
 
 import { cn } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { ConfirmDialog } from '@/components/confirm-dialog'
+
+import { useCreateNoteMutation, useDeleteNoteMutation, useNotesQuery, useUpdateNoteMutation } from '../hooks/use-notes'
+import { buildNoteTree, Note, NOTE_ICONS, NoteTreeItem } from '../utils/types'
 
 interface NotesSidebarProps {
   selectedNoteId: string | null
@@ -53,17 +48,12 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
     if (!searchQuery.trim()) return notes
     const query = searchQuery.toLowerCase()
     return notes.filter(
-      (note) =>
-        note.title.toLowerCase().includes(query) ||
-        note.content.toLowerCase().includes(query)
+      (note) => note.title.toLowerCase().includes(query) || note.content.toLowerCase().includes(query),
     )
   }, [notes, searchQuery])
 
   // Get favorites
-  const favorites = useMemo(
-    () => notes.filter((note) => note.isFavorite),
-    [notes]
-  )
+  const favorites = useMemo(() => notes.filter((note) => note.isFavorite), [notes])
 
   const toggleExpanded = (noteId: string) => {
     setExpandedIds((prev) => {
@@ -91,7 +81,7 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
             setExpandedIds((prev) => new Set([...prev, parentId]))
           }
         },
-      }
+      },
     )
   }
 
@@ -128,9 +118,7 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
         <div
           className={cn(
             'group flex items-center gap-1 rounded-md px-2 py-1.5 text-sm transition-colors cursor-pointer',
-            isSelected
-              ? 'bg-primary text-primary-foreground'
-              : 'hover:bg-muted'
+            isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
           )}
           style={{ paddingLeft: `${depth * 12 + 8}px` }}
           onClick={() => onSelectNote(note)}
@@ -143,16 +131,11 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
             }}
             className={cn(
               'flex h-5 w-5 shrink-0 items-center justify-center rounded',
-              hasChildren ? 'hover:bg-black/10 dark:hover:bg-white/10' : 'invisible'
+              hasChildren ? 'hover:bg-black/10 dark:hover:bg-white/10' : 'invisible',
             )}
           >
-            {hasChildren && (
-              isExpanded ? (
-                <ChevronDown className="h-3.5 w-3.5" />
-              ) : (
-                <ChevronRight className="h-3.5 w-3.5" />
-              )
-            )}
+            {hasChildren &&
+              (isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />)}
           </button>
 
           {/* Icon */}
@@ -162,9 +145,7 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
           <span className="flex-1 truncate">{note.title || 'Untitled'}</span>
 
           {/* Favorite indicator */}
-          {note.isFavorite && (
-            <Star className="h-3.5 w-3.5 shrink-0 fill-current text-yellow-500" />
-          )}
+          {note.isFavorite && <Star className="h-3.5 w-3.5 shrink-0 fill-current text-yellow-500" />}
 
           {/* Actions */}
           <Popover
@@ -179,7 +160,7 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
                 }}
                 className={cn(
                   'flex h-5 w-5 shrink-0 items-center justify-center rounded opacity-0 group-hover:opacity-100',
-                  isSelected ? 'hover:bg-black/10' : 'hover:bg-muted'
+                  isSelected ? 'hover:bg-black/10' : 'hover:bg-muted',
                 )}
               >
                 <MoreHorizontal className="h-3.5 w-3.5" />
@@ -192,10 +173,20 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
                   handleCreateNote(note.id)
                   setContextMenuNoteId(null)
                 }}
-                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"
+                disabled={createMutation.isPending}
+                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <FolderPlus className="h-4 w-4" />
-                Add sub-note
+                {createMutation.isPending ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <FolderPlus className="h-4 w-4" />
+                    Add sub-note
+                  </>
+                )}
               </button>
               <button
                 onClick={(e) => {
@@ -233,11 +224,7 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
         </div>
 
         {/* Children */}
-        {hasChildren && isExpanded && (
-          <div>
-            {note.children.map((child) => renderNoteItem(child, depth + 1))}
-          </div>
-        )}
+        {hasChildren && isExpanded && <div>{note.children.map((child) => renderNoteItem(child, depth + 1))}</div>}
       </div>
     )
   }
@@ -272,10 +259,20 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
       <div className="px-3 pb-2">
         <button
           onClick={() => handleCreateNote()}
-          className="flex w-full items-center gap-2 rounded-md border-2 border-dashed border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-primary hover:bg-muted hover:text-foreground"
+          disabled={createMutation.isPending}
+          className="flex w-full items-center justify-center gap-2 rounded-md border-2 border-dashed border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-primary hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <Plus className="h-4 w-4" />
-          New Note
+          {createMutation.isPending ? (
+            <>
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              Creating...
+            </>
+          ) : (
+            <>
+              <Plus className="h-4 w-4" />
+              New Note
+            </>
+          )}
         </button>
       </div>
 
@@ -284,17 +281,13 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
         {/* Favorites section */}
         {favorites.length > 0 && !searchQuery && (
           <div className="mb-4">
-            <div className="mb-1 px-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Favorites
-            </div>
+            <div className="mb-1 px-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Favorites</div>
             {favorites.map((note) => (
               <div
                 key={`fav-${note.id}`}
                 className={cn(
                   'flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors cursor-pointer',
-                  selectedNoteId === note.id
-                    ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-muted'
+                  selectedNoteId === note.id ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
                 )}
                 onClick={() => onSelectNote(note)}
               >
@@ -319,9 +312,7 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
                   key={note.id}
                   className={cn(
                     'flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors cursor-pointer',
-                    selectedNoteId === note.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'hover:bg-muted'
+                    selectedNoteId === note.id ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
                   )}
                   onClick={() => onSelectNote(note)}
                 >
@@ -330,19 +321,15 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
                 </div>
               ))
             ) : (
-              <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-                No notes found
-              </div>
+              <div className="px-2 py-4 text-center text-sm text-muted-foreground">No notes found</div>
             )
+          ) : // Tree view for normal display
+          noteTree.length > 0 ? (
+            noteTree.map((note) => renderNoteItem(note))
           ) : (
-            // Tree view for normal display
-            noteTree.length > 0 ? (
-              noteTree.map((note) => renderNoteItem(note))
-            ) : (
-              <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-                No notes yet. Create your first note!
-              </div>
-            )
+            <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+              No notes yet. Create your first note!
+            </div>
           )}
         </div>
       </div>

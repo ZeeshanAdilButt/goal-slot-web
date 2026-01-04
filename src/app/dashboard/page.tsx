@@ -11,6 +11,7 @@ import { toast } from 'react-hot-toast'
 
 import { goalsApi, reportsApi, timeEntriesApi } from '@/lib/api'
 import { formatDuration, getProgressColor } from '@/lib/utils'
+import { Loading } from '@/components/ui/loading'
 
 interface DashboardStats {
   todayFormatted: string
@@ -71,13 +72,8 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="animate-pulse space-y-6">
-        <div className="h-8 w-64 rounded bg-gray-200" />
-        <div className="grid grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-32 rounded bg-gray-200" />
-          ))}
-        </div>
+      <div className="flex min-h-[400px] items-center justify-center">
+        <Loading size="sm" />
       </div>
     )
   }

@@ -12,6 +12,7 @@ import { motion } from 'framer-motion'
 import { Loader2, Pencil, Target, X } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
+import { Loading } from '@/components/ui/loading'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 
 import { BlockTasksList } from './block-tasks-list'
@@ -129,7 +130,7 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onVie
       {isUpdating && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div className="rounded-full border-2 border-secondary bg-white/80 p-1 shadow-brutal-sm">
-            <Loader2 className="h-3 w-3 animate-spin text-secondary" />
+            <Loading size="sm" className="h-3 w-3" />
           </div>
         </div>
       )}
