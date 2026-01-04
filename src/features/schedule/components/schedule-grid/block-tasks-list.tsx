@@ -15,7 +15,6 @@ export function BlockTasksList({ tasks, blockHeight, headerRef }: BlockTasksList
 
   useLayoutEffect(() => {
     if (!tasks || tasks.length === 0) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setVisibleTasksCount(0)
       return
     }

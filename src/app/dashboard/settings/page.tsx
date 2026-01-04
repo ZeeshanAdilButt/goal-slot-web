@@ -11,7 +11,6 @@ import { toast } from 'react-hot-toast'
 import { stripeApi, usersApi } from '@/lib/api'
 import { useAuthStore } from '@/lib/store'
 import { cn } from '@/lib/utils'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const TABS = [
   { id: 'profile', label: 'Profile', icon: User },
@@ -95,13 +94,12 @@ function ProfileSettings() {
   const { user, setUser } = useAuthStore()
   const [name, setName] = useState(user?.name || '')
   const [email, setEmail] = useState(user?.email || '')
-  const [timezone, setTimezone] = useState(user?.preferences?.timezone || 'UTC')
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSave = async () => {
     setIsLoading(true)
     try {
-      const res = await usersApi.updateProfile({ name, preferences: { timezone } })
+      const res = await usersApi.updateProfile({ name })
       setUser(res.data)
       toast.success('Profile updated!')
     } catch (error) {
@@ -131,26 +129,6 @@ function ProfileSettings() {
               </span>
             </div>
             <p className="mt-1 font-mono text-xs text-gray-500">Email cannot be changed</p>
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-bold uppercase">Timezone</label>
-            <Select value={timezone} onValueChange={setTimezone}>
-              <SelectTrigger className="input-brutal">
-                <SelectValue placeholder="Select timezone" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="UTC">UTC</SelectItem>
-                <SelectItem value="America/New_York">Eastern Time (ET)</SelectItem>
-                <SelectItem value="America/Chicago">Central Time (CT)</SelectItem>
-                <SelectItem value="America/Denver">Mountain Time (MT)</SelectItem>
-                <SelectItem value="America/Los_Angeles">Pacific Time (PT)</SelectItem>
-                <SelectItem value="Europe/London">London (GMT)</SelectItem>
-                <SelectItem value="Europe/Paris">Paris (CET)</SelectItem>
-                <SelectItem value="Asia/Tokyo">Tokyo (JST)</SelectItem>
-                <SelectItem value="Asia/Kolkata">India (IST)</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           <div className="pt-4">
@@ -248,7 +226,6 @@ function BillingSettings() {
               <div>✓ Unlimited Time Entries</div>
               <div>✓ Advanced Reports</div>
               <div>✓ Priority Support</div>
-              <div>✓ Data Export</div>
             </div>
             <button onClick={handleManage} disabled={isLoading} className="btn-brutal-dark">
               {isLoading ? 'Loading...' : 'Manage Subscription'}
@@ -267,7 +244,6 @@ function BillingSettings() {
               'Unlimited goals',
               'Unlimited time entries per day',
               'Advanced analytics & reports',
-              'Export data to CSV/PDF',
               'Priority support',
               'Early access to new features',
             ].map((benefit, i) => (
@@ -363,8 +339,7 @@ function SecuritySettings() {
         <div className="card-brutal">
           <h2 className="mb-4 text-xl font-bold uppercase">SSO Authentication</h2>
           <p className="font-mono text-gray-600">
-            Your account is managed via SSO. Password changes should be made through your SSO
-            account.
+            Your account is managed via SSO. Password changes should be made through your SSO account.
           </p>
         </div>
       )}

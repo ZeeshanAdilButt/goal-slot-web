@@ -11,12 +11,13 @@ import {
   LABEL_COLORS,
   LabelInput,
 } from '@/features/goals/utils/types'
-import { useLabelsQuery, useUpdateLabelMutation, useDeleteLabelMutation } from '@/features/labels'
-import { Calendar, Clock, X, Pencil, Trash2, Check } from 'lucide-react'
+import { useDeleteLabelMutation, useLabelsQuery, useUpdateLabelMutation } from '@/features/labels'
+import { Calendar, Check, Clock, Pencil, Trash2, X } from 'lucide-react'
 
 import { COLOR_OPTIONS } from '@/lib/utils'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 
 interface GoalModalProps {
   isOpen: boolean
@@ -54,6 +55,7 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
   const [editingLabelId, setEditingLabelId] = useState<string | null>(null)
   const [editingLabelName, setEditingLabelName] = useState('')
   const [editingLabelColor, setEditingLabelColor] = useState('')
+  const [deleteLabelId, setDeleteLabelId] = useState<string | null>(null)
   const labelInputRef = useRef<HTMLInputElement>(null)
   const suggestionsRef = useRef<HTMLDivElement>(null)
   const createMutation = useCreateGoalMutation()
@@ -140,10 +142,7 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
     // Auto-save if editing existing goal
     if (goal) {
       setIsAutoSaving(true)
-      updateMutation.mutate(
-        { id: goal.id, data: { labels: newLabels } },
-        { onSettled: () => setIsAutoSaving(false) }
-      )
+      updateMutation.mutate({ id: goal.id, data: { labels: newLabels } }, { onSettled: () => setIsAutoSaving(false) })
     }
   }
 
@@ -154,10 +153,7 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
     // Auto-save if editing existing goal
     if (goal) {
       setIsAutoSaving(true)
-      updateMutation.mutate(
-        { id: goal.id, data: { labels: newLabels } },
-        { onSettled: () => setIsAutoSaving(false) }
-      )
+      updateMutation.mutate({ id: goal.id, data: { labels: newLabels } }, { onSettled: () => setIsAutoSaving(false) })
     }
   }
 
@@ -185,16 +181,20 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
           setEditingLabelName('')
           setEditingLabelColor('')
         },
-      }
+      },
     )
   }
 
   // Delete a label globally
   const deleteLabel = (labelId: string) => {
-    if (window.confirm('Delete this label? It will be removed from all goals.')) {
-      deleteLabelMutation.mutate(labelId)
-      setEditingLabelId(null)
-    }
+    setDeleteLabelId(labelId)
+    setEditingLabelId(null)
+  }
+
+  const confirmDeleteLabel = () => {
+    if (!deleteLabelId) return
+    deleteLabelMutation.mutate(deleteLabelId)
+    setDeleteLabelId(null)
   }
 
   // Check if we're doing a real submit (not auto-save)
@@ -337,18 +337,21 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
 
                     {/* Suggestions dropdown - show when focused */}
                     {showLabelSuggestions && (labelSuggestions.length > 0 || labelInput.trim()) && (
-                      <div ref={suggestionsRef} className="absolute z-10 mt-1 w-full border-3 border-black bg-white shadow-brutal max-h-64 overflow-y-auto">
+                      <div
+                        ref={suggestionsRef}
+                        className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto border-3 border-black bg-white shadow-brutal"
+                      >
                         {/* Existing labels */}
                         {labelSuggestions.map((suggestion) => (
                           <div key={suggestion.id} className="group">
                             {editingLabelId === suggestion.id ? (
                               // Edit mode
-                              <div className="p-2 border-b border-gray-200">
+                              <div className="border-b border-gray-200 p-2">
                                 <input
                                   type="text"
                                   value={editingLabelName}
                                   onChange={(e) => setEditingLabelName(e.target.value)}
-                                  className="w-full px-2 py-1 text-sm border border-gray-300 rounded mb-2"
+                                  className="mb-2 w-full rounded border border-gray-300 px-2 py-1 text-sm"
                                   autoFocus
                                   onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
@@ -359,14 +362,16 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                                     }
                                   }}
                                 />
-                                <div className="flex items-center gap-1 mb-2">
+                                <div className="mb-2 flex items-center gap-1">
                                   {LABEL_COLORS.map((c) => (
                                     <button
                                       key={c.value}
                                       type="button"
                                       onClick={() => setEditingLabelColor(c.value)}
                                       className={`h-5 w-5 rounded border transition-transform hover:scale-110 ${
-                                        editingLabelColor === c.value ? 'ring-2 ring-black ring-offset-1' : 'border-gray-300'
+                                        editingLabelColor === c.value
+                                          ? 'ring-2 ring-black ring-offset-1'
+                                          : 'border-gray-300'
                                       }`}
                                       style={{ backgroundColor: c.value }}
                                       title={c.name}
@@ -378,14 +383,14 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                                     type="button"
                                     onClick={saveEditingLabel}
                                     disabled={updateLabelMutation.isPending}
-                                    className="flex-1 px-2 py-1 text-xs bg-black text-white rounded hover:bg-gray-800"
+                                    className="flex-1 rounded bg-black px-2 py-1 text-xs text-white hover:bg-gray-800"
                                   >
                                     {updateLabelMutation.isPending ? 'Saving...' : 'Save'}
                                   </button>
                                   <button
                                     type="button"
                                     onClick={() => setEditingLabelId(null)}
-                                    className="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-100"
+                                    className="rounded border border-gray-300 px-2 py-1 text-xs hover:bg-gray-100"
                                   >
                                     Cancel
                                   </button>
@@ -401,7 +406,7 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                                     setLabelInput('')
                                     setShowLabelSuggestions(false)
                                   }}
-                                  className="flex-1 flex items-center gap-2 text-left text-sm"
+                                  className="flex flex-1 items-center gap-2 text-left text-sm"
                                 >
                                   <span
                                     className="rounded px-2 py-0.5 text-xs font-medium"
@@ -413,14 +418,14 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                                     {suggestion.name}
                                   </span>
                                 </button>
-                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                                   <button
                                     type="button"
                                     onClick={(e) => {
                                       e.stopPropagation()
                                       startEditingLabel(suggestion)
                                     }}
-                                    className="p-1 rounded hover:bg-gray-200 text-gray-500 hover:text-gray-700"
+                                    className="rounded p-1 text-gray-500 hover:bg-gray-200 hover:text-gray-700"
                                     title="Edit label"
                                   >
                                     <Pencil className="h-3.5 w-3.5" />
@@ -431,7 +436,7 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                                       e.stopPropagation()
                                       deleteLabel(suggestion.id)
                                     }}
-                                    className="p-1 rounded hover:bg-red-100 text-gray-500 hover:text-red-600"
+                                    className="rounded p-1 text-gray-500 hover:bg-red-100 hover:text-red-600"
                                     title="Delete label"
                                   >
                                     <Trash2 className="h-3.5 w-3.5" />
@@ -441,30 +446,31 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                             )}
                           </div>
                         ))}
-                        
+
                         {/* Create new label option */}
-                        {labelInput.trim() && !existingLabels.some(l => l.name.toLowerCase() === labelInput.toLowerCase()) && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              addLabel(labelInput.trim())
-                              setLabelInput('')
-                              setShowLabelSuggestions(false)
-                            }}
-                            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-gray-100 border-t border-gray-200"
-                          >
-                            <span className="text-gray-500">Create</span>
-                            <span
-                              className="rounded px-2 py-0.5 text-xs font-medium"
-                              style={{
-                                backgroundColor: selectedLabelColor,
-                                color: getLabelTextColor(selectedLabelColor),
+                        {labelInput.trim() &&
+                          !existingLabels.some((l) => l.name.toLowerCase() === labelInput.toLowerCase()) && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                addLabel(labelInput.trim())
+                                setLabelInput('')
+                                setShowLabelSuggestions(false)
                               }}
+                              className="flex w-full items-center gap-2 border-t border-gray-200 px-3 py-2 text-left text-sm hover:bg-gray-100"
                             >
-                              {labelInput.trim()}
-                            </span>
-                          </button>
-                        )}
+                              <span className="text-gray-500">Create</span>
+                              <span
+                                className="rounded px-2 py-0.5 text-xs font-medium"
+                                style={{
+                                  backgroundColor: selectedLabelColor,
+                                  color: getLabelTextColor(selectedLabelColor),
+                                }}
+                              >
+                                {labelInput.trim()}
+                              </span>
+                            </button>
+                          )}
                       </div>
                     )}
                   </div>
@@ -560,6 +566,18 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
           </div>
         </form>
       </DialogContent>
+
+      {/* Delete Label Confirmation Dialog */}
+      <ConfirmDialog
+        open={!!deleteLabelId}
+        onOpenChange={(open) => !open && setDeleteLabelId(null)}
+        title="Delete Label"
+        description="Delete this label? It will be removed from all goals."
+        onConfirm={confirmDeleteLabel}
+        confirmButtonText="Delete"
+        variant="destructive"
+        isLoading={deleteLabelMutation.isPending}
+      />
     </Dialog>
   )
 }

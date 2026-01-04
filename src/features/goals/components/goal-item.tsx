@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { Edit2, Trash2 } from 'lucide-react'
 
 import { cn, getProgressColor } from '@/lib/utils'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 
 interface GoalItemProps {
   goal: Goal
@@ -16,9 +17,13 @@ interface GoalItemProps {
 
 export function GoalItem({ goal, index, onEdit }: GoalItemProps) {
   const deleteMutation = useDeleteGoalMutation()
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const handleDelete = () => {
-    if (!confirm('Are you sure you want to delete this goal?')) return
+    setShowDeleteConfirm(true)
+  }
+
+  const confirmDelete = () => {
     deleteMutation.mutate(goal.id)
   }
 
@@ -46,9 +51,9 @@ export function GoalItem({ goal, index, onEdit }: GoalItemProps) {
         >
           {goal.status}
         </span>
-        
+
         {/* Actions */}
-        <div className="flex gap-2 shrink-0">
+        <div className="flex shrink-0 gap-2">
           <button
             onClick={() => onEdit(goal)}
             className="flex h-8 w-8 items-center justify-center border-2 border-secondary bg-white transition-colors hover:bg-gray-100"
@@ -108,6 +113,18 @@ export function GoalItem({ goal, index, onEdit }: GoalItemProps) {
           </span>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Delete Goal"
+        description="Are you sure you want to delete this goal? This action cannot be undone."
+        onConfirm={confirmDelete}
+        confirmButtonText="Delete"
+        variant="destructive"
+        isLoading={deleteMutation.isPending}
+      />
     </motion.div>
   )
 }

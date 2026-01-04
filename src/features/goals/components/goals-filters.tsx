@@ -1,10 +1,11 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
+
 import { useCategoriesQuery } from '@/features/categories'
 import { GoalFilters } from '@/features/goals/utils/types'
 import { useLabelsQuery } from '@/features/labels'
 import { ChevronDown, Filter, X } from 'lucide-react'
-import { useState, useRef, useEffect } from 'react'
 
 import { cn } from '@/lib/utils'
 
@@ -16,10 +17,10 @@ interface GoalsFiltersProps {
 export function GoalsFilters({ filters, onFilterChange }: GoalsFiltersProps) {
   const { data: categories = [] } = useCategoriesQuery()
   const { data: labels = [] } = useLabelsQuery()
-  
+
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false)
   const [showLabelDropdown, setShowLabelDropdown] = useState(false)
-  
+
   const categoryRef = useRef<HTMLDivElement>(null)
   const labelRef = useRef<HTMLDivElement>(null)
 
@@ -61,16 +62,12 @@ export function GoalsFilters({ filters, onFilterChange }: GoalsFiltersProps) {
     onFilterChange({ status: filters.status })
   }
 
-  const hasActiveFilters = (filters.categories && filters.categories.length > 0) || 
-                           (filters.labelIds && filters.labelIds.length > 0)
+  const hasActiveFilters =
+    (filters.categories && filters.categories.length > 0) || (filters.labelIds && filters.labelIds.length > 0)
 
-  const selectedCategoryNames = categories
-    .filter((c) => filters.categories?.includes(c.value))
-    .map((c) => c.name)
+  const selectedCategoryNames = categories.filter((c) => filters.categories?.includes(c.value)).map((c) => c.name)
 
-  const selectedLabelNames = labels
-    .filter((l) => filters.labelIds?.includes(l.id))
-    .map((l) => l.name)
+  const selectedLabelNames = labels.filter((l) => filters.labelIds?.includes(l.id)).map((l) => l.name)
 
   return (
     <div className="space-y-4">
@@ -94,7 +91,7 @@ export function GoalsFilters({ filters, onFilterChange }: GoalsFiltersProps) {
       {/* Category & Label Filters */}
       <div className="flex flex-wrap items-center gap-3">
         <Filter className="h-4 w-4 text-gray-500" />
-        
+
         {/* Category Multi-Select */}
         <div ref={categoryRef} className="relative">
           <button
@@ -106,22 +103,22 @@ export function GoalsFilters({ filters, onFilterChange }: GoalsFiltersProps) {
           >
             Categories
             {selectedCategoryNames.length > 0 && (
-              <span className="bg-white text-accent-blue px-1.5 py-0.5 text-xs font-bold rounded">
+              <span className="rounded bg-white px-1.5 py-0.5 text-xs font-bold text-accent-blue">
                 {selectedCategoryNames.length}
               </span>
             )}
             <ChevronDown className="h-4 w-4" />
           </button>
-          
+
           {showCategoryDropdown && (
-            <div className="absolute z-50 mt-1 w-56 bg-white border-3 border-secondary shadow-brutal max-h-64 overflow-y-auto">
+            <div className="absolute z-50 mt-1 max-h-64 w-56 overflow-y-auto border-3 border-secondary bg-white shadow-brutal">
               {categories.length === 0 ? (
                 <div className="px-3 py-2 text-sm text-gray-500">No categories</div>
               ) : (
                 categories.map((category) => (
                   <label
                     key={category.id}
-                    className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                    className="flex cursor-pointer items-center gap-2 px-3 py-2 hover:bg-gray-100"
                   >
                     <input
                       type="checkbox"
@@ -130,7 +127,7 @@ export function GoalsFilters({ filters, onFilterChange }: GoalsFiltersProps) {
                       className="h-4 w-4 border-2 border-secondary"
                     />
                     <span
-                      className="w-3 h-3 rounded-full border border-gray-300"
+                      className="h-3 w-3 rounded-full border border-gray-300"
                       style={{ backgroundColor: category.color }}
                     />
                     <span className="text-sm">{category.name}</span>
@@ -152,23 +149,20 @@ export function GoalsFilters({ filters, onFilterChange }: GoalsFiltersProps) {
           >
             Labels
             {selectedLabelNames.length > 0 && (
-              <span className="bg-white text-accent-green px-1.5 py-0.5 text-xs font-bold rounded">
+              <span className="rounded bg-white px-1.5 py-0.5 text-xs font-bold text-accent-green">
                 {selectedLabelNames.length}
               </span>
             )}
             <ChevronDown className="h-4 w-4" />
           </button>
-          
+
           {showLabelDropdown && (
-            <div className="absolute z-50 mt-1 w-56 bg-white border-3 border-secondary shadow-brutal max-h-64 overflow-y-auto">
+            <div className="absolute z-50 mt-1 max-h-64 w-56 overflow-y-auto border-3 border-secondary bg-white shadow-brutal">
               {labels.length === 0 ? (
                 <div className="px-3 py-2 text-sm text-gray-500">No labels</div>
               ) : (
                 labels.map((label) => (
-                  <label
-                    key={label.id}
-                    className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                  >
+                  <label key={label.id} className="flex cursor-pointer items-center gap-2 px-3 py-2 hover:bg-gray-100">
                     <input
                       type="checkbox"
                       checked={filters.labelIds?.includes(label.id) || false}
@@ -176,7 +170,7 @@ export function GoalsFilters({ filters, onFilterChange }: GoalsFiltersProps) {
                       className="h-4 w-4 border-2 border-secondary"
                     />
                     <span
-                      className="w-3 h-3 rounded-full border border-gray-300"
+                      className="h-3 w-3 rounded-full border border-gray-300"
                       style={{ backgroundColor: label.color }}
                     />
                     <span className="text-sm">{label.name}</span>
@@ -191,7 +185,7 @@ export function GoalsFilters({ filters, onFilterChange }: GoalsFiltersProps) {
         {hasActiveFilters && (
           <button
             onClick={clearAllFilters}
-            className="flex items-center gap-1 px-2 py-1 text-xs font-bold text-gray-600 hover:text-red-600 transition-colors"
+            className="flex items-center gap-1 px-2 py-1 text-xs font-bold text-gray-600 transition-colors hover:text-red-600"
           >
             <X className="h-3 w-3" />
             Clear filters
@@ -207,14 +201,11 @@ export function GoalsFilters({ filters, onFilterChange }: GoalsFiltersProps) {
             return (
               <span
                 key={name}
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-bold border-2 border-secondary"
+                className="inline-flex items-center gap-1 border-2 border-secondary px-2 py-1 text-xs font-bold"
                 style={{ backgroundColor: category?.color + '40' }}
               >
                 {name}
-                <button
-                  onClick={() => handleCategoryToggle(category?.value || '')}
-                  className="hover:text-red-600"
-                >
+                <button onClick={() => handleCategoryToggle(category?.value || '')} className="hover:text-red-600">
                   <X className="h-3 w-3" />
                 </button>
               </span>
@@ -225,14 +216,11 @@ export function GoalsFilters({ filters, onFilterChange }: GoalsFiltersProps) {
             return (
               <span
                 key={name}
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-bold border-2 border-secondary"
+                className="inline-flex items-center gap-1 border-2 border-secondary px-2 py-1 text-xs font-bold"
                 style={{ backgroundColor: label?.color + '40' }}
               >
                 {name}
-                <button
-                  onClick={() => handleLabelToggle(label?.id || '')}
-                  className="hover:text-red-600"
-                >
+                <button onClick={() => handleLabelToggle(label?.id || '')} className="hover:text-red-600">
                   <X className="h-3 w-3" />
                 </button>
               </span>
