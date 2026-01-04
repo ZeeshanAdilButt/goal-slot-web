@@ -34,7 +34,7 @@ import { toast } from 'react-hot-toast'
 import { usersApi } from '@/lib/api'
 import { useAuthStore } from '@/lib/store'
 import { cn } from '@/lib/utils'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +42,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface User {
   id: string
@@ -109,11 +110,11 @@ export default function AdminUsersPage() {
   const [totalUsers, setTotalUsers] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
-  
+
   // Modal states
   const [modalType, setModalType] = useState<ModalType>(null)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  
+
   // Create user form
   const [newUser, setNewUser] = useState<CreateUserData>({
     email: '',
@@ -121,14 +122,14 @@ export default function AdminUsersPage() {
     name: '',
     role: 'USER',
   })
-  
+
   // Disable user form
   const [disableReason, setDisableReason] = useState('')
-  
+
   // Assign plan form
   const [assignPlan, setAssignPlan] = useState<'FREE' | 'BASIC' | 'PRO'>('FREE')
   const [assignPlanNote, setAssignPlanNote] = useState('')
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
@@ -203,9 +204,9 @@ export default function AdminUsersPage() {
 
     setIsSubmitting(true)
     try {
-      await usersApi.toggleStatus(user.id, { 
-        isDisabled: disable, 
-        reason: disable ? disableReason : undefined 
+      await usersApi.toggleStatus(user.id, {
+        isDisabled: disable,
+        reason: disable ? disableReason : undefined,
       })
       toast.success(disable ? 'User disabled' : 'User enabled')
       closeModal()
@@ -224,9 +225,9 @@ export default function AdminUsersPage() {
 
     setIsSubmitting(true)
     try {
-      await usersApi.assignPlan(selectedUser.id, { 
-        plan: assignPlan, 
-        note: assignPlanNote || undefined 
+      await usersApi.assignPlan(selectedUser.id, {
+        plan: assignPlan,
+        note: assignPlanNote || undefined,
       })
       toast.success(`${assignPlan} plan assigned to ${selectedUser.name}`)
       closeModal()
@@ -457,194 +458,187 @@ export default function AdminUsersPage() {
               </thead>
               <tbody className="divide-y-2 divide-gray-200">
                 {users.map((user) => (
-                  <tr 
-                    key={user.id} 
-                    className={cn(
-                      'transition-colors hover:bg-gray-50',
-                      user.isDisabled && 'bg-red-50 opacity-75'
-                    )}
+                  <tr
+                    key={user.id}
+                    className={cn('transition-colors hover:bg-gray-50', user.isDisabled && 'bg-red-50 opacity-75')}
                   >
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
-                        <div className={cn(
-                          "flex h-10 w-10 items-center justify-center border-2 border-black text-lg font-black",
-                          user.isDisabled ? 'bg-gray-300' : 'bg-primary'
-                        )}>
-                        {user.name.charAt(0).toUpperCase()}
+                        <div
+                          className={cn(
+                            'flex h-10 w-10 items-center justify-center border-2 border-black text-lg font-black',
+                            user.isDisabled ? 'bg-gray-300' : 'bg-primary',
+                          )}
+                        >
+                          {user.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-bold">{user.name}</p>
+                          <p className="flex items-center gap-1 text-sm text-gray-500">
+                            <Mail className="h-3 w-3" />
+                            {user.email}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-bold">{user.name}</p>
-                        <p className="flex items-center gap-1 text-sm text-gray-500">
-                          <Mail className="h-3 w-3" />
-                          {user.email}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <span
-                      className={cn(
-                        'inline-flex items-center gap-1 border-2 px-2 py-1 text-xs font-bold uppercase',
-                        user.isDisabled 
-                          ? 'border-red-400 bg-red-200 text-red-800' 
-                          : 'border-green-400 bg-green-200 text-green-800'
-                      )}
-                    >
-                      {user.isDisabled ? (
-                        <>
-                          <Ban className="h-3 w-3" />
-                          Disabled
-                        </>
-                      ) : (
-                        <>
-                          <UserCheck className="h-3 w-3" />
-                          Active
-                        </>
-                      )}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4">
-                    <span
-                      className={cn(
-                        'inline-flex items-center gap-1 border-2 px-2 py-1 text-xs font-bold uppercase',
-                        getRoleBadge(user.role),
-                      )}
-                    >
-                      {getRoleIcon(user.role)}
-                      {user.role.replace('_', ' ')}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="flex items-center gap-2">
+                    </td>
+                    <td className="px-4 py-4">
                       <span
                         className={cn(
-                          'border-2 px-2 py-1 text-xs font-bold uppercase',
-                          getPlanBadge(user.plan, user.unlimitedAccess, user.adminAssignedPlan),
+                          'inline-flex items-center gap-1 border-2 px-2 py-1 text-xs font-bold uppercase',
+                          user.isDisabled
+                            ? 'border-red-400 bg-red-200 text-red-800'
+                            : 'border-green-400 bg-green-200 text-green-800',
                         )}
                       >
-                        {user.adminAssignedPlan ? `${user.plan} (ADMIN)` : user.plan}
+                        {user.isDisabled ? (
+                          <>
+                            <Ban className="h-3 w-3" />
+                            Disabled
+                          </>
+                        ) : (
+                          <>
+                            <UserCheck className="h-3 w-3" />
+                            Active
+                          </>
+                        )}
                       </span>
-                      {user.userType === 'INTERNAL' && (
-                        <span className="text-xs text-green-600">INTERNAL</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <button
-                      onClick={() => handleToggleEmailVerified(user)}
-                      disabled={actionLoading === user.id}
-                      className={cn(
-                        'inline-flex items-center gap-1 border-2 px-2 py-1 text-xs font-bold uppercase transition-colors',
-                        user.emailVerified
-                          ? 'border-green-400 bg-green-200 text-green-800 hover:bg-green-300'
-                          : 'border-orange-400 bg-orange-200 text-orange-800 hover:bg-orange-300'
-                      )}
-                    >
-                      {actionLoading === user.id ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : user.emailVerified ? (
-                        <>
-                          <MailCheck className="h-3 w-3" />
-                          Verified
-                        </>
-                      ) : (
-                        <>
-                          <MailX className="h-3 w-3" />
-                          Unverified
-                        </>
-                      )}
-                    </button>
-                  </td>
-                  <td className="px-4 py-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="flex items-center justify-end gap-2">
-                      {actionLoading === user.id ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                      ) : (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button 
-                              type="button"
-                              className="cursor-pointer border-2 border-black p-2 transition-colors hover:bg-gray-100"
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-56">
-                            <DropdownMenuItem onClick={() => openModal('details', user)}>
-                              <Eye className="mr-2 h-4 w-4" />
-                              View Details
-                            </DropdownMenuItem>
-                            
-                            <DropdownMenuSeparator />
-                            
-                            {/* Plan Assignment */}
-                            <DropdownMenuItem onClick={() => openModal('assignPlan', user)}>
-                              <Sparkles className="mr-2 h-4 w-4" />
-                              Assign Plan
-                            </DropdownMenuItem>
-                            
-                            <DropdownMenuSeparator />
-                            
-                            {/* Enable/Disable */}
-                            {user.isDisabled ? (
-                              <DropdownMenuItem 
-                                onClick={() => handleQuickEnable(user)}
-                                className="text-green-600"
+                    </td>
+                    <td className="px-4 py-4">
+                      <span
+                        className={cn(
+                          'inline-flex items-center gap-1 border-2 px-2 py-1 text-xs font-bold uppercase',
+                          getRoleBadge(user.role),
+                        )}
+                      >
+                        {getRoleIcon(user.role)}
+                        {user.role.replace('_', ' ')}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={cn(
+                            'border-2 px-2 py-1 text-xs font-bold uppercase',
+                            getPlanBadge(user.plan, user.unlimitedAccess, user.adminAssignedPlan),
+                          )}
+                        >
+                          {user.adminAssignedPlan ? `${user.plan} (ADMIN)` : user.plan}
+                        </span>
+                        {user.userType === 'INTERNAL' && <span className="text-xs text-green-600">INTERNAL</span>}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <button
+                        onClick={() => handleToggleEmailVerified(user)}
+                        disabled={actionLoading === user.id}
+                        className={cn(
+                          'inline-flex items-center gap-1 border-2 px-2 py-1 text-xs font-bold uppercase transition-colors',
+                          user.emailVerified
+                            ? 'border-green-400 bg-green-200 text-green-800 hover:bg-green-300'
+                            : 'border-orange-400 bg-orange-200 text-orange-800 hover:bg-orange-300',
+                        )}
+                      >
+                        {actionLoading === user.id ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : user.emailVerified ? (
+                          <>
+                            <MailCheck className="h-3 w-3" />
+                            Verified
+                          </>
+                        ) : (
+                          <>
+                            <MailX className="h-3 w-3" />
+                            Unverified
+                          </>
+                        )}
+                      </button>
+                    </td>
+                    <td className="px-4 py-4 text-sm text-gray-600">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(user.createdAt).toLocaleDateString()}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        {actionLoading === user.id ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                type="button"
+                                className="cursor-pointer border-2 border-black p-2 transition-colors hover:bg-gray-100"
                               >
-                                <UserCheck className="mr-2 h-4 w-4" />
-                                Enable User
+                                <MoreHorizontal className="h-4 w-4" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56">
+                              <DropdownMenuItem onClick={() => openModal('details', user)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Details
                               </DropdownMenuItem>
-                            ) : (
-                              user.role !== 'SUPER_ADMIN' && (
-                                <DropdownMenuItem 
-                                  onClick={() => openModal('disable', user)}
-                                  className="text-red-600"
-                                >
-                                  <Ban className="mr-2 h-4 w-4" />
-                                  Disable User
+
+                              <DropdownMenuSeparator />
+
+                              {/* Plan Assignment */}
+                              <DropdownMenuItem onClick={() => openModal('assignPlan', user)}>
+                                <Sparkles className="mr-2 h-4 w-4" />
+                                Assign Plan
+                              </DropdownMenuItem>
+
+                              <DropdownMenuSeparator />
+
+                              {/* Enable/Disable */}
+                              {user.isDisabled ? (
+                                <DropdownMenuItem onClick={() => handleQuickEnable(user)} className="text-green-600">
+                                  <UserCheck className="mr-2 h-4 w-4" />
+                                  Enable User
                                 </DropdownMenuItem>
-                              )
-                            )}
-                            
-                            {/* Role Management - Super Admin Only */}
-                            {isSuperAdmin && user.role !== 'SUPER_ADMIN' && (
-                              <>
-                                <DropdownMenuSeparator />
-                                {user.role === 'USER' ? (
-                                  <DropdownMenuItem 
-                                    onClick={() => handlePromote(user.id)}
-                                    className="text-purple-600"
-                                  >
-                                    <ShieldCheck className="mr-2 h-4 w-4" />
-                                    Promote to Admin
+                              ) : (
+                                user.role !== 'SUPER_ADMIN' && (
+                                  <DropdownMenuItem onClick={() => openModal('disable', user)} className="text-red-600">
+                                    <Ban className="mr-2 h-4 w-4" />
+                                    Disable User
                                   </DropdownMenuItem>
-                                ) : user.role === 'ADMIN' && (
-                                  <DropdownMenuItem 
-                                    onClick={() => handleDemote(user.id)}
-                                    className="text-orange-600"
-                                  >
-                                    <ShieldX className="mr-2 h-4 w-4" />
-                                    Demote to User
-                                  </DropdownMenuItem>
-                                )}
-                              </>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                                )
+                              )}
+
+                              {/* Role Management - Super Admin Only */}
+                              {isSuperAdmin && user.role !== 'SUPER_ADMIN' && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  {user.role === 'USER' ? (
+                                    <DropdownMenuItem
+                                      onClick={() => handlePromote(user.id)}
+                                      className="text-purple-600"
+                                    >
+                                      <ShieldCheck className="mr-2 h-4 w-4" />
+                                      Promote to Admin
+                                    </DropdownMenuItem>
+                                  ) : (
+                                    user.role === 'ADMIN' && (
+                                      <DropdownMenuItem
+                                        onClick={() => handleDemote(user.id)}
+                                        className="text-orange-600"
+                                      >
+                                        <ShieldX className="mr-2 h-4 w-4" />
+                                        Demote to User
+                                      </DropdownMenuItem>
+                                    )
+                                  )}
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
 
         {/* Pagination */}
@@ -787,8 +781,8 @@ export default function AdminUsersPage() {
                   </div>
                   <div className="space-y-4 p-6">
                     <p className="text-gray-600">
-                      You are about to disable <strong>{selectedUser.name}</strong> ({selectedUser.email}).
-                      They will not be able to log in until re-enabled.
+                      You are about to disable <strong>{selectedUser.name}</strong> ({selectedUser.email}). They will
+                      not be able to log in until re-enabled.
                     </p>
                     <div>
                       <label className="mb-2 block text-sm font-bold uppercase">Reason for Disabling *</label>
@@ -843,10 +837,7 @@ export default function AdminUsersPage() {
                     </p>
                     <div>
                       <label className="mb-2 block text-sm font-bold uppercase">Plan</label>
-                      <Select
-                        value={assignPlan}
-                        onValueChange={(value) => setAssignPlan(value as any)}
-                      >
+                      <Select value={assignPlan} onValueChange={(value) => setAssignPlan(value as any)}>
                         <SelectTrigger className="h-auto w-full rounded-none border-4 border-black px-4 py-2 font-medium shadow-none focus:ring-2 focus:ring-primary">
                           <SelectValue placeholder="Select plan" />
                         </SelectTrigger>
@@ -913,7 +904,7 @@ export default function AdminUsersPage() {
                         <p className="text-gray-600">{selectedUser.email}</p>
                       </div>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-xs font-bold uppercase text-gray-500">Role</p>
@@ -935,7 +926,9 @@ export default function AdminUsersPage() {
                       </div>
                       <div>
                         <p className="text-xs font-bold uppercase text-gray-500">Email Verified</p>
-                        <p className={cn('font-bold', selectedUser.emailVerified ? 'text-green-600' : 'text-orange-600')}>
+                        <p
+                          className={cn('font-bold', selectedUser.emailVerified ? 'text-green-600' : 'text-orange-600')}
+                        >
                           {selectedUser.emailVerified ? 'Yes' : 'No'}
                         </p>
                       </div>
@@ -978,20 +971,25 @@ export default function AdminUsersPage() {
                       <div className="grid grid-cols-2 gap-3 text-sm">
                         <div>
                           <p className="text-xs text-blue-600">Status</p>
-                          <p className={cn(
-                            'font-bold',
-                            selectedUser.subscriptionStatus === 'active' ? 'text-green-600' :
-                            selectedUser.subscriptionStatus === 'past_due' ? 'text-orange-600' :
-                            selectedUser.subscriptionStatus === 'canceled' ? 'text-red-600' :
-                            'text-gray-600'
-                          )}>
+                          <p
+                            className={cn(
+                              'font-bold',
+                              selectedUser.subscriptionStatus === 'active'
+                                ? 'text-green-600'
+                                : selectedUser.subscriptionStatus === 'past_due'
+                                  ? 'text-orange-600'
+                                  : selectedUser.subscriptionStatus === 'canceled'
+                                    ? 'text-red-600'
+                                    : 'text-gray-600',
+                            )}
+                          >
                             {selectedUser.subscriptionStatus || 'No subscription'}
                           </p>
                         </div>
                         <div>
                           <p className="text-xs text-blue-600">Subscription Ends</p>
                           <p className="font-medium text-blue-800">
-                            {selectedUser.subscriptionEndDate 
+                            {selectedUser.subscriptionEndDate
                               ? new Date(selectedUser.subscriptionEndDate).toLocaleDateString()
                               : 'N/A'}
                           </p>
@@ -999,7 +997,7 @@ export default function AdminUsersPage() {
                         <div>
                           <p className="text-xs text-blue-600">First Payment</p>
                           <p className="font-medium text-blue-800">
-                            {selectedUser.firstPaymentDate 
+                            {selectedUser.firstPaymentDate
                               ? new Date(selectedUser.firstPaymentDate).toLocaleDateString()
                               : 'Never'}
                           </p>
@@ -1007,7 +1005,7 @@ export default function AdminUsersPage() {
                         <div>
                           <p className="text-xs text-blue-600">Last Payment</p>
                           <p className="font-medium text-blue-800">
-                            {selectedUser.lastPaymentDate 
+                            {selectedUser.lastPaymentDate
                               ? new Date(selectedUser.lastPaymentDate).toLocaleDateString()
                               : 'Never'}
                           </p>

@@ -8,6 +8,7 @@ import { toast } from 'react-hot-toast'
 
 import { sharingApi } from '@/lib/api'
 import { cn, formatDate } from '@/lib/utils'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 import { SharedReportsView } from './shared-reports-view'
 
@@ -397,34 +398,13 @@ function InviteModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose:
   }
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="absolute inset-0 bg-black/50"
-          />
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="modal-brutal max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold uppercase">Invite User</DialogTitle>
+        </DialogHeader>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="modal-brutal relative z-10 w-full max-w-md"
-          >
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold uppercase">Invite User</h2>
-              <button
-                onClick={onClose}
-                className="flex h-10 w-10 items-center justify-center border-3 border-secondary hover:bg-gray-100"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="mb-2 block text-sm font-bold uppercase">Email Address</label>
                 <input
@@ -476,18 +456,15 @@ function InviteModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose:
                 </div>
               </div>
 
-              <div className="flex gap-4 pt-4">
-                <button type="button" onClick={onClose} className="btn-brutal-secondary flex-1">
-                  Cancel
-                </button>
-                <button type="submit" disabled={isLoading} className="btn-brutal-dark flex-1">
-                  {isLoading ? 'Sending...' : 'Send Invite'}
-                </button>
-              </div>
-            </form>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+        <DialogFooter className="flex-row gap-4 pt-4">
+          <button type="button" onClick={onClose} className="btn-brutal-secondary flex-1">
+            Cancel
+          </button>
+          <button type="submit" disabled={isLoading} className="btn-brutal-dark flex-1">
+            {isLoading ? 'Sending...' : 'Send Invite'}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

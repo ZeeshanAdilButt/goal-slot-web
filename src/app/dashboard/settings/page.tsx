@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 
 import { CategoryManagement } from '@/features/categories/components/category-management'
 import { motion } from 'framer-motion'
-import { Bell, Check, CreditCard, Crown, Download, Key, LogOut, Mail, Shield, Tag, Trash2, User } from 'lucide-react'
+import { Check, CreditCard, Crown, Download, Key, LogOut, Shield, Tag, Trash2, User } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { stripeApi, usersApi } from '@/lib/api'
@@ -16,7 +16,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 const TABS = [
   { id: 'profile', label: 'Profile', icon: User },
   { id: 'categories', label: 'Categories', icon: Tag },
-  { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'billing', label: 'Billing', icon: CreditCard },
   { id: 'security', label: 'Security', icon: Shield },
   { id: 'data', label: 'Data & Privacy', icon: Download },
@@ -82,7 +81,6 @@ export default function SettingsPage() {
         <div className="lg:col-span-3">
           {activeTab === 'profile' && <ProfileSettings />}
           {activeTab === 'categories' && <CategoryManagement />}
-          {activeTab === 'notifications' && <NotificationSettings />}
           {activeTab === 'billing' && <BillingSettings />}
           {activeTab === 'security' && <SecuritySettings />}
           {activeTab === 'data' && <DataSettings />}
@@ -183,100 +181,6 @@ function ProfileSettings() {
         </div>
       </div>
     </motion.div>
-  )
-}
-
-// Notification Settings
-function NotificationSettings() {
-  const [emailNotifs, setEmailNotifs] = useState(true)
-  const [weeklyReport, setWeeklyReport] = useState(true)
-  const [goalReminders, setGoalReminders] = useState(true)
-  const [isLoading, setIsLoading] = useState(false)
-
-  const handleSave = async () => {
-    setIsLoading(true)
-    try {
-      // Save notification preferences
-      toast.success('Notification settings saved!')
-    } catch (error) {
-      toast.error('Failed to save settings')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="card-brutal">
-      <h2 className="mb-6 text-xl font-bold uppercase">Notification Preferences</h2>
-
-      <div className="space-y-4">
-        <NotificationToggle
-          label="Email Notifications"
-          description="Receive important updates via email"
-          checked={emailNotifs}
-          onChange={setEmailNotifs}
-          icon={Mail}
-        />
-        <NotificationToggle
-          label="Weekly Report"
-          description="Get a summary of your productivity each week"
-          checked={weeklyReport}
-          onChange={setWeeklyReport}
-          icon={Bell}
-        />
-        <NotificationToggle
-          label="Goal Reminders"
-          description="Get reminded about upcoming goal deadlines"
-          checked={goalReminders}
-          onChange={setGoalReminders}
-          icon={Bell}
-        />
-
-        <div className="pt-4">
-          <button onClick={handleSave} disabled={isLoading} className="btn-brutal-dark">
-            {isLoading ? 'Saving...' : 'Save Preferences'}
-          </button>
-        </div>
-      </div>
-    </motion.div>
-  )
-}
-
-function NotificationToggle({
-  label,
-  description,
-  checked,
-  onChange,
-  icon: Icon,
-}: {
-  label: string
-  description: string
-  checked: boolean
-  onChange: (val: boolean) => void
-  icon: any
-}) {
-  return (
-    <div className="flex items-center justify-between border-2 border-secondary p-4">
-      <div className="flex items-center gap-4">
-        <Icon className="h-5 w-5" />
-        <div>
-          <div className="font-bold uppercase">{label}</div>
-          <div className="font-mono text-sm text-gray-600">{description}</div>
-        </div>
-      </div>
-      <button
-        onClick={() => onChange(!checked)}
-        className={cn(
-          'w-14 h-8 border-3 border-secondary relative transition-colors',
-          checked ? 'bg-primary' : 'bg-gray-200',
-        )}
-      >
-        <motion.div
-          animate={{ x: checked ? 22 : 2 }}
-          className="absolute top-1 h-5 w-5 border-2 border-secondary bg-white"
-        />
-      </button>
-    </div>
   )
 }
 
@@ -464,39 +368,13 @@ function SecuritySettings() {
           </p>
         </div>
       )}
-
-      <div className="card-brutal">
-        <h2 className="mb-4 text-xl font-bold uppercase">Active Sessions</h2>
-        <div className="border-2 border-secondary p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="font-bold">Current Session</div>
-              <div className="font-mono text-sm text-gray-600">Windows • Chrome</div>
-            </div>
-            <span className="bg-accent-green px-3 py-1 font-mono text-sm text-white">Active</span>
-          </div>
-        </div>
-      </div>
     </motion.div>
   )
 }
 
 // Data Settings
 function DataSettings() {
-  const [isExporting, setIsExporting] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-
-  const handleExportData = async () => {
-    setIsExporting(true)
-    try {
-      // Trigger data export
-      toast.success('Export started! You will receive an email when ready.')
-    } catch (error) {
-      toast.error('Failed to start export')
-    } finally {
-      setIsExporting(false)
-    }
-  }
 
   const handleDeleteAccount = async () => {
     if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
@@ -520,17 +398,6 @@ function DataSettings() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-      <div className="card-brutal">
-        <h2 className="mb-6 text-xl font-bold uppercase">Export Your Data</h2>
-        <p className="mb-4 font-mono text-gray-600">
-          Download all your data including goals, time entries, schedules, and reports.
-        </p>
-        <button onClick={handleExportData} disabled={isExporting} className="btn-brutal flex items-center gap-2">
-          <Download className="h-5 w-5" />
-          {isExporting ? 'Preparing...' : 'Export All Data'}
-        </button>
-      </div>
-
       <div className="card-brutal border-red-500">
         <h2 className="mb-4 text-xl font-bold uppercase text-red-600">Danger Zone</h2>
         <p className="mb-4 font-mono text-gray-600">

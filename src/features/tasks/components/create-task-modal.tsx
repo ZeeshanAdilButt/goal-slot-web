@@ -4,6 +4,7 @@ import { useCategoriesQuery } from '@/features/categories'
 import { CreateTaskForm, Goal, ScheduleBlock, Task } from '@/features/tasks/utils/types'
 
 import { DAYS_OF_WEEK_FULL } from '@/lib/utils'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface CreateTaskModalProps {
@@ -53,8 +54,6 @@ export function CreateTaskModal({ isOpen, onClose, onSubmit, scheduleBlocks, goa
     }
   }, [task, isOpen])
 
-  if (!isOpen) return null
-
   const handleSubmit = async () => {
     if (!form.title.trim()) return
     setCreating(true)
@@ -75,12 +74,11 @@ export function CreateTaskModal({ isOpen, onClose, onSubmit, scheduleBlocks, goa
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="relative w-full max-w-xl border-3 border-secondary bg-white p-6 shadow-brutal">
-        <button className="absolute right-3 top-3 text-sm font-bold" onClick={onClose}>
-          ✕
-        </button>
-        <h3 className="mb-4 font-display text-2xl font-bold uppercase">{task ? 'Edit Task' : 'New Task'}</h3>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="modal-brutal max-w-xl">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold uppercase">{task ? 'Edit Task' : 'New Task'}</DialogTitle>
+        </DialogHeader>
         <div className="space-y-4">
           <div>
             <label className="font-mono text-sm uppercase">Title</label>
@@ -179,16 +177,16 @@ export function CreateTaskModal({ isOpen, onClose, onSubmit, scheduleBlocks, goa
               />
             </div>
           </div>
-          <div className="flex justify-end gap-3">
-            <button className="btn-brutal-secondary" onClick={onClose}>
-              Cancel
-            </button>
-            <button className="btn-brutal" onClick={handleSubmit} disabled={creating}>
-              {creating ? 'Saving...' : task ? 'Update Task' : 'Create Task'}
-            </button>
-          </div>
         </div>
-      </div>
-    </div>
+        <DialogFooter className="flex-row gap-3 pt-4">
+          <button className="btn-brutal-secondary flex-1" onClick={onClose}>
+            Cancel
+          </button>
+          <button className="btn-brutal flex-1" onClick={handleSubmit} disabled={creating}>
+            {creating ? 'Saving...' : task ? 'Update Task' : 'Create Task'}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
