@@ -9,6 +9,7 @@ import { toast } from 'react-hot-toast'
 import { sharingApi } from '@/lib/api'
 import { cn, formatDate } from '@/lib/utils'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Loading } from '@/components/ui/loading'
 
 import { SharedReportsView } from './shared-reports-view'
 
@@ -221,7 +222,7 @@ export default function SharingPage() {
 
       {isLoading ? (
         <div className="flex h-64 items-center justify-center">
-          <div className="h-12 w-12 animate-spin border-4 border-secondary border-t-primary" />
+          <Loading />
         </div>
       ) : (
         <AnimatePresence mode="wait">

@@ -5,10 +5,11 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 import { motion } from 'framer-motion'
-import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, Zap } from 'lucide-react'
+import { ArrowRight, Eye, EyeOff, Lock, Mail, Zap } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { useAuthStore } from '@/lib/store'
+import { Loading } from '@/components/ui/loading'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -103,7 +104,7 @@ export default function LoginPage() {
               className="btn-brutal flex w-full items-center justify-center gap-2"
             >
               {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
+                <Loading size="sm" className="h-5 w-5" />
               ) : (
                 <>
                   Login <ArrowRight className="h-5 w-5" />
@@ -119,7 +120,6 @@ export default function LoginPage() {
             </Link>
           </p>
         </div>
-
       </motion.div>
     </div>
   )

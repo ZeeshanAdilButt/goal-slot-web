@@ -5,10 +5,11 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 import { motion } from 'framer-motion'
-import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, User, Zap } from 'lucide-react'
+import { ArrowRight, Eye, EyeOff, Lock, Mail, User, Zap } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { useAuthStore } from '@/lib/store'
+import { Loading } from '@/components/ui/loading'
 
 function SignupForm() {
   const router = useRouter()
@@ -137,7 +138,7 @@ function SignupForm() {
               className="btn-brutal flex w-full items-center justify-center gap-2"
             >
               {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
+                <Loading size="sm" className="h-5 w-5" />
               ) : (
                 <>
                   Create Account <ArrowRight className="h-5 w-5" />
@@ -170,7 +171,7 @@ export default function SignupPage() {
           <div className="w-full max-w-md">
             <div className="card-brutal">
               <div className="flex items-center justify-center p-8">
-                <Loader2 className="h-8 w-8 animate-spin" />
+                <Loading size="sm" />
               </div>
             </div>
           </div>

@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion'
-import { Loader2, Pause, Play, RefreshCw, Square } from 'lucide-react'
+import { Pause, Play, RefreshCw, Square } from 'lucide-react'
+
+import { Loading } from '@/components/ui/loading'
 
 interface TimerControlsProps {
   timerState: 'STOPPED' | 'RUNNING' | 'PAUSED'
@@ -51,11 +53,7 @@ export function TimerControls({
             disabled={isStopLoading}
             className="flex h-16 w-16 items-center justify-center border-4 border-white bg-red-500 text-white shadow-brutal disabled:opacity-70"
           >
-            {isStopLoading ? (
-              <Loader2 className="h-8 w-8 animate-spin" />
-            ) : (
-              <Square className="h-8 w-8" />
-            )}
+            {isStopLoading ? <Loading size="sm" className="h-8 w-8" /> : <Square className="h-8 w-8" />}
           </motion.button>
         </>
       )}
@@ -78,11 +76,7 @@ export function TimerControls({
             disabled={isStopLoading}
             className="flex h-16 w-16 items-center justify-center border-4 border-white bg-accent-green text-white shadow-brutal disabled:opacity-70"
           >
-            {isStopLoading ? (
-              <Loader2 className="h-8 w-8 animate-spin" />
-            ) : (
-              <Square className="h-8 w-8" />
-            )}
+            {isStopLoading ? <Loading size="sm" className="h-8 w-8" /> : <Square className="h-8 w-8" />}
           </motion.button>
           <motion.button
             whileHover={isStopLoading ? {} : { scale: 1.05 }}

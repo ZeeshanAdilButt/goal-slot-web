@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { CompleteTaskModal } from '@/features/tasks/components/complete-task-modal'
 import { CreateTaskModal } from '@/features/tasks/components/create-task-modal'
 import { GoalsSidebar } from '@/features/tasks/components/goals-sidebar'
+import { WITHOUT_GOALS_ID } from '@/features/tasks/components/goals-sidebar/types'
 import { TasksView } from '@/features/tasks/components/tasks-view'
 import { useTasks } from '@/features/tasks/hooks/use-tasks'
 import {
@@ -26,43 +27,47 @@ export function TasksPage() {
   const [completingTask, setCompletingTask] = useState<Task | null>(null)
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null)
 
-  // Auto-select first goal when goals change
+  // Auto-select first goal when goals change, or "Without Goals" if no goals exist
   useEffect(() => {
-    if (goals.length > 0 && (!selectedGoalId || !goals.some((g) => g.id === selectedGoalId))) {
-      setSelectedGoalId(goals[0].id)
+    if (goals.length > 0) {
+      // If a valid goal is selected, keep it. Otherwise, select the first goal.
+      if (!selectedGoalId || (!goals.some((g) => g.id === selectedGoalId) && selectedGoalId !== WITHOUT_GOALS_ID)) {
+        setSelectedGoalId(goals[0].id)
+      }
     } else if (goals.length === 0) {
-      setSelectedGoalId(null)
+      // If no goals exist, default to "Without Goals" if there are tasks without goals
+      if (selectedGoalId !== WITHOUT_GOALS_ID) {
+        const hasTasksWithoutGoals = tasks.some((t) => !t.goalId)
+        if (hasTasksWithoutGoals) {
+          setSelectedGoalId(WITHOUT_GOALS_ID)
+        } else {
+          setSelectedGoalId(null)
+        }
+      }
     }
-  }, [goals, selectedGoalId])
+  }, [goals, selectedGoalId, tasks])
 
   // Filter tasks for selected goal
-  const tasksForGoal = selectedGoalId ? tasks.filter((t) => t.goalId === selectedGoalId) : []
+  const tasksForGoal =
+    selectedGoalId === WITHOUT_GOALS_ID
+      ? tasks.filter((t) => !t.goalId)
+      : selectedGoalId
+        ? tasks.filter((t) => t.goalId === selectedGoalId)
+        : []
 
   const createTask = async (form: CreateTaskForm) => {
-    try {
-      await createTaskMutation.mutateAsync(form)
-      return true
-    } catch {
-      return false
-    }
+    createTaskMutation.mutate(form)
+    return true
   }
 
   const updateTask = async (taskId: string, form: CreateTaskForm & { status?: TaskStatus }) => {
-    try {
-      await updateTaskMutation.mutateAsync({ taskId, data: form })
-      return true
-    } catch {
-      return false
-    }
+    updateTaskMutation.mutate({ taskId, data: form })
+    return true
   }
 
   const completeTask = async (taskId: string, minutes: number, notes?: string) => {
-    try {
-      await completeTaskMutation.mutateAsync({ taskId, minutes, notes })
-      return true
-    } catch {
-      return false
-    }
+    completeTaskMutation.mutate({ taskId, minutes, notes })
+    return true
   }
 
   return (
@@ -73,6 +78,7 @@ export function TasksPage() {
         onSelectGoal={setSelectedGoalId}
         selectedStatus={goalStatus}
         onSelectStatus={setGoalStatus}
+        isLoading={isLoading}
       />
 
       <main className="flex-1 overflow-y-auto border-l-0 border-t-3 border-secondary md:border-l-3 md:border-t-0">
@@ -83,6 +89,7 @@ export function TasksPage() {
             onEdit={setEditingTask}
             onCreate={() => setShowCreate(true)}
             hasSelectedGoal={!!selectedGoalId}
+            isLoading={isLoading}
           />
 
           <CreateTaskModal

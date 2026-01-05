@@ -8,15 +8,18 @@ import { TasksFilters } from '@/features/tasks/components/tasks-filters'
 import { GroupBy, Task } from '@/features/tasks/utils/types'
 import { Plus } from 'lucide-react'
 
+import { Loading } from '@/components/ui/loading'
+
 interface TasksViewProps {
   tasks: Task[]
   onComplete: (task: Task) => void
   onEdit: (task: Task) => void
   onCreate: () => void
   hasSelectedGoal: boolean
+  isLoading: boolean
 }
 
-export function TasksView({ tasks, onComplete, onEdit, onCreate, hasSelectedGoal }: TasksViewProps) {
+export function TasksView({ tasks, onComplete, onEdit, onCreate, hasSelectedGoal, isLoading }: TasksViewProps) {
   const [showCompletedTasks, setShowCompletedTasks] = useState(false)
   const [compactView, setCompactView] = useState(false)
   const [groupBy, setGroupBy] = useState<GroupBy>('status')
@@ -25,8 +28,22 @@ export function TasksView({ tasks, onComplete, onEdit, onCreate, hasSelectedGoal
   const completedTasks = tasks.filter((t) => t.status === 'COMPLETED')
   const displayedTasks = showCompletedTasks ? tasks : activeTasks
 
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <Loading size="sm" />
+      </div>
+    )
+  }
+
   if (!hasSelectedGoal) {
-    return <div className="text-gray-400">Select a goal to view tasks.</div>
+    return (
+      <div className="p-4">
+        <div className="px-4 md:-ml-[3px] md:px-0">
+          <div className="card-brutal p-6 text-center font-mono text-gray-600">Select a goal to view tasks.</div>
+        </div>
+      </div>
+    )
   }
 
   return (

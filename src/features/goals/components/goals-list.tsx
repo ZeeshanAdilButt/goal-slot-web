@@ -2,6 +2,8 @@ import { GoalItem } from '@/features/goals/components/goal-item'
 import { Goal } from '@/features/goals/utils/types'
 import { Plus, Target } from 'lucide-react'
 
+import { Loading } from '@/components/ui/loading'
+
 interface GoalsListProps {
   goals: Goal[]
   isLoading: boolean
@@ -13,10 +15,8 @@ interface GoalsListProps {
 export function GoalsList({ goals, isLoading, filter, onEdit, onCreateClick }: GoalsListProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-3 gap-6">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-48 animate-pulse bg-gray-200" />
-        ))}
+      <div className="flex min-h-[400px] items-center justify-center">
+        <Loading size="sm" />
       </div>
     )
   }
@@ -42,7 +42,7 @@ export function GoalsList({ goals, isLoading, filter, onEdit, onCreateClick }: G
   }
 
   return (
-    <div className="grid grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
       {goals.map((goal, i) => (
         <GoalItem key={goal.id} goal={goal} index={i} onEdit={onEdit} />
       ))}

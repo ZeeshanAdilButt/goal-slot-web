@@ -1,15 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
-import { FileText, Plus, PanelLeftClose, PanelLeft } from 'lucide-react'
-
-import { Note } from '../utils/types'
-import { useNotesQuery, useCreateNoteMutation } from '../hooks/use-notes'
-import { NotesSidebar } from './notes-sidebar'
-import { NoteEditor } from './note-editor'
+import { FileText, PanelLeft, PanelLeftClose, Plus } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
+
+import { useCreateNoteMutation, useNotesQuery } from '../hooks/use-notes'
+import { Note } from '../utils/types'
+import { NoteEditor } from './note-editor'
+import { NotesSidebar } from './notes-sidebar'
 
 interface NotesPageProps {
   initialNoteId?: string
@@ -54,7 +54,7 @@ export function NotesPage({ initialNoteId }: NotesPageProps = {}) {
         onSuccess: (newNote) => {
           setSelectedNote(newNote)
         },
-      }
+      },
     )
   }
 
@@ -73,15 +73,11 @@ export function NotesPage({ initialNoteId }: NotesPageProps = {}) {
       <div
         className={cn(
           'shrink-0 border-r-2 border-border bg-muted/30 transition-all duration-300',
-          isSidebarCollapsed ? 'w-0 overflow-hidden border-r-0' : ''
+          isSidebarCollapsed ? 'w-0 overflow-hidden border-r-0' : '',
         )}
         style={{ width: isSidebarCollapsed ? 0 : sidebarWidth }}
       >
-        <NotesSidebar
-          selectedNoteId={selectedNote?.id || null}
-          onSelectNote={handleSelectNote}
-          className="h-full"
-        />
+        <NotesSidebar selectedNoteId={selectedNote?.id || null} onSelectNote={handleSelectNote} className="h-full" />
       </div>
 
       {/* Resize handle - only show when sidebar is expanded */}
@@ -119,7 +115,7 @@ export function NotesPage({ initialNoteId }: NotesPageProps = {}) {
           <button
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
             className={cn(
-              'flex h-7 items-center gap-1.5 rounded-md px-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+              'flex h-7 items-center gap-1.5 rounded-md px-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground',
             )}
             title={isSidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
           >
@@ -135,15 +131,25 @@ export function NotesPage({ initialNoteId }: NotesPageProps = {}) {
               </>
             )}
           </button>
-          
+
           {/* Quick create when sidebar is collapsed */}
           {isSidebarCollapsed && (
             <button
               onClick={handleCreateNote}
-              className="ml-auto flex h-7 items-center gap-1.5 rounded-md px-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              disabled={createMutation.isPending}
+              className="ml-auto flex h-7 items-center gap-1.5 rounded-md px-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <Plus className="h-4 w-4" />
-              <span className="text-xs">New Note</span>
+              {createMutation.isPending ? (
+                <>
+                  <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  <span className="text-xs">Creating...</span>
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4" />
+                  <span className="text-xs">New Note</span>
+                </>
+              )}
             </button>
           )}
         </div>
@@ -151,11 +157,7 @@ export function NotesPage({ initialNoteId }: NotesPageProps = {}) {
         {/* Editor area */}
         <div className="flex-1 overflow-hidden">
           {selectedNote ? (
-            <NoteEditor
-              key={selectedNote.id}
-              note={selectedNote}
-              onDelete={handleDeleteNote}
-            />
+            <NoteEditor key={selectedNote.id} note={selectedNote} onDelete={handleDeleteNote} />
           ) : (
             <div className="flex h-full flex-col items-center justify-center gap-4 p-8 text-center">
               <div className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-border bg-muted">
@@ -163,16 +165,24 @@ export function NotesPage({ initialNoteId }: NotesPageProps = {}) {
               </div>
               <div>
                 <h3 className="text-xl font-bold">No note selected</h3>
-                <p className="mt-1 text-muted-foreground">
-                  Select a note from the sidebar or create a new one
-                </p>
+                <p className="mt-1 text-muted-foreground">Select a note from the sidebar or create a new one</p>
               </div>
               <button
                 onClick={handleCreateNote}
-                className="mt-4 flex items-center gap-2 rounded-lg border-2 border-border bg-primary px-4 py-2 font-bold text-primary-foreground shadow-brutal transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none"
+                disabled={createMutation.isPending}
+                className="mt-4 flex items-center gap-2 rounded-lg border-2 border-border bg-primary px-4 py-2 font-bold text-primary-foreground shadow-brutal transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <Plus className="h-5 w-5" />
-                Create Note
+                {createMutation.isPending ? (
+                  <>
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-5 w-5" />
+                    Create Note
+                  </>
+                )}
               </button>
             </div>
           )}

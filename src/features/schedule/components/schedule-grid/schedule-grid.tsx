@@ -13,7 +13,7 @@ import { snapMinutes } from '@/features/schedule/utils/utils'
 import { Plus } from 'lucide-react'
 
 import { DAYS_OF_WEEK_FULL, minutesToTime, timeToMinutes } from '@/lib/utils'
-import { LoadingSpinner } from '@/components/loading-spinner'
+import { Loading } from '@/components/ui/loading'
 
 type ScheduleGridProps = {
   weekSchedule: WeekSchedule
@@ -42,7 +42,7 @@ export function ScheduleGrid({
   if (isPending) {
     return (
       <div className="flex h-96 items-center justify-center">
-        <LoadingSpinner />
+        <Loading />
       </div>
     )
   }
