@@ -1,63 +1,65 @@
 'use client'
 
-import { useEditor, EditorContent } from '@tiptap/react'
-import { BubbleMenu } from '@tiptap/react/menus'
-import StarterKit from '@tiptap/starter-kit'
-import Placeholder from '@tiptap/extension-placeholder'
-import TaskList from '@tiptap/extension-task-list'
-import TaskItem from '@tiptap/extension-task-item'
-import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
-import Link from '@tiptap/extension-link'
-import { Table } from '@tiptap/extension-table'
-import TableRow from '@tiptap/extension-table-row'
-import TableCell from '@tiptap/extension-table-cell'
-import TableHeader from '@tiptap/extension-table-header'
-import Highlight from '@tiptap/extension-highlight'
-import Typography from '@tiptap/extension-typography'
-import Underline from '@tiptap/extension-underline'
-import TextAlign from '@tiptap/extension-text-align'
-import { TextStyle } from '@tiptap/extension-text-style'
-import Color from '@tiptap/extension-color'
-import { common, createLowlight } from 'lowlight'
 import { useCallback, useEffect, useState } from 'react'
 
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
+import Color from '@tiptap/extension-color'
+import Highlight from '@tiptap/extension-highlight'
+import Link from '@tiptap/extension-link'
+import Placeholder from '@tiptap/extension-placeholder'
+import { Table } from '@tiptap/extension-table'
+import TableCell from '@tiptap/extension-table-cell'
+import TableHeader from '@tiptap/extension-table-header'
+import TableRow from '@tiptap/extension-table-row'
+import TaskItem from '@tiptap/extension-task-item'
+import TaskList from '@tiptap/extension-task-list'
+import TextAlign from '@tiptap/extension-text-align'
+import { TextStyle } from '@tiptap/extension-text-style'
+import Typography from '@tiptap/extension-typography'
+import Underline from '@tiptap/extension-underline'
+import { EditorContent, useEditor } from '@tiptap/react'
+import { BubbleMenu } from '@tiptap/react/menus'
+import StarterKit from '@tiptap/starter-kit'
+import { common, createLowlight } from 'lowlight'
+
 import './tiptap-editor.css'
-import { ResizableImage } from './resizable-image'
 
 import {
-  Bold,
-  Italic,
-  Underline as UnderlineIcon,
-  Strikethrough,
-  Code,
-  Heading1,
-  Heading2,
-  Heading3,
-  List,
-  ListOrdered,
-  CheckSquare,
-  Quote,
-  Minus,
-  Image as ImageIcon,
-  Link as LinkIcon,
-  Table as TableIcon,
-  AlignLeft,
   AlignCenter,
+  AlignLeft,
   AlignRight,
-  Highlighter,
-  Undo,
-  Redo,
-  Copy,
-  Check,
-  Plus,
-  Trash2,
-  ArrowUp,
   ArrowDown,
   ArrowLeft,
   ArrowRight,
+  ArrowUp,
+  Bold,
+  Check,
+  CheckSquare,
+  Code,
+  Copy,
+  Heading1,
+  Heading2,
+  Heading3,
+  Highlighter,
+  Image as ImageIcon,
+  Italic,
+  Link as LinkIcon,
+  List,
+  ListOrdered,
+  Minus,
+  Plus,
+  Quote,
+  Redo,
+  Strikethrough,
+  Table as TableIcon,
+  Trash2,
+  Underline as UnderlineIcon,
+  Undo,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
+
+import { ResizableImage } from './resizable-image'
 import { SlashCommands } from './slash-commands'
 
 // Create lowlight instance with common languages
@@ -155,16 +157,20 @@ export function TiptapEditor({
         // Handle image drops
         if (!moved && event.dataTransfer?.files.length) {
           const files = Array.from(event.dataTransfer.files)
-          const images = files.filter(file => file.type.startsWith('image/'))
-          
+          const images = files.filter((file) => file.type.startsWith('image/'))
+
           if (images.length > 0) {
             event.preventDefault()
-            images.forEach(image => {
+            images.forEach((image) => {
               const reader = new FileReader()
               reader.onload = (e) => {
                 const result = e.target?.result
                 if (typeof result === 'string') {
-                  editor?.chain().focus().insertContent({ type: 'image', attrs: { src: result } }).run()
+                  editor
+                    ?.chain()
+                    .focus()
+                    .insertContent({ type: 'image', attrs: { src: result } })
+                    .run()
                 }
               }
               reader.readAsDataURL(image)
@@ -177,18 +183,22 @@ export function TiptapEditor({
       handlePaste: (view, event) => {
         // Handle image pastes
         const items = Array.from(event.clipboardData?.items || [])
-        const images = items.filter(item => item.type.startsWith('image/'))
-        
+        const images = items.filter((item) => item.type.startsWith('image/'))
+
         if (images.length > 0) {
           event.preventDefault()
-          images.forEach(item => {
+          images.forEach((item) => {
             const file = item.getAsFile()
             if (file) {
               const reader = new FileReader()
               reader.onload = (e) => {
                 const result = e.target?.result
                 if (typeof result === 'string') {
-                  editor?.chain().focus().insertContent({ type: 'image', attrs: { src: result } }).run()
+                  editor
+                    ?.chain()
+                    .focus()
+                    .insertContent({ type: 'image', attrs: { src: result } })
+                    .run()
                 }
               }
               reader.readAsDataURL(file)
@@ -217,11 +227,11 @@ export function TiptapEditor({
         if (editor.isActive('codeBlock')) {
           e.preventDefault()
           e.stopPropagation()
-          
+
           // Find the code block node position
           const { state } = editor
           const { $from } = state.selection
-          
+
           // Walk up to find the codeBlock node
           for (let depth = $from.depth; depth >= 0; depth--) {
             const node = $from.node(depth)
@@ -239,15 +249,23 @@ export function TiptapEditor({
       if (e.key === 'Tab' && !e.shiftKey) {
         if (editor.isActive('taskItem') || editor.isActive('listItem')) {
           e.preventDefault()
-          editor.chain().focus().sinkListItem(editor.isActive('taskItem') ? 'taskItem' : 'listItem').run()
+          editor
+            .chain()
+            .focus()
+            .sinkListItem(editor.isActive('taskItem') ? 'taskItem' : 'listItem')
+            .run()
         }
       }
-      
+
       // Shift+Tab for outdenting
       if (e.key === 'Tab' && e.shiftKey) {
         if (editor.isActive('taskItem') || editor.isActive('listItem')) {
           e.preventDefault()
-          editor.chain().focus().liftListItem(editor.isActive('taskItem') ? 'taskItem' : 'listItem').run()
+          editor
+            .chain()
+            .focus()
+            .liftListItem(editor.isActive('taskItem') ? 'taskItem' : 'listItem')
+            .run()
         }
       }
     }
@@ -284,7 +302,11 @@ export function TiptapEditor({
         reader.onload = (e) => {
           const result = e.target?.result
           if (typeof result === 'string') {
-            editor?.chain().focus().insertContent({ type: 'image', attrs: { src: result } }).run()
+            editor
+              ?.chain()
+              .focus()
+              .insertContent({ type: 'image', attrs: { src: result } })
+              .run()
           }
         }
         reader.readAsDataURL(file)
@@ -297,13 +319,13 @@ export function TiptapEditor({
     if (!editor) return
     const previousUrl = editor.getAttributes('link').href
     const url = window.prompt('URL', previousUrl)
-    
+
     if (url === null) return
     if (url === '') {
       editor.chain().focus().extendMarkRange('link').unsetLink().run()
       return
     }
-    
+
     editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
   }, [editor])
 
@@ -506,12 +528,8 @@ export function TiptapEditor({
             </button>
           </div>
 
-          <div className="ml-auto toolbar-group">
-            <button
-              onClick={copyAsHTML}
-              className={cn('toolbar-btn', isCopied && 'is-copied')}
-              title="Copy as HTML"
-            >
+          <div className="toolbar-group ml-auto">
+            <button onClick={copyAsHTML} className={cn('toolbar-btn', isCopied && 'is-copied')} title="Copy as HTML">
               {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             </button>
           </div>
@@ -520,10 +538,7 @@ export function TiptapEditor({
 
       {/* Bubble Menu - appears when text is selected */}
       {editor && editable && (
-        <BubbleMenu
-          editor={editor}
-          className="bubble-menu"
-        >
+        <BubbleMenu editor={editor} className="bubble-menu">
           <button
             onClick={() => editor.chain().focus().toggleBold().run()}
             className={cn('bubble-btn', editor.isActive('bold') && 'is-active')}
@@ -560,10 +575,7 @@ export function TiptapEditor({
           >
             <Highlighter className="h-4 w-4" />
           </button>
-          <button
-            onClick={setLink}
-            className={cn('bubble-btn', editor.isActive('link') && 'is-active')}
-          >
+          <button onClick={setLink} className={cn('bubble-btn', editor.isActive('link') && 'is-active')}>
             <LinkIcon className="h-4 w-4" />
           </button>
         </BubbleMenu>
@@ -638,7 +650,7 @@ export function TiptapEditor({
       )}
 
       {/* Editor Content */}
-      <EditorContent editor={editor} className="flex-1 flex flex-col min-h-0" />
+      <EditorContent editor={editor} className="flex min-h-0 flex-1 flex-col" />
     </div>
   )
 }

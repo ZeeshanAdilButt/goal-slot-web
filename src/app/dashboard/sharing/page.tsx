@@ -8,6 +8,7 @@ import { toast } from 'react-hot-toast'
 
 import { sharingApi } from '@/lib/api'
 import { cn, formatDate } from '@/lib/utils'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 import { SharedReportsView } from './shared-reports-view'
 
@@ -141,18 +142,14 @@ export default function SharingPage() {
           onClick={() => setActiveTab('my')}
           className={cn(
             'px-6 py-3 font-bold uppercase transition-colors border-b-4 -mb-[3px]',
-            activeTab === 'my'
-              ? 'border-primary bg-primary text-secondary'
-              : 'border-transparent hover:bg-gray-100',
+            activeTab === 'my' ? 'border-primary bg-primary text-secondary' : 'border-transparent hover:bg-gray-100',
           )}
         >
           <div className="flex items-center gap-2">
             <Share2 className="h-5 w-5" />
             My
             {activeShares.length > 0 && (
-              <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-white">
-                {activeShares.length}
-              </span>
+              <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-white">{activeShares.length}</span>
             )}
           </div>
         </button>
@@ -169,9 +166,7 @@ export default function SharingPage() {
             <Users className="h-5 w-5" />
             Shared with me
             {sharedWithMe.length > 0 && (
-              <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-white">
-                {sharedWithMe.length}
-              </span>
+              <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-white">{sharedWithMe.length}</span>
             )}
           </div>
         </button>
@@ -198,7 +193,8 @@ export default function SharingPage() {
                   <div className="font-bold">{invite.owner?.name || invite.ownerName}</div>
                   <div className="font-mono text-sm opacity-75">{invite.owner?.email || invite.ownerEmail}</div>
                   <div className="mt-1 font-mono text-xs">
-                    {invite.accessLevel === 'VIEW' ? '👁️ View their reports' : '📊 View their reports'} • {formatDate(invite.createdAt)}
+                    {invite.accessLevel === 'VIEW' ? '👁️ View their reports' : '📊 View their reports'} •{' '}
+                    {formatDate(invite.createdAt)}
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -397,97 +393,73 @@ function InviteModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose:
   }
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="absolute inset-0 bg-black/50"
-          />
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="modal-brutal max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold uppercase">Invite User</DialogTitle>
+        </DialogHeader>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="modal-brutal relative z-10 w-full max-w-md"
-          >
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold uppercase">Invite User</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="mb-2 block text-sm font-bold uppercase">Email Address</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="colleague@example.com"
+              className="input-brutal"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-bold uppercase">Access Level</label>
+            <div className="grid grid-cols-2 gap-4">
               <button
-                onClick={onClose}
-                className="flex h-10 w-10 items-center justify-center border-3 border-secondary hover:bg-gray-100"
+                type="button"
+                onClick={() => setAccessLevel('VIEW')}
+                className={cn(
+                  'p-4 border-3 border-secondary text-left transition-all',
+                  accessLevel === 'VIEW' ? 'bg-primary shadow-brutal-sm' : 'bg-white hover:bg-gray-100',
+                )}
               >
-                <X className="h-5 w-5" />
+                <Eye className="mb-2 h-6 w-6" />
+                <div className="font-bold uppercase">View Only</div>
+                <div className="font-mono text-xs text-gray-600">Can view your data</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setAccessLevel('EDIT')}
+                className={cn(
+                  'p-4 border-3 border-secondary text-left transition-all',
+                  accessLevel === 'EDIT' ? 'bg-primary shadow-brutal-sm' : 'bg-white hover:bg-gray-100',
+                )}
+              >
+                <Edit3 className="mb-2 h-6 w-6" />
+                <div className="font-bold uppercase">Can Edit</div>
+                <div className="font-mono text-xs text-gray-600">Can modify your data</div>
               </button>
             </div>
+          </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="mb-2 block text-sm font-bold uppercase">Email Address</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="colleague@example.com"
-                  className="input-brutal"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-bold uppercase">Access Level</label>
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setAccessLevel('VIEW')}
-                    className={cn(
-                      'p-4 border-3 border-secondary text-left transition-all',
-                      accessLevel === 'VIEW' ? 'bg-primary shadow-brutal-sm' : 'bg-white hover:bg-gray-100',
-                    )}
-                  >
-                    <Eye className="mb-2 h-6 w-6" />
-                    <div className="font-bold uppercase">View Only</div>
-                    <div className="font-mono text-xs text-gray-600">Can view your data</div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAccessLevel('EDIT')}
-                    className={cn(
-                      'p-4 border-3 border-secondary text-left transition-all',
-                      accessLevel === 'EDIT' ? 'bg-primary shadow-brutal-sm' : 'bg-white hover:bg-gray-100',
-                    )}
-                  >
-                    <Edit3 className="mb-2 h-6 w-6" />
-                    <div className="font-bold uppercase">Can Edit</div>
-                    <div className="font-mono text-xs text-gray-600">Can modify your data</div>
-                  </button>
-                </div>
-              </div>
-
-              <div className="border-2 border-secondary bg-gray-50 p-4">
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-accent-orange" />
-                  <p className="font-mono text-sm text-gray-600">
-                    The invited user will receive an email notification. They must accept the invite to gain access.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-4 pt-4">
-                <button type="button" onClick={onClose} className="btn-brutal-secondary flex-1">
-                  Cancel
-                </button>
-                <button type="submit" disabled={isLoading} className="btn-brutal-dark flex-1">
-                  {isLoading ? 'Sending...' : 'Send Invite'}
-                </button>
-              </div>
-            </form>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+          <div className="border-2 border-secondary bg-gray-50 p-4">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-accent-orange" />
+              <p className="font-mono text-sm text-gray-600">
+                The invited user will receive an email notification. They must accept the invite to gain access.
+              </p>
+            </div>
+          </div>
+        </form>
+        <DialogFooter className="flex-row gap-4 pt-4">
+          <button type="button" onClick={onClose} className="btn-brutal-secondary flex-1">
+            Cancel
+          </button>
+          <button type="submit" disabled={isLoading} className="btn-brutal-dark flex-1">
+            {isLoading ? 'Sending...' : 'Send Invite'}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

@@ -1,75 +1,69 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
-import {
-  Star,
-  StarOff,
-  MoreHorizontal,
-  Trash2,
-  Link as LinkIcon,
-  Copy,
-  Check,
-  Download,
-} from 'lucide-react'
-
-import { Note, NOTE_ICONS, NOTE_COLORS } from '../utils/types'
-import { useUpdateNoteMutation, useDeleteNoteMutation } from '../hooks/use-notes'
-import { TiptapEditor } from '@/components/tiptap-editor'
+import { Check, Copy, Download, Link as LinkIcon, MoreHorizontal, Star, StarOff, Trash2 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { ConfirmDialog } from '@/components/confirm-dialog'
+import { TiptapEditor } from '@/components/tiptap-editor'
+
+import { useDeleteNoteMutation, useUpdateNoteMutation } from '../hooks/use-notes'
+import { Note, NOTE_COLORS, NOTE_ICONS } from '../utils/types'
 
 // Convert old block-based JSON content to HTML
 function convertOldContentToHtml(content: string): string {
   if (!content) return '<p></p>'
-  
+
   // If it's already HTML (starts with < and not JSON), return as-is
   if (content.trim().startsWith('<')) {
     return content
   }
-  
+
   // Try to parse as JSON (old block format)
   try {
     const blocks = JSON.parse(content)
     if (!Array.isArray(blocks)) {
       return `<p>${content}</p>`
     }
-    
-    return blocks.map((block: any) => {
-      const blockContent = block.content || ''
-      switch (block.type) {
-        case 'heading1':
-          return `<h1>${blockContent}</h1>`
-        case 'heading2':
-          return `<h2>${blockContent}</h2>`
-        case 'heading3':
-          return `<h3>${blockContent}</h3>`
-        case 'bulletList':
-          return `<ul><li>${blockContent}</li></ul>`
-        case 'numberedList':
-          return `<ol><li>${blockContent}</li></ol>`
-        case 'todoList':
-        case 'todo':
-          const checked = block.checked ? 'checked' : ''
-          return `<ul data-type="taskList"><li data-type="taskItem" data-checked="${block.checked || false}"><label><input type="checkbox" ${checked}><span></span></label><div>${blockContent}</div></li></ul>`
-        case 'quote':
-        case 'blockquote':
-          return `<blockquote>${blockContent}</blockquote>`
-        case 'code':
-        case 'codeBlock':
-          return `<pre><code>${blockContent}</code></pre>`
-        case 'divider':
-          return '<hr>'
-        case 'image':
-          return block.url ? `<img src="${block.url}" alt="${block.alt || ''}" />` : ''
-        case 'toggleList':
-          return `<details><summary>${block.title || ''}</summary><p>${blockContent}</p></details>`
-        case 'paragraph':
-        default:
-          return blockContent ? `<p>${blockContent}</p>` : '<p></p>'
-      }
-    }).join('')
+
+    return blocks
+      .map((block: any) => {
+        const blockContent = block.content || ''
+        switch (block.type) {
+          case 'heading1':
+            return `<h1>${blockContent}</h1>`
+          case 'heading2':
+            return `<h2>${blockContent}</h2>`
+          case 'heading3':
+            return `<h3>${blockContent}</h3>`
+          case 'bulletList':
+            return `<ul><li>${blockContent}</li></ul>`
+          case 'numberedList':
+            return `<ol><li>${blockContent}</li></ol>`
+          case 'todoList':
+          case 'todo':
+            const checked = block.checked ? 'checked' : ''
+            return `<ul data-type="taskList"><li data-type="taskItem" data-checked="${block.checked || false}"><label><input type="checkbox" ${checked}><span></span></label><div>${blockContent}</div></li></ul>`
+          case 'quote':
+          case 'blockquote':
+            return `<blockquote>${blockContent}</blockquote>`
+          case 'code':
+          case 'codeBlock':
+            return `<pre><code>${blockContent}</code></pre>`
+          case 'divider':
+            return '<hr>'
+          case 'image':
+            return block.url ? `<img src="${block.url}" alt="${block.alt || ''}" />` : ''
+          case 'toggleList':
+            return `<details><summary>${block.title || ''}</summary><p>${blockContent}</p></details>`
+          case 'paragraph':
+          default:
+            return blockContent ? `<p>${blockContent}</p>` : '<p></p>'
+        }
+      })
+      .join('')
   } catch {
     // If JSON parse fails, treat as plain text
     return `<p>${content}</p>`
@@ -77,10 +71,7 @@ function convertOldContentToHtml(content: string): string {
 }
 
 // Custom debounce hook
-function useDebounce<T extends (...args: any[]) => void>(
-  callback: T,
-  delay: number
-): T {
+function useDebounce<T extends (...args: any[]) => void>(callback: T, delay: number): T {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const callbackRef = useRef(callback)
 
@@ -106,7 +97,7 @@ function useDebounce<T extends (...args: any[]) => void>(
         callbackRef.current(...args)
       }, delay)
     },
-    [delay]
+    [delay],
   ) as T
 }
 
@@ -123,6 +114,7 @@ export function NoteEditor({ note, onDelete }: NoteEditorProps) {
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const [copySuccess, setCopySuccess] = useState<string | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const isInitialized = useRef(false)
   const noteIdRef = useRef(note.id)
   const [editorContent, setEditorContent] = useState(() => convertOldContentToHtml(note.content || ''))
@@ -142,7 +134,7 @@ export function NoteEditor({ note, onDelete }: NoteEditorProps) {
         updateMutation.mutate({ id: noteIdRef.current, data: { title: newTitle } })
       }
     },
-    [note.title, updateMutation]
+    [note.title, updateMutation],
   )
 
   const debouncedSaveTitle = useDebounce(saveTitle, 500)
@@ -160,7 +152,7 @@ export function NoteEditor({ note, onDelete }: NoteEditorProps) {
       if (!isInitialized.current) return
       updateMutation.mutate({ id: noteIdRef.current, data: { content: html } })
     },
-    [updateMutation]
+    [updateMutation],
   )
 
   const debouncedSaveContent = useDebounce(saveContent, 1000)
@@ -170,7 +162,7 @@ export function NoteEditor({ note, onDelete }: NoteEditorProps) {
       setEditorContent(html)
       debouncedSaveContent(html)
     },
-    [debouncedSaveContent]
+    [debouncedSaveContent],
   )
 
   // Handle icon change
@@ -192,14 +184,16 @@ export function NoteEditor({ note, onDelete }: NoteEditorProps) {
 
   // Delete note
   const handleDelete = () => {
-    if (window.confirm('Delete this note? This cannot be undone.')) {
-      deleteMutation.mutate(note.id, {
-        onSuccess: () => {
-          onDelete?.()
-        },
-      })
-    }
+    setShowDeleteConfirm(true)
     setShowMenu(false)
+  }
+
+  const confirmDelete = () => {
+    deleteMutation.mutate(note.id, {
+      onSuccess: () => {
+        onDelete?.()
+      },
+    })
   }
 
   // Copy note link
@@ -264,8 +258,8 @@ export function NoteEditor({ note, onDelete }: NoteEditorProps) {
   return (
     <div className={cn('flex h-full flex-col', colorConfig.bg)}>
       {/* Header */}
-      <div className="flex items-center justify-between border-b-2 border-border px-4 py-3 shrink-0">
-        <div className="flex items-center gap-3 flex-1 min-w-0">
+      <div className="flex shrink-0 items-center justify-between border-b-2 border-border px-4 py-3">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
           {/* Icon picker */}
           <Popover open={showIconPicker} onOpenChange={setShowIconPicker}>
             <PopoverTrigger asChild>
@@ -281,7 +275,7 @@ export function NoteEditor({ note, onDelete }: NoteEditorProps) {
                     onClick={() => handleIconChange(icon)}
                     className={cn(
                       'flex h-8 w-8 items-center justify-center rounded text-lg hover:bg-muted',
-                      note.icon === icon && 'bg-primary text-primary-foreground'
+                      note.icon === icon && 'bg-primary text-primary-foreground',
                     )}
                   >
                     {icon}
@@ -297,11 +291,11 @@ export function NoteEditor({ note, onDelete }: NoteEditorProps) {
             value={title}
             onChange={handleTitleChange}
             placeholder="Untitled"
-            className="flex-1 min-w-0 bg-transparent text-xl font-bold outline-none placeholder:text-muted-foreground"
+            className="min-w-0 flex-1 bg-transparent text-xl font-bold outline-none placeholder:text-muted-foreground"
           />
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex shrink-0 items-center gap-2">
           {/* Copy success indicator */}
           {copySuccess && (
             <div className="flex items-center gap-1 rounded-md bg-green-100 px-2 py-1 text-xs text-green-700 dark:bg-green-900 dark:text-green-300">
@@ -317,15 +311,11 @@ export function NoteEditor({ note, onDelete }: NoteEditorProps) {
               'flex h-9 w-9 items-center justify-center rounded-lg border-2 border-border transition-colors',
               note.isFavorite
                 ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-400'
-                : 'bg-card hover:bg-muted'
+                : 'bg-card hover:bg-muted',
             )}
             title={note.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
           >
-            {note.isFavorite ? (
-              <Star className="h-4 w-4 fill-current" />
-            ) : (
-              <StarOff className="h-4 w-4" />
-            )}
+            {note.isFavorite ? <Star className="h-4 w-4 fill-current" /> : <StarOff className="h-4 w-4" />}
           </button>
 
           {/* Color picker */}
@@ -335,9 +325,7 @@ export function NoteEditor({ note, onDelete }: NoteEditorProps) {
                 className="flex h-9 w-9 items-center justify-center rounded-lg border-2 border-border bg-card transition-colors hover:bg-muted"
                 title="Change color"
               >
-                <div
-                  className={cn('h-5 w-5 rounded-full border-2', colorConfig.border, colorConfig.bg)}
-                />
+                <div className={cn('h-5 w-5 rounded-full border-2', colorConfig.border, colorConfig.bg)} />
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-48 p-2" align="end">
@@ -350,7 +338,7 @@ export function NoteEditor({ note, onDelete }: NoteEditorProps) {
                       'flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all',
                       color.border,
                       color.bg,
-                      note.color === color.value && 'ring-2 ring-primary ring-offset-2'
+                      note.color === color.value && 'ring-2 ring-primary ring-offset-2',
                     )}
                     title={color.label}
                   />
@@ -405,7 +393,7 @@ export function NoteEditor({ note, onDelete }: NoteEditorProps) {
       </div>
 
       {/* Content - Tiptap Editor */}
-      <div className="flex-1 overflow-hidden min-h-0">
+      <div className="min-h-0 flex-1 overflow-hidden">
         <div className="h-full px-4 py-2">
           <TiptapEditor
             key={note.id}
@@ -418,14 +406,22 @@ export function NoteEditor({ note, onDelete }: NoteEditorProps) {
       </div>
 
       {/* Footer with metadata */}
-      <div className="flex items-center justify-between border-t border-border/50 px-4 py-2 text-xs text-muted-foreground shrink-0">
-        <span>
-          Created: {new Date(note.createdAt).toLocaleDateString()}
-        </span>
-        <span>
-          Last updated: {new Date(note.updatedAt).toLocaleString()}
-        </span>
+      <div className="flex shrink-0 items-center justify-between border-t border-border/50 px-4 py-2 text-xs text-muted-foreground">
+        <span>Created: {new Date(note.createdAt).toLocaleDateString()}</span>
+        <span>Last updated: {new Date(note.updatedAt).toLocaleString()}</span>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Delete Note"
+        description="Delete this note? This cannot be undone."
+        onConfirm={confirmDelete}
+        confirmButtonText="Delete"
+        variant="destructive"
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   )
 }

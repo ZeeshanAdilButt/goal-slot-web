@@ -147,7 +147,7 @@ export const stripeApi = {
 // Users API (Admin)
 export const usersApi = {
   getProfile: () => api.get('/users/profile'),
-  updateProfile: (data: { name?: string; avatar?: string; preferences?: any }) => api.put('/users/profile', data),
+  updateProfile: (data: { name?: string; avatar?: string }) => api.put('/users/profile', data),
   changePassword: (currentPassword: string, newPassword: string) =>
     api.put('/users/password', { currentPassword, newPassword }),
   deleteAccount: () => api.delete('/users/account'),

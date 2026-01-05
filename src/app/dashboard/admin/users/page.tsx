@@ -3,7 +3,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from 'react'
 
-import { AnimatePresence, motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   BadgeCheck,
   BadgeX,
@@ -27,14 +27,13 @@ import {
   UserCheck,
   UserPlus,
   Users,
-  X,
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { usersApi } from '@/lib/api'
 import { useAuthStore } from '@/lib/store'
 import { cn } from '@/lib/utils'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +41,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface User {
   id: string
@@ -109,11 +109,11 @@ export default function AdminUsersPage() {
   const [totalUsers, setTotalUsers] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
-  
+
   // Modal states
   const [modalType, setModalType] = useState<ModalType>(null)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  
+
   // Create user form
   const [newUser, setNewUser] = useState<CreateUserData>({
     email: '',
@@ -121,14 +121,14 @@ export default function AdminUsersPage() {
     name: '',
     role: 'USER',
   })
-  
+
   // Disable user form
   const [disableReason, setDisableReason] = useState('')
-  
+
   // Assign plan form
   const [assignPlan, setAssignPlan] = useState<'FREE' | 'BASIC' | 'PRO'>('FREE')
   const [assignPlanNote, setAssignPlanNote] = useState('')
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
@@ -203,9 +203,9 @@ export default function AdminUsersPage() {
 
     setIsSubmitting(true)
     try {
-      await usersApi.toggleStatus(user.id, { 
-        isDisabled: disable, 
-        reason: disable ? disableReason : undefined 
+      await usersApi.toggleStatus(user.id, {
+        isDisabled: disable,
+        reason: disable ? disableReason : undefined,
       })
       toast.success(disable ? 'User disabled' : 'User enabled')
       closeModal()
@@ -224,9 +224,9 @@ export default function AdminUsersPage() {
 
     setIsSubmitting(true)
     try {
-      await usersApi.assignPlan(selectedUser.id, { 
-        plan: assignPlan, 
-        note: assignPlanNote || undefined 
+      await usersApi.assignPlan(selectedUser.id, {
+        plan: assignPlan,
+        note: assignPlanNote || undefined,
       })
       toast.success(`${assignPlan} plan assigned to ${selectedUser.name}`)
       closeModal()
@@ -457,194 +457,187 @@ export default function AdminUsersPage() {
               </thead>
               <tbody className="divide-y-2 divide-gray-200">
                 {users.map((user) => (
-                  <tr 
-                    key={user.id} 
-                    className={cn(
-                      'transition-colors hover:bg-gray-50',
-                      user.isDisabled && 'bg-red-50 opacity-75'
-                    )}
+                  <tr
+                    key={user.id}
+                    className={cn('transition-colors hover:bg-gray-50', user.isDisabled && 'bg-red-50 opacity-75')}
                   >
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
-                        <div className={cn(
-                          "flex h-10 w-10 items-center justify-center border-2 border-black text-lg font-black",
-                          user.isDisabled ? 'bg-gray-300' : 'bg-primary'
-                        )}>
-                        {user.name.charAt(0).toUpperCase()}
+                        <div
+                          className={cn(
+                            'flex h-10 w-10 items-center justify-center border-2 border-black text-lg font-black',
+                            user.isDisabled ? 'bg-gray-300' : 'bg-primary',
+                          )}
+                        >
+                          {user.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-bold">{user.name}</p>
+                          <p className="flex items-center gap-1 text-sm text-gray-500">
+                            <Mail className="h-3 w-3" />
+                            {user.email}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-bold">{user.name}</p>
-                        <p className="flex items-center gap-1 text-sm text-gray-500">
-                          <Mail className="h-3 w-3" />
-                          {user.email}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <span
-                      className={cn(
-                        'inline-flex items-center gap-1 border-2 px-2 py-1 text-xs font-bold uppercase',
-                        user.isDisabled 
-                          ? 'border-red-400 bg-red-200 text-red-800' 
-                          : 'border-green-400 bg-green-200 text-green-800'
-                      )}
-                    >
-                      {user.isDisabled ? (
-                        <>
-                          <Ban className="h-3 w-3" />
-                          Disabled
-                        </>
-                      ) : (
-                        <>
-                          <UserCheck className="h-3 w-3" />
-                          Active
-                        </>
-                      )}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4">
-                    <span
-                      className={cn(
-                        'inline-flex items-center gap-1 border-2 px-2 py-1 text-xs font-bold uppercase',
-                        getRoleBadge(user.role),
-                      )}
-                    >
-                      {getRoleIcon(user.role)}
-                      {user.role.replace('_', ' ')}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="flex items-center gap-2">
+                    </td>
+                    <td className="px-4 py-4">
                       <span
                         className={cn(
-                          'border-2 px-2 py-1 text-xs font-bold uppercase',
-                          getPlanBadge(user.plan, user.unlimitedAccess, user.adminAssignedPlan),
+                          'inline-flex items-center gap-1 border-2 px-2 py-1 text-xs font-bold uppercase',
+                          user.isDisabled
+                            ? 'border-red-400 bg-red-200 text-red-800'
+                            : 'border-green-400 bg-green-200 text-green-800',
                         )}
                       >
-                        {user.adminAssignedPlan ? `${user.plan} (ADMIN)` : user.plan}
+                        {user.isDisabled ? (
+                          <>
+                            <Ban className="h-3 w-3" />
+                            Disabled
+                          </>
+                        ) : (
+                          <>
+                            <UserCheck className="h-3 w-3" />
+                            Active
+                          </>
+                        )}
                       </span>
-                      {user.userType === 'INTERNAL' && (
-                        <span className="text-xs text-green-600">INTERNAL</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <button
-                      onClick={() => handleToggleEmailVerified(user)}
-                      disabled={actionLoading === user.id}
-                      className={cn(
-                        'inline-flex items-center gap-1 border-2 px-2 py-1 text-xs font-bold uppercase transition-colors',
-                        user.emailVerified
-                          ? 'border-green-400 bg-green-200 text-green-800 hover:bg-green-300'
-                          : 'border-orange-400 bg-orange-200 text-orange-800 hover:bg-orange-300'
-                      )}
-                    >
-                      {actionLoading === user.id ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : user.emailVerified ? (
-                        <>
-                          <MailCheck className="h-3 w-3" />
-                          Verified
-                        </>
-                      ) : (
-                        <>
-                          <MailX className="h-3 w-3" />
-                          Unverified
-                        </>
-                      )}
-                    </button>
-                  </td>
-                  <td className="px-4 py-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="flex items-center justify-end gap-2">
-                      {actionLoading === user.id ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                      ) : (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button 
-                              type="button"
-                              className="cursor-pointer border-2 border-black p-2 transition-colors hover:bg-gray-100"
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-56">
-                            <DropdownMenuItem onClick={() => openModal('details', user)}>
-                              <Eye className="mr-2 h-4 w-4" />
-                              View Details
-                            </DropdownMenuItem>
-                            
-                            <DropdownMenuSeparator />
-                            
-                            {/* Plan Assignment */}
-                            <DropdownMenuItem onClick={() => openModal('assignPlan', user)}>
-                              <Sparkles className="mr-2 h-4 w-4" />
-                              Assign Plan
-                            </DropdownMenuItem>
-                            
-                            <DropdownMenuSeparator />
-                            
-                            {/* Enable/Disable */}
-                            {user.isDisabled ? (
-                              <DropdownMenuItem 
-                                onClick={() => handleQuickEnable(user)}
-                                className="text-green-600"
+                    </td>
+                    <td className="px-4 py-4">
+                      <span
+                        className={cn(
+                          'inline-flex items-center gap-1 border-2 px-2 py-1 text-xs font-bold uppercase',
+                          getRoleBadge(user.role),
+                        )}
+                      >
+                        {getRoleIcon(user.role)}
+                        {user.role.replace('_', ' ')}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={cn(
+                            'border-2 px-2 py-1 text-xs font-bold uppercase',
+                            getPlanBadge(user.plan, user.unlimitedAccess, user.adminAssignedPlan),
+                          )}
+                        >
+                          {user.adminAssignedPlan ? `${user.plan} (ADMIN)` : user.plan}
+                        </span>
+                        {user.userType === 'INTERNAL' && <span className="text-xs text-green-600">INTERNAL</span>}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <button
+                        onClick={() => handleToggleEmailVerified(user)}
+                        disabled={actionLoading === user.id}
+                        className={cn(
+                          'inline-flex items-center gap-1 border-2 px-2 py-1 text-xs font-bold uppercase transition-colors',
+                          user.emailVerified
+                            ? 'border-green-400 bg-green-200 text-green-800 hover:bg-green-300'
+                            : 'border-orange-400 bg-orange-200 text-orange-800 hover:bg-orange-300',
+                        )}
+                      >
+                        {actionLoading === user.id ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : user.emailVerified ? (
+                          <>
+                            <MailCheck className="h-3 w-3" />
+                            Verified
+                          </>
+                        ) : (
+                          <>
+                            <MailX className="h-3 w-3" />
+                            Unverified
+                          </>
+                        )}
+                      </button>
+                    </td>
+                    <td className="px-4 py-4 text-sm text-gray-600">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(user.createdAt).toLocaleDateString()}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        {actionLoading === user.id ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                type="button"
+                                className="cursor-pointer border-2 border-black p-2 transition-colors hover:bg-gray-100"
                               >
-                                <UserCheck className="mr-2 h-4 w-4" />
-                                Enable User
+                                <MoreHorizontal className="h-4 w-4" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56">
+                              <DropdownMenuItem onClick={() => openModal('details', user)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Details
                               </DropdownMenuItem>
-                            ) : (
-                              user.role !== 'SUPER_ADMIN' && (
-                                <DropdownMenuItem 
-                                  onClick={() => openModal('disable', user)}
-                                  className="text-red-600"
-                                >
-                                  <Ban className="mr-2 h-4 w-4" />
-                                  Disable User
+
+                              <DropdownMenuSeparator />
+
+                              {/* Plan Assignment */}
+                              <DropdownMenuItem onClick={() => openModal('assignPlan', user)}>
+                                <Sparkles className="mr-2 h-4 w-4" />
+                                Assign Plan
+                              </DropdownMenuItem>
+
+                              <DropdownMenuSeparator />
+
+                              {/* Enable/Disable */}
+                              {user.isDisabled ? (
+                                <DropdownMenuItem onClick={() => handleQuickEnable(user)} className="text-green-600">
+                                  <UserCheck className="mr-2 h-4 w-4" />
+                                  Enable User
                                 </DropdownMenuItem>
-                              )
-                            )}
-                            
-                            {/* Role Management - Super Admin Only */}
-                            {isSuperAdmin && user.role !== 'SUPER_ADMIN' && (
-                              <>
-                                <DropdownMenuSeparator />
-                                {user.role === 'USER' ? (
-                                  <DropdownMenuItem 
-                                    onClick={() => handlePromote(user.id)}
-                                    className="text-purple-600"
-                                  >
-                                    <ShieldCheck className="mr-2 h-4 w-4" />
-                                    Promote to Admin
+                              ) : (
+                                user.role !== 'SUPER_ADMIN' && (
+                                  <DropdownMenuItem onClick={() => openModal('disable', user)} className="text-red-600">
+                                    <Ban className="mr-2 h-4 w-4" />
+                                    Disable User
                                   </DropdownMenuItem>
-                                ) : user.role === 'ADMIN' && (
-                                  <DropdownMenuItem 
-                                    onClick={() => handleDemote(user.id)}
-                                    className="text-orange-600"
-                                  >
-                                    <ShieldX className="mr-2 h-4 w-4" />
-                                    Demote to User
-                                  </DropdownMenuItem>
-                                )}
-                              </>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                                )
+                              )}
+
+                              {/* Role Management - Super Admin Only */}
+                              {isSuperAdmin && user.role !== 'SUPER_ADMIN' && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  {user.role === 'USER' ? (
+                                    <DropdownMenuItem
+                                      onClick={() => handlePromote(user.id)}
+                                      className="text-purple-600"
+                                    >
+                                      <ShieldCheck className="mr-2 h-4 w-4" />
+                                      Promote to Admin
+                                    </DropdownMenuItem>
+                                  ) : (
+                                    user.role === 'ADMIN' && (
+                                      <DropdownMenuItem
+                                        onClick={() => handleDemote(user.id)}
+                                        className="text-orange-600"
+                                      >
+                                        <ShieldX className="mr-2 h-4 w-4" />
+                                        Demote to User
+                                      </DropdownMenuItem>
+                                    )
+                                  )}
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
 
         {/* Pagination */}
@@ -674,382 +667,354 @@ export default function AdminUsersPage() {
       </motion.div>
 
       {/* Modals */}
-      <AnimatePresence>
-        {modalType && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-            onClick={closeModal}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="max-h-[90vh] w-full max-w-md overflow-y-auto border-4 border-black bg-white shadow-brutal"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Create User Modal */}
-              {modalType === 'create' && (
-                <>
-                  <div className="flex items-center justify-between border-b-4 border-black bg-primary p-4">
-                    <h2 className="text-xl font-black uppercase">Create Internal User</h2>
-                    <button onClick={closeModal}>
-                      <X className="h-6 w-6" />
-                    </button>
-                  </div>
-                  <form onSubmit={handleCreateUser} className="space-y-4 p-6">
-                    <div>
-                      <label className="mb-2 block text-sm font-bold uppercase">Name</label>
-                      <input
-                        type="text"
-                        value={newUser.name}
-                        onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-                        className="w-full border-4 border-black px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
-                        placeholder="John Doe"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-2 block text-sm font-bold uppercase">Email</label>
-                      <input
-                        type="email"
-                        value={newUser.email}
-                        onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                        className="w-full border-4 border-black px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
-                        placeholder="john@example.com"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-2 block text-sm font-bold uppercase">Password</label>
-                      <input
-                        type="password"
-                        value={newUser.password}
-                        onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                        className="w-full border-4 border-black px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
-                        placeholder="••••••••"
-                        required
-                        minLength={8}
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-2 block text-sm font-bold uppercase">Role</label>
-                      <Select
-                        value={newUser.role}
-                        onValueChange={(value) => setNewUser({ ...newUser, role: value as any })}
-                      >
-                        <SelectTrigger className="h-auto w-full rounded-none border-4 border-black px-4 py-2 font-medium shadow-none focus:ring-2 focus:ring-primary">
-                          <SelectValue placeholder="Select role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="USER">User</SelectItem>
-                          {isSuperAdmin && <SelectItem value="ADMIN">Admin</SelectItem>}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex gap-3 pt-4">
-                      <button
-                        type="button"
-                        onClick={closeModal}
-                        className="flex-1 border-4 border-black px-4 py-2 font-bold transition-colors hover:bg-gray-100"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="flex flex-1 items-center justify-center gap-2 border-4 border-black bg-primary px-4 py-2 font-bold shadow-brutal transition-all hover:shadow-brutal-sm disabled:opacity-50"
-                      >
-                        {isSubmitting ? (
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                        ) : (
-                          <>
-                            <Check className="h-5 w-5" />
-                            Create
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </form>
-                </>
-              )}
-
-              {/* Disable User Modal */}
-              {modalType === 'disable' && selectedUser && (
-                <>
-                  <div className="flex items-center justify-between border-b-4 border-black bg-red-500 p-4 text-white">
-                    <h2 className="text-xl font-black uppercase">Disable User</h2>
-                    <button onClick={closeModal}>
-                      <X className="h-6 w-6" />
-                    </button>
-                  </div>
-                  <div className="space-y-4 p-6">
-                    <p className="text-gray-600">
-                      You are about to disable <strong>{selectedUser.name}</strong> ({selectedUser.email}).
-                      They will not be able to log in until re-enabled.
-                    </p>
-                    <div>
-                      <label className="mb-2 block text-sm font-bold uppercase">Reason for Disabling *</label>
-                      <textarea
-                        value={disableReason}
-                        onChange={(e) => setDisableReason(e.target.value)}
-                        className="w-full border-4 border-black px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-red-500"
-                        placeholder="e.g., Violation of terms of service"
-                        rows={3}
-                        required
-                      />
-                    </div>
-                    <div className="flex gap-3 pt-4">
-                      <button
-                        type="button"
-                        onClick={closeModal}
-                        className="flex-1 border-4 border-black px-4 py-2 font-bold transition-colors hover:bg-gray-100"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={() => handleToggleStatus(selectedUser, true)}
-                        disabled={isSubmitting || !disableReason}
-                        className="flex flex-1 items-center justify-center gap-2 border-4 border-black bg-red-500 px-4 py-2 font-bold text-white shadow-brutal transition-all hover:bg-red-600 disabled:opacity-50"
-                      >
-                        {isSubmitting ? (
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                        ) : (
-                          <>
-                            <Ban className="h-5 w-5" />
-                            Disable
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {/* Assign Plan Modal */}
-              {modalType === 'assignPlan' && selectedUser && (
-                <>
-                  <div className="flex items-center justify-between border-b-4 border-black bg-primary p-4">
-                    <h2 className="text-xl font-black uppercase">Assign Plan</h2>
-                    <button onClick={closeModal}>
-                      <X className="h-6 w-6" />
-                    </button>
-                  </div>
-                  <div className="space-y-4 p-6">
-                    <p className="text-gray-600">
-                      Assign a subscription plan to <strong>{selectedUser.name}</strong>.
-                    </p>
-                    <div>
-                      <label className="mb-2 block text-sm font-bold uppercase">Plan</label>
-                      <Select
-                        value={assignPlan}
-                        onValueChange={(value) => setAssignPlan(value as any)}
-                      >
-                        <SelectTrigger className="h-auto w-full rounded-none border-4 border-black px-4 py-2 font-medium shadow-none focus:ring-2 focus:ring-primary">
-                          <SelectValue placeholder="Select plan" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="FREE">Free</SelectItem>
-                          <SelectItem value="BASIC">Basic ($7/mo features)</SelectItem>
-                          <SelectItem value="PRO">Pro ($5/mo features - Unlimited)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <label className="mb-2 block text-sm font-bold uppercase">Note (Optional)</label>
-                      <textarea
-                        value={assignPlanNote}
-                        onChange={(e) => setAssignPlanNote(e.target.value)}
-                        className="w-full border-4 border-black px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
-                        placeholder="e.g., Early adopter reward, Contest winner"
-                        rows={2}
-                      />
-                    </div>
-                    <div className="flex gap-3 pt-4">
-                      <button
-                        type="button"
-                        onClick={closeModal}
-                        className="flex-1 border-4 border-black px-4 py-2 font-bold transition-colors hover:bg-gray-100"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={handleAssignPlan}
-                        disabled={isSubmitting}
-                        className="flex flex-1 items-center justify-center gap-2 border-4 border-black bg-primary px-4 py-2 font-bold shadow-brutal transition-all hover:shadow-brutal-sm disabled:opacity-50"
-                      >
-                        {isSubmitting ? (
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                        ) : (
-                          <>
-                            <Sparkles className="h-5 w-5" />
-                            Assign
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {/* User Details Modal */}
-              {modalType === 'details' && selectedUser && (
-                <>
-                  <div className="flex items-center justify-between border-b-4 border-black bg-gray-100 p-4">
-                    <h2 className="text-xl font-black uppercase">User Details</h2>
-                    <button onClick={closeModal}>
-                      <X className="h-6 w-6" />
-                    </button>
-                  </div>
-                  <div className="space-y-4 p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-16 w-16 items-center justify-center border-4 border-black bg-primary text-2xl font-black">
-                        {selectedUser.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-black">{selectedUser.name}</h3>
-                        <p className="text-gray-600">{selectedUser.email}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-xs font-bold uppercase text-gray-500">Role</p>
-                        <p className="font-bold">{selectedUser.role.replace('_', ' ')}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold uppercase text-gray-500">Type</p>
-                        <p className="font-bold">{selectedUser.userType}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold uppercase text-gray-500">Plan</p>
-                        <p className="font-bold">{selectedUser.plan}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold uppercase text-gray-500">Status</p>
-                        <p className={cn('font-bold', selectedUser.isDisabled ? 'text-red-600' : 'text-green-600')}>
-                          {selectedUser.isDisabled ? 'Disabled' : 'Active'}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold uppercase text-gray-500">Email Verified</p>
-                        <p className={cn('font-bold', selectedUser.emailVerified ? 'text-green-600' : 'text-orange-600')}>
-                          {selectedUser.emailVerified ? 'Yes' : 'No'}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold uppercase text-gray-500">Unlimited Access</p>
-                        <p className="font-bold">{selectedUser.unlimitedAccess ? 'Yes' : 'No'}</p>
-                      </div>
-                    </div>
-
-                    {selectedUser.isDisabled && selectedUser.disabledReason && (
-                      <div className="border-4 border-red-300 bg-red-50 p-3">
-                        <p className="text-xs font-bold uppercase text-red-600">Disabled Reason</p>
-                        <p className="text-red-800">{selectedUser.disabledReason}</p>
-                        {selectedUser.disabledAt && (
-                          <p className="mt-1 text-xs text-red-600">
-                            Disabled on {new Date(selectedUser.disabledAt).toLocaleDateString()}
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {selectedUser.adminAssignedPlan && (
-                      <div className="border-4 border-emerald-300 bg-emerald-50 p-3">
-                        <p className="text-xs font-bold uppercase text-emerald-600">Admin Assigned Plan</p>
-                        <p className="font-bold text-emerald-800">{selectedUser.adminAssignedPlan}</p>
-                        {selectedUser.adminAssignedPlanNote && (
-                          <p className="mt-1 text-sm text-emerald-700">{selectedUser.adminAssignedPlanNote}</p>
-                        )}
-                        {selectedUser.adminAssignedPlanAt && (
-                          <p className="mt-1 text-xs text-emerald-600">
-                            Assigned on {new Date(selectedUser.adminAssignedPlanAt).toLocaleDateString()}
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Subscription & Billing Section */}
-                    <div className="border-4 border-blue-300 bg-blue-50 p-3">
-                      <p className="mb-2 text-xs font-bold uppercase text-blue-600">Subscription & Billing</p>
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div>
-                          <p className="text-xs text-blue-600">Status</p>
-                          <p className={cn(
-                            'font-bold',
-                            selectedUser.subscriptionStatus === 'active' ? 'text-green-600' :
-                            selectedUser.subscriptionStatus === 'past_due' ? 'text-orange-600' :
-                            selectedUser.subscriptionStatus === 'canceled' ? 'text-red-600' :
-                            'text-gray-600'
-                          )}>
-                            {selectedUser.subscriptionStatus || 'No subscription'}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-blue-600">Subscription Ends</p>
-                          <p className="font-medium text-blue-800">
-                            {selectedUser.subscriptionEndDate 
-                              ? new Date(selectedUser.subscriptionEndDate).toLocaleDateString()
-                              : 'N/A'}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-blue-600">First Payment</p>
-                          <p className="font-medium text-blue-800">
-                            {selectedUser.firstPaymentDate 
-                              ? new Date(selectedUser.firstPaymentDate).toLocaleDateString()
-                              : 'Never'}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-blue-600">Last Payment</p>
-                          <p className="font-medium text-blue-800">
-                            {selectedUser.lastPaymentDate 
-                              ? new Date(selectedUser.lastPaymentDate).toLocaleDateString()
-                              : 'Never'}
-                          </p>
-                        </div>
-                        {selectedUser.invoicePending && (
-                          <div className="col-span-2">
-                            <p className="font-bold text-orange-600">⚠ Invoice pending payment</p>
-                          </div>
-                        )}
-                        {selectedUser.stripeCustomerId && (
-                          <div className="col-span-2 border-t border-blue-200 pt-2">
-                            <p className="text-xs text-blue-600">Stripe Customer ID</p>
-                            <p className="font-mono text-xs text-blue-800">{selectedUser.stripeCustomerId}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 border-t-2 border-gray-200 pt-4">
-                      <div>
-                        <p className="text-xs font-bold uppercase text-gray-500">Created</p>
-                        <p className="text-sm">{new Date(selectedUser.createdAt).toLocaleString()}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold uppercase text-gray-500">Updated</p>
-                        <p className="text-sm">{new Date(selectedUser.updatedAt).toLocaleString()}</p>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={closeModal}
-                      className="w-full border-4 border-black px-4 py-2 font-bold transition-colors hover:bg-gray-100"
-                    >
-                      Close
-                    </button>
-                  </div>
-                </>
-              )}
-            </motion.div>
-          </motion.div>
+      <Dialog open={modalType !== null} onOpenChange={(open) => !open && closeModal()}>
+        {/* Create User Modal */}
+        {modalType === 'create' && (
+          <DialogContent className="max-w-md border-4 border-black bg-white shadow-brutal" showCloseButton={true}>
+            <DialogHeader className="border-b-4 border-black bg-primary p-4">
+              <DialogTitle className="text-xl font-black uppercase">Create Internal User</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleCreateUser} className="space-y-4 p-6">
+              <div>
+                <label className="mb-2 block text-sm font-bold uppercase">Name</label>
+                <input
+                  type="text"
+                  value={newUser.name}
+                  onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+                  className="w-full border-4 border-black px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="John Doe"
+                  required
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-bold uppercase">Email</label>
+                <input
+                  type="email"
+                  value={newUser.email}
+                  onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                  className="w-full border-4 border-black px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="john@example.com"
+                  required
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-bold uppercase">Password</label>
+                <input
+                  type="password"
+                  value={newUser.password}
+                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                  className="w-full border-4 border-black px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="••••••••"
+                  required
+                  minLength={8}
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-bold uppercase">Role</label>
+                <Select value={newUser.role} onValueChange={(value) => setNewUser({ ...newUser, role: value as any })}>
+                  <SelectTrigger className="h-auto w-full rounded-none border-4 border-black px-4 py-2 font-medium shadow-none focus:ring-2 focus:ring-primary">
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USER">User</SelectItem>
+                    {isSuperAdmin && <SelectItem value="ADMIN">Admin</SelectItem>}
+                  </SelectContent>
+                </Select>
+              </div>
+              <DialogFooter className="flex-row gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="flex-1 border-4 border-black px-4 py-2 font-bold transition-colors hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex flex-1 items-center justify-center gap-2 border-4 border-black bg-primary px-4 py-2 font-bold shadow-brutal transition-all hover:shadow-brutal-sm disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <>
+                      <Check className="h-5 w-5" />
+                      Create
+                    </>
+                  )}
+                </button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
         )}
-      </AnimatePresence>
+
+        {/* Disable User Modal */}
+        {modalType === 'disable' && selectedUser && (
+          <DialogContent className="max-w-md border-4 border-black bg-white shadow-brutal" showCloseButton={true}>
+            <DialogHeader className="border-b-4 border-black bg-red-500 p-4 text-white">
+              <DialogTitle className="text-xl font-black uppercase">Disable User</DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4 p-6">
+              <p className="text-gray-600">
+                You are about to disable <strong>{selectedUser.name}</strong> ({selectedUser.email}). They will not be
+                able to log in until re-enabled.
+              </p>
+              <div>
+                <label className="mb-2 block text-sm font-bold uppercase">Reason for Disabling *</label>
+                <textarea
+                  value={disableReason}
+                  onChange={(e) => setDisableReason(e.target.value)}
+                  className="w-full border-4 border-black px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-red-500"
+                  placeholder="e.g., Violation of terms of service"
+                  rows={3}
+                  required
+                />
+              </div>
+              <DialogFooter className="flex-row gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="flex-1 border-4 border-black px-4 py-2 font-bold transition-colors hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleToggleStatus(selectedUser, true)}
+                  disabled={isSubmitting || !disableReason}
+                  className="flex flex-1 items-center justify-center gap-2 border-4 border-black bg-red-500 px-4 py-2 font-bold text-white shadow-brutal transition-all hover:bg-red-600 disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <>
+                      <Ban className="h-5 w-5" />
+                      Disable
+                    </>
+                  )}
+                </button>
+              </DialogFooter>
+            </div>
+          </DialogContent>
+        )}
+
+        {/* Assign Plan Modal */}
+        {modalType === 'assignPlan' && selectedUser && (
+          <DialogContent className="max-w-md border-4 border-black bg-white shadow-brutal" showCloseButton={true}>
+            <DialogHeader className="border-b-4 border-black bg-primary p-4">
+              <DialogTitle className="text-xl font-black uppercase">Assign Plan</DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4 p-6">
+              <p className="text-gray-600">
+                Assign a subscription plan to <strong>{selectedUser.name}</strong>.
+              </p>
+              <div>
+                <label className="mb-2 block text-sm font-bold uppercase">Plan</label>
+                <Select value={assignPlan} onValueChange={(value) => setAssignPlan(value as any)}>
+                  <SelectTrigger className="h-auto w-full rounded-none border-4 border-black px-4 py-2 font-medium shadow-none focus:ring-2 focus:ring-primary">
+                    <SelectValue placeholder="Select plan" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="FREE">Free</SelectItem>
+                    <SelectItem value="BASIC">Basic ($7/mo features)</SelectItem>
+                    <SelectItem value="PRO">Pro ($5/mo features - Unlimited)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-bold uppercase">Note (Optional)</label>
+                <textarea
+                  value={assignPlanNote}
+                  onChange={(e) => setAssignPlanNote(e.target.value)}
+                  className="w-full border-4 border-black px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="e.g., Early adopter reward, Contest winner"
+                  rows={2}
+                />
+              </div>
+              <DialogFooter className="flex-row gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="flex-1 border-4 border-black px-4 py-2 font-bold transition-colors hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAssignPlan}
+                  disabled={isSubmitting}
+                  className="flex flex-1 items-center justify-center gap-2 border-4 border-black bg-primary px-4 py-2 font-bold shadow-brutal transition-all hover:shadow-brutal-sm disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <>
+                      <Sparkles className="h-5 w-5" />
+                      Assign
+                    </>
+                  )}
+                </button>
+              </DialogFooter>
+            </div>
+          </DialogContent>
+        )}
+
+        {/* User Details Modal */}
+        {modalType === 'details' && selectedUser && (
+          <DialogContent className="max-w-md border-4 border-black bg-white shadow-brutal" showCloseButton={true}>
+            <DialogHeader className="border-b-4 border-black bg-gray-100 p-4">
+              <DialogTitle className="text-xl font-black uppercase">User Details</DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4 p-6">
+              <div className="flex items-center gap-4">
+                <div className="flex h-16 w-16 items-center justify-center border-4 border-black bg-primary text-2xl font-black">
+                  {selectedUser.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h3 className="text-xl font-black">{selectedUser.name}</h3>
+                  <p className="text-gray-600">{selectedUser.email}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs font-bold uppercase text-gray-500">Role</p>
+                  <p className="font-bold">{selectedUser.role.replace('_', ' ')}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase text-gray-500">Type</p>
+                  <p className="font-bold">{selectedUser.userType}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase text-gray-500">Plan</p>
+                  <p className="font-bold">{selectedUser.plan}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase text-gray-500">Status</p>
+                  <p className={cn('font-bold', selectedUser.isDisabled ? 'text-red-600' : 'text-green-600')}>
+                    {selectedUser.isDisabled ? 'Disabled' : 'Active'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase text-gray-500">Email Verified</p>
+                  <p className={cn('font-bold', selectedUser.emailVerified ? 'text-green-600' : 'text-orange-600')}>
+                    {selectedUser.emailVerified ? 'Yes' : 'No'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase text-gray-500">Unlimited Access</p>
+                  <p className="font-bold">{selectedUser.unlimitedAccess ? 'Yes' : 'No'}</p>
+                </div>
+              </div>
+
+              {selectedUser.isDisabled && selectedUser.disabledReason && (
+                <div className="border-4 border-red-300 bg-red-50 p-3">
+                  <p className="text-xs font-bold uppercase text-red-600">Disabled Reason</p>
+                  <p className="text-red-800">{selectedUser.disabledReason}</p>
+                  {selectedUser.disabledAt && (
+                    <p className="mt-1 text-xs text-red-600">
+                      Disabled on {new Date(selectedUser.disabledAt).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {selectedUser.adminAssignedPlan && (
+                <div className="border-4 border-emerald-300 bg-emerald-50 p-3">
+                  <p className="text-xs font-bold uppercase text-emerald-600">Admin Assigned Plan</p>
+                  <p className="font-bold text-emerald-800">{selectedUser.adminAssignedPlan}</p>
+                  {selectedUser.adminAssignedPlanNote && (
+                    <p className="mt-1 text-sm text-emerald-700">{selectedUser.adminAssignedPlanNote}</p>
+                  )}
+                  {selectedUser.adminAssignedPlanAt && (
+                    <p className="mt-1 text-xs text-emerald-600">
+                      Assigned on {new Date(selectedUser.adminAssignedPlanAt).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Subscription & Billing Section */}
+              <div className="border-4 border-blue-300 bg-blue-50 p-3">
+                <p className="mb-2 text-xs font-bold uppercase text-blue-600">Subscription & Billing</p>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-xs text-blue-600">Status</p>
+                    <p
+                      className={cn(
+                        'font-bold',
+                        selectedUser.subscriptionStatus === 'active'
+                          ? 'text-green-600'
+                          : selectedUser.subscriptionStatus === 'past_due'
+                            ? 'text-orange-600'
+                            : selectedUser.subscriptionStatus === 'canceled'
+                              ? 'text-red-600'
+                              : 'text-gray-600',
+                      )}
+                    >
+                      {selectedUser.subscriptionStatus || 'No subscription'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-blue-600">Subscription Ends</p>
+                    <p className="font-medium text-blue-800">
+                      {selectedUser.subscriptionEndDate
+                        ? new Date(selectedUser.subscriptionEndDate).toLocaleDateString()
+                        : 'N/A'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-blue-600">First Payment</p>
+                    <p className="font-medium text-blue-800">
+                      {selectedUser.firstPaymentDate
+                        ? new Date(selectedUser.firstPaymentDate).toLocaleDateString()
+                        : 'Never'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-blue-600">Last Payment</p>
+                    <p className="font-medium text-blue-800">
+                      {selectedUser.lastPaymentDate
+                        ? new Date(selectedUser.lastPaymentDate).toLocaleDateString()
+                        : 'Never'}
+                    </p>
+                  </div>
+                  {selectedUser.invoicePending && (
+                    <div className="col-span-2">
+                      <p className="font-bold text-orange-600">⚠ Invoice pending payment</p>
+                    </div>
+                  )}
+                  {selectedUser.stripeCustomerId && (
+                    <div className="col-span-2 border-t border-blue-200 pt-2">
+                      <p className="text-xs text-blue-600">Stripe Customer ID</p>
+                      <p className="font-mono text-xs text-blue-800">{selectedUser.stripeCustomerId}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 border-t-2 border-gray-200 pt-4">
+                <div>
+                  <p className="text-xs font-bold uppercase text-gray-500">Created</p>
+                  <p className="text-sm">{new Date(selectedUser.createdAt).toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase text-gray-500">Updated</p>
+                  <p className="text-sm">{new Date(selectedUser.updatedAt).toLocaleString()}</p>
+                </div>
+              </div>
+
+              <button
+                onClick={closeModal}
+                className="w-full border-4 border-black px-4 py-2 font-bold transition-colors hover:bg-gray-100"
+              >
+                Close
+              </button>
+            </div>
+          </DialogContent>
+        )}
+      </Dialog>
     </div>
   )
 }

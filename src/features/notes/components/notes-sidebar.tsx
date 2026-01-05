@@ -26,6 +26,7 @@ import { useNotesQuery, useCreateNoteMutation, useUpdateNoteMutation, useDeleteN
 
 import { cn } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 
 interface NotesSidebarProps {
   selectedNoteId: string | null
@@ -42,6 +43,7 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
   const [contextMenuNoteId, setContextMenuNoteId] = useState<string | null>(null)
+  const [deleteConfirmNoteId, setDeleteConfirmNoteId] = useState<string | null>(null)
 
   // Build tree structure
   const noteTree = useMemo(() => buildNoteTree(notes), [notes])
@@ -101,13 +103,19 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
   }
 
   const handleDeleteNote = (noteId: string) => {
-    if (window.confirm('Delete this note and all its children?')) {
-      deleteMutation.mutate(noteId)
-      if (selectedNoteId === noteId) {
-        onSelectNote(notes[0])
-      }
-    }
+    setDeleteConfirmNoteId(noteId)
     setContextMenuNoteId(null)
+  }
+
+  const confirmDeleteNote = () => {
+    if (!deleteConfirmNoteId) return
+    deleteMutation.mutate(deleteConfirmNoteId, {
+      onSuccess: () => {
+        if (selectedNoteId === deleteConfirmNoteId) {
+          onSelectNote(notes[0])
+        }
+      },
+    })
   }
 
   const renderNoteItem = (note: NoteTreeItem, depth = 0) => {
@@ -338,6 +346,18 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={!!deleteConfirmNoteId}
+        onOpenChange={(open) => !open && setDeleteConfirmNoteId(null)}
+        title="Delete Note"
+        description="Delete this note and all its children? This action cannot be undone."
+        onConfirm={confirmDeleteNote}
+        confirmButtonText="Delete"
+        variant="destructive"
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   )
 }

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 
 import { Task } from '@/features/tasks/utils/types'
 
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+
 interface CompleteTaskModalProps {
   task: Task | null
   onClose: () => void
@@ -17,19 +19,17 @@ export function CompleteTaskModal({ task, onClose, onConfirm }: CompleteTaskModa
     if (task) {
       // Pre-fill with tracked minutes if available, otherwise estimated
       const initialMinutes = task.trackedMinutes || task.estimatedMinutes || 0
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMinutes(initialMinutes > 0 ? initialMinutes.toString() : '')
       setNotes('')
     }
   }, [task])
 
-  if (!task) return null
-
   const totalMinutes = Number(minutes) || 0
-  const trackedMinutes = task.trackedMinutes || 0
+  const trackedMinutes = task?.trackedMinutes || 0
   const remainingMinutes = Math.max(0, totalMinutes - trackedMinutes)
 
   const handleSubmit = async () => {
+    if (!task) return
     const mins = Number(minutes)
     if (!mins || mins < 1) return
 
@@ -42,12 +42,11 @@ export function CompleteTaskModal({ task, onClose, onConfirm }: CompleteTaskModa
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="relative w-full max-w-md border-3 border-secondary bg-white p-6 shadow-brutal">
-        <button className="absolute right-3 top-3 text-sm font-bold" onClick={onClose}>
-          ✕
-        </button>
-        <h3 className="mb-4 font-display text-2xl font-bold uppercase">Complete "{task.title}"</h3>
+    <Dialog open={!!task} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="modal-brutal max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold uppercase">Complete "{task?.title}"</DialogTitle>
+        </DialogHeader>
         <div className="space-y-3">
           <div>
             <label className="font-mono text-sm uppercase">Total minutes spent</label>
@@ -90,16 +89,16 @@ export function CompleteTaskModal({ task, onClose, onConfirm }: CompleteTaskModa
               rows={3}
             />
           </div>
-          <div className="flex justify-end gap-3">
-            <button className="btn-brutal-secondary" onClick={onClose}>
-              Cancel
-            </button>
-            <button className="btn-brutal" onClick={handleSubmit} disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Log & Complete'}
-            </button>
-          </div>
         </div>
-      </div>
-    </div>
+        <DialogFooter className="flex-row gap-3 pt-4">
+          <button className="btn-brutal-secondary flex-1" onClick={onClose}>
+            Cancel
+          </button>
+          <button className="btn-brutal flex-1" onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? 'Saving...' : 'Log & Complete'}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

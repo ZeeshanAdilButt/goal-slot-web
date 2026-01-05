@@ -8,10 +8,14 @@ import { ReactQueryProvider } from '@/lib/react-query-provider'
 
 export const metadata: Metadata = {
   title: 'GoalSlot | Productivity Tracking',
-  description:
-    'Track your goals, log time, plan schedules, and analyze your productivity patterns.',
+  description: 'Track your goals, log time, plan schedules, and analyze your productivity patterns.',
   keywords: ['productivity', 'time tracking', 'goals', 'mentorship'],
   authors: [{ name: 'GoalSlot' }],
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
   openGraph: {
     title: 'GoalSlot',
     description: 'Master your time, achieve your goals',
