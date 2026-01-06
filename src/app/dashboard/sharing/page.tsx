@@ -366,6 +366,7 @@ function InviteModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose:
   const [email, setEmail] = useState('')
   const [accessLevel, setAccessLevel] = useState<'VIEW' | 'EDIT'>('VIEW')
   const [isLoading, setIsLoading] = useState(false)
+  const [inviteResult, setInviteResult] = useState<{ inviteLink: string | null; emailSent: boolean } | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -376,20 +377,40 @@ function InviteModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose:
     }
 
     setIsLoading(true)
+    setInviteResult(null)
     try {
-      await sharingApi.share({
+      const response = await sharingApi.share({
         email,
         accessLevel,
       })
-      toast.success(`Invite sent to ${email}!`)
-      onSuccess()
-      onClose()
-      setEmail('')
-      setAccessLevel('VIEW')
+      const result = response.data as { inviteLink: string | null; emailSent: boolean }
+      setInviteResult(result)
+
+      if (result.emailSent) {
+        toast.success(`Invite sent to ${email}!`)
+        // Close modal after a short delay if email succeeded
+        setTimeout(() => {
+          onSuccess()
+          onClose()
+          setEmail('')
+          setAccessLevel('VIEW')
+          setInviteResult(null)
+        }, 2000)
+      } else {
+        toast.error(`Failed to send email to ${email}. Please share the link manually.`, { duration: 5000 })
+      }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to send invite')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const copyInviteLink = () => {
+    if (inviteResult?.inviteLink) {
+      const fullUrl = `${window.location.origin}${inviteResult.inviteLink}`
+      navigator.clipboard.writeText(fullUrl)
+      toast.success('Invite link copied to clipboard!')
     }
   }
 
@@ -400,7 +421,7 @@ function InviteModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose:
           <DialogTitle className="text-2xl font-bold uppercase">Invite User</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form id="invite-form" onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="mb-2 block text-sm font-bold uppercase">Email Address</label>
             <input
@@ -443,22 +464,85 @@ function InviteModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose:
             </div>
           </div>
 
-          <div className="border-2 border-secondary bg-gray-50 p-4">
-            <div className="flex items-start gap-2">
-              <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-accent-orange" />
-              <p className="font-mono text-sm text-gray-600">
-                The invited user will receive an email notification. They must accept the invite to gain access.
-              </p>
+          {!inviteResult && (
+            <div className="border-2 border-secondary bg-gray-50 p-4">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-accent-orange" />
+                <p className="font-mono text-sm text-gray-600">
+                  The invited user will receive an email notification. They must accept the invite to gain access.
+                </p>
+              </div>
             </div>
-          </div>
+          )}
+
+          {inviteResult && (
+            <div className="space-y-3">
+              {!inviteResult.emailSent && (
+                <div className="border-2 border-red-500 bg-red-50 p-4">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600" />
+                    <div className="flex-1">
+                      <p className="font-bold text-red-800">Email failed to send</p>
+                      <p className="font-mono text-sm text-red-700">
+                        Please share the invite link manually with {email}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {inviteResult.inviteLink && (
+                <div className="border-2 border-secondary bg-gray-50 p-4">
+                  <label className="mb-2 block text-sm font-bold uppercase">Invite Link</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      readOnly
+                      value={`${typeof window !== 'undefined' ? window.location.origin : ''}${inviteResult.inviteLink}`}
+                      className="input-brutal flex-1 font-mono text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={copyInviteLink}
+                      className="btn-brutal-secondary whitespace-nowrap px-4"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                  <p className="mt-2 font-mono text-xs text-gray-600">
+                    Share this link if email delivery failed or as a backup
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </form>
         <DialogFooter className="flex-row gap-4 pt-4">
-          <button type="button" onClick={onClose} className="btn-brutal-secondary flex-1">
-            Cancel
-          </button>
-          <button type="submit" disabled={isLoading} className="btn-brutal-dark flex-1">
-            {isLoading ? 'Sending...' : 'Send Invite'}
-          </button>
+          {!inviteResult && (
+            <>
+              <button type="button" onClick={onClose} className="btn-brutal-secondary flex-1">
+                Cancel
+              </button>
+              <button type="submit" form="invite-form" disabled={isLoading} className="btn-brutal-dark flex-1">
+                {isLoading ? 'Sending...' : 'Send Invite'}
+              </button>
+            </>
+          )}
+          {inviteResult && (
+            <button
+              type="button"
+              onClick={() => {
+                onSuccess()
+                onClose()
+                setEmail('')
+                setAccessLevel('VIEW')
+                setInviteResult(null)
+              }}
+              className="btn-brutal-dark flex-1"
+            >
+              Done
+            </button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
