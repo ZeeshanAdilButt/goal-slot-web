@@ -2,82 +2,18 @@
 
 import { useMemo, useState } from 'react'
 
+import { useSharedUserGoalsQuery, useSharedUserTimeEntriesQuery } from '@/features/sharing/hooks/use-sharing-queries'
+import { calculateStatistics, getRollingWeekRange } from '@/features/sharing/utils/helpers'
+import { SharedGoal, SharedTimeEntry, SharedWithMeUser } from '@/features/sharing/utils/types'
 import { motion } from 'framer-motion'
 import { BarChart3, Calendar, Clock, Target, TrendingUp, User, Users } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
+import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
-import { sharingApi } from '@/lib/api'
-import { cn, formatDate, formatDuration } from '@/lib/utils'
+import { cn, formatDuration } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-
-interface SharedWithMeUser {
-  id: string
-  ownerId: string
-  owner: {
-    id: string
-    name: string
-    email: string
-    avatar?: string
-  }
-  createdAt: string
-}
 
 interface SharedReportsViewProps {
   sharedWithMe: SharedWithMeUser[]
-}
-
-interface SharedGoal {
-  id: string
-  title: string
-  color: string
-  category: string
-  targetHours: number
-  loggedHours: number
-  status: string
-}
-
-interface SharedTimeEntry {
-  id: string
-  taskName: string
-  duration: number
-  date: string
-  goal?: {
-    id: string
-    title: string
-    color: string
-    category?: string
-  }
-}
-
-// Rolling range for date selection
-function getRollingWeekRange(offset: number = 0) {
-  const now = new Date()
-  const dayOfWeek = now.getDay()
-  const startOfWeek = new Date(now)
-  startOfWeek.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1) + offset * 7)
-  startOfWeek.setHours(0, 0, 0, 0)
-
-  const endOfWeek = new Date(startOfWeek)
-  endOfWeek.setDate(startOfWeek.getDate() + 6)
-  endOfWeek.setHours(23, 59, 59, 999)
-
-  return {
-    startDate: startOfWeek.toISOString().split('T')[0],
-    endDate: endOfWeek.toISOString().split('T')[0],
-    label: `${formatDate(startOfWeek, 'MMM d')} - ${formatDate(endOfWeek, 'MMM d, yyyy')}`,
-  }
 }
 
 const COLORS = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8']
@@ -92,73 +28,16 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
   const range = useMemo(() => getRollingWeekRange(weekOffset), [weekOffset])
 
   // Fetch time entries for selected user
-  const entriesQuery = useQuery({
-    queryKey: ['shared-time-entries', selectedUserId, range.startDate, range.endDate],
-    queryFn: async () => {
-      if (!selectedUserId) return []
-      const res = await sharingApi.getSharedUserTimeEntries(selectedUserId, range.startDate, range.endDate)
-      return res.data as SharedTimeEntry[]
-    },
-    enabled: !!selectedUserId,
-  })
+  const entriesQuery = useSharedUserTimeEntriesQuery(selectedUserId, range.startDate, range.endDate)
 
   // Fetch goals for selected user
-  const goalsQuery = useQuery({
-    queryKey: ['shared-goals', selectedUserId],
-    queryFn: async () => {
-      if (!selectedUserId) return []
-      const res = await sharingApi.getSharedUserGoals(selectedUserId)
-      return res.data as SharedGoal[]
-    },
-    enabled: !!selectedUserId,
-  })
+  const goalsQuery = useSharedUserGoalsQuery(selectedUserId)
 
-  const entries = useMemo(() => entriesQuery.data ?? [], [entriesQuery.data])
-  const goals = goalsQuery.data ?? []
+  const entries = useMemo(() => (entriesQuery.data ?? []) as SharedTimeEntry[], [entriesQuery.data])
+  const goals = (goalsQuery.data ?? []) as SharedGoal[]
 
   // Calculate statistics
-  const stats = useMemo(() => {
-    const totalMinutes = entries.reduce((sum, e) => sum + e.duration, 0)
-    const daysWithEntries = new Set(entries.map((e) => e.date)).size
-    const avgPerDay = daysWithEntries > 0 ? Math.round(totalMinutes / daysWithEntries) : 0
-
-    // Daily breakdown
-    const dailyMinutes: Record<string, number> = {}
-    entries.forEach((e) => {
-      dailyMinutes[e.date] = (dailyMinutes[e.date] || 0) + e.duration
-    })
-
-    // Goal breakdown
-    const goalMinutes: Record<string, { title: string; color: string; minutes: number }> = {}
-    entries.forEach((e) => {
-      const goalId = e.goal?.id || 'other'
-      if (!goalMinutes[goalId]) {
-        goalMinutes[goalId] = {
-          title: e.goal?.title || 'Other',
-          color: e.goal?.color || '#94A3B8',
-          minutes: 0,
-        }
-      }
-      goalMinutes[goalId].minutes += e.duration
-    })
-
-    return {
-      totalMinutes,
-      totalFormatted: formatDuration(totalMinutes),
-      daysActive: daysWithEntries,
-      avgPerDay,
-      avgFormatted: formatDuration(avgPerDay),
-      entriesCount: entries.length,
-      dailyData: Object.entries(dailyMinutes)
-        .map(([date, minutes]) => ({
-          date,
-          minutes,
-          label: formatDate(date, 'EEE'),
-        }))
-        .sort((a, b) => a.date.localeCompare(b.date)),
-      goalData: Object.values(goalMinutes).sort((a, b) => b.minutes - a.minutes),
-    }
-  }, [entries])
+  const stats = useMemo(() => calculateStatistics(entries), [entries])
 
   if (sharedWithMe.length === 0) {
     return (
@@ -215,10 +94,7 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
               <span className="font-mono text-sm">{range.label}</span>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setWeekOffset((o) => o - 1)}
-                className="btn-brutal-secondary px-3 py-2 text-xs"
-              >
+              <button onClick={() => setWeekOffset((o) => o - 1)} className="btn-brutal-secondary px-3 py-2 text-xs">
                 Prev Week
               </button>
               <button
@@ -303,10 +179,7 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
                     <BarChart data={stats.dailyData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                       <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                      <YAxis
-                        tick={{ fontSize: 12 }}
-                        tickFormatter={(v) => `${Math.floor(v / 60)}h`}
-                      />
+                      <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `${Math.floor(v / 60)}h`} />
                       <Tooltip
                         formatter={(value: number) => [formatDuration(value), 'Focus Time']}
                         labelFormatter={(label) => label}
@@ -388,10 +261,7 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
                       <div key={goal.id} className="space-y-2">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <div
-                              className="h-3 w-3 border border-secondary"
-                              style={{ backgroundColor: goal.color }}
-                            />
+                            <div className="h-3 w-3 border border-secondary" style={{ backgroundColor: goal.color }} />
                             <span className="font-bold">{goal.title}</span>
                           </div>
                           <span className="font-mono text-sm text-gray-600">
