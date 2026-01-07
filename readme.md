@@ -1,2 +1,1 @@
-Release 1.
-deploy
+Release 1.1
