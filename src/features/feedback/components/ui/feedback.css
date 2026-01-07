@@ -1,0 +1,46 @@
+/* Feedback component CSS variables */
+:root {
+  /* Colors */
+  --ds-blue-300: oklch(94.58% 0.0293 249.84870859673202);
+  --ds-blue-700: oklch(57.61% 0.2508 258.23);
+  --ds-blue-900: oklch(53.18% 0.2399 256.9900584162342);
+  --ds-amber-800: oklch(77.21% 0.1991 64.28);
+  --ds-gray-700: hsla(0, 0%, 56%, 1);
+  --ds-gray-900: hsla(0, 0%, 40%, 1);
+  --ds-background-100: hsla(0, 0%, 100%, 1);
+  --accents-1: #fafafa;
+  --accents-2: #eaeaea;
+
+  /* Shadows - base variables */
+  --ds-shadow-border: 0 0 0 1px rgba(0, 0, 0, 0.08);
+  --ds-shadow-small: 0px 2px 2px rgba(0, 0, 0, 0.04);
+
+  /* Shadows - composite variables */
+  --ds-shadow-border-small: var(--ds-shadow-border), var(--ds-shadow-small);
+  --ds-shadow-menu:
+    var(--ds-shadow-border), 0px 1px 1px rgba(0, 0, 0, 0.02), 0px 4px 8px -4px rgba(0, 0, 0, 0.04),
+    0px 16px 24px -8px rgba(0, 0, 0, 0.06);
+}
+
+.dark {
+  /* Colors */
+  --ds-blue-300: oklch(30.86% 0.1022 255.21);
+  --ds-blue-700: oklch(57.61% 0.2321 258.23);
+  --ds-blue-900: oklch(71.7% 0.1648 250.79360374054167);
+  --ds-amber-800: oklch(77.21% 0.1991 64.28);
+  --ds-gray-700: hsla(0, 0%, 56%, 1);
+  --ds-gray-900: hsla(0, 0%, 63%, 1);
+  --ds-background-100: hsla(0, 0%, 4%, 1);
+  --accents-1: #111111;
+  --accents-2: #333333;
+
+  /* Shadows - base variables */
+  --ds-shadow-border: 0 0 0 1px rgba(255, 255, 255, 0.145);
+  --ds-shadow-small: 0px 1px 2px rgba(0, 0, 0, 0.16);
+
+  /* Shadows - composite variables */
+  --ds-shadow-border-small: var(--ds-shadow-border), 0px 1px 2px rgba(0, 0, 0, 0.16);
+  --ds-shadow-menu:
+    var(--ds-shadow-border), 0px 1px 1px rgba(0, 0, 0, 0.02), 0px 4px 8px -4px rgba(0, 0, 0, 0.04),
+    0px 16px 24px -8px rgba(0, 0, 0, 0.06);
+}

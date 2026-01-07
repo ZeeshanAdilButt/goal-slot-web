@@ -49,8 +49,8 @@ export function GoalsSidebarMobile({
               <span className="text-sm font-bold uppercase text-gray-500">Select a Goal</span>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            <Select value={selectedStatus} onValueChange={onSelectStatus} onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+            <Select value={selectedStatus} onValueChange={onSelectStatus}>
               <SelectTrigger className="h-8 w-24 border-3 border-secondary bg-white text-[10px] font-bold uppercase shadow-brutal-sm">
                 <SelectValue />
               </SelectTrigger>

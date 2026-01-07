@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 
 import './globals.css'
 
+import { Feedback } from '@/features/feedback'
 import { Toaster } from 'react-hot-toast'
 
 import { ReactQueryProvider } from '@/lib/react-query-provider'
@@ -29,6 +30,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <ReactQueryProvider>
           {children}
+          <div className="fixed bottom-6 right-6 z-50">
+            <Feedback label="Feedback" />
+          </div>
           <Toaster
             position="top-right"
             toastOptions={{
