@@ -2,10 +2,9 @@ import { useEffect, useState } from 'react'
 
 import { useShareMutation } from '@/features/sharing/hooks/use-sharing-mutations'
 import { AccessLevel, ShareInviteResult } from '@/features/sharing/utils/types'
-import { AlertCircle, Edit3, Eye } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
-import { cn } from '@/lib/utils'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 interface SharingInviteModalProps {
@@ -16,7 +15,11 @@ interface SharingInviteModalProps {
 
 export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInviteModalProps) {
   const [email, setEmail] = useState('')
-  const [accessLevel, setAccessLevel] = useState<AccessLevel>('VIEW')
+  // TODO: Implement EDIT access level functionality in the future
+  // Currently, all shared users have VIEW-only access regardless of accessLevel setting
+  // When implementing, add UI to select between VIEW and EDIT, and enforce permissions
+  // in backend endpoints (POST/PUT/PATCH/DELETE operations for shared data)
+  const [accessLevel] = useState<AccessLevel>('VIEW')
   const [inviteResult, setInviteResult] = useState<ShareInviteResult | null>(null)
 
   const shareMutation = useShareMutation()
@@ -25,7 +28,6 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
     if (!isOpen) {
       // Reset form when modal closes
       setEmail('')
-      setAccessLevel('VIEW')
       setInviteResult(null)
     }
   }, [isOpen])
@@ -67,12 +69,12 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="modal-brutal max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold uppercase">Invite User</DialogTitle>
+          <DialogTitle className="text-xl font-bold uppercase sm:text-2xl">Invite User</DialogTitle>
         </DialogHeader>
 
-        <form id="invite-form" onSubmit={handleSubmit} className="space-y-4">
+        <form id="invite-form" onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           <div>
-            <label className="mb-2 block text-sm font-bold uppercase">Email Address</label>
+            <label className="mb-2 block text-xs font-bold uppercase sm:text-sm">Email Address</label>
             <input
               type="email"
               value={email}
@@ -83,41 +85,11 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
             />
           </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-bold uppercase">Access Level</label>
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                type="button"
-                onClick={() => setAccessLevel('VIEW')}
-                className={cn(
-                  'p-4 border-3 border-secondary text-left transition-all',
-                  accessLevel === 'VIEW' ? 'bg-primary shadow-brutal-sm' : 'bg-white hover:bg-gray-100',
-                )}
-              >
-                <Eye className="mb-2 h-6 w-6" />
-                <div className="font-bold uppercase">View Only</div>
-                <div className="font-mono text-xs text-gray-600">Can view your data</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => setAccessLevel('EDIT')}
-                className={cn(
-                  'p-4 border-3 border-secondary text-left transition-all',
-                  accessLevel === 'EDIT' ? 'bg-primary shadow-brutal-sm' : 'bg-white hover:bg-gray-100',
-                )}
-              >
-                <Edit3 className="mb-2 h-6 w-6" />
-                <div className="font-bold uppercase">Can Edit</div>
-                <div className="font-mono text-xs text-gray-600">Can modify your data</div>
-              </button>
-            </div>
-          </div>
-
           {!inviteResult && (
-            <div className="border-2 border-secondary bg-gray-50 p-4">
+            <div className="border-2 border-secondary bg-gray-50 p-3 sm:p-4">
               <div className="flex items-start gap-2">
-                <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-accent-orange" />
-                <p className="font-mono text-sm text-gray-600">
+                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-accent-orange sm:h-5 sm:w-5" />
+                <p className="font-mono text-xs text-gray-600 sm:text-sm">
                   The invited user will receive an email notification. They must accept the invite to gain access.
                 </p>
               </div>
@@ -127,12 +99,12 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
           {inviteResult && (
             <div className="space-y-3">
               {!inviteResult.emailSent && (
-                <div className="border-2 border-red-500 bg-red-50 p-4">
+                <div className="border-2 border-red-500 bg-red-50 p-3 sm:p-4">
                   <div className="flex items-start gap-2">
-                    <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600" />
+                    <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600 sm:h-5 sm:w-5" />
                     <div className="flex-1">
-                      <p className="font-bold text-red-800">Email failed to send</p>
-                      <p className="font-mono text-sm text-red-700">
+                      <p className="text-sm font-bold text-red-800 sm:text-base">Email failed to send</p>
+                      <p className="font-mono text-xs text-red-700 sm:text-sm">
                         Please share the invite link manually with {email}
                       </p>
                     </div>
@@ -141,8 +113,8 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
               )}
 
               {inviteResult.inviteLink && (
-                <div className="border-2 border-secondary bg-gray-50 p-4">
-                  <label className="mb-2 block text-sm font-bold uppercase">Invite Link</label>
+                <div className="border-2 border-secondary bg-gray-50 p-3 sm:p-4">
+                  <label className="mb-2 block text-xs font-bold uppercase sm:text-sm">Invite Link</label>
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -153,12 +125,12 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
                     <button
                       type="button"
                       onClick={copyInviteLink}
-                      className="btn-brutal-secondary whitespace-nowrap px-4"
+                      className="btn-brutal-secondary whitespace-nowrap px-3 text-xs sm:px-4 sm:text-sm"
                     >
                       Copy
                     </button>
                   </div>
-                  <p className="mt-2 font-mono text-xs text-gray-600">
+                  <p className="mt-2 font-mono text-[10px] text-gray-600 sm:text-xs">
                     Share this link if email delivery failed or as a backup
                   </p>
                 </div>
@@ -166,17 +138,17 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
             </div>
           )}
         </form>
-        <DialogFooter className="flex-row gap-4 pt-4">
+        <DialogFooter className="flex-row gap-2 pt-3 sm:gap-4 sm:pt-4">
           {!inviteResult && (
             <>
-              <button type="button" onClick={onClose} className="btn-brutal-secondary flex-1">
+              <button type="button" onClick={onClose} className="btn-brutal-secondary flex-1 text-xs sm:text-sm">
                 Cancel
               </button>
               <button
                 type="submit"
                 form="invite-form"
                 disabled={shareMutation.isPending}
-                className="btn-brutal-dark flex-1"
+                className="btn-brutal-dark flex-1 text-xs sm:text-sm"
               >
                 {shareMutation.isPending ? 'Sending...' : 'Send Invite'}
               </button>
@@ -189,7 +161,7 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
                 onSuccess()
                 onClose()
               }}
-              className="btn-brutal-dark flex-1"
+              className="btn-brutal-dark flex-1 text-xs sm:text-sm"
             >
               Done
             </button>

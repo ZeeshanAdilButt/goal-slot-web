@@ -52,20 +52,20 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* User Selector */}
       <div className="card-brutal">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
           <div>
-            <h2 className="flex items-center gap-2 text-xl font-bold uppercase">
-              <User className="h-5 w-5" />
+            <h2 className="flex items-center gap-2 text-lg font-bold uppercase sm:text-xl">
+              <User className="h-4 w-4 sm:h-5 sm:w-5" />
               Viewing Reports For
             </h2>
-            <p className="font-mono text-sm text-gray-600">Select a person to view their focus reports</p>
+            <p className="font-mono text-xs text-gray-600 sm:text-sm">Select a person to view their focus reports</p>
           </div>
 
           <Select value={selectedUserId || ''} onValueChange={(v) => setSelectedUserId(v)}>
-            <SelectTrigger className="w-[280px] border-3 border-secondary">
+            <SelectTrigger className="w-full border-3 border-secondary sm:w-[280px]">
               <SelectValue placeholder="Select a person" />
             </SelectTrigger>
             <SelectContent>
@@ -88,24 +88,30 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
       {selectedUser && (
         <>
           {/* Date Range Selector */}
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
             <div className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              <span className="font-mono text-sm">{range.label}</span>
+              <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="font-mono text-xs sm:text-sm">{range.label}</span>
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={() => setWeekOffset((o) => o - 1)} className="btn-brutal-secondary px-3 py-2 text-xs">
+              <button
+                onClick={() => setWeekOffset((o) => o - 1)}
+                className="btn-brutal-secondary flex-1 px-3 py-2 text-xs sm:flex-none"
+              >
                 Prev Week
               </button>
               <button
                 onClick={() => setWeekOffset((o) => Math.min(o + 1, 0))}
                 disabled={weekOffset >= 0}
-                className={cn('btn-brutal-secondary px-3 py-2 text-xs', weekOffset >= 0 && 'opacity-50')}
+                className={cn(
+                  'btn-brutal-secondary flex-1 px-3 py-2 text-xs sm:flex-none',
+                  weekOffset >= 0 && 'opacity-50',
+                )}
               >
                 Next Week
               </button>
               {weekOffset !== 0 && (
-                <button onClick={() => setWeekOffset(0)} className="btn-brutal px-3 py-2 text-xs">
+                <button onClick={() => setWeekOffset(0)} className="btn-brutal flex-1 px-3 py-2 text-xs sm:flex-none">
                   Today
                 </button>
               )}
@@ -124,45 +130,45 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="grid grid-cols-2 gap-4 md:grid-cols-4"
+              className="grid grid-cols-2 gap-2 sm:gap-4 md:grid-cols-4"
             >
-              <div className="card-brutal p-4">
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Clock className="h-4 w-4" />
-                  <span className="font-mono text-xs uppercase">Total Time</span>
+              <div className="card-brutal p-3 sm:p-4">
+                <div className="flex items-center gap-1 text-gray-600 sm:gap-2">
+                  <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="font-mono text-[10px] uppercase sm:text-xs">Total Time</span>
                 </div>
-                <div className="mt-2 text-2xl font-bold">{stats.totalFormatted}</div>
+                <div className="mt-1 text-lg font-bold sm:mt-2 sm:text-2xl">{stats.totalFormatted}</div>
               </div>
 
-              <div className="card-brutal p-4">
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Calendar className="h-4 w-4" />
-                  <span className="font-mono text-xs uppercase">Days Active</span>
+              <div className="card-brutal p-3 sm:p-4">
+                <div className="flex items-center gap-1 text-gray-600 sm:gap-2">
+                  <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="font-mono text-[10px] uppercase sm:text-xs">Days Active</span>
                 </div>
-                <div className="mt-2 text-2xl font-bold">{stats.daysActive}</div>
+                <div className="mt-1 text-lg font-bold sm:mt-2 sm:text-2xl">{stats.daysActive}</div>
               </div>
 
-              <div className="card-brutal p-4">
-                <div className="flex items-center gap-2 text-gray-600">
-                  <TrendingUp className="h-4 w-4" />
-                  <span className="font-mono text-xs uppercase">Avg/Day</span>
+              <div className="card-brutal p-3 sm:p-4">
+                <div className="flex items-center gap-1 text-gray-600 sm:gap-2">
+                  <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="font-mono text-[10px] uppercase sm:text-xs">Avg/Day</span>
                 </div>
-                <div className="mt-2 text-2xl font-bold">{stats.avgFormatted}</div>
+                <div className="mt-1 text-lg font-bold sm:mt-2 sm:text-2xl">{stats.avgFormatted}</div>
               </div>
 
-              <div className="card-brutal p-4">
-                <div className="flex items-center gap-2 text-gray-600">
-                  <BarChart3 className="h-4 w-4" />
-                  <span className="font-mono text-xs uppercase">Entries</span>
+              <div className="card-brutal p-3 sm:p-4">
+                <div className="flex items-center gap-1 text-gray-600 sm:gap-2">
+                  <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="font-mono text-[10px] uppercase sm:text-xs">Entries</span>
                 </div>
-                <div className="mt-2 text-2xl font-bold">{stats.entriesCount}</div>
+                <div className="mt-1 text-lg font-bold sm:mt-2 sm:text-2xl">{stats.entriesCount}</div>
               </div>
             </motion.div>
           )}
 
           {/* Charts */}
           {!entriesQuery.isLoading && entries.length > 0 && (
-            <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-2">
               {/* Daily Breakdown Chart */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -170,16 +176,16 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
                 transition={{ delay: 0.1 }}
                 className="card-brutal"
               >
-                <h3 className="mb-4 flex items-center gap-2 font-bold uppercase">
-                  <BarChart3 className="h-5 w-5" />
+                <h3 className="mb-3 flex items-center gap-2 text-base font-bold uppercase sm:mb-4 sm:text-lg">
+                  <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5" />
                   Daily Focus Time
                 </h3>
-                <div className="h-64">
+                <div className="h-48 sm:h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={stats.dailyData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                      <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                      <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `${Math.floor(v / 60)}h`} />
+                      <XAxis dataKey="label" tick={{ fontSize: 10 }} />
+                      <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${Math.floor(v / 60)}h`} />
                       <Tooltip
                         formatter={(value: number) => [formatDuration(value), 'Focus Time']}
                         labelFormatter={(label) => label}
@@ -197,12 +203,12 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
                 transition={{ delay: 0.2 }}
                 className="card-brutal"
               >
-                <h3 className="mb-4 flex items-center gap-2 font-bold uppercase">
-                  <Target className="h-5 w-5" />
+                <h3 className="mb-3 flex items-center gap-2 text-base font-bold uppercase sm:mb-4 sm:text-lg">
+                  <Target className="h-4 w-4 sm:h-5 sm:w-5" />
                   Focus by Goal
                 </h3>
-                <div className="flex h-64 items-center gap-4">
-                  <div className="h-full flex-1">
+                <div className="flex h-48 flex-col items-center gap-2 sm:h-64 sm:flex-row sm:gap-4">
+                  <div className="h-40 w-full flex-1 sm:h-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
@@ -211,8 +217,8 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
                           nameKey="title"
                           cx="50%"
                           cy="50%"
-                          innerRadius={40}
-                          outerRadius={80}
+                          innerRadius={30}
+                          outerRadius={60}
                           paddingAngle={2}
                         >
                           {stats.goalData.map((entry, index) => (
@@ -223,15 +229,17 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
-                  <div className="space-y-2">
+                  <div className="flex w-full flex-wrap gap-x-3 gap-y-1 sm:w-auto sm:flex-col sm:space-y-2">
                     {stats.goalData.slice(0, 5).map((goal, index) => (
-                      <div key={index} className="flex items-center gap-2">
+                      <div key={index} className="flex items-center gap-1 sm:gap-2">
                         <div
-                          className="h-3 w-3 border border-secondary"
+                          className="h-2 w-2 flex-shrink-0 border border-secondary sm:h-3 sm:w-3"
                           style={{ backgroundColor: goal.color || COLORS[index % COLORS.length] }}
                         />
-                        <span className="font-mono text-xs">{goal.title}</span>
-                        <span className="font-mono text-xs text-gray-500">({formatDuration(goal.minutes)})</span>
+                        <span className="truncate font-mono text-[10px] sm:text-xs">{goal.title}</span>
+                        <span className="font-mono text-[10px] text-gray-500 sm:text-xs">
+                          ({formatDuration(goal.minutes)})
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -248,11 +256,11 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
               transition={{ delay: 0.3 }}
               className="card-brutal"
             >
-              <h3 className="mb-4 flex items-center gap-2 font-bold uppercase">
-                <Target className="h-5 w-5" />
+              <h3 className="mb-3 flex items-center gap-2 text-base font-bold uppercase sm:mb-4 sm:text-lg">
+                <Target className="h-4 w-4 sm:h-5 sm:w-5" />
                 Goals Progress
               </h3>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {goals
                   .filter((g) => g.status === 'ACTIVE')
                   .map((goal) => {
@@ -260,15 +268,18 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
                     return (
                       <div key={goal.id} className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="h-3 w-3 border border-secondary" style={{ backgroundColor: goal.color }} />
-                            <span className="font-bold">{goal.title}</span>
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            <div
+                              className="h-2 w-2 flex-shrink-0 border border-secondary sm:h-3 sm:w-3"
+                              style={{ backgroundColor: goal.color }}
+                            />
+                            <span className="truncate text-sm font-bold sm:text-base">{goal.title}</span>
                           </div>
-                          <span className="font-mono text-sm text-gray-600">
+                          <span className="font-mono text-xs text-gray-600 sm:text-sm">
                             {goal.loggedHours.toFixed(1)}h / {goal.targetHours}h
                           </span>
                         </div>
-                        <div className="h-4 w-full border-2 border-secondary bg-gray-100">
+                        <div className="h-3 w-full border-2 border-secondary bg-gray-100 sm:h-4">
                           <div
                             className="h-full transition-all duration-500"
                             style={{
@@ -277,7 +288,7 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
                             }}
                           />
                         </div>
-                        <div className="text-right font-mono text-xs text-gray-500">
+                        <div className="text-right font-mono text-[10px] text-gray-500 sm:text-xs">
                           {Math.round(progress)}% complete
                         </div>
                       </div>

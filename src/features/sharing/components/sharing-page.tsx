@@ -58,7 +58,7 @@ export function SharingPage() {
   const isLoading = mySharesQuery.isLoading || pendingInvitesQuery.isLoading || sharedWithMeQuery.isLoading
 
   return (
-    <div className="space-y-8 p-6">
+    <div className="space-y-4 p-4 sm:space-y-8 sm:p-6">
       <SharingHeader onCreateClick={() => setShowInviteModal(true)} showInviteButton={activeTab === 'my'} />
 
       <SharingTabs

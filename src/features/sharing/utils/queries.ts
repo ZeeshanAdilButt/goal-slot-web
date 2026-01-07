@@ -1,5 +1,7 @@
 import { sharingApi } from '@/lib/api'
 
+import { DataShare } from './types'
+
 export const sharingQueries = {
   all: ['sharing'] as const,
   myShares: () => [...sharingQueries.all, 'my-shares'] as const,
@@ -10,9 +12,30 @@ export const sharingQueries = {
   sharedGoals: (ownerId: string) => [...sharingQueries.all, 'shared-goals', ownerId] as const,
 }
 
-export const fetchMyShares = async () => {
+// Transform backend response to frontend DataShare format
+const transformShare = (share: any): DataShare => {
+  return {
+    id: share.id,
+    email: share.inviteEmail || share.sharedWith?.email || '',
+    accessLevel: share.accessLevel === 'EDIT' ? 'EDIT' : 'VIEW',
+    status: share.isAccepted ? ('ACCEPTED' as const) : ('PENDING' as const),
+    createdAt: share.createdAt,
+    expiresAt: share.inviteExpires || undefined,
+    sharedWith: share.sharedWith
+      ? {
+          id: share.sharedWith.id,
+          name: share.sharedWith.name,
+          email: share.sharedWith.email,
+          avatar: share.sharedWith.avatar || undefined,
+        }
+      : undefined,
+  }
+}
+
+export const fetchMyShares = async (): Promise<DataShare[]> => {
   const res = await sharingApi.getMyShares()
-  return res.data
+  const shares = Array.isArray(res.data) ? res.data : []
+  return shares.map(transformShare)
 }
 
 export const fetchPendingInvites = async () => {
