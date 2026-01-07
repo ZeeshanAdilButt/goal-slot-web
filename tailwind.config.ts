@@ -77,6 +77,16 @@ const config: Config = {
         'brutal-lg': '6px 6px 0px 0px #000000',
         'brutal-xl': '8px 8px 0px 0px #000000',
         'brutal-hover': '6px 6px 0px 0px #000000',
+        border: 'var(--ds-shadow-border)',
+        'border-small': 'var(--ds-shadow-border-small)',
+        'border-medium': 'var(--ds-shadow-border-medium)',
+        'border-large': 'var(--ds-shadow-border-large)',
+        tooltip: 'var(--ds-shadow-tooltip)',
+        menu: 'var(--ds-shadow-menu)',
+        modal: 'var(--ds-shadow-modal)',
+        fullscreen: 'var(--ds-shadow-fullscreen)',
+        'focus-ring': 'var(--ds-focus-ring)',
+        'focus-input': 'var(--ds-input-ring)',
       },
       borderWidth: {
         '3': '3px',
@@ -85,6 +95,7 @@ const config: Config = {
         'bounce-slow': 'bounce 2s infinite',
         'pulse-slow': 'pulse 3s infinite',
         wiggle: 'wiggle 1s ease-in-out infinite',
+        'fade-spin': 'fade-spin 1.2s linear infinite',
       },
       keyframes: {
         wiggle: {
@@ -93,6 +104,14 @@ const config: Config = {
           },
           '50%': {
             transform: 'rotate(3deg)',
+          },
+        },
+        'fade-spin': {
+          '0%, 100%': {
+            opacity: '1',
+          },
+          '50%': {
+            opacity: '0.25',
           },
         },
       },

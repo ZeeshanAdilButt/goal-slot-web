@@ -9,13 +9,14 @@ import {
   Calendar,
   CheckSquare,
   Clock,
+  FileText,
   LayoutDashboard,
+  MessageSquare,
   Share2,
   Shield,
   Target,
   Users,
   Zap,
-  FileText,
 } from 'lucide-react'
 
 import { useAuthStore, useIsAdmin } from '@/lib/store'
@@ -48,7 +49,10 @@ const navItems = [
   { href: '/dashboard/sharing', label: 'Sharing', icon: Share2 },
 ]
 
-const adminNavItems = [{ href: '/dashboard/admin/users', label: 'Users', icon: Users }]
+const adminNavItems = [
+  { href: '/dashboard/admin/users', label: 'Users', icon: Users },
+  { href: '/dashboard/admin/feedback', label: 'Feedback', icon: MessageSquare },
+]
 
 export function AppSidebar() {
   const router = useRouter()
