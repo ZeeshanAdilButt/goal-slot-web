@@ -21,42 +21,42 @@ export function TasksFilters({
   onGroupByChange,
 }: TasksFiltersProps) {
   return (
-    <div className="flex flex-wrap items-center gap-6 py-2">
+    <div className="flex flex-col gap-4 py-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
       {/* View Toggle */}
-      <div className="flex min-w-[200px] flex-col gap-1.5">
+      <div className="flex min-w-[160px] flex-col gap-1.5 sm:min-w-[200px]">
         <span className="ml-1 text-[10px] font-black uppercase tracking-widest text-secondary/60">View Mode</span>
         <div className="flex gap-2">
           <button
             onClick={() => onCompactViewChange(true)}
             className={cn(
-              'flex flex-1 items-center justify-center gap-2 px-3 py-2 font-bold uppercase text-xs border-3 border-secondary transition-all shadow-brutal-sm active:translate-x-0 active:translate-y-0',
+              'flex flex-1 items-center justify-center gap-2 px-2 py-2 font-bold uppercase text-xs border-3 border-secondary transition-all shadow-brutal-sm active:translate-x-0 active:translate-y-0 sm:px-3',
               compactView ? 'bg-primary text-secondary' : 'bg-white hover:bg-gray-50',
             )}
           >
             <List className="h-3.5 w-3.5" />
-            Compact
+            <span>Compact</span>
           </button>
           <button
             onClick={() => onCompactViewChange(false)}
             className={cn(
-              'flex flex-1 items-center justify-center gap-2 px-3 py-2 font-bold uppercase text-xs border-3 border-secondary transition-all shadow-brutal-sm active:translate-x-0 active:translate-y-0',
+              'flex flex-1 items-center justify-center gap-2 px-2 py-2 font-bold uppercase text-xs border-3 border-secondary transition-all shadow-brutal-sm active:translate-x-0 active:translate-y-0 sm:px-3',
               !compactView ? 'bg-primary text-secondary' : 'bg-white hover:bg-gray-50',
             )}
           >
             <LayoutList className="h-3.5 w-3.5" />
-            Detail
+            <span>Detail</span>
           </button>
         </div>
       </div>
 
       {/* Task Status Filter */}
-      <div className="flex min-w-[160px] flex-col gap-1.5">
+      <div className="flex min-w-[140px] flex-col gap-1.5 sm:min-w-[160px]">
         <span className="ml-1 text-[10px] font-black uppercase tracking-widest text-secondary/60">Status</span>
         <div className="flex gap-2">
           <button
             onClick={() => onShowCompletedChange(false)}
             className={cn(
-              'flex-1 px-4 py-2 font-bold uppercase text-xs border-3 border-secondary transition-all shadow-brutal-sm active:translate-x-0 active:translate-y-0',
+              'flex-1 px-3 py-2 font-bold uppercase text-xs border-3 border-secondary transition-all shadow-brutal-sm active:translate-x-0 active:translate-y-0 sm:px-4',
               !showCompleted ? 'bg-primary text-secondary' : 'bg-white hover:bg-gray-50',
             )}
           >
@@ -65,7 +65,7 @@ export function TasksFilters({
           <button
             onClick={() => onShowCompletedChange(true)}
             className={cn(
-              'flex-1 px-4 py-2 font-bold uppercase text-xs border-3 border-secondary transition-all shadow-brutal-sm active:translate-x-0 active:translate-y-0',
+              'flex-1 px-3 py-2 font-bold uppercase text-xs border-3 border-secondary transition-all shadow-brutal-sm active:translate-x-0 active:translate-y-0 sm:px-4',
               showCompleted ? 'bg-primary text-secondary' : 'bg-white hover:bg-gray-50',
             )}
           >
@@ -75,38 +75,38 @@ export function TasksFilters({
       </div>
 
       {/* Group By Filter */}
-      <div className="flex min-w-[240px] flex-col gap-1.5">
+      <div className="flex w-full flex-col gap-1.5 sm:w-auto sm:min-w-[240px]">
         <span className="ml-1 text-[10px] font-black uppercase tracking-widest text-secondary/60">Group By</span>
         <div className="flex border-3 border-secondary bg-white p-1 shadow-brutal-sm">
           <button
             onClick={() => onGroupByChange('status')}
             className={cn(
-              'flex flex-1 items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase transition-colors',
+              'flex flex-1 items-center justify-center gap-1 px-2 py-1.5 text-xs font-bold uppercase transition-colors sm:gap-1.5 sm:px-3',
               groupBy === 'status' ? 'bg-primary text-secondary' : 'hover:bg-gray-100',
             )}
           >
             <Layers className="h-3.5 w-3.5" />
-            Status
+            <span>Status</span>
           </button>
           <button
             onClick={() => onGroupByChange('day')}
             className={cn(
-              'flex flex-1 items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase transition-colors',
+              'flex flex-1 items-center justify-center gap-1 px-2 py-1.5 text-xs font-bold uppercase transition-colors sm:gap-1.5 sm:px-3',
               groupBy === 'day' ? 'bg-primary text-secondary' : 'hover:bg-gray-100',
             )}
           >
             <Calendar className="h-3.5 w-3.5" />
-            Day
+            <span>Day</span>
           </button>
           <button
             onClick={() => onGroupByChange('schedule')}
             className={cn(
-              'flex flex-1 items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase transition-colors',
+              'flex flex-1 items-center justify-center gap-1 px-2 py-1.5 text-xs font-bold uppercase transition-colors sm:gap-1.5 sm:px-3',
               groupBy === 'schedule' ? 'bg-primary text-secondary' : 'hover:bg-gray-100',
             )}
           >
             <Clock className="h-3.5 w-3.5" />
-            Time
+            <span>Time</span>
           </button>
         </div>
       </div>

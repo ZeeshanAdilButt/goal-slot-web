@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react'
 import { CompleteTaskModal } from '@/features/tasks/components/complete-task-modal'
 import { CreateTaskModal } from '@/features/tasks/components/create-task-modal'
 import { GoalsSidebar } from '@/features/tasks/components/goals-sidebar'
-import { WITHOUT_GOALS_ID } from '@/features/tasks/components/goals-sidebar/types'
 import { TasksView } from '@/features/tasks/components/tasks-view'
 import { useTasks } from '@/features/tasks/hooks/use-tasks'
 import {
@@ -27,61 +26,60 @@ export function TasksPage() {
   const [completingTask, setCompletingTask] = useState<Task | null>(null)
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null)
 
-  // Auto-select first goal when goals change, or "Without Goals" if no goals exist
+  // Auto-select first goal when goals change
   useEffect(() => {
-    if (goals.length > 0) {
-      // If a valid goal is selected, keep it. Otherwise, select the first goal.
-      if (!selectedGoalId || (!goals.some((g) => g.id === selectedGoalId) && selectedGoalId !== WITHOUT_GOALS_ID)) {
-        setSelectedGoalId(goals[0].id)
-      }
+    if (goals.length > 0 && (!selectedGoalId || !goals.some((g) => g.id === selectedGoalId))) {
+      setSelectedGoalId(goals[0].id)
     } else if (goals.length === 0) {
-      // If no goals exist, default to "Without Goals" if there are tasks without goals
-      if (selectedGoalId !== WITHOUT_GOALS_ID) {
-        const hasTasksWithoutGoals = tasks.some((t) => !t.goalId)
-        if (hasTasksWithoutGoals) {
-          setSelectedGoalId(WITHOUT_GOALS_ID)
-        } else {
-          setSelectedGoalId(null)
-        }
-      }
+      setSelectedGoalId(null)
     }
-  }, [goals, selectedGoalId, tasks])
+  }, [goals, selectedGoalId])
 
   // Filter tasks for selected goal
-  const tasksForGoal =
-    selectedGoalId === WITHOUT_GOALS_ID
-      ? tasks.filter((t) => !t.goalId)
-      : selectedGoalId
-        ? tasks.filter((t) => t.goalId === selectedGoalId)
-        : []
+  const tasksForGoal = selectedGoalId ? tasks.filter((t) => t.goalId === selectedGoalId) : []
 
   const createTask = async (form: CreateTaskForm) => {
-    createTaskMutation.mutate(form)
-    return true
+    try {
+      await createTaskMutation.mutateAsync(form)
+      return true
+    } catch {
+      return false
+    }
   }
 
   const updateTask = async (taskId: string, form: CreateTaskForm & { status?: TaskStatus }) => {
-    updateTaskMutation.mutate({ taskId, data: form })
-    return true
+    try {
+      await updateTaskMutation.mutateAsync({ taskId, data: form })
+      return true
+    } catch {
+      return false
+    }
   }
 
   const completeTask = async (taskId: string, minutes: number, notes?: string) => {
-    completeTaskMutation.mutate({ taskId, minutes, notes })
-    return true
+    try {
+      await completeTaskMutation.mutateAsync({ taskId, minutes, notes })
+      return true
+    } catch {
+      return false
+    }
   }
 
   return (
     <div className="flex h-full flex-col gap-0 md:flex-row">
-      <GoalsSidebar
-        goals={goals}
-        selectedGoalId={selectedGoalId}
-        onSelectGoal={setSelectedGoalId}
-        selectedStatus={goalStatus}
-        onSelectStatus={setGoalStatus}
-        isLoading={isLoading}
-      />
+      {/* Desktop Sidebar */}
+      <div className="hidden md:block">
+        <GoalsSidebar
+          goals={goals}
+          selectedGoalId={selectedGoalId}
+          onSelectGoal={setSelectedGoalId}
+          selectedStatus={goalStatus}
+          onSelectStatus={setGoalStatus}
+          isLoading={isLoading}
+        />
+      </div>
 
-      <main className="flex-1 overflow-y-auto border-l-0 border-t-3 border-secondary md:border-l-3 md:border-t-0">
+      <main className="flex-1 overflow-y-auto">
         <div className="h-full">
           <TasksView
             tasks={tasksForGoal}
@@ -90,6 +88,12 @@ export function TasksPage() {
             onCreate={() => setShowCreate(true)}
             hasSelectedGoal={!!selectedGoalId}
             isLoading={isLoading}
+            goals={goals}
+            selectedGoalId={selectedGoalId}
+            onSelectGoal={setSelectedGoalId}
+            selectedStatus={goalStatus}
+            onSelectStatus={setGoalStatus}
+            goalsLoading={isLoading}
           />
 
           <CreateTaskModal

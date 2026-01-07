@@ -14,15 +14,15 @@ export function TimerDisplay({ elapsedTime, timerState }: TimerDisplayProps) {
   }
 
   return (
-    <div className="mb-8 text-center">
+    <div className="mb-6 text-center sm:mb-8">
       <motion.div
-        className="font-mono text-7xl font-bold tracking-wider md:text-8xl"
+        className="font-mono text-5xl font-bold tracking-wider sm:text-6xl md:text-7xl lg:text-8xl"
         animate={timerState === 'RUNNING' ? { scale: [1, 1.02, 1] } : {}}
         transition={{ duration: 1, repeat: timerState === 'RUNNING' ? Infinity : 0 }}
       >
         {formatTimerDisplay(elapsedTime)}
       </motion.div>
-      <div className="mt-2 font-mono text-lg opacity-75">
+      <div className="mt-2 font-mono text-sm opacity-75 sm:text-base md:text-lg">
         {timerState === 'STOPPED' && 'Ready to start'}
         {timerState === 'RUNNING' && '⏱ Timer running...'}
         {timerState === 'PAUSED' && '⏸ Paused'}

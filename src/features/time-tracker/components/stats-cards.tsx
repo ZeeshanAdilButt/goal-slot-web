@@ -19,21 +19,21 @@ export function StatsCards({ recentEntries }: StatsCardsProps) {
   const todayTotalMinutes = todayEntries.reduce((sum, e) => sum + e.duration, 0)
 
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:gap-6">
       <div className="card-brutal text-center">
-        <Timer className="mx-auto mb-2 h-8 w-8" />
-        <div className="text-3xl font-bold">{formatDuration(todayTotalMinutes)}</div>
-        <div className="font-mono text-sm uppercase text-gray-600">Today's Total</div>
+        <Timer className="mx-auto mb-2 h-6 w-6 sm:h-8 sm:w-8" />
+        <div className="text-2xl font-bold sm:text-3xl">{formatDuration(todayTotalMinutes)}</div>
+        <div className="font-mono text-xs uppercase text-gray-600 sm:text-sm">Today's Total</div>
       </div>
       <div className="card-brutal-colored bg-primary text-center">
-        <Target className="mx-auto mb-2 h-8 w-8" />
-        <div className="text-3xl font-bold">{todayEntries.length}</div>
-        <div className="font-mono text-sm uppercase">Tasks Today</div>
+        <Target className="mx-auto mb-2 h-6 w-6 sm:h-8 sm:w-8" />
+        <div className="text-2xl font-bold sm:text-3xl">{todayEntries.length}</div>
+        <div className="font-mono text-xs uppercase sm:text-sm">Tasks Today</div>
       </div>
       <div className="card-brutal text-center">
-        <History className="mx-auto mb-2 h-8 w-8" />
-        <div className="text-3xl font-bold">{recentEntries.length}</div>
-        <div className="font-mono text-sm uppercase text-gray-600">Last 7 Days</div>
+        <History className="mx-auto mb-2 h-6 w-6 sm:h-8 sm:w-8" />
+        <div className="text-2xl font-bold sm:text-3xl">{recentEntries.length}</div>
+        <div className="font-mono text-xs uppercase text-gray-600 sm:text-sm">Last 7 Days</div>
       </div>
     </div>
   )

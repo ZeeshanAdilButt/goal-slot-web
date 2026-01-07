@@ -19,7 +19,7 @@ import { Plus } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { tasksApi } from '@/lib/api'
-import { formatDuration } from '@/lib/utils'
+import { formatDuration, getLocalDateString } from '@/lib/utils'
 
 export function TimeTrackerPage() {
   const {
@@ -54,18 +54,18 @@ export function TimeTrackerPage() {
         goalId: currentGoalId || undefined,
         category: currentCategory || undefined,
       })
-      
+
       // Invalidate tasks query to refresh the list
       queryClient.invalidateQueries({ queryKey: ['tasks'] })
       queryClient.invalidateQueries({ queryKey: ['time-tracker'] })
-      
+
       toast.success(`Task "${title}" created!`)
-      
+
       // Set the goal if the task has one
       if (response.data.goalId) {
         setGoalId(response.data.goalId)
       }
-      
+
       return response.data as Task
     } catch (error) {
       toast.error('Failed to create task')
@@ -123,7 +123,7 @@ export function TimeTrackerPage() {
         taskId: currentTaskId || undefined,
         taskTitle,
         duration,
-        date: new Date().toISOString().split('T')[0],
+        date: getLocalDateString(),
         notes: `Timer session`,
         goalId: currentGoalId || undefined,
         startedAt: startTimestamp ? new Date(startTimestamp).toISOString() : undefined,
@@ -144,12 +144,12 @@ export function TimeTrackerPage() {
   }
 
   return (
-    <div className="space-y-8 p-6">
+    <div className="space-y-4 p-4 sm:space-y-6 sm:p-6 md:space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-4xl font-bold uppercase">Time Tracker</h1>
-          <p className="font-mono uppercase text-gray-600">Track time with precision</p>
+          <h1 className="font-display text-2xl font-bold uppercase sm:text-3xl md:text-4xl">Time Tracker</h1>
+          <p className="font-mono text-sm uppercase text-gray-600 sm:text-base">Track time with precision</p>
         </div>
 
         <button onClick={() => setShowManualEntry(true)} className="btn-brutal flex items-center gap-2">
@@ -160,7 +160,7 @@ export function TimeTrackerPage() {
 
       {/* Timer Section */}
       <motion.div
-        className="card-brutal-colored bg-secondary p-8 text-white"
+        className="card-brutal-colored bg-secondary p-4 text-white sm:p-6 md:p-8"
         animate={
           timerState === 'RUNNING'
             ? {

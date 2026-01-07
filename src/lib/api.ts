@@ -41,6 +41,15 @@ api.interceptors.response.use(
   },
 )
 
+// Feedback API
+export const feedbackApi = {
+  create: (data: { emoji?: number; text?: string }) => api.post('/feedback', data),
+  getAll: (params?: { isArchived?: boolean; userId?: string }) => api.get('/feedback', { params }),
+  getOne: (id: string) => api.get(`/feedback/${id}`),
+  archive: (id: string, data: { isArchived: boolean }) => api.put(`/feedback/${id}/archive`, data),
+  delete: (id: string) => api.delete(`/feedback/${id}`),
+}
+
 // Auth API
 export const authApi = {
   register: (data: { email: string; password: string; name: string }) => api.post('/auth/register', data),
@@ -111,7 +120,8 @@ export const tasksApi = {
 // Sharing API
 export const sharingApi = {
   invite: (email: string) => api.post('/sharing/invite', { email }),
-  share: (data: { email: string; accessLevel?: 'VIEW' | 'EDIT' }) => api.post('/sharing/invite', { email: data.email }),
+  share: (data: { email: string; accessLevel?: 'VIEW' | 'EDIT' }) =>
+    api.post('/sharing/invite', { email: data.email, accessLevel: data.accessLevel || 'VIEW' }),
   accept: (token: string) => api.post('/sharing/accept', null, { params: { token } }),
   getAll: () => api.get('/sharing'),
   getMyShares: () => api.get('/sharing/my-shares'),
@@ -152,7 +162,7 @@ export const usersApi = {
     api.put('/users/password', { currentPassword, newPassword }),
   deleteAccount: () => api.delete('/users/account'),
   // Admin: List users with optional search
-  listUsers: (page?: number, limit?: number, search?: string) => 
+  listUsers: (page?: number, limit?: number, search?: string) =>
     api.get('/users/admin/list', { params: { page, limit, search } }),
   // Admin: Get user statistics
   getStats: () => api.get('/users/admin/stats'),
@@ -223,4 +233,3 @@ export const notesApi = {
   delete: (id: string) => api.delete(`/notes/${id}`),
   reorder: (data: { noteId: string; parentId: string | null; order: number }[]) => api.put('/notes/reorder', data),
 }
-

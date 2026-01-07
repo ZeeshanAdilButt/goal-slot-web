@@ -4,7 +4,7 @@ import { useCategoriesQuery } from '@/features/categories'
 import { useCreateTimeEntry } from '@/features/time-tracker/hooks/use-time-tracker-mutations'
 import { Goal, Task } from '@/features/time-tracker/utils/types'
 
-import { cn } from '@/lib/utils'
+import { cn, getLocalDateString } from '@/lib/utils'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
@@ -20,7 +20,7 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks }: ManualEntryM
   const [duration, setDuration] = useState(30)
   const [category, setCategory] = useState('')
   const [goalId, setGoalId] = useState('')
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [date, setDate] = useState(getLocalDateString())
   const [startTime, setStartTime] = useState('09:00')
   const [taskId, setTaskId] = useState('')
 
