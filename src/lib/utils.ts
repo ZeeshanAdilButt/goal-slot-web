@@ -31,6 +31,18 @@ export function formatDate(date: Date | string, formatStr: string = 'MMM d, yyyy
   return format(d, formatStr)
 }
 
+/**
+ * Get the current date as a YYYY-MM-DD string in local timezone.
+ * This is important because toISOString() uses UTC which can show the wrong date
+ * in timezones behind UTC.
+ */
+export function getLocalDateString(date: Date = new Date()): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export function getProgressColor(progress: number): string {
   if (progress >= 75) return 'bg-accent-green'
   if (progress >= 50) return 'bg-primary'

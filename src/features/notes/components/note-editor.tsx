@@ -258,12 +258,12 @@ export function NoteEditor({ note, onDelete }: NoteEditorProps) {
   return (
     <div className={cn('flex h-full flex-col', colorConfig.bg)}>
       {/* Header */}
-      <div className="flex shrink-0 items-center justify-between border-b-2 border-border px-4 py-3">
-        <div className="flex min-w-0 flex-1 items-center gap-3">
+      <div className="flex shrink-0 items-center justify-between border-b-2 border-border px-2 py-2 md:px-4 md:py-3">
+        <div className="flex min-w-0 flex-1 items-center gap-2 md:gap-3">
           {/* Icon picker */}
           <Popover open={showIconPicker} onOpenChange={setShowIconPicker}>
             <PopoverTrigger asChild>
-              <button className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border-2 border-border bg-card text-2xl transition-colors hover:bg-muted">
+              <button className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border-2 border-border bg-card text-xl transition-colors hover:bg-muted md:h-10 md:w-10 md:text-2xl">
                 {note.icon || '📄'}
               </button>
             </PopoverTrigger>
@@ -291,14 +291,14 @@ export function NoteEditor({ note, onDelete }: NoteEditorProps) {
             value={title}
             onChange={handleTitleChange}
             placeholder="Untitled"
-            className="min-w-0 flex-1 bg-transparent text-xl font-bold outline-none placeholder:text-muted-foreground"
+            className="min-w-0 flex-1 bg-transparent text-lg font-bold outline-none placeholder:text-muted-foreground md:text-xl"
           />
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1 md:gap-2">
           {/* Copy success indicator */}
           {copySuccess && (
-            <div className="flex items-center gap-1 rounded-md bg-green-100 px-2 py-1 text-xs text-green-700 dark:bg-green-900 dark:text-green-300">
+            <div className="hidden items-center gap-1 rounded-md bg-green-100 px-2 py-1 text-xs text-green-700 dark:bg-green-900 dark:text-green-300 md:flex">
               <Check className="h-3 w-3" />
               Copied!
             </div>
@@ -308,24 +308,30 @@ export function NoteEditor({ note, onDelete }: NoteEditorProps) {
           <button
             onClick={handleToggleFavorite}
             className={cn(
-              'flex h-9 w-9 items-center justify-center rounded-lg border-2 border-border transition-colors',
+              'flex h-8 w-8 items-center justify-center rounded-lg border-2 border-border transition-colors md:h-9 md:w-9',
               note.isFavorite
                 ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-400'
                 : 'bg-card hover:bg-muted',
             )}
             title={note.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
           >
-            {note.isFavorite ? <Star className="h-4 w-4 fill-current" /> : <StarOff className="h-4 w-4" />}
+            {note.isFavorite ? (
+              <Star className="h-3.5 w-3.5 fill-current md:h-4 md:w-4" />
+            ) : (
+              <StarOff className="h-3.5 w-3.5 md:h-4 md:w-4" />
+            )}
           </button>
 
           {/* Color picker */}
           <Popover open={showColorPicker} onOpenChange={setShowColorPicker}>
             <PopoverTrigger asChild>
               <button
-                className="flex h-9 w-9 items-center justify-center rounded-lg border-2 border-border bg-card transition-colors hover:bg-muted"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border-2 border-border bg-card transition-colors hover:bg-muted md:h-9 md:w-9"
                 title="Change color"
               >
-                <div className={cn('h-5 w-5 rounded-full border-2', colorConfig.border, colorConfig.bg)} />
+                <div
+                  className={cn('h-4 w-4 rounded-full border-2 md:h-5 md:w-5', colorConfig.border, colorConfig.bg)}
+                />
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-48 p-2" align="end">
@@ -350,8 +356,8 @@ export function NoteEditor({ note, onDelete }: NoteEditorProps) {
           {/* More options */}
           <Popover open={showMenu} onOpenChange={setShowMenu}>
             <PopoverTrigger asChild>
-              <button className="flex h-9 w-9 items-center justify-center rounded-lg border-2 border-border bg-card transition-colors hover:bg-muted">
-                <MoreHorizontal className="h-4 w-4" />
+              <button className="flex h-8 w-8 items-center justify-center rounded-lg border-2 border-border bg-card transition-colors hover:bg-muted md:h-9 md:w-9">
+                <MoreHorizontal className="h-3.5 w-3.5 md:h-4 md:w-4" />
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-52 p-1" align="end">
@@ -394,7 +400,7 @@ export function NoteEditor({ note, onDelete }: NoteEditorProps) {
 
       {/* Content - Tiptap Editor */}
       <div className="min-h-0 flex-1 overflow-hidden">
-        <div className="h-full px-4 py-2">
+        <div className="h-full px-2 py-2 md:px-4">
           <TiptapEditor
             key={note.id}
             content={editorContent}
@@ -406,9 +412,9 @@ export function NoteEditor({ note, onDelete }: NoteEditorProps) {
       </div>
 
       {/* Footer with metadata */}
-      <div className="flex shrink-0 items-center justify-between border-t border-border/50 px-4 py-2 text-xs text-muted-foreground">
-        <span>Created: {new Date(note.createdAt).toLocaleDateString()}</span>
-        <span>Last updated: {new Date(note.updatedAt).toLocaleString()}</span>
+      <div className="flex shrink-0 flex-col items-start justify-between gap-1 border-t border-border/50 px-2 py-2 text-xs text-muted-foreground md:flex-row md:items-center md:gap-0 md:px-4">
+        <span className="hidden md:inline">Created: {new Date(note.createdAt).toLocaleDateString()}</span>
+        <span>Updated: {new Date(note.updatedAt).toLocaleString()}</span>
       </div>
 
       {/* Delete Confirmation Dialog */}

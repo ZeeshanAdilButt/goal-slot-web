@@ -21,7 +21,7 @@ export function GoalsSidebarDesktop({
 
   return (
     <>
-      <aside className="flex h-full w-64 flex-col bg-brutalist-bg">
+      <aside className="hidden h-full w-64 flex-shrink-0 flex-col border-r-3 border-secondary bg-brutalist-bg md:flex">
         <div className="flex-shrink-0 border-b-3 border-secondary p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -90,18 +90,18 @@ export function GoalsSidebarDesktop({
                   ))}
                 </>
               )}
-
-              <div className="flex-shrink-0 border-t-3 border-secondary pt-1">
-                <button
-                  onClick={() => setShowModal(true)}
-                  className="flex w-full items-center justify-center gap-2 border-3 border-secondary bg-white px-3 py-2 text-sm font-bold uppercase transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-primary hover:shadow-brutal-sm"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>New Goal</span>
-                </button>
-              </div>
             </div>
           )}
+        </div>
+
+        <div className="flex-shrink-0 border-t-3 border-secondary p-4">
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex w-full items-center justify-center gap-2 border-3 border-secondary bg-white px-3 py-2 text-sm font-bold uppercase transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-primary hover:shadow-brutal-sm"
+          >
+            <Plus className="h-4 w-4" />
+            <span>New Goal</span>
+          </button>
         </div>
       </aside>
 

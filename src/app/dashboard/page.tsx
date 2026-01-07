@@ -79,32 +79,32 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-8 p-6">
+    <div className="space-y-4 p-4 sm:space-y-6 sm:p-6 md:space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-4xl font-bold uppercase">Dashboard</h1>
-          <p className="font-mono uppercase text-gray-600">{today}</p>
+          <h1 className="font-display text-2xl font-bold uppercase sm:text-3xl md:text-4xl">Dashboard</h1>
+          <p className="font-mono text-sm uppercase text-gray-600 sm:text-base">{today}</p>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-2 sm:gap-4">
           <Link href="/dashboard/settings?tab=categories" className="btn-brutal-secondary flex items-center gap-2">
             <Tag className="h-5 w-5" />
-            Categories
+            <span className="hidden sm:inline">Categories</span>
           </Link>
           <Link href="/dashboard/time-tracker" className="btn-brutal-secondary flex items-center gap-2">
             <Clock className="h-5 w-5" />
-            Log Time
+            <span className="hidden sm:inline">Log Time</span>
           </Link>
           <Link href="/dashboard/goals" className="btn-brutal flex items-center gap-2">
             <Plus className="h-5 w-5" />
-            New Goal
+            <span className="hidden sm:inline">New Goal</span>
           </Link>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
         {[
           {
             label: "Today's Focus",
@@ -136,35 +136,37 @@ export default function DashboardPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className={`${stat.color} border-3 border-secondary p-6 shadow-brutal`}
+            className={`${stat.color} border-3 border-secondary p-4 shadow-brutal sm:p-6`}
           >
-            <stat.icon className="mb-4 h-8 w-8" />
-            <div className="font-mono text-3xl font-bold">{stat.value}</div>
-            <div className="text-sm font-bold uppercase">{stat.label}</div>
+            <stat.icon className="mb-2 h-6 w-6 sm:mb-4 sm:h-8 sm:w-8" />
+            <div className="font-mono text-2xl font-bold sm:text-3xl">{stat.value}</div>
+            <div className="text-xs font-bold uppercase sm:text-sm">{stat.label}</div>
           </motion.div>
         ))}
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
         {/* Active Goals */}
-        <div className="col-span-2">
+        <div className="lg:col-span-2">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold uppercase">Active Goals</h2>
+            <h2 className="text-lg font-bold uppercase sm:text-xl">Active Goals</h2>
             <Link
               href="/dashboard/goals"
-              className="flex items-center gap-2 text-sm font-bold uppercase transition-colors hover:text-primary"
+              className="flex items-center gap-2 text-xs font-bold uppercase transition-colors hover:text-primary sm:text-sm"
             >
-              View All <ArrowRight className="h-4 w-4" />
+              <span className="hidden sm:inline">View All</span>
+              <span className="sm:hidden">All</span>
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
 
           <div className="space-y-4">
             {goals.length === 0 ? (
-              <div className="card-brutal py-12 text-center">
-                <Target className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-                <p className="mb-2 font-bold uppercase">No Active Goals</p>
-                <p className="mb-4 font-mono text-gray-600">Create your first goal to start tracking</p>
+              <div className="card-brutal py-8 text-center sm:py-12">
+                <Target className="mx-auto mb-3 h-10 w-10 text-gray-400 sm:mb-4 sm:h-12 sm:w-12" />
+                <p className="mb-2 text-sm font-bold uppercase sm:text-base">No Active Goals</p>
+                <p className="mb-4 font-mono text-sm text-gray-600">Create your first goal to start tracking</p>
                 <Link href="/dashboard/goals" className="btn-brutal inline-flex items-center gap-2">
                   <Plus className="h-4 w-4" /> Create Goal
                 </Link>
@@ -180,16 +182,16 @@ export default function DashboardPage() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.1 }}
-                    className="card-brutal flex items-center gap-4"
+                    className="card-brutal flex items-center gap-3 sm:gap-4"
                   >
                     <div
-                      className="h-full min-h-[80px] w-3 border-r-3 border-secondary"
+                      className="h-full min-h-[60px] w-2 border-r-3 border-secondary sm:min-h-[80px] sm:w-3"
                       style={{ backgroundColor: goal.color }}
                     />
 
-                    <div className="flex-1">
-                      <div className="mb-2 flex items-center justify-between">
-                        <div>
+                    <div className="flex-1 overflow-hidden">
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <div className="min-w-0 flex-1">
                           <span
                             className="badge-brutal mr-2 text-xs"
                             style={{
@@ -199,10 +201,10 @@ export default function DashboardPage() {
                           >
                             {goal.category}
                           </span>
-                          <span className="font-bold uppercase">{goal.title}</span>
+                          <span className="truncate text-sm font-bold uppercase sm:text-base">{goal.title}</span>
                         </div>
                         {goal.deadline && (
-                          <span className="badge-brutal bg-secondary text-xs text-white">
+                          <span className="badge-brutal shrink-0 bg-secondary text-xs text-white">
                             {format(new Date(goal.deadline), 'MMM d')}
                           </span>
                         )}
@@ -231,29 +233,29 @@ export default function DashboardPage() {
         <div className="space-y-6">
           {/* Recent Activity */}
           <div>
-            <h2 className="mb-4 text-xl font-bold uppercase">Recent Activity</h2>
+            <h2 className="mb-4 text-lg font-bold uppercase sm:text-xl">Recent Activity</h2>
             <div className="card-brutal">
               {recentActivity.length === 0 ? (
-                <div className="py-8 text-center">
-                  <Clock className="mx-auto mb-3 h-10 w-10 text-gray-400" />
-                  <p className="font-mono text-sm text-gray-600">No activity yet</p>
+                <div className="py-6 text-center sm:py-8">
+                  <Clock className="mx-auto mb-2 h-8 w-8 text-gray-400 sm:mb-3 sm:h-10 sm:w-10" />
+                  <p className="font-mono text-xs text-gray-600 sm:text-sm">No activity yet</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {recentActivity.map((entry) => (
                     <div
                       key={entry.id}
-                      className="flex items-center gap-3 border-2 border-secondary bg-brutalist-bg p-3"
+                      className="flex items-center gap-2 border-2 border-secondary bg-brutalist-bg p-2 sm:gap-3 sm:p-3"
                     >
                       <div
-                        className="flex h-10 w-10 items-center justify-center border-2 border-secondary font-mono text-sm font-bold"
+                        className="flex h-10 w-10 shrink-0 items-center justify-center border-2 border-secondary font-mono text-xs font-bold sm:h-12 sm:w-12 sm:text-sm"
                         style={{ backgroundColor: entry.goal?.color || '#FFD700' }}
                       >
                         {formatDuration(entry.duration).replace(' ', '')}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-bold">{entry.taskName}</p>
-                        <p className="font-mono text-xs text-gray-600">{entry.goal?.title || 'No Goal'}</p>
+                        <p className="truncate text-xs font-bold sm:text-sm">{entry.taskName}</p>
+                        <p className="truncate font-mono text-xs text-gray-600">{entry.goal?.title || 'No Goal'}</p>
                       </div>
                     </div>
                   ))}
@@ -268,11 +270,11 @@ export default function DashboardPage() {
             className="card-brutal-colored group flex cursor-pointer items-center justify-between bg-primary transition-shadow hover:shadow-brutal-lg"
           >
             <div>
-              <Calendar className="mb-2 h-8 w-8" />
-              <span className="font-bold uppercase">View Schedule</span>
-              <p className="font-mono text-sm">Plan your week</p>
+              <Calendar className="mb-2 h-6 w-6 sm:h-8 sm:w-8" />
+              <span className="text-sm font-bold uppercase sm:text-base">View Schedule</span>
+              <p className="font-mono text-xs sm:text-sm">Plan your week</p>
             </div>
-            <ArrowRight className="h-6 w-6 transition-transform group-hover:translate-x-1" />
+            <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1 sm:h-6 sm:w-6" />
           </Link>
         </div>
       </div>
