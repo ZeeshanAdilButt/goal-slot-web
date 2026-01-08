@@ -111,7 +111,7 @@ export function ScheduleGrid({
   }
 
   return (
-    <div>
+    <div className="overflow-x-auto">
       <div className="min-w-[960px]">
         <div className="grid grid-cols-[5rem_repeat(7,minmax(0,1fr))] border-b-3 border-secondary">
           <div className="w-20 bg-secondary p-4 text-center font-bold uppercase text-white">Time</div>

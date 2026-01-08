@@ -1,22 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-
 import Link from 'next/link'
 
-import { motion, AnimatePresence } from 'framer-motion'
-import {
-  ArrowLeft,
-  ChevronDown,
-  Clock,
-  CreditCard,
-  HelpCircle,
-  Lock,
-  Share2,
-  Target,
-  Users,
-  Zap,
-} from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ArrowLeft, ChevronDown, Clock, CreditCard, HelpCircle, Lock, Share2, Target, Users, Zap } from 'lucide-react'
 
 interface FAQItem {
   question: string
@@ -49,7 +37,7 @@ const faqCategories: FAQCategory[] = [
       {
         question: 'Is GoalSlot free to use?',
         answer:
-          "Yes! We offer a generous free tier that includes all essential features. Premium features are available for users who want advanced analytics, team collaboration, and priority support.",
+          'Yes! We offer a generous free tier that includes all essential features. Premium features are available for users who want advanced analytics, team collaboration, and priority support.',
       },
     ],
   },
@@ -88,12 +76,12 @@ const faqCategories: FAQCategory[] = [
       {
         question: 'How do I track my time?',
         answer:
-          "Use the timer on your dashboard to track time in real-time, or manually add time entries after completing work. You can assign each entry to a specific goal or task for better organization.",
+          'Use the timer on your dashboard to track time in real-time, or manually add time entries after completing work. You can assign each entry to a specific goal or task for better organization.',
       },
       {
         question: 'Can I edit or delete time entries?',
         answer:
-          "Yes, you can edit any time entry to correct mistakes or add notes. You can also void entries if they were logged incorrectly, which removes them from your statistics while keeping a record.",
+          'Yes, you can edit any time entry to correct mistakes or add notes. You can also void entries if they were logged incorrectly, which removes them from your statistics while keeping a record.',
       },
       {
         question: 'What reports can I generate?',
@@ -103,7 +91,7 @@ const faqCategories: FAQCategory[] = [
       {
         question: 'Does the timer work offline?',
         answer:
-          "The timer requires an internet connection to sync accurately. However, you can always add manual time entries later if you worked offline.",
+          'The timer requires an internet connection to sync accurately. However, you can always add manual time entries later if you worked offline.',
       },
     ],
   },
@@ -115,17 +103,17 @@ const faqCategories: FAQCategory[] = [
       {
         question: 'How do I share my progress with my mentor?',
         answer:
-          "Go to the Sharing section and create a share link. You can choose what to share (goals, time entries, reports) and set expiration dates. Your mentor can view your progress without needing an account.",
+          'Go to the Sharing section and create a share link. You can choose what to share (goals, time entries, reports) and set expiration dates. Your mentor can view your progress without needing an account.',
       },
       {
         question: 'Can I make my profile public?',
         answer:
-          "Yes! You can create a public profile that showcases your goals and achievements. This is great for accountability and inspiring others in the community.",
+          'Yes! You can create a public profile that showcases your goals and achievements. This is great for accountability and inspiring others in the community.',
       },
       {
         question: 'Is there a leaderboard?',
         answer:
-          "We have optional community leaderboards where you can compare your progress with other users. Participation is completely voluntary and can be toggled off anytime.",
+          'We have optional community leaderboards where you can compare your progress with other users. Participation is completely voluntary and can be toggled off anytime.',
       },
     ],
   },
@@ -137,12 +125,12 @@ const faqCategories: FAQCategory[] = [
       {
         question: 'How is my data protected?',
         answer:
-          "All data is encrypted in transit and at rest. We use industry-standard security practices and never sell your personal information. Check our Privacy Policy for complete details.",
+          'All data is encrypted in transit and at rest. We use industry-standard security practices and never sell your personal information. Check our Privacy Policy for complete details.',
       },
       {
         question: 'Can I export my data?',
         answer:
-          "Yes! You can export all your data (goals, tasks, time entries) in JSON or CSV format anytime from your account settings. We believe you should always have access to your data.",
+          'Yes! You can export all your data (goals, tasks, time entries) in JSON or CSV format anytime from your account settings. We believe you should always have access to your data.',
       },
       {
         question: 'How do I delete my account?',
@@ -164,7 +152,7 @@ const faqCategories: FAQCategory[] = [
       {
         question: 'What features are included in Premium?',
         answer:
-          "Premium includes advanced analytics, unlimited goal categories, priority support, team collaboration features, custom themes, and API access for integrations.",
+          'Premium includes advanced analytics, unlimited goal categories, priority support, team collaboration features, custom themes, and API access for integrations.',
       },
       {
         question: 'How do I upgrade to Premium?',
@@ -178,8 +166,7 @@ const faqCategories: FAQCategory[] = [
       },
       {
         question: 'Do you offer student discounts?',
-        answer:
-          'Yes! Students get 50% off Premium with a valid student email address.',
+        answer: 'Yes! Students get 50% off Premium with a valid student email address.',
       },
     ],
   },
@@ -234,7 +221,7 @@ export default function FAQPage() {
     <div className="min-h-screen bg-brutalist-bg">
       {/* Navigation */}
       <nav className="fixed left-0 right-0 top-0 z-50 border-b-3 border-secondary bg-brutalist-bg">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
           <Link href="/" className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center border-3 border-secondary bg-primary shadow-brutal">
               <Zap className="h-7 w-7" />
@@ -257,7 +244,7 @@ export default function FAQPage() {
       </nav>
 
       {/* Main Content */}
-      <main className="px-6 pb-20 pt-32">
+      <main className="px-4 pb-12 pt-24 sm:px-6 sm:pb-20 sm:pt-28 md:pt-32">
         <div className="mx-auto max-w-5xl">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             {/* Back Link */}
@@ -276,12 +263,8 @@ export default function FAQPage() {
                   <HelpCircle className="h-10 w-10 text-white" />
                 </div>
               </div>
-              <h1 className="mb-2 font-display text-4xl font-bold uppercase md:text-5xl">
-                Frequently Asked Questions
-              </h1>
-              <p className="font-mono text-lg text-gray-600">
-                Everything you need to know about GoalSlot
-              </p>
+              <h1 className="mb-2 font-display text-4xl font-bold uppercase md:text-5xl">Frequently Asked Questions</h1>
+              <p className="font-mono text-lg text-gray-600">Everything you need to know about GoalSlot</p>
             </div>
 
             {/* Category Filter */}
@@ -289,9 +272,7 @@ export default function FAQPage() {
               <button
                 onClick={() => setActiveCategory(null)}
                 className={`flex items-center gap-2 border-3 border-secondary px-4 py-2 font-bold uppercase transition-all ${
-                  activeCategory === null
-                    ? 'bg-secondary text-white shadow-brutal-sm'
-                    : 'bg-white hover:bg-gray-50'
+                  activeCategory === null ? 'bg-secondary text-white shadow-brutal-sm' : 'bg-white hover:bg-gray-50'
                 }`}
               >
                 <Users className="h-4 w-4" />
@@ -359,14 +340,9 @@ export default function FAQPage() {
             >
               <div className="card-brutal bg-secondary text-center text-white">
                 <h3 className="mb-4 font-display text-2xl font-bold uppercase">Still Have Questions?</h3>
-                <p className="mb-6 font-mono">
-                  Can't find what you're looking for? Our support team is here to help!
-                </p>
+                <p className="mb-6 font-mono">Can't find what you're looking for? Our support team is here to help!</p>
                 <div className="flex flex-wrap justify-center gap-4">
-                  <a
-                    href="mailto:support@goalslot.com"
-                    className="btn-brutal flex items-center gap-2"
-                  >
+                  <a href="mailto:support@goalslot.com" className="btn-brutal flex items-center gap-2">
                     Contact Support
                   </a>
                 </div>
@@ -377,7 +353,7 @@ export default function FAQPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t-3 border-secondary px-6 py-12">
+      <footer className="border-t-3 border-secondary px-4 py-8 sm:px-6 sm:py-12">
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <div className="flex items-center gap-3">

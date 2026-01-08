@@ -672,7 +672,7 @@ export default function AdminUsersPage() {
             <DialogHeader className="border-b-4 border-black bg-primary p-4">
               <DialogTitle className="text-xl font-black uppercase">Create Internal User</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleCreateUser} className="space-y-4 p-6">
+            <form onSubmit={handleCreateUser} className="space-y-4 p-2 sm:p-6">
               <div>
                 <label className="mb-2 block text-sm font-bold uppercase">Name</label>
                 <input
@@ -753,7 +753,7 @@ export default function AdminUsersPage() {
               <DialogTitle className="text-xl font-black uppercase">Disable User</DialogTitle>
             </DialogHeader>
 
-            <div className="space-y-4 p-6">
+            <div className="space-y-4 p-2 sm:p-6">
               <p className="text-gray-600">
                 You are about to disable <strong>{selectedUser.name}</strong> ({selectedUser.email}). They will not be
                 able to log in until re-enabled.
@@ -803,7 +803,7 @@ export default function AdminUsersPage() {
               <DialogTitle className="text-xl font-black uppercase">Assign Plan</DialogTitle>
             </DialogHeader>
 
-            <div className="space-y-4 p-6">
+            <div className="space-y-4 p-2 sm:p-6">
               <p className="text-gray-600">
                 Assign a subscription plan to <strong>{selectedUser.name}</strong>.
               </p>
@@ -864,7 +864,7 @@ export default function AdminUsersPage() {
               <DialogTitle className="text-xl font-black uppercase">User Details</DialogTitle>
             </DialogHeader>
 
-            <div className="space-y-4 p-6">
+            <div className="space-y-4 p-2 sm:p-6">
               <div className="flex items-center gap-4">
                 <div className="flex h-16 w-16 items-center justify-center border-4 border-black bg-primary text-2xl font-black">
                   {selectedUser.name.charAt(0).toUpperCase()}

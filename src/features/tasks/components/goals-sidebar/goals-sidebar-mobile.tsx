@@ -95,7 +95,7 @@ export function GoalsSidebarMobile({
                 </button>
 
                 {goals.length === 0 ? (
-                  <div className="bg-white p-6 text-center">
+                  <div className="bg-white p-2 text-center sm:p-6">
                     <p className="font-mono text-sm text-gray-600">No goals available</p>
                   </div>
                 ) : (

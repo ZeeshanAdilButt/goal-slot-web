@@ -159,7 +159,7 @@ export function NotesPageDesktop({ initialNoteId }: NotesPageDesktopProps = {}) 
           {selectedNote ? (
             <NoteEditor key={selectedNote.id} note={selectedNote} onDelete={handleDeleteNote} />
           ) : (
-            <div className="flex h-full flex-col items-center justify-center gap-4 p-8 text-center">
+            <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
               <div className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-border bg-muted">
                 <FileText className="h-10 w-10 text-muted-foreground" />
               </div>

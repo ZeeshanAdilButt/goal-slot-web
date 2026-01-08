@@ -8,7 +8,7 @@ import { FocusTrendCard } from '@/features/reports/components/focus-trend-card'
 
 export function FocusPage() {
   return (
-    <div className="space-y-8 p-6">
+    <div className="space-y-8 p-2 sm:p-6">
       <div>
         <h1 className="font-display text-4xl font-bold uppercase">Focus</h1>
         <p className="font-mono uppercase text-gray-600">Visualize your focused time</p>

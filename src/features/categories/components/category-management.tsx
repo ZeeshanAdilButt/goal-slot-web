@@ -53,7 +53,7 @@ export function CategoryManagement() {
   }
 
   if (isLoading) {
-    return <div className="card-brutal p-6">Loading categories...</div>
+    return <div className="card-brutal p-2 sm:p-6">Loading categories...</div>
   }
 
   return (
@@ -69,7 +69,7 @@ export function CategoryManagement() {
         </button>
       </div>
 
-      <div className="card-brutal p-6">
+      <div className="card-brutal p-2 sm:p-6">
         {categories.length === 0 ? (
           <div className="py-12 text-center">
             <p className="font-mono text-gray-600">No categories yet. Create your first one!</p>
