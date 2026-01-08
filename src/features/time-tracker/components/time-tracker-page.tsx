@@ -144,7 +144,7 @@ export function TimeTrackerPage() {
   }
 
   return (
-    <div className="space-y-4 p-4 sm:space-y-6 sm:p-6 md:space-y-8">
+    <div className="space-y-4 p-2 sm:space-y-6 sm:p-6 md:space-y-8">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>

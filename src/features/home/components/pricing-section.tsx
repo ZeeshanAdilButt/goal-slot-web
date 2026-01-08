@@ -83,7 +83,7 @@ const plans = [
 
 export function PricingSection() {
   return (
-    <section id="pricing" className="px-6 py-20">
+    <section id="pricing" className="px-4 py-12 sm:px-6 sm:py-20">
       <div className="mx-auto max-w-6xl">
         <AnimatedSection
           initial={{ opacity: 0, y: 30 }}

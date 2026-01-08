@@ -161,9 +161,9 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-2 sm:space-y-4">
             {goals.length === 0 ? (
-              <div className="card-brutal py-8 text-center sm:py-12">
+              <div className="card-brutal py-4 text-center sm:py-12">
                 <Target className="mx-auto mb-3 h-10 w-10 text-gray-400 sm:mb-4 sm:h-12 sm:w-12" />
                 <p className="mb-2 text-sm font-bold uppercase sm:text-base">No Active Goals</p>
                 <p className="mb-4 font-mono text-sm text-gray-600">Create your first goal to start tracking</p>
@@ -182,7 +182,7 @@ export default function DashboardPage() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.1 }}
-                    className="card-brutal flex items-center gap-3 sm:gap-4"
+                    className="card-brutal flex items-center gap-2 sm:gap-4"
                   >
                     <div
                       className="h-full min-h-[60px] w-2 border-r-3 border-secondary sm:min-h-[80px] sm:w-3"
@@ -236,16 +236,16 @@ export default function DashboardPage() {
             <h2 className="mb-4 text-lg font-bold uppercase sm:text-xl">Recent Activity</h2>
             <div className="card-brutal">
               {recentActivity.length === 0 ? (
-                <div className="py-6 text-center sm:py-8">
+                <div className="py-4 text-center sm:py-8">
                   <Clock className="mx-auto mb-2 h-8 w-8 text-gray-400 sm:mb-3 sm:h-10 sm:w-10" />
                   <p className="font-mono text-xs text-gray-600 sm:text-sm">No activity yet</p>
                 </div>
               ) : (
-                <div className="space-y-2 sm:space-y-3">
+                <div className="space-y-1 sm:space-y-3">
                   {recentActivity.map((entry) => (
                     <div
                       key={entry.id}
-                      className="flex items-center gap-2 border-2 border-secondary bg-brutalist-bg p-2 sm:gap-3 sm:p-3"
+                      className="flex items-center gap-2 border-2 border-secondary bg-brutalist-bg p-1.5 sm:gap-3 sm:p-3"
                     >
                       <div
                         className="flex h-10 w-10 shrink-0 items-center justify-center border-2 border-secondary font-mono text-xs font-bold sm:h-12 sm:w-12 sm:text-sm"

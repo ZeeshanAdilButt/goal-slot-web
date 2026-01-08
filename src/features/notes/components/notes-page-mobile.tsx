@@ -122,7 +122,7 @@ export function NotesPageMobile({ initialNoteId }: NotesPageMobileProps = {}) {
           {selectedNote ? (
             <NoteEditor key={selectedNote.id} note={selectedNote} onDelete={handleDeleteNote} />
           ) : (
-            <div className="flex h-full flex-col items-center justify-center gap-4 p-6 text-center">
+            <div className="flex h-full flex-col items-center justify-center gap-4 p-2 text-center sm:p-6">
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-border bg-muted">
                 <FileText className="h-8 w-8 text-muted-foreground" />
               </div>

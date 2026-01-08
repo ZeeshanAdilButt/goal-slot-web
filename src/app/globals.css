@@ -9,6 +9,7 @@
   html {
     /* Always show scrollbar to prevent layout shift */
     overflow-y: scroll;
+    scroll-behavior: auto;
   }
 
   body {
@@ -89,36 +90,39 @@
 @layer components {
   /* Neo-brutalism button styles */
   .btn-brutal {
-    @apply relative px-6 py-3 font-bold uppercase tracking-wider
+    @apply relative px-3 py-1.5 text-xs font-bold uppercase tracking-wide
            border-3 border-secondary bg-primary text-secondary
            shadow-brutal transition-all duration-150
            hover:shadow-brutal-hover hover:-translate-x-0.5 hover:-translate-y-0.5
-           active:shadow-none active:translate-x-1 active:translate-y-1;
+           active:shadow-none active:translate-x-1 active:translate-y-1
+           sm:px-6 sm:py-3 sm:text-sm sm:tracking-wider;
   }
 
   .btn-brutal-secondary {
-    @apply relative px-6 py-3 font-bold uppercase tracking-wider
+    @apply relative px-3 py-1.5 text-xs font-bold uppercase tracking-wide
            border-3 border-secondary bg-white text-secondary
            shadow-brutal transition-all duration-150
            hover:shadow-brutal-hover hover:-translate-x-0.5 hover:-translate-y-0.5
-           active:shadow-none active:translate-x-1 active:translate-y-1;
+           active:shadow-none active:translate-x-1 active:translate-y-1
+           sm:px-6 sm:py-3 sm:text-sm sm:tracking-wider;
   }
 
   .btn-brutal-dark {
-    @apply relative px-6 py-3 font-bold uppercase tracking-wider
+    @apply relative px-3 py-1.5 text-xs font-bold uppercase tracking-wide
            border-3 border-secondary bg-secondary text-white
            shadow-brutal transition-all duration-150
            hover:shadow-brutal-hover hover:-translate-x-0.5 hover:-translate-y-0.5
-           active:shadow-none active:translate-x-1 active:translate-y-1;
+           active:shadow-none active:translate-x-1 active:translate-y-1
+           sm:px-6 sm:py-3 sm:text-sm sm:tracking-wider;
   }
 
   /* Neo-brutalism card styles */
   .card-brutal {
-    @apply bg-white border-3 border-secondary shadow-brutal p-6;
+    @apply bg-white border-3 border-secondary shadow-brutal px-2 py-2 sm:p-6;
   }
 
   .card-brutal-colored {
-    @apply border-3 border-secondary shadow-brutal p-6;
+    @apply border-3 border-secondary shadow-brutal px-2 py-2 sm:p-6;
   }
 
   /* Neo-brutalism input styles */
