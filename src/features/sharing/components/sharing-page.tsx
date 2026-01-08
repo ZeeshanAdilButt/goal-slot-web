@@ -22,10 +22,13 @@ import { DataShare, TabType } from '@/features/sharing/utils/types'
 import { AnimatePresence, motion } from 'framer-motion'
 
 import { Loading } from '@/components/ui/loading'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 
 export function SharingPage() {
   const [activeTab, setActiveTab] = useState<TabType>('my')
   const [showInviteModal, setShowInviteModal] = useState(false)
+  const [revokeDialogOpen, setRevokeDialogOpen] = useState(false)
+  const [shareToRevoke, setShareToRevoke] = useState<string | null>(null)
 
   const mySharesQuery = useMySharesQuery()
   const pendingInvitesQuery = usePendingInvitesQuery()
@@ -42,9 +45,15 @@ export function SharingPage() {
   const activeShares = shares.filter((s) => s.status === 'ACCEPTED')
   const pendingShares = shares.filter((s) => s.status === 'PENDING')
 
-  const handleRevoke = async (id: string) => {
-    if (!confirm('Revoke this share? The user will lose access.')) return
-    revokeMutation.mutate(id)
+  const handleRevoke = (id: string) => {
+    setShareToRevoke(id)
+    setRevokeDialogOpen(true)
+  }
+
+  const confirmRevoke = async () => {
+    if (shareToRevoke) {
+      revokeMutation.mutate(shareToRevoke)
+    }
   }
 
   const handleAcceptInvite = (id: string) => {
@@ -105,6 +114,18 @@ export function SharingPage() {
           mySharesQuery.refetch()
           pendingInvitesQuery.refetch()
         }}
+      />
+
+      <ConfirmDialog
+        open={revokeDialogOpen}
+        onOpenChange={setRevokeDialogOpen}
+        title="Revoke Access"
+        description="Are you sure you want to revoke this share? The user will lose access to your data."
+        onConfirm={confirmRevoke}
+        confirmButtonText="Revoke"
+        cancelButtonText="Cancel"
+        variant="destructive"
+        isLoading={revokeMutation.isPending}
       />
     </div>
   )

@@ -52,11 +52,20 @@ export const feedbackApi = {
 
 // Auth API
 export const authApi = {
-  register: (data: { email: string; password: string; name: string }) => api.post('/auth/register', data),
+  checkEmailExists: (email: string) => api.get('/auth/check-email', { params: { email } }),
+  sendOTP: (data: { email: string; purpose: 'SIGNUP' | 'FORGOT_PASSWORD' }) => api.post('/auth/send-otp', data),
+  verifyOTP: (data: { email: string; otp: string; purpose: 'SIGNUP' | 'FORGOT_PASSWORD' }) =>
+    api.post('/auth/verify-otp', data),
+  forgotPassword: (data: { email: string }) => api.post('/auth/forgot-password', data),
+  resetPassword: (data: { email: string; otp: string; newPassword: string }) => api.post('/auth/reset-password', data),
+  register: (data: { email: string; password: string; name: string; otp: string }) => api.post('/auth/register', data),
   login: (data: { email: string; password: string }) => api.post('/auth/login', data),
   ssoLogin: (data: { token: string; email: string; name?: string }) => api.post('/auth/sso', data),
   getProfile: () => api.get('/auth/me'),
   refresh: () => api.post('/auth/refresh'),
+  sendChangePasswordOTP: (data: { currentPassword: string }) => api.post('/auth/send-change-password-otp', data),
+  changePassword: (data: { currentPassword: string; otp: string; newPassword: string }) =>
+    api.post('/auth/change-password', data),
 }
 
 // Goals API
@@ -122,7 +131,7 @@ export const sharingApi = {
   invite: (email: string) => api.post('/sharing/invite', { email }),
   share: (data: { email: string; accessLevel?: 'VIEW' | 'EDIT' }) =>
     api.post('/sharing/invite', { email: data.email, accessLevel: data.accessLevel || 'VIEW' }),
-  accept: (token: string) => api.post('/sharing/accept', null, { params: { token } }),
+  accept: (token: string) => api.post('/sharing/accept', { token }, { params: { token } }),
   getAll: () => api.get('/sharing'),
   getMyShares: () => api.get('/sharing/my-shares'),
   getPendingInvites: () => api.get('/sharing/pending-invites'),

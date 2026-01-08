@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 import { motion } from 'framer-motion'
 import { ArrowRight, Eye, EyeOff, Lock, Mail, Zap } from 'lucide-react'
@@ -11,8 +11,10 @@ import { toast } from 'react-hot-toast'
 import { useAuthStore } from '@/lib/store'
 import { Loading } from '@/components/ui/loading'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get('redirect')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -26,7 +28,8 @@ export default function LoginPage() {
     try {
       await login(email, password)
       toast.success('Welcome back!')
-      router.push('/dashboard')
+      // Redirect to the specified URL or default to dashboard
+      router.push(redirect || '/dashboard')
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Invalid credentials')
     } finally {
@@ -96,6 +99,14 @@ export default function LoginPage() {
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
+              <div className="mt-2 text-right">
+                <Link
+                  href="/forgot-password"
+                  className="font-mono text-xs font-bold uppercase text-accent-blue hover:underline"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
             </div>
 
             <button
@@ -115,12 +126,35 @@ export default function LoginPage() {
 
           <p className="mt-6 text-center font-mono text-sm">
             Don't have an account?{' '}
-            <Link href="/signup" className="font-bold text-accent-blue hover:underline">
+            <Link
+              href={redirect ? `/signup?redirect=${encodeURIComponent(redirect)}` : '/signup'}
+              className="font-bold text-accent-blue hover:underline"
+            >
               Sign up
             </Link>
           </p>
         </div>
       </motion.div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-brutalist-bg p-6">
+          <div className="w-full max-w-md">
+            <div className="card-brutal">
+              <div className="flex items-center justify-center p-8">
+                <Loading size="sm" />
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   )
 }

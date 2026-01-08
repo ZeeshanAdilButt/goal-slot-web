@@ -5,12 +5,13 @@ import { useRouter, useSearchParams } from 'next/navigation'
 
 import { CategoryManagement } from '@/features/categories/components/category-management'
 import { motion } from 'framer-motion'
-import { Check, CreditCard, Crown, Download, Key, LogOut, Shield, Tag, Trash2, User } from 'lucide-react'
+import { Check, CreditCard, Crown, Download, Eye, EyeOff, Key, LogOut, Shield, Tag, Trash2, User } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
-import { stripeApi, usersApi } from '@/lib/api'
+import { authApi, stripeApi, usersApi } from '@/lib/api'
 import { useAuthStore } from '@/lib/store'
 import { cn } from '@/lib/utils'
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
 
 const TABS = [
   { id: 'profile', label: 'Profile', icon: User },
@@ -284,33 +285,74 @@ function BillingSettings() {
 // Security Settings
 function SecuritySettings() {
   const { user } = useAuthStore()
+  const [step, setStep] = useState<'enter-password' | 'verify-otp'>('enter-password')
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [otp, setOtp] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleChangePassword = async () => {
-    if (newPassword !== confirmPassword) {
-      toast.error('Passwords do not match')
-      return
-    }
-    if (newPassword.length < 8) {
-      toast.error('Password must be at least 8 characters')
+  // Password visibility states
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+  const handleSendOTP = async () => {
+    if (!currentPassword) {
+      toast.error('Please enter your current password')
       return
     }
 
     setIsLoading(true)
     try {
-      await usersApi.changePassword(currentPassword, newPassword)
-      toast.success('Password changed successfully')
-      setCurrentPassword('')
-      setNewPassword('')
-      setConfirmPassword('')
-    } catch (error) {
-      toast.error('Failed to change password')
+      await authApi.sendChangePasswordOTP({ currentPassword })
+      toast.success('Verification code sent to your email')
+      setStep('verify-otp')
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to send verification code'
+      toast.error(message)
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleChangePassword = async () => {
+    if (!otp || otp.length !== 6) {
+      toast.error('Please enter the 6-digit verification code')
+      return
+    }
+    if (!newPassword || newPassword.length < 8) {
+      toast.error('New password must be at least 8 characters')
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('Passwords do not match')
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      await authApi.changePassword({ currentPassword, otp, newPassword })
+      toast.success('Password changed successfully')
+      // Reset form
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+      setOtp('')
+      setStep('enter-password')
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to change password'
+      toast.error(message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleCancel = () => {
+    setStep('enter-password')
+    setOtp('')
+    setNewPassword('')
+    setConfirmPassword('')
   }
 
   return (
@@ -322,38 +364,120 @@ function SecuritySettings() {
             Change Password
           </h2>
 
-          <div className="space-y-4">
-            <div>
-              <label className="mb-2 block text-sm font-bold uppercase">Current Password</label>
-              <input
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                className="input-brutal"
-              />
+          {step === 'enter-password' && (
+            <div className="space-y-4">
+              <div>
+                <label className="mb-2 block text-sm font-bold uppercase">Current Password</label>
+                <div className="relative">
+                  <input
+                    type={showCurrentPassword ? 'text' : 'password'}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="input-brutal pr-12"
+                    placeholder="Enter your current password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-900"
+                  >
+                    {showCurrentPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button onClick={handleSendOTP} disabled={isLoading || !currentPassword} className="btn-brutal-dark">
+                  {isLoading ? 'Sending...' : 'Send Verification Code'}
+                </button>
+              </div>
+              <div className="rounded-lg border-2 border-secondary bg-blue-50 p-4">
+                <p className="font-mono text-sm text-gray-700">
+                  <strong>Security Notice:</strong> You'll receive a verification code via email to confirm your
+                  password change.
+                </p>
+              </div>
             </div>
-            <div>
-              <label className="mb-2 block text-sm font-bold uppercase">New Password</label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="input-brutal"
-              />
+          )}
+
+          {step === 'verify-otp' && (
+            <div className="space-y-4">
+              <div className="rounded-lg border-2 border-secondary bg-primary p-4">
+                <p className="mb-2 font-bold uppercase">Verification Code Sent!</p>
+                <p className="font-mono text-sm">Check your email for the 6-digit code and enter it below.</p>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-bold uppercase">Verification Code</label>
+                <div className="flex justify-center">
+                  <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+                    <InputOTPGroup className="gap-2">
+                      {[0, 1, 2, 3, 4, 5].map((index) => (
+                        <InputOTPSlot
+                          key={index}
+                          index={index}
+                          className="h-14 w-14 border-3 border-secondary bg-white text-xl font-bold uppercase shadow-brutal"
+                        />
+                      ))}
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-bold uppercase">New Password</label>
+                <div className="relative">
+                  <input
+                    type={showNewPassword ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="input-brutal pr-12"
+                    placeholder="Enter your new password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-900"
+                  >
+                    {showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
+                <p className="mt-1 font-mono text-xs text-gray-500">Must be at least 8 characters</p>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-bold uppercase">Confirm New Password</label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="input-brutal pr-12"
+                    placeholder="Confirm your new password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-900"
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={handleChangePassword}
+                  disabled={isLoading || !otp || !newPassword || !confirmPassword}
+                  className="btn-brutal-dark"
+                >
+                  {isLoading ? 'Changing...' : 'Change Password'}
+                </button>
+                <button onClick={handleCancel} disabled={isLoading} className="btn-brutal">
+                  Cancel
+                </button>
+              </div>
             </div>
-            <div>
-              <label className="mb-2 block text-sm font-bold uppercase">Confirm New Password</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="input-brutal"
-              />
-            </div>
-            <button onClick={handleChangePassword} disabled={isLoading} className="btn-brutal-dark">
-              {isLoading ? 'Changing...' : 'Change Password'}
-            </button>
-          </div>
+          )}
         </div>
       )}
 

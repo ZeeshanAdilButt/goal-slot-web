@@ -2,14 +2,27 @@
 
 import { Suspense, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { BarChart3, Calendar, Clock, ExternalLink, Lock, Shield, Target, TrendingUp, User } from 'lucide-react'
+import {
+  BarChart3,
+  Calendar,
+  Check,
+  Clock,
+  ExternalLink,
+  Lock,
+  Mail,
+  Shield,
+  Target,
+  TrendingUp,
+  User,
+} from 'lucide-react'
+import { toast } from 'react-hot-toast'
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
-import { sharingApi } from '@/lib/api'
+import { authApi, sharingApi } from '@/lib/api'
 import { cn, formatDate, formatDuration } from '@/lib/utils'
 
 interface SharedOwner {
@@ -17,6 +30,15 @@ interface SharedOwner {
   name: string
   email: string
   avatar?: string
+}
+
+interface PublicShareData {
+  owner: SharedOwner
+  shareId: string
+  expiresAt?: string
+  accessType: string
+  isAccepted: boolean
+  inviteEmail: string | null
 }
 
 interface SharedGoal {
@@ -64,10 +86,24 @@ const COLORS = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'
 
 function PublicShareViewContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const token = searchParams.get('token')
   const [weekOffset, setWeekOffset] = useState(0)
 
   const range = useMemo(() => getRollingWeekRange(weekOffset), [weekOffset])
+
+  // Check authentication status
+  const isAuthenticated = typeof window !== 'undefined' && !!localStorage.getItem('accessToken')
+
+  // Fetch user profile if authenticated
+  const userQuery = useQuery({
+    queryKey: ['user-profile'],
+    queryFn: async () => {
+      const res = await authApi.getProfile()
+      return res.data as { id: string; email: string; name: string }
+    },
+    enabled: isAuthenticated,
+  })
 
   // Fetch share info
   const shareInfoQuery = useQuery({
@@ -75,9 +111,37 @@ function PublicShareViewContent() {
     queryFn: async () => {
       if (!token) throw new Error('No token provided')
       const res = await sharingApi.getPublicSharedData(token)
-      return res.data as { owner: SharedOwner; shareId: string; expiresAt?: string; accessType: string }
+      return res.data as PublicShareData
     },
     enabled: !!token,
+  })
+
+  // Accept invite mutation
+  const acceptInviteMutation = useMutation({
+    mutationFn: async () => {
+      if (!token) throw new Error('No token provided')
+      const res = await sharingApi.accept(token)
+      return res.data
+    },
+    onSuccess: () => {
+      toast.success('Invitation accepted successfully!')
+      // Redirect to dashboard/sharing page
+      setTimeout(() => {
+        router.push('/dashboard/sharing')
+      }, 1500)
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.message || 'Failed to accept invitation'
+      if (message.includes('already been accepted')) {
+        toast.error('This invitation has already been accepted')
+      } else if (message.includes('not for you')) {
+        toast.error('This invitation is not for your email address')
+      } else if (message.includes('expired')) {
+        toast.error('This invitation has expired')
+      } else {
+        toast.error(message)
+      }
+    },
   })
 
   // Fetch time entries
@@ -215,26 +279,129 @@ function PublicShareViewContent() {
                   <p className="font-mono text-gray-600">{owner.email}</p>
                 </div>
               </div>
-              <a href="/signup" className="btn-brutal flex items-center gap-2">
-                <ExternalLink className="h-4 w-4" />
-                Sign Up to Track Your Own Time
-              </a>
+              {!isAuthenticated && (
+                <Link
+                  href={`/signup?redirect=${encodeURIComponent(`/share/accept?token=${token}`)}`}
+                  className="btn-brutal flex items-center gap-2"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Sign Up to Track Your Own Time
+                </Link>
+              )}
             </div>
           </motion.div>
         )}
 
-        {/* Security Notice */}
-        <div className="flex items-start gap-3 border-2 border-secondary bg-blue-50 p-4">
-          <Lock className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" />
-          <div className="font-mono text-sm">
-            <strong>Secure View-Only Access:</strong> You&apos;re viewing shared focus time reports. This link is unique
-            to you and provides read-only access.
-            <a href="/signup" className="ml-1 text-blue-600 underline">
-              Create an account
-            </a>{' '}
-            to track your own productivity!
+        {/* Invite Acceptance UI for Logged-in Users */}
+        {isAuthenticated && shareInfoQuery.data && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+            {/* Already Accepted */}
+            {shareInfoQuery.data.isAccepted && (
+              <div className="flex items-start gap-3 border-2 border-secondary bg-green-50 p-4">
+                <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
+                <div className="font-mono text-sm">
+                  <strong>Invitation Already Accepted:</strong> You&apos;ve already accepted this invitation. You can
+                  view {owner?.name}&apos;s shared data from your{' '}
+                  <Link href="/dashboard/sharing" className="text-green-600 underline">
+                    dashboard
+                  </Link>
+                  .
+                </div>
+              </div>
+            )}
+
+            {/* Not Accepted - Check Email Match */}
+            {!shareInfoQuery.data.isAccepted && userQuery.data && (
+              <>
+                {/* Email Matches */}
+                {userQuery.data.email === shareInfoQuery.data.inviteEmail && (
+                  <div className="card-brutal bg-blue-50">
+                    <div className="mb-4">
+                      <h3 className="mb-2 text-lg font-bold">Accept Invitation</h3>
+                      <p className="font-mono text-sm text-gray-700">
+                        {owner?.name} has invited you to view their focus time reports. Accept this invitation to get
+                        started.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => acceptInviteMutation.mutate()}
+                      disabled={acceptInviteMutation.isPending}
+                      className="btn-brutal-dark w-full sm:w-auto"
+                    >
+                      {acceptInviteMutation.isPending ? 'Accepting...' : 'Accept Invitation'}
+                    </button>
+                  </div>
+                )}
+
+                {/* Email Doesn't Match */}
+                {userQuery.data.email !== shareInfoQuery.data.inviteEmail && (
+                  <div className="flex items-start gap-3 border-2 border-red-500 bg-red-50 p-4">
+                    <Lock className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600" />
+                    <div className="font-mono text-sm">
+                      <strong className="text-red-800">Wrong Account:</strong>{' '}
+                      <span className="text-red-700">
+                        This invitation was sent to {shareInfoQuery.data.inviteEmail}, but you&apos;re logged in as{' '}
+                        {userQuery.data.email}. Please log in with the correct account to accept this invitation.
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </motion.div>
+        )}
+
+        {/* Invitation Acceptance Notice for Unauthenticated Users */}
+        {!isAuthenticated && shareInfoQuery.data && !shareInfoQuery.data.isAccepted && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="card-brutal-colored bg-accent-orange text-white"
+          >
+            <div className="mb-4">
+              <h3 className="mb-2 flex items-center gap-2 text-lg font-bold uppercase">
+                <Mail className="h-5 w-5" />
+                Accept Invitation
+              </h3>
+              <p className="font-mono text-sm opacity-90">
+                {owner?.name} has invited you to view their focus time reports. To accept this invitation, please create
+                an account or log in.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href={`/signup?redirect=${encodeURIComponent(`/share/accept?token=${token}`)}`}
+                className="btn-brutal-dark flex-1 sm:flex-none"
+              >
+                Create Account
+              </Link>
+              <Link
+                href={`/login?redirect=${encodeURIComponent(`/share/accept?token=${token}`)}`}
+                className="btn-brutal-secondary flex-1 sm:flex-none"
+              >
+                Log In
+              </Link>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Security Notice for Already Accepted or View-Only */}
+        {!isAuthenticated && shareInfoQuery.data && shareInfoQuery.data.isAccepted && (
+          <div className="flex items-start gap-3 border-2 border-secondary bg-blue-50 p-4">
+            <Lock className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" />
+            <div className="font-mono text-sm">
+              <strong>Secure View-Only Access:</strong> You&apos;re viewing shared focus time reports. This link is
+              unique to you and provides read-only access.
+              <Link
+                href={`/signup?redirect=${encodeURIComponent(`/share/accept?token=${token}`)}`}
+                className="ml-1 text-blue-600 underline"
+              >
+                Create an account
+              </Link>{' '}
+              to track your own productivity!
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Date Range Selector */}
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -445,10 +612,13 @@ function PublicShareViewContent() {
         >
           <h2 className="mb-2 text-xl font-bold uppercase">Want to track your own focus time?</h2>
           <p className="mb-4 font-mono text-sm">Join GoalSlot and start building better productivity habits today!</p>
-          <a href="/signup" className="btn-brutal-dark inline-flex items-center gap-2">
+          <Link
+            href={`/signup?redirect=${encodeURIComponent(`/share/accept?token=${token}`)}`}
+            className="btn-brutal-dark inline-flex items-center gap-2"
+          >
             <User className="h-4 w-4" />
             Create Free Account
-          </a>
+          </Link>
         </motion.div>
       </main>
 
