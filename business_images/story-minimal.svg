@@ -1,0 +1,25 @@
+<svg width="1080" height="1920" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&amp;display=swap');
+    </style>
+  </defs>
+
+  <rect width="1080" height="1920" fill="#FFFFFF" />
+  
+  <rect x="50" y="50" width="980" height="1820" fill="none" stroke="#000000" stroke-width="8" />
+
+  <text x="140" y="400" font-family="Space Grotesk" font-size="120" fill="#000000">NEW</text>
+  <text x="140" y="520" font-family="Space Grotesk" font-size="120" fill="#000000">DROP.</text>
+
+  <rect x="140" y="600" width="800" height="600" fill="#FAFAFA" stroke="#000000" stroke-width="4" />
+  <!-- Placeholder for screenshot -->
+  <line x1="140" y1="600" x2="940" y2="1200" stroke="#000000" stroke-width="1" />
+  <line x1="940" y1="600" x2="140" y2="1200" stroke="#000000" stroke-width="1" />
+  
+  <rect x="340" y="1300" width="400" height="100" fill="#FFD700" stroke="#000000" stroke-width="4" />
+  <text x="540" y="1365" font-family="Space Grotesk" font-size="40" fill="#000000" text-anchor="middle">GET ACCESS</text>
+
+  <text x="540" y="1750" font-family="Space Grotesk" font-size="30" fill="#000000" text-anchor="middle">GOALSLOT.COM</text>
+
+</svg>

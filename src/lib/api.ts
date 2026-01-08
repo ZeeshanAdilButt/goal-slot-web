@@ -190,6 +190,9 @@ export const usersApi = {
   // Admin: Assign plan to user
   assignPlan: (userId: string, data: { plan: 'FREE' | 'BASIC' | 'PRO'; note?: string }) =>
     api.post(`/users/admin/assign-plan/${userId}`, data),
+  // Admin: Bulk Assign plan to users
+  bulkAssignPlan: (data: { userIds: string[]; plan: 'FREE' | 'BASIC' | 'PRO'; note?: string }) =>
+    api.post('/users/admin/bulk-assign-plan', data),
   // Admin: Set email verification status
   setEmailVerified: (userId: string, data: { emailVerified: boolean }) =>
     api.post(`/users/admin/set-email-verified/${userId}`, data),

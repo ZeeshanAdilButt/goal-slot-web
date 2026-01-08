@@ -8,19 +8,26 @@ import { Toaster } from 'react-hot-toast'
 import { ReactQueryProvider } from '@/lib/react-query-provider'
 
 export const metadata: Metadata = {
-  title: 'GoalSlot | Productivity Tracking',
-  description: 'Track your goals, log time, plan schedules, and analyze your productivity patterns.',
-  keywords: ['productivity', 'time tracking', 'goals', 'mentorship'],
+  title: 'GoalSlot.io | Your Growth, Measured',
+  description: 'Track your hours, see real progress, and level up. The productivity stack for developers and learners.',
+  keywords: ['productivity', 'time tracking', 'goals', 'developer', 'learning', 'progress tracking'],
   authors: [{ name: 'GoalSlot' }],
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',
-    apple: '/favicon.svg',
+    apple: '/icons/goalslot-logo-boxed.svg',
   },
   openGraph: {
-    title: 'GoalSlot',
-    description: 'Master your time, achieve your goals',
+    title: 'GoalSlot.io',
+    description: 'Your growth, measured. Track hours, see progress, level up.',
     type: 'website',
+    images: ['/brand/goalslot-og-image.svg'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'GoalSlot.io',
+    description: 'Your growth, measured.',
+    images: ['/brand/goalslot-og-image.svg'],
   },
 }
 

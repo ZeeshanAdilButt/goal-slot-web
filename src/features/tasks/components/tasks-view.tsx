@@ -9,7 +9,7 @@ import { TasksFilters } from '@/features/tasks/components/tasks-filters'
 import { Goal, GroupBy, Task } from '@/features/tasks/utils/types'
 import { Plus } from 'lucide-react'
 
-import { Loading } from '@/components/ui/loading'
+import { GoalSlotSpinner } from '@/components/goalslot-logo'
 
 interface TasksViewProps {
   tasks: Task[]
@@ -51,7 +51,7 @@ export function TasksView({
   if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Loading size="sm" />
+        <GoalSlotSpinner size="md" />
       </div>
     )
   }

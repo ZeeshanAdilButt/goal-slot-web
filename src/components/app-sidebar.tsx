@@ -16,8 +16,9 @@ import {
   Shield,
   Target,
   Users,
-  Zap,
 } from 'lucide-react'
+
+import { GoalSlotBrand, GoalSlotLogo } from '@/components/goalslot-logo'
 
 import { useAuthStore, useIsAdmin } from '@/lib/store'
 import { cn } from '@/lib/utils'
@@ -75,14 +76,11 @@ export function AppSidebar() {
     <Sidebar side="left" variant="sidebar" collapsible="icon" className="border-r-3 border-secondary bg-brutalist-bg">
       <SidebarHeader className="border-b-3 border-secondary p-4 group-data-[collapsible=icon]:p-2">
         <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
-          <Link href="/dashboard" className="flex items-center gap-3 group-data-[collapsible=icon]:hidden">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center border-3 border-secondary bg-primary shadow-brutal">
-              <Zap className="h-7 w-7" />
-            </div>
-            <div>
-              <span className="font-display text-lg font-bold uppercase tracking-tight">GoalSlot</span>
-              <span className="block font-mono text-xs uppercase text-gray-600">Productivity Tracker</span>
-            </div>
+          <Link href="/dashboard" className="group-data-[collapsible=icon]:hidden">
+            <GoalSlotBrand size="md" tagline="Your growth, measured." />
+          </Link>
+          <Link href="/dashboard" className="hidden group-data-[collapsible=icon]:block">
+            <GoalSlotLogo size="md" />
           </Link>
           <div className="hidden group-data-[collapsible=icon]:justify-center md:flex">
             <SidebarTrigger className="h-8 w-8 border-3 border-secondary !bg-primary !text-secondary shadow-brutal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:!bg-primary hover:shadow-brutal-hover active:translate-x-1 active:translate-y-1 active:shadow-none" />

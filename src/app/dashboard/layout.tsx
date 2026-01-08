@@ -4,9 +4,9 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { motion } from 'framer-motion'
-import { Zap } from 'lucide-react'
 
 import { useAuthStore } from '@/lib/store'
+import { GoalSlotSpinner } from '@/components/goalslot-logo'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { TimeEntryBanner } from '@/components/time-entry-banner'
@@ -28,13 +28,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-brutalist-bg">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          className="flex h-16 w-16 items-center justify-center border-3 border-secondary bg-primary"
-        >
-          <Zap className="h-8 w-8" />
-        </motion.div>
+        <GoalSlotSpinner size="xl" />
       </div>
     )
   }

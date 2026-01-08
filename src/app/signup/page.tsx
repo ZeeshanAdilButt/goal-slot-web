@@ -6,7 +6,9 @@ import { useRouter, useSearchParams } from 'next/navigation'
 
 import { useMutation } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Eye, EyeOff, Lock, Mail, User, Zap } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Eye, EyeOff, Lock, Mail, User } from 'lucide-react'
+
+import { GoalSlotBrand } from '@/components/goalslot-logo'
 import { toast } from 'react-hot-toast'
 
 import { authApi } from '@/lib/api'
@@ -138,14 +140,8 @@ function SignupForm() {
     <div className="flex min-h-screen items-center justify-center bg-brutalist-bg p-2 sm:p-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
         {/* Logo */}
-        <Link href="/" className="mb-8 flex items-center justify-center gap-3">
-          <div className="flex h-14 w-14 items-center justify-center border-3 border-secondary bg-primary shadow-brutal">
-            <Zap className="h-8 w-8" />
-          </div>
-          <div>
-            <span className="font-display text-2xl font-bold uppercase tracking-tight">GoalSlot</span>
-            <span className="block font-mono text-xs uppercase text-gray-600">Productivity Tracker</span>
-          </div>
+        <Link href="/" className="mb-8 flex justify-center">
+          <GoalSlotBrand size="lg" tagline="Your growth, measured." />
         </Link>
 
         {/* Plan Badge */}

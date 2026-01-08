@@ -95,7 +95,7 @@ interface CreateUserData {
   role: 'USER' | 'ADMIN'
 }
 
-type ModalType = 'create' | 'disable' | 'assignPlan' | 'details' | null
+type ModalType = 'create' | 'disable' | 'assignPlan' | 'bulkAssignPlan' | 'details' | null
 
 export default function AdminUsersPage() {
   const { user: currentUser } = useAuthStore()
@@ -111,6 +111,7 @@ export default function AdminUsersPage() {
   // Modal states
   const [modalType, setModalType] = useState<ModalType>(null)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([])
 
   // Create user form
   const [newUser, setNewUser] = useState<CreateUserData>({
@@ -140,6 +141,9 @@ export default function AdminUsersPage() {
   }, [searchTerm])
 
   useEffect(() => {
+    if (currentPage !== 1) {
+       setSelectedUsers([]);
+    }
     loadUsers()
     loadStats()
   }, [currentPage, debouncedSearch])
@@ -188,6 +192,30 @@ export default function AdminUsersPage() {
       loadStats()
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to create user')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleBulkAssignPlan = async () => {
+    if (selectedUsers.length === 0) return
+
+    setIsSubmitting(true)
+    try {
+      await usersApi.bulkAssignPlan({
+        userIds: selectedUsers,
+        plan: assignPlan,
+        note: assignPlanNote || undefined,
+      })
+      toast.success(`${assignPlan} plan assigned to ${selectedUsers.length} users`)
+      closeModal()
+      setAssignPlan('FREE')
+      setAssignPlanNote('')
+      setSelectedUsers([])
+      loadUsers()
+      loadStats()
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to bulk assign plan')
     } finally {
       setIsSubmitting(false)
     }
@@ -329,17 +357,45 @@ export default function AdminUsersPage() {
     return colors[role] || colors.USER
   }
 
+  const toggleSelectAll = () => {
+    if (selectedUsers.length === users.length) {
+      setSelectedUsers([])
+    } else {
+      setSelectedUsers(users.map((u) => u.id))
+    }
+  }
+
+  const toggleSelectUser = (userId: string) => {
+    if (selectedUsers.includes(userId)) {
+      setSelectedUsers(selectedUsers.filter((id) => id !== userId))
+    } else {
+      setSelectedUsers([...selectedUsers, userId])
+    }
+  }
+
   const getPlanBadge = (plan: string, unlimitedAccess: boolean, adminAssigned?: string) => {
     if (unlimitedAccess && adminAssigned) {
       return 'border-emerald-400 bg-emerald-200 text-emerald-800'
     }
-    switch (plan) {
-      case 'PRO':
+    const displayPlan = getPlanDisplay(plan)
+    switch (displayPlan) {
+      case 'MAX':
         return 'border-black bg-primary text-black'
-      case 'BASIC':
+      case 'PRO':
         return 'border-blue-400 bg-blue-200 text-blue-800'
       default:
         return 'border-gray-400 bg-gray-200 text-gray-800'
+    }
+  }
+
+  const getPlanDisplay = (plan: string) => {
+    switch (plan) {
+      case 'BASIC':
+        return 'PRO'
+      case 'PRO':
+        return 'MAX'
+      default:
+        return plan
     }
   }
 
@@ -366,7 +422,7 @@ export default function AdminUsersPage() {
 
       {/* Stats Cards */}
       {stats && (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7">
           <div className="border-4 border-black bg-white p-4 shadow-brutal">
             <div className="flex items-center gap-2 text-gray-600">
               <Users className="h-4 w-4" />
@@ -397,10 +453,17 @@ export default function AdminUsersPage() {
           </div>
           <div className="border-4 border-black bg-primary p-4 shadow-brutal">
             <div className="flex items-center gap-2 text-black/70">
+              <Crown className="h-4 w-4" />
+              <span className="text-xs font-bold uppercase">Max</span>
+            </div>
+            <p className="mt-1 text-2xl font-black">{stats.byPlan.pro}</p>
+          </div>
+          <div className="border-4 border-black bg-blue-200 p-4 shadow-brutal">
+            <div className="flex items-center gap-2 text-blue-800">
               <Sparkles className="h-4 w-4" />
               <span className="text-xs font-bold uppercase">Pro</span>
             </div>
-            <p className="mt-1 text-2xl font-black">{stats.byPlan.pro}</p>
+            <p className="mt-1 text-2xl font-black text-blue-900">{stats.byPlan.basic}</p>
           </div>
           <div className="border-4 border-black bg-gray-100 p-4 shadow-brutal">
             <div className="flex items-center gap-2 text-gray-600">
@@ -412,16 +475,35 @@ export default function AdminUsersPage() {
         </div>
       )}
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500" />
-        <input
-          type="text"
-          placeholder="Search by name or email..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full border-4 border-black py-3 pl-12 pr-4 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
-        />
+      {/* Search and Bulk Actions */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Search by name or email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full border-4 border-black py-3 pl-12 pr-4 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
+        
+        {selectedUsers.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-center gap-4 border-4 border-black bg-white px-4 py-2 shadow-brutal"
+          >
+            <span className="font-bold">{selectedUsers.length} selected</span>
+            <div className="h-6 w-0.5 bg-gray-300" />
+            <button
+              onClick={() => openModal('bulkAssignPlan')}
+              className="text-sm font-bold uppercase hover:text-primary hover:underline"
+            >
+              Assign Plan
+            </button>
+          </motion.div>
+        )}
       </div>
 
       {/* Users Table */}
@@ -444,6 +526,14 @@ export default function AdminUsersPage() {
             <table className="w-full">
               <thead className="bg-black text-white">
                 <tr>
+                  <th className="w-12 px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={users.length > 0 && selectedUsers.length === users.length}
+                      onChange={toggleSelectAll}
+                      className="h-5 w-5 border-2 border-white accent-primary"
+                    />
+                  </th>
                   <th className="px-4 py-3 text-left text-sm font-bold uppercase">User</th>
                   <th className="px-4 py-3 text-left text-sm font-bold uppercase">Status</th>
                   <th className="px-4 py-3 text-left text-sm font-bold uppercase">Role</th>
@@ -459,6 +549,14 @@ export default function AdminUsersPage() {
                     key={user.id}
                     className={cn('transition-colors hover:bg-gray-50', user.isDisabled && 'bg-red-50 opacity-75')}
                   >
+                    <td className="px-4 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedUsers.includes(user.id)}
+                        onChange={() => toggleSelectUser(user.id)}
+                        className="h-5 w-5 border-2 border-black accent-primary"
+                      />
+                    </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
                         <div
@@ -519,7 +617,7 @@ export default function AdminUsersPage() {
                             getPlanBadge(user.plan, user.unlimitedAccess, user.adminAssignedPlan),
                           )}
                         >
-                          {user.adminAssignedPlan ? `${user.plan} (ADMIN)` : user.plan}
+                          {user.adminAssignedPlan ? `${getPlanDisplay(user.plan)} (ADMIN)` : getPlanDisplay(user.plan)}
                         </span>
                         {user.userType === 'INTERNAL' && <span className="text-xs text-green-600">INTERNAL</span>}
                       </div>
@@ -797,15 +895,23 @@ export default function AdminUsersPage() {
         )}
 
         {/* Assign Plan Modal */}
-        {modalType === 'assignPlan' && selectedUser && (
+        {(modalType === 'assignPlan' || modalType === 'bulkAssignPlan') && (
           <DialogContent className="max-w-md border-4 border-black bg-white shadow-brutal" showCloseButton={true}>
             <DialogHeader className="border-b-4 border-black bg-primary p-4">
-              <DialogTitle className="text-xl font-black uppercase">Assign Plan</DialogTitle>
+              <DialogTitle className="text-xl font-black uppercase">
+                {modalType === 'bulkAssignPlan' ? `Assign to ${selectedUsers.length} Users` : 'Assign Plan'}
+              </DialogTitle>
             </DialogHeader>
 
             <div className="space-y-4 p-2 sm:p-6">
               <p className="text-gray-600">
-                Assign a subscription plan to <strong>{selectedUser.name}</strong>.
+                {modalType === 'bulkAssignPlan'
+                  ? 'Assign a subscription plan to the selected users.'
+                  : selectedUser && (
+                      <>
+                        Assign a subscription plan to <strong>{selectedUser.name}</strong>.
+                      </>
+                    )}
               </p>
               <div>
                 <label className="mb-2 block text-sm font-bold uppercase">Plan</label>
@@ -815,8 +921,8 @@ export default function AdminUsersPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="FREE">Free</SelectItem>
-                    <SelectItem value="BASIC">Basic ($7/mo features)</SelectItem>
-                    <SelectItem value="PRO">Pro ($5/mo features - Unlimited)</SelectItem>
+                    <SelectItem value="BASIC">Pro ($7/mo - 10 Goals)</SelectItem>
+                    <SelectItem value="PRO">Max ($12/mo - Unlimited)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -839,7 +945,7 @@ export default function AdminUsersPage() {
                   Cancel
                 </button>
                 <button
-                  onClick={handleAssignPlan}
+                  onClick={modalType === 'bulkAssignPlan' ? handleBulkAssignPlan : handleAssignPlan}
                   disabled={isSubmitting}
                   className="flex flex-1 items-center justify-center gap-2 border-4 border-black bg-primary px-4 py-2 font-bold shadow-brutal transition-all hover:shadow-brutal-sm disabled:opacity-50"
                 >

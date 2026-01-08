@@ -625,7 +625,7 @@ function PublicShareViewContent() {
       {/* Footer */}
       <footer className="border-t-3 border-secondary bg-white py-6">
         <div className="container mx-auto px-4 text-center font-mono text-sm text-gray-600 sm:px-6">
-          <p>© 2025 GoalSlot. Focus on what matters.</p>
+          <p>© 2026 GoalSlot. Focus on what matters.</p>
         </div>
       </footer>
     </div>

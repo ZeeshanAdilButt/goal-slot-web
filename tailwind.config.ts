@@ -96,6 +96,7 @@ const config: Config = {
         'pulse-slow': 'pulse 3s infinite',
         wiggle: 'wiggle 1s ease-in-out infinite',
         'fade-spin': 'fade-spin 1.2s linear infinite',
+        'flip-y': 'flip-y 1s ease-in-out infinite',
       },
       keyframes: {
         wiggle: {
@@ -112,6 +113,17 @@ const config: Config = {
           },
           '50%': {
             opacity: '0.25',
+          },
+        },
+        'flip-y': {
+          '0%': {
+            transform: 'rotateY(0deg)',
+          },
+          '50%': {
+            transform: 'rotateY(180deg)',
+          },
+          '100%': {
+            transform: 'rotateY(360deg)',
           },
         },
       },

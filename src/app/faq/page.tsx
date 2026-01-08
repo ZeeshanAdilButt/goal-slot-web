@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, ChevronDown, Clock, CreditCard, HelpCircle, Lock, Share2, Target, Users, Zap } from 'lucide-react'
 
+import { GoalSlotBrand, GoalSlotLogo } from '@/components/goalslot-logo'
+
 interface FAQItem {
   question: string
   answer: string
@@ -222,14 +224,8 @@ export default function FAQPage() {
       {/* Navigation */}
       <nav className="fixed left-0 right-0 top-0 z-50 border-b-3 border-secondary bg-brutalist-bg">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center border-3 border-secondary bg-primary shadow-brutal">
-              <Zap className="h-7 w-7" />
-            </div>
-            <div>
-              <span className="font-display text-xl font-bold uppercase tracking-tight">GoalSlot</span>
-              <span className="block font-mono text-xs uppercase text-gray-600">Productivity Tracker</span>
-            </div>
+          <Link href="/">
+            <GoalSlotBrand size="md" tagline="Your growth, measured." />
           </Link>
 
           <div className="flex items-center gap-4">
@@ -356,14 +352,7 @@ export default function FAQPage() {
       <footer className="border-t-3 border-secondary px-4 py-8 sm:px-6 sm:py-12">
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center border-3 border-secondary bg-primary shadow-brutal-sm">
-                <Zap className="h-5 w-5" />
-              </div>
-              <div>
-                <span className="font-display font-bold uppercase">GoalSlot</span>
-              </div>
-            </div>
+            <GoalSlotBrand size="sm" showTagline={false} />
 
             <div className="flex items-center gap-6">
               <Link href="/privacy" className="font-mono text-sm transition-colors hover:text-primary">
@@ -377,7 +366,7 @@ export default function FAQPage() {
               </a>
             </div>
 
-            <p className="font-mono text-sm text-gray-600">© 2025 GoalSlot. All rights reserved.</p>
+            <p className="font-mono text-sm text-gray-600">© 2026 GoalSlot. All rights reserved.</p>
           </div>
         </div>
       </footer>

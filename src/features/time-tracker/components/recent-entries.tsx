@@ -2,6 +2,7 @@ import { TimeEntry } from '@/features/time-tracker/utils/types'
 import { motion } from 'framer-motion'
 import { Clock, History } from 'lucide-react'
 
+import { GoalSlotSpinner } from '@/components/goalslot-logo'
 import { formatDate, formatDuration } from '@/lib/utils'
 
 interface RecentEntriesProps {
@@ -20,7 +21,7 @@ export function RecentEntries({ recentEntries, isLoading }: RecentEntriesProps) 
 
       {isLoading ? (
         <div className="flex h-32 items-center justify-center">
-          <div className="h-8 w-8 animate-spin border-4 border-secondary border-t-primary" />
+          <GoalSlotSpinner size="md" />
         </div>
       ) : recentEntries.length === 0 ? (
         <div className="py-6 text-center text-gray-500 sm:py-8">

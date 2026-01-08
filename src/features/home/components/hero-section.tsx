@@ -23,23 +23,26 @@ export function HeroSection() {
             </div>
 
             <h1 className="mb-6 font-display text-5xl font-bold uppercase leading-tight md:text-6xl lg:text-7xl">
-              Track Time.
-              <span className="block text-accent-blue drop-shadow-[4px_4px_0px_#000]">Crush Goals.</span>
-              <span className="text-primary drop-shadow-[4px_4px_0px_#000]">Ship More.</span>
+              Your Growth,<span className="block text-primary drop-shadow-[4px_4px_0px_#000]">Measured.</span>
             </h1>
 
             <p className="mb-8 max-w-lg font-mono text-xl text-gray-700">
-              The all-in-one system for developers who want to <strong>stop guessing and start proving</strong> where
-              their time goes. Goals, schedules, tasks, and time tracking — finally connected.
+              Track hours toward mastery. <strong>Proof over feeling.</strong> See exactly where your time goes — and watch your skills stack up.
             </p>
 
-            <div className="flex flex-wrap gap-4">
-              <Link href="/signup" className="btn-brutal flex items-center gap-2 text-lg">
-                Start Free Today <ArrowRight className="h-5 w-5" />
-              </Link>
-              <Link href="#problem" className="btn-brutal-secondary flex items-center gap-2">
-                See How It Works <ChevronRight className="h-5 w-5" />
-              </Link>
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-wrap gap-4">
+                <Link href="/signup" className="btn-brutal flex items-center gap-2 text-lg">
+                  Start Free Today <ArrowRight className="h-5 w-5" />
+                </Link>
+                <Link href="#problem" className="btn-brutal-secondary flex items-center gap-2">
+                  See How It Works <ChevronRight className="h-5 w-5" />
+                </Link>
+              </div>
+              <p className="flex items-center gap-2 text-sm font-bold text-gray-600">
+                <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
+                Free for individual developers
+              </p>
             </div>
 
             {/* Social Proof */}
@@ -64,7 +67,7 @@ export function HeroSection() {
                     <Star key={i} className="h-4 w-4 fill-primary text-primary" />
                   ))}
                 </div>
-                <span className="font-mono text-sm">Join 500+ developers achieving their goals</span>
+                <span className="font-mono text-sm">500+ developers tracking their growth</span>
               </div>
             </div>
           </AnimatedSection>
@@ -76,11 +79,17 @@ export function HeroSection() {
             className="relative"
           >
             {/* Goal Achievement Illustration */}
-            <div className="card-brutal overflow-hidden">
+            <div className="card-brutal overflow-hidden bg-white">
               <GoalAchievementSVG />
               <div className="mt-4 text-center">
                 <p className="font-display text-xl font-bold uppercase">Your Goals. Tracked. Achieved.</p>
               </div>
+            </div>
+            
+            <div className="mt-2 text-center">
+              <p className="font-mono text-sm font-bold text-gray-800">
+                Every hour logged is proof of progress.
+              </p>
             </div>
 
             {/* Floating Stats */}

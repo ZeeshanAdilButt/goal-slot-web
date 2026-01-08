@@ -3,9 +3,10 @@
 import { useEffect } from 'react'
 import Link from 'next/link'
 
-import { LogOut, Settings, Target } from 'lucide-react'
+import { LogOut, Settings } from 'lucide-react'
 
 import { useAuthStore } from '@/lib/store'
+import { GoalSlotBrand } from '@/components/goalslot-logo'
 import { cn } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
@@ -23,14 +24,8 @@ export function Navigation() {
   return (
     <nav className="fixed inset-x-0 top-0 z-50 border-b-3 border-secondary bg-brutalist-bg will-change-transform">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center border-3 border-secondary bg-primary shadow-brutal">
-            <Target className="h-7 w-7" />
-          </div>
-          <div>
-            <span className="font-display text-xl font-bold uppercase tracking-tight">GoalSlot</span>
-            <span className="block font-mono text-xs uppercase text-gray-600">Achieve Your Goals</span>
-          </div>
+        <Link href="/">
+          <GoalSlotBrand size="md" tagline="Your growth, measured." />
         </Link>
 
         <div className="hidden items-center gap-6 md:flex">
