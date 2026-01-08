@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useCategoriesQuery } from '@/features/categories'
 import { CreateTaskForm, Goal, ScheduleBlock, Task } from '@/features/tasks/utils/types'
 
-import { DAYS_OF_WEEK_FULL } from '@/lib/utils'
+import { DAYS_OF_WEEK_FULL, getLocalDateString } from '@/lib/utils'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
@@ -27,6 +27,7 @@ export function CreateTaskModal({
   defaultGoalId,
 }: CreateTaskModalProps) {
   const [creating, setCreating] = useState(false)
+  const [estimatedHours, setEstimatedHours] = useState('')
   const { data: categories = [] } = useCategoriesQuery()
   //Status is set automatically by the backend to 'pending'
   const [form, setForm] = useState<CreateTaskForm>({
@@ -50,6 +51,13 @@ export function CreateTaskModal({
         scheduleBlockId: task.scheduleBlockId || '',
         dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
       })
+      
+      // Calculate hours from minutes (e.g. 90 mins -> 1.5 hours)
+      if (task.estimatedMinutes) {
+        setEstimatedHours((task.estimatedMinutes / 60).toString())
+      } else {
+        setEstimatedHours('')
+      }
     } else if (!task && isOpen) {
       const initialForm: CreateTaskForm = {
         title: '',
@@ -61,6 +69,8 @@ export function CreateTaskModal({
         dueDate: '',
       }
 
+      setEstimatedHours('')
+
       // Pre-fill from default goal
       if (defaultGoalId) {
         const selectedGoal = goals.find((g) => g.id === defaultGoalId)
@@ -68,7 +78,17 @@ export function CreateTaskModal({
           if (selectedGoal.category) {
             initialForm.category = selectedGoal.category
           }
-          const goalBlock = scheduleBlocks.find((sb) => sb.goalId === defaultGoalId)
+
+          // Pick schedule block for today if available, otherwise any block for this goal
+          const today = new Date().getDay()
+          const todayDate = getLocalDateString()
+          
+          initialForm.dueDate = todayDate
+
+          const goalBlock = 
+            scheduleBlocks.find((sb) => sb.goalId === defaultGoalId && sb.dayOfWeek === today) ||
+            scheduleBlocks.find((sb) => sb.goalId === defaultGoalId)
+            
           if (goalBlock) {
             initialForm.scheduleBlockId = goalBlock.id
           }
@@ -82,7 +102,17 @@ export function CreateTaskModal({
   const handleSubmit = async () => {
     if (!form.title.trim()) return
     setCreating(true)
-    const success = await onSubmit(form)
+    
+    // Convert hours back to minutes for submission if valid (e.g. 1.5 -> 90)
+    let finalForm = { ...form }
+    if (estimatedHours && !isNaN(parseFloat(estimatedHours))) {
+      finalForm.estimatedMinutes = Math.round(parseFloat(estimatedHours) * 60).toString()
+    } else {
+        // If empty or invalid, keep as is (likely empty string from form state)
+       finalForm.estimatedMinutes = ''
+    }
+
+    const success = await onSubmit(finalForm)
     setCreating(false)
     if (success) {
       setForm({
@@ -94,6 +124,7 @@ export function CreateTaskModal({
         scheduleBlockId: '',
         dueDate: '',
       })
+      setEstimatedHours('')
       onClose()
     }
   }
@@ -203,13 +234,15 @@ export function CreateTaskModal({
           </div>
           <div className="grid gap-3 md:grid-cols-3">
             <div>
-              <label className="font-mono text-sm uppercase">Est. Minutes</label>
+              <label className="font-mono text-sm uppercase">Est. Hours</label>
               <input
                 type="number"
-                min={1}
+                min={0}
+                step={0.1}
                 className="input-brutal mt-1 w-full"
-                value={form.estimatedMinutes}
-                onChange={(e) => setForm({ ...form, estimatedMinutes: e.target.value })}
+                value={estimatedHours}
+                onChange={(e) => setEstimatedHours(e.target.value)}
+                placeholder="e.g. 1.5"
               />
             </div>
             <div className="md:col-span-2">

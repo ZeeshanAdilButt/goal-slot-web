@@ -190,7 +190,15 @@ export function TimeTrackerPage() {
           timerState={timerState}
           isTaskSelected={!!currentTaskId}
           onCategoryChange={setCategory}
-          onGoalIdChange={setGoalId}
+          onGoalIdChange={(goalId) => {
+            setGoalId(goalId)
+            if (goalId) {
+              const goal = goals.find((g: any) => g.id === goalId)
+              if (goal?.category) {
+                setCategory(goal.category)
+              }
+            }
+          }}
         />
         <TimerDisplay elapsedTime={elapsedTime} timerState={timerState} />
         <TimerControls

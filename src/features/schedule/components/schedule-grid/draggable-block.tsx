@@ -42,9 +42,9 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onVie
       predicate: (mutation) => (mutation.state.variables as { id?: string })?.id === block.id,
     }) > 0
 
-  const categoryColor = categories.find((cat) => cat.value === block.category)?.color
-  const goalCategory = block.goal?.category
-  const goalCategoryColor = goalCategory ? categories.find((cat) => cat.value === goalCategory)?.color : undefined
+  // If the block has a linked goal with a category, use the goal's category for color
+  const effectiveCategory = block.goal?.category || block.category
+  const categoryColor = categories.find((cat) => cat.value === effectiveCategory)?.color
 
   const handleDeleteClick = (event: React.MouseEvent) => {
     event.stopPropagation()
@@ -71,7 +71,7 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onVie
   }
 
   const blockStyle: CSSProperties = {
-    backgroundColor: goalCategoryColor || block.color || categoryColor || '#9CA3AF',
+    backgroundColor: categoryColor || block.color || '#9CA3AF',
     top,
     height,
     minHeight: height,

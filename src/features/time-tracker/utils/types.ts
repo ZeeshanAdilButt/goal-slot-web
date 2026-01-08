@@ -2,6 +2,7 @@ export interface Goal {
   id: string
   title: string
   color: string
+  category?: string
 }
 
 export interface TimeEntry {
