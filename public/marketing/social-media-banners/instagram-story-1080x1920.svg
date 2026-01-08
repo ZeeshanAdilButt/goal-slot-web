@@ -1,0 +1,87 @@
+<svg width="1080" height="1920" viewBox="0 0 1080 1920" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Neo-brutalist Instagram Story -->
+  
+  <!-- Background -->
+  <rect width="1080" height="1920" fill="#FEF3C7"/>
+  
+  <!-- Logo space at top - empty area -->
+  
+  <!-- Decorative corner elements -->
+  <rect x="60" y="60" width="120" height="120" fill="#22C55E" stroke="#000000" stroke-width="4"/>
+  <rect x="72" y="72" width="120" height="120" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+  
+  <rect x="900" y="60" width="100" height="100" fill="#EC4899" stroke="#000000" stroke-width="4"/>
+  <rect x="912" y="72" width="100" height="100" fill="#FFD700" stroke="#000000" stroke-width="4"/>
+  
+  <!-- Main time slot visualization - centered -->
+  <g transform="translate(140, 400)">
+    <!-- Header -->
+    <rect x="0" y="0" width="800" height="80" fill="#000000"/>
+    <text x="400" y="52" font-family="Space Grotesk, sans-serif" font-size="32" font-weight="700" fill="#FFD700" text-anchor="middle">YOUR SCHEDULE</text>
+    
+    <!-- Time slots -->
+    <rect x="0" y="95" width="800" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    <text x="30" y="142" font-family="JetBrains Mono, monospace" font-size="18" fill="#000000">09:00</text>
+    <rect x="120" y="95" width="300" height="70" fill="#3B82F6" stroke="#000000" stroke-width="4"/>
+    <text x="270" y="140" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF" text-anchor="middle">Deep Work</text>
+    
+    <rect x="0" y="175" width="800" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    <text x="30" y="222" font-family="JetBrains Mono, monospace" font-size="18" fill="#000000">11:00</text>
+    <rect x="120" y="175" width="400" height="70" fill="#FFD700" stroke="#000000" stroke-width="4"/>
+    <text x="320" y="220" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#000000" text-anchor="middle">Project Alpha</text>
+    <path d="M470 200 L490 220 L530 175" stroke="#000000" stroke-width="4" stroke-linecap="square" fill="none"/>
+    
+    <rect x="0" y="255" width="800" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    <text x="30" y="302" font-family="JetBrains Mono, monospace" font-size="18" fill="#000000">14:00</text>
+    <rect x="120" y="255" width="350" height="70" fill="#22C55E" stroke="#000000" stroke-width="4"/>
+    <text x="295" y="300" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#000000" text-anchor="middle">Learning</text>
+    <path d="M420 280 L440 300 L480 255" stroke="#000000" stroke-width="4" stroke-linecap="square" fill="none"/>
+    
+    <rect x="0" y="335" width="800" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    <text x="30" y="382" font-family="JetBrains Mono, monospace" font-size="18" fill="#000000">16:00</text>
+    <rect x="120" y="335" width="250" height="70" fill="#EC4899" stroke="#000000" stroke-width="4"/>
+    <text x="245" y="380" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#000000" text-anchor="middle">Side Project</text>
+    
+    <rect x="0" y="415" width="800" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    <text x="30" y="462" font-family="JetBrains Mono, monospace" font-size="18" fill="#000000">18:00</text>
+    <rect x="120" y="415" width="200" height="70" fill="#8B5CF6" stroke="#000000" stroke-width="4"/>
+    <text x="220" y="460" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#FFFFFF" text-anchor="middle">Exercise</text>
+  </g>
+  
+  <!-- Goal progress section -->
+  <g transform="translate(140, 1050)">
+    <text x="0" y="0" font-family="Space Grotesk, sans-serif" font-size="28" font-weight="700" fill="#000000">GOAL PROGRESS</text>
+    
+    <rect x="0" y="40" width="600" height="35" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <rect x="4" y="44" width="480" height="27" fill="#FFD700"/>
+    <text x="620" y="66" font-family="JetBrains Mono, monospace" font-size="20" font-weight="600" fill="#000000">80%</text>
+    
+    <rect x="0" y="95" width="600" height="35" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <rect x="4" y="99" width="390" height="27" fill="#22C55E"/>
+    <text x="620" y="121" font-family="JetBrains Mono, monospace" font-size="20" font-weight="600" fill="#000000">65%</text>
+    
+    <rect x="0" y="150" width="600" height="35" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <rect x="4" y="154" width="540" height="27" fill="#3B82F6"/>
+    <text x="620" y="176" font-family="JetBrains Mono, monospace" font-size="20" font-weight="600" fill="#000000">90%</text>
+  </g>
+  
+  <!-- Decorative stacked cards -->
+  <rect x="750" y="1100" width="160" height="110" fill="#F97316" stroke="#000000" stroke-width="4"/>
+  <rect x="762" y="1112" width="160" height="110" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+  
+  <!-- Main heading -->
+  <text x="540" y="1400" font-family="Space Grotesk, sans-serif" font-size="64" font-weight="700" fill="#000000" text-anchor="middle">ALIGN YOUR</text>
+  <text x="540" y="1480" font-family="Space Grotesk, sans-serif" font-size="64" font-weight="700" fill="#000000" text-anchor="middle">TIME</text>
+  
+  <!-- Subheading -->
+  <text x="540" y="1560" font-family="Inter, sans-serif" font-size="24" fill="#000000" text-anchor="middle">With your goals</text>
+  
+  <!-- CTA Button -->
+  <rect x="240" y="1650" width="600" height="90" fill="#FFD700" stroke="#000000" stroke-width="5"/>
+  <rect x="255" y="1665" width="600" height="90" fill="#000000"/>
+  <text x="555" y="1725" font-family="Space Grotesk, sans-serif" font-size="32" font-weight="700" fill="#FFD700" text-anchor="middle">GOALSLOT.IO</text>
+  
+  <!-- Bottom decoration -->
+  <rect x="60" y="1800" width="80" height="80" fill="#FFD700" stroke="#000000" stroke-width="4"/>
+  <rect x="940" y="1800" width="80" height="80" fill="#22C55E" stroke="#000000" stroke-width="4"/>
+</svg>

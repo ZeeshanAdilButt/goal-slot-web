@@ -8,7 +8,7 @@ export interface ScheduleBlock {
   color: string
   isRecurring: boolean
   goalId?: string
-  goal?: { id: string; title: string; color: string }
+  goal?: { id: string; title: string; color: string; category?: string }
   tasks?: { id: string; title: string; status: string }[]
 }
 
@@ -16,6 +16,7 @@ export interface Goal {
   id: string
   title: string
   color: string
+  category?: string
 }
 
 export type WeekSchedule = Record<number, ScheduleBlock[]>

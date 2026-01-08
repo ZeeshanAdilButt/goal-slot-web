@@ -38,6 +38,9 @@ export function Navigation() {
           <a href="#pricing" className="text-sm font-bold uppercase transition-colors hover:text-primary">
             Pricing
           </a>
+          <Link href="/guides" className="text-sm font-bold uppercase transition-colors hover:text-primary">
+            Guides
+          </Link>
         </div>
 
         <div className="flex items-center gap-4">

@@ -1,0 +1,62 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="1200" fill="#FEF3C7"/>
+  
+  <!-- Title -->
+  <text x="100" y="120" font-family="Space Grotesk, sans-serif" font-size="52" font-weight="700" fill="#000000">MORNING ROUTINE</text>
+  <text x="100" y="190" font-family="Space Grotesk, sans-serif" font-size="52" font-weight="700" fill="#000000">THAT WORKS</text>
+  
+  <!-- Decorative -->
+  <rect x="900" y="80" width="160" height="120" fill="#F97316" stroke="#000000" stroke-width="4"/>
+  <rect x="912" y="92" width="160" height="120" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+  
+  <!-- Timeline -->
+  <g transform="translate(100, 260)">
+    <!-- Vertical line -->
+    <rect x="40" y="0" width="6" height="650" fill="#000000"/>
+    
+    <!-- 5:30 -->
+    <circle cx="43" cy="30" r="20" fill="#FFD700" stroke="#000000" stroke-width="3"/>
+    <text x="90" y="25" font-family="JetBrains Mono, monospace" font-size="22" font-weight="700" fill="#000000">5:30</text>
+    <text x="180" y="25" font-family="Inter, sans-serif" font-size="22" fill="#000000">Wake up (no snooze!)</text>
+    <text x="180" y="55" font-family="Inter, sans-serif" font-size="18" fill="#000000" opacity="0.7">Hydrate immediately</text>
+    
+    <!-- 5:45 -->
+    <circle cx="43" cy="130" r="20" fill="#22C55E" stroke="#000000" stroke-width="3"/>
+    <text x="90" y="125" font-family="JetBrains Mono, monospace" font-size="22" font-weight="700" fill="#000000">5:45</text>
+    <text x="180" y="125" font-family="Inter, sans-serif" font-size="22" fill="#000000">Movement</text>
+    <text x="180" y="155" font-family="Inter, sans-serif" font-size="18" fill="#000000" opacity="0.7">15 min walk, stretch, or gym</text>
+    
+    <!-- 6:00 -->
+    <circle cx="43" cy="230" r="20" fill="#3B82F6" stroke="#000000" stroke-width="3"/>
+    <text x="90" y="225" font-family="JetBrains Mono, monospace" font-size="22" font-weight="700" fill="#000000">6:00</text>
+    <text x="180" y="225" font-family="Inter, sans-serif" font-size="22" fill="#000000">Learning block</text>
+    <text x="180" y="255" font-family="Inter, sans-serif" font-size="18" fill="#000000" opacity="0.7">Read, course, or skill practice</text>
+    
+    <!-- 6:30 -->
+    <circle cx="43" cy="330" r="20" fill="#8B5CF6" stroke="#000000" stroke-width="3"/>
+    <text x="90" y="325" font-family="JetBrains Mono, monospace" font-size="22" font-weight="700" fill="#000000">6:30</text>
+    <text x="180" y="325" font-family="Inter, sans-serif" font-size="22" fill="#000000">Planning</text>
+    <text x="180" y="355" font-family="Inter, sans-serif" font-size="18" fill="#000000" opacity="0.7">Review calendar, set top 3 priorities</text>
+    
+    <!-- 7:00 -->
+    <circle cx="43" cy="430" r="20" fill="#EC4899" stroke="#000000" stroke-width="3"/>
+    <text x="90" y="425" font-family="JetBrains Mono, monospace" font-size="22" font-weight="700" fill="#000000">7:00</text>
+    <text x="180" y="425" font-family="Inter, sans-serif" font-size="22" fill="#000000">Deep work</text>
+    <text x="180" y="455" font-family="Inter, sans-serif" font-size="18" fill="#000000" opacity="0.7">Most important task (before distractions)</text>
+    
+    <!-- 8:00 -->
+    <circle cx="43" cy="530" r="20" fill="#F97316" stroke="#000000" stroke-width="3"/>
+    <text x="90" y="525" font-family="JetBrains Mono, monospace" font-size="22" font-weight="700" fill="#000000">8:00</text>
+    <text x="180" y="525" font-family="Inter, sans-serif" font-size="22" fill="#000000">Regular day begins</text>
+    <text x="180" y="555" font-family="Inter, sans-serif" font-size="18" fill="#000000" opacity="0.7">Already 2.5 hours ahead of everyone</text>
+  </g>
+  
+  <!-- Key insight -->
+  <rect x="100" y="950" width="8" height="80" fill="#000000"/>
+  <text x="130" y="990" font-family="Inter, sans-serif" font-size="24" fill="#000000">The first 2 hours shape the entire day.</text>
+  <text x="130" y="1025" font-family="Inter, sans-serif" font-size="18" fill="#000000" opacity="0.7">Save a screenshot if you want to try this!</text>
+  
+  <!-- Branding -->
+  <rect x="900" y="1050" width="200" height="60" fill="#000000"/>
+  <text x="1000" y="1090" font-family="JetBrains Mono, monospace" font-size="18" font-weight="600" fill="#FFD700" text-anchor="middle">goalslot.io</text>
+</svg>

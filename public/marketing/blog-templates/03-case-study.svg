@@ -1,0 +1,44 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Blog header template - Case Study / Success Story -->
+  <rect width="1200" height="630" fill="#FEF3C7"/>
+  
+  <!-- Badge -->
+  <rect x="100" y="80" width="220" height="50" fill="#EC4899" stroke="#000000" stroke-width="3"/>
+  <text x="210" y="115" font-family="Space Grotesk, sans-serif" font-size="22" font-weight="700" fill="#000000" text-anchor="middle">CASE STUDY</text>
+  
+  <!-- Title area -->
+  <text x="100" y="220" font-family="Space Grotesk, sans-serif" font-size="48" font-weight="700" fill="#000000">HOW [PERSON/COMPANY]</text>
+  <text x="100" y="290" font-family="Space Grotesk, sans-serif" font-size="48" font-weight="700" fill="#000000">[ACHIEVED RESULT]</text>
+  
+  <!-- Stats boxes -->
+  <g transform="translate(700, 100)">
+    <rect x="0" y="0" width="180" height="120" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <text x="90" y="60" font-family="Space Grotesk, sans-serif" font-size="42" font-weight="700" fill="#22C55E" text-anchor="middle">+X%</text>
+    <text x="90" y="95" font-family="Inter, sans-serif" font-size="16" fill="#000000" text-anchor="middle">Metric 1</text>
+    
+    <rect x="200" y="0" width="180" height="120" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <text x="290" y="60" font-family="Space Grotesk, sans-serif" font-size="42" font-weight="700" fill="#3B82F6" text-anchor="middle">Xh</text>
+    <text x="290" y="95" font-family="Inter, sans-serif" font-size="16" fill="#000000" text-anchor="middle">Metric 2</text>
+  </g>
+  
+  <!-- Quote preview -->
+  <rect x="100" y="350" width="700" height="120" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+  <text x="130" y="395" font-family="Inter, sans-serif" font-size="24" fill="#000000" font-style="italic">"Quote from the case study subject</text>
+  <text x="130" y="435" font-family="Inter, sans-serif" font-size="24" fill="#000000" font-style="italic">about their transformation..."</text>
+  
+  <!-- Reading time -->
+  <rect x="100" y="510" width="160" height="45" fill="#FFD700" stroke="#000000" stroke-width="3"/>
+  <text x="180" y="542" font-family="JetBrains Mono, monospace" font-size="18" fill="#000000" text-anchor="middle">⏱ X min read</text>
+  
+  <!-- Author avatar placeholder -->
+  <circle cx="900" cy="350" r="80" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+  <text x="900" y="350" font-family="Inter, sans-serif" font-size="14" fill="#000000" text-anchor="middle">PHOTO</text>
+  <text x="900" y="370" font-family="Inter, sans-serif" font-size="14" fill="#000000" text-anchor="middle">HERE</text>
+  
+  <text x="900" y="460" font-family="Space Grotesk, sans-serif" font-size="18" font-weight="600" fill="#000000" text-anchor="middle">[Person Name]</text>
+  <text x="900" y="485" font-family="Inter, sans-serif" font-size="14" fill="#000000" opacity="0.7" text-anchor="middle">[Title/Company]</text>
+  
+  <!-- Branding -->
+  <rect x="1000" y="540" width="160" height="50" fill="#000000"/>
+  <text x="1080" y="573" font-family="JetBrains Mono, monospace" font-size="16" font-weight="600" fill="#FFD700" text-anchor="middle">goalslot.io</text>
+</svg>

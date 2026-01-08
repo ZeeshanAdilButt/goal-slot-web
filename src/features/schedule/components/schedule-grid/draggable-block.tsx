@@ -43,6 +43,8 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onVie
     }) > 0
 
   const categoryColor = categories.find((cat) => cat.value === block.category)?.color
+  const goalCategory = block.goal?.category
+  const goalCategoryColor = goalCategory ? categories.find((cat) => cat.value === goalCategory)?.color : undefined
 
   const handleDeleteClick = (event: React.MouseEvent) => {
     event.stopPropagation()
@@ -69,7 +71,7 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onVie
   }
 
   const blockStyle: CSSProperties = {
-    backgroundColor: block.color || categoryColor || '#9CA3AF',
+    backgroundColor: goalCategoryColor || block.color || categoryColor || '#9CA3AF',
     top,
     height,
     minHeight: height,

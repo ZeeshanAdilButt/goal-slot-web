@@ -1,0 +1,42 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="1200" fill="#FEF3C7"/>
+  
+  <!-- Header -->
+  <rect x="100" y="80" width="200" height="50" fill="#EC4899" stroke="#000000" stroke-width="3"/>
+  <text x="200" y="115" font-family="Space Grotesk, sans-serif" font-size="20" font-weight="700" fill="#000000" text-anchor="middle">REALITY CHECK</text>
+  
+  <!-- Title -->
+  <text x="100" y="230" font-family="Space Grotesk, sans-serif" font-size="52" font-weight="700" fill="#000000">THINGS THAT FEEL</text>
+  <text x="100" y="300" font-family="Space Grotesk, sans-serif" font-size="52" font-weight="700" fill="#000000">PRODUCTIVE BUT</text>
+  <text x="100" y="370" font-family="Space Grotesk, sans-serif" font-size="52" font-weight="700" fill="#000000">AREN'T</text>
+  
+  <!-- List items -->
+  <g transform="translate(100, 430)">
+    <rect x="0" y="0" width="1000" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <text x="30" y="45" font-family="Inter, sans-serif" font-size="24" fill="#000000">📧  Organizing your inbox for 2 hours</text>
+    
+    <rect x="0" y="85" width="1000" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <text x="30" y="130" font-family="Inter, sans-serif" font-size="24" fill="#000000">📁  Reorganizing your folder structure (again)</text>
+    
+    <rect x="0" y="170" width="1000" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <text x="30" y="215" font-family="Inter, sans-serif" font-size="24" fill="#000000">📝  Rewriting your to-do list beautifully</text>
+    
+    <rect x="0" y="255" width="1000" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <text x="30" y="300" font-family="Inter, sans-serif" font-size="24" fill="#000000">🔍  "Researching" for hours before starting</text>
+    
+    <rect x="0" y="340" width="1000" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <text x="30" y="385" font-family="Inter, sans-serif" font-size="24" fill="#000000">📱  Checking Slack/email every 5 minutes</text>
+    
+    <rect x="0" y="425" width="1000" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <text x="30" y="470" font-family="Inter, sans-serif" font-size="24" fill="#000000">📊  Updating spreadsheets no one reads</text>
+  </g>
+  
+  <!-- Truth bomb -->
+  <rect x="100" y="950" width="1000" height="100" fill="#22C55E" stroke="#000000" stroke-width="4"/>
+  <text x="600" y="990" font-family="Inter, sans-serif" font-size="26" fill="#000000" text-anchor="middle">Real productivity = moving the needle on your goals.</text>
+  <text x="600" y="1030" font-family="Inter, sans-serif" font-size="22" fill="#000000" opacity="0.8" text-anchor="middle">Everything else is just busywork in disguise.</text>
+  
+  <!-- Branding -->
+  <rect x="900" y="1100" width="200" height="50" fill="#000000"/>
+  <text x="1000" y="1133" font-family="JetBrains Mono, monospace" font-size="16" font-weight="600" fill="#FFD700" text-anchor="middle">goalslot.io</text>
+</svg>

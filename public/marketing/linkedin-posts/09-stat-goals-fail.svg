@@ -1,0 +1,29 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="1200" fill="#FEF3C7"/>
+  
+  <!-- Big stat -->
+  <text x="600" y="320" font-family="Space Grotesk, sans-serif" font-size="250" font-weight="900" fill="#000000" text-anchor="middle">92%</text>
+  
+  <!-- Stat context -->
+  <text x="600" y="420" font-family="Inter, sans-serif" font-size="36" fill="#000000" text-anchor="middle">of people fail to achieve their</text>
+  <rect x="300" y="450" width="600" height="80" fill="#EC4899" stroke="#000000" stroke-width="4"/>
+  <text x="600" y="505" font-family="Space Grotesk, sans-serif" font-size="40" font-weight="700" fill="#000000" text-anchor="middle">NEW YEAR'S GOALS</text>
+  
+  <!-- The reason -->
+  <rect x="100" y="600" width="1000" height="200" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+  <text x="600" y="680" font-family="Inter, sans-serif" font-size="32" fill="#000000" text-anchor="middle">The #1 reason?</text>
+  <text x="600" y="740" font-family="Space Grotesk, sans-serif" font-size="40" font-weight="700" fill="#000000" text-anchor="middle">They never schedule time for them.</text>
+  
+  <!-- Solution -->
+  <rect x="100" y="860" width="8" height="120" fill="#22C55E"/>
+  <text x="130" y="910" font-family="Inter, sans-serif" font-size="28" fill="#000000">Goals without time blocks are just wishes.</text>
+  <text x="130" y="960" font-family="Inter, sans-serif" font-size="28" font-weight="700" fill="#000000">Make your goals visible on your calendar.</text>
+  
+  <!-- Decorative -->
+  <rect x="900" y="850" width="160" height="120" fill="#FFD700" stroke="#000000" stroke-width="4"/>
+  <rect x="912" y="862" width="160" height="120" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+  
+  <!-- Branding -->
+  <rect x="100" y="1050" width="200" height="60" fill="#000000"/>
+  <text x="200" y="1090" font-family="JetBrains Mono, monospace" font-size="18" font-weight="600" fill="#FFD700" text-anchor="middle">goalslot.io</text>
+</svg>

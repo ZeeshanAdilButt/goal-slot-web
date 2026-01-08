@@ -70,6 +70,20 @@ export function ScheduleBlockModal({ isOpen, onClose, block, dayOfWeek, presetTi
     }
   }, [categories, category])
 
+  // Update category and color when a goal is selected
+  useEffect(() => {
+    if (goalId && goals.length > 0) {
+      const selectedGoal = goals.find((g) => g.id === goalId)
+      if (selectedGoal?.category) {
+        setCategory(selectedGoal.category)
+        const cat = categories.find((c) => c.value === selectedGoal.category)
+        if (cat) {
+          setColor(cat.color)
+        }
+      }
+    }
+  }, [goalId, goals, categories])
+
   const toggleDay = (dayIndex: number) => {
     setSelectedDays((prev) => {
       if (prev.includes(dayIndex)) {

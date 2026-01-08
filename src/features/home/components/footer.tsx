@@ -10,6 +10,9 @@ export function Footer() {
           <GoalSlotBrand size="sm" tagline="Your growth, measured." />
 
           <div className="flex items-center gap-6">
+            <Link href="/guides" className="font-mono text-sm transition-colors hover:text-primary">
+              Guides
+            </Link>
             <Link href="/privacy" className="font-mono text-sm transition-colors hover:text-primary">
               Privacy
             </Link>

@@ -1,0 +1,65 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="1200" fill="#FEF3C7"/>
+  
+  <!-- Title -->
+  <text x="600" y="120" font-family="Space Grotesk, sans-serif" font-size="48" font-weight="700" fill="#000000" text-anchor="middle">PRIORITIES MATRIX</text>
+  
+  <!-- Matrix grid -->
+  <g transform="translate(100, 180)">
+    <!-- Y-axis label -->
+    <text x="0" y="400" font-family="Space Grotesk, sans-serif" font-size="20" font-weight="700" fill="#000000" transform="rotate(-90, 20, 400)">URGENT</text>
+    
+    <!-- X-axis label -->
+    <text x="550" y="820" font-family="Space Grotesk, sans-serif" font-size="20" font-weight="700" fill="#000000" text-anchor="middle">IMPORTANT</text>
+    
+    <!-- Quadrant 1 - Urgent & Important -->
+    <rect x="100" y="0" width="400" height="350" fill="#EC4899" stroke="#000000" stroke-width="4"/>
+    <text x="300" y="50" font-family="Space Grotesk, sans-serif" font-size="24" font-weight="700" fill="#000000" text-anchor="middle">DO IT NOW</text>
+    <text x="300" y="120" font-family="Inter, sans-serif" font-size="18" fill="#000000" text-anchor="middle">• Crises</text>
+    <text x="300" y="155" font-family="Inter, sans-serif" font-size="18" fill="#000000" text-anchor="middle">• Deadlines</text>
+    <text x="300" y="190" font-family="Inter, sans-serif" font-size="18" fill="#000000" text-anchor="middle">• Emergencies</text>
+    <text x="300" y="280" font-family="Inter, sans-serif" font-size="16" fill="#000000" opacity="0.7" text-anchor="middle">Can't be avoided</text>
+    <text x="300" y="310" font-family="Inter, sans-serif" font-size="16" fill="#000000" opacity="0.7" text-anchor="middle">but should be minimized</text>
+    
+    <!-- Quadrant 2 - Not Urgent & Important -->
+    <rect x="500" y="0" width="400" height="350" fill="#22C55E" stroke="#000000" stroke-width="4"/>
+    <text x="700" y="50" font-family="Space Grotesk, sans-serif" font-size="24" font-weight="700" fill="#000000" text-anchor="middle">SCHEDULE IT</text>
+    <text x="700" y="120" font-family="Inter, sans-serif" font-size="18" fill="#000000" text-anchor="middle">• Goals</text>
+    <text x="700" y="155" font-family="Inter, sans-serif" font-size="18" fill="#000000" text-anchor="middle">• Learning</text>
+    <text x="700" y="190" font-family="Inter, sans-serif" font-size="18" fill="#000000" text-anchor="middle">• Planning</text>
+    <text x="700" y="225" font-family="Inter, sans-serif" font-size="18" fill="#000000" text-anchor="middle">• Relationships</text>
+    <text x="700" y="295" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="#000000" text-anchor="middle">⭐ WHERE MAGIC</text>
+    <text x="700" y="325" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="#000000" text-anchor="middle">HAPPENS</text>
+    
+    <!-- Quadrant 3 - Urgent & Not Important -->
+    <rect x="100" y="350" width="400" height="350" fill="#F97316" stroke="#000000" stroke-width="4"/>
+    <text x="300" y="400" font-family="Space Grotesk, sans-serif" font-size="24" font-weight="700" fill="#000000" text-anchor="middle">DELEGATE IT</text>
+    <text x="300" y="470" font-family="Inter, sans-serif" font-size="18" fill="#000000" text-anchor="middle">• Most emails</text>
+    <text x="300" y="505" font-family="Inter, sans-serif" font-size="18" fill="#000000" text-anchor="middle">• Some meetings</text>
+    <text x="300" y="540" font-family="Inter, sans-serif" font-size="18" fill="#000000" text-anchor="middle">• Interruptions</text>
+    <text x="300" y="620" font-family="Inter, sans-serif" font-size="16" fill="#000000" opacity="0.7" text-anchor="middle">Other people's priorities</text>
+    <text x="300" y="650" font-family="Inter, sans-serif" font-size="16" fill="#000000" opacity="0.7" text-anchor="middle">disguised as yours</text>
+    
+    <!-- Quadrant 4 - Not Urgent & Not Important -->
+    <rect x="500" y="350" width="400" height="350" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    <text x="700" y="400" font-family="Space Grotesk, sans-serif" font-size="24" font-weight="700" fill="#000000" text-anchor="middle">ELIMINATE IT</text>
+    <text x="700" y="470" font-family="Inter, sans-serif" font-size="18" fill="#000000" text-anchor="middle">• Social media scrolling</text>
+    <text x="700" y="505" font-family="Inter, sans-serif" font-size="18" fill="#000000" text-anchor="middle">• Busywork</text>
+    <text x="700" y="540" font-family="Inter, sans-serif" font-size="18" fill="#000000" text-anchor="middle">• Time wasters</text>
+    <text x="700" y="620" font-family="Inter, sans-serif" font-size="16" fill="#000000" opacity="0.7" text-anchor="middle">Feels productive</text>
+    <text x="700" y="650" font-family="Inter, sans-serif" font-size="16" fill="#000000" opacity="0.7" text-anchor="middle">but isn't</text>
+    
+    <!-- Arrows -->
+    <text x="40" y="175" font-family="Inter, sans-serif" font-size="18" fill="#000000">High</text>
+    <text x="40" y="525" font-family="Inter, sans-serif" font-size="18" fill="#000000">Low</text>
+    <text x="300" y="780" font-family="Inter, sans-serif" font-size="18" fill="#000000" text-anchor="middle">Low</text>
+    <text x="700" y="780" font-family="Inter, sans-serif" font-size="18" fill="#000000" text-anchor="middle">High</text>
+  </g>
+  
+  <!-- Key insight -->
+  <text x="600" y="1050" font-family="Inter, sans-serif" font-size="24" fill="#000000" text-anchor="middle">Spend more time in the green. That's where growth lives.</text>
+  
+  <!-- Branding -->
+  <rect x="500" y="1100" width="200" height="50" fill="#000000"/>
+  <text x="600" y="1133" font-family="JetBrains Mono, monospace" font-size="16" font-weight="600" fill="#FFD700" text-anchor="middle">goalslot.io</text>
+</svg>
