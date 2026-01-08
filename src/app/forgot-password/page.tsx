@@ -1,51 +1,39 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 import { useMutation } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Eye, EyeOff, Lock, Mail, User, Zap } from 'lucide-react'
+import { ArrowLeft, ArrowRight, CheckCircle, Eye, EyeOff, Lock, Mail, Zap } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { authApi } from '@/lib/api'
-import { useAuthStore } from '@/lib/store'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
 import { Loading } from '@/components/ui/loading'
 
-function SignupForm() {
+export default function ForgotPasswordPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const isPro = searchParams.get('plan') === 'pro'
 
   // Step management
-  const [step, setStep] = useState<1 | 2>(1)
+  const [step, setStep] = useState<1 | 2 | 3>(1)
 
   // Form data
-  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
   const [otp, setOtp] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   // Resend cooldown
   const [resendCooldown, setResendCooldown] = useState(0)
 
-  const register = useAuthStore((state) => state.register)
-
-  // Check email exists mutation
-  const checkEmailMutation = useMutation({
-    mutationFn: async (email: string) => {
-      const response = await authApi.checkEmailExists(email)
-      return response.data
-    },
-  })
-
-  // Send OTP mutation
+  // Send forgot password OTP mutation
   const sendOTPMutation = useMutation({
     mutationFn: async (email: string) => {
-      const response = await authApi.sendOTP({ email, purpose: 'SIGNUP' })
+      const response = await authApi.forgotPassword({ email })
       return response.data
     },
     onSuccess: () => {
@@ -58,21 +46,35 @@ function SignupForm() {
     },
   })
 
-  // Register mutation
-  const registerMutation = useMutation({
+  // Verify OTP mutation
+  const verifyOTPMutation = useMutation({
     mutationFn: async () => {
-      await register(email, password, name, otp)
+      const response = await authApi.verifyOTP({ email, otp, purpose: 'FORGOT_PASSWORD' })
+      return response.data
     },
     onSuccess: () => {
-      toast.success('Account created successfully!')
-      if (isPro) {
-        router.push('/billing/checkout')
-      } else {
-        router.push('/dashboard')
-      }
+      toast.success('Code verified successfully!')
+      setStep(3)
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Registration failed')
+      toast.error(error.response?.data?.message || 'Invalid or expired code')
+    },
+  })
+
+  // Reset password mutation
+  const resetPasswordMutation = useMutation({
+    mutationFn: async () => {
+      const response = await authApi.resetPassword({ email, otp, newPassword })
+      return response.data
+    },
+    onSuccess: () => {
+      toast.success('Password reset successfully! Redirecting to login...')
+      setTimeout(() => {
+        router.push('/login')
+      }, 2000)
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Failed to reset password')
     },
   })
 
@@ -80,29 +82,15 @@ function SignupForm() {
   const handleStep1Submit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Basic validation
-    if (!name || !email || !password) {
-      toast.error('Please fill in all fields')
+    if (!email) {
+      toast.error('Please enter your email')
       return
     }
 
-    if (password.length < 8) {
-      toast.error('Password must be at least 8 characters')
-      return
-    }
-
-    // Check if email exists
-    const emailCheck = await checkEmailMutation.mutateAsync(email)
-    if (emailCheck.exists) {
-      toast.error('Email already registered. Please login instead.')
-      return
-    }
-
-    // Send OTP
     sendOTPMutation.mutate(email)
   }
 
-  // Handle step 2 submit (verify OTP and register)
+  // Handle step 2 submit (verify OTP)
   const handleStep2Submit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -111,7 +99,25 @@ function SignupForm() {
       return
     }
 
-    registerMutation.mutate()
+    verifyOTPMutation.mutate()
+  }
+
+  // Handle step 3 submit (reset password)
+  const handleStep3Submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    // Validation
+    if (newPassword.length < 8) {
+      toast.error('Password must be at least 8 characters')
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error('Passwords do not match')
+      return
+    }
+
+    resetPasswordMutation.mutate()
   }
 
   // Handle resend OTP
@@ -144,42 +150,24 @@ function SignupForm() {
           </div>
         </Link>
 
-        {/* Plan Badge */}
-        {isPro && (
-          <div className="mb-6 border-3 border-secondary bg-primary p-4 text-center shadow-brutal">
-            <span className="font-bold uppercase">Pro Plan Selected</span>
-            <p className="mt-1 font-mono text-sm">You'll be redirected to checkout after signup</p>
-          </div>
-        )}
-
         {/* Step Indicator */}
         <div className="mb-6 flex items-center justify-center gap-2">
-          <div className={`h-2 w-16 border-2 border-secondary ${step === 1 ? 'bg-primary' : 'bg-gray-200'}`} />
-          <div className={`h-2 w-16 border-2 border-secondary ${step === 2 ? 'bg-primary' : 'bg-gray-200'}`} />
+          <div className={`h-2 w-12 border-2 border-secondary ${step === 1 ? 'bg-primary' : 'bg-gray-200'}`} />
+          <div className={`h-2 w-12 border-2 border-secondary ${step === 2 ? 'bg-primary' : 'bg-gray-200'}`} />
+          <div className={`h-2 w-12 border-2 border-secondary ${step === 3 ? 'bg-primary' : 'bg-gray-200'}`} />
         </div>
 
-        {/* Signup Card */}
+        {/* Reset Password Card */}
         <div className="card-brutal">
-          {step === 1 ? (
+          {/* Step 1: Email Input */}
+          {step === 1 && (
             <>
-              <h1 className="mb-6 text-center text-2xl font-bold uppercase">Create Account</h1>
-              <form onSubmit={handleStep1Submit} className="space-y-4">
-                <div>
-                  <label className="mb-2 block text-sm font-bold uppercase">Name</label>
-                  <div className="relative">
-                    <User className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="John Doe"
-                      className="input-brutal pl-12"
-                      required
-                      minLength={2}
-                    />
-                  </div>
-                </div>
+              <h1 className="mb-2 text-center text-2xl font-bold uppercase">Reset Password</h1>
+              <p className="mb-6 text-center font-mono text-sm text-gray-600">
+                Enter your email to receive a verification code
+              </p>
 
+              <form onSubmit={handleStep1Submit} className="space-y-4">
                 <div>
                   <label className="mb-2 block text-sm font-bold uppercase">Email</label>
                   <div className="relative">
@@ -195,37 +183,12 @@ function SignupForm() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="mb-2 block text-sm font-bold uppercase">Password</label>
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="input-brutal pl-12 pr-12"
-                      required
-                      minLength={8}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
-                  </div>
-                  <p className="mt-1 font-mono text-xs text-gray-500">Minimum 8 characters</p>
-                </div>
-
                 <button
                   type="submit"
-                  disabled={sendOTPMutation.isPending || checkEmailMutation.isPending}
+                  disabled={sendOTPMutation.isPending}
                   className="btn-brutal flex w-full items-center justify-center gap-2"
                 >
-                  {sendOTPMutation.isPending || checkEmailMutation.isPending ? (
+                  {sendOTPMutation.isPending ? (
                     <Loading size="sm" className="h-5 w-5" />
                   ) : (
                     <>
@@ -235,7 +198,10 @@ function SignupForm() {
                 </button>
               </form>
             </>
-          ) : (
+          )}
+
+          {/* Step 2: OTP Verification */}
+          {step === 2 && (
             <>
               <button
                 onClick={() => setStep(1)}
@@ -244,7 +210,7 @@ function SignupForm() {
                 <ArrowLeft className="h-4 w-4" /> Back
               </button>
 
-              <h1 className="mb-2 text-center text-2xl font-bold uppercase">Verify Email</h1>
+              <h1 className="mb-2 text-center text-2xl font-bold uppercase">Verify Code</h1>
               <p className="mb-6 text-center font-mono text-sm text-gray-600">
                 We sent a 6-digit code to <span className="font-bold">{email}</span>
               </p>
@@ -285,14 +251,14 @@ function SignupForm() {
 
                 <button
                   type="submit"
-                  disabled={registerMutation.isPending || otp.length !== 6}
+                  disabled={verifyOTPMutation.isPending || otp.length !== 6}
                   className="btn-brutal flex w-full items-center justify-center gap-2"
                 >
-                  {registerMutation.isPending ? (
+                  {verifyOTPMutation.isPending ? (
                     <Loading size="sm" className="h-5 w-5" />
                   ) : (
                     <>
-                      Verify & Create Account <ArrowRight className="h-5 w-5" />
+                      Verify Code <ArrowRight className="h-5 w-5" />
                     </>
                   )}
                 </button>
@@ -315,38 +281,90 @@ function SignupForm() {
             </>
           )}
 
+          {/* Step 3: New Password */}
+          {step === 3 && (
+            <>
+              <div className="mb-6 flex flex-col items-center">
+                <CheckCircle className="mb-3 h-12 w-12 text-green-600" />
+                <h1 className="mb-2 text-center text-2xl font-bold uppercase">Set New Password</h1>
+                <p className="text-center font-mono text-sm text-gray-600">Create a strong password for your account</p>
+              </div>
+
+              <form onSubmit={handleStep3Submit} className="space-y-4">
+                <div>
+                  <label className="mb-2 block text-sm font-bold uppercase">New Password</label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="input-brutal pl-12 pr-12"
+                      required
+                      minLength={8}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                  <p className="mt-1 font-mono text-xs text-gray-500">Minimum 8 characters</p>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-bold uppercase">Confirm Password</label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="input-brutal pl-12 pr-12"
+                      required
+                      minLength={8}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={resetPasswordMutation.isPending}
+                  className="btn-brutal flex w-full items-center justify-center gap-2"
+                >
+                  {resetPasswordMutation.isPending ? (
+                    <Loading size="sm" className="h-5 w-5" />
+                  ) : (
+                    <>
+                      Reset Password <ArrowRight className="h-5 w-5" />
+                    </>
+                  )}
+                </button>
+              </form>
+            </>
+          )}
+
           <p className="mt-6 text-center font-mono text-sm">
-            Already have an account?{' '}
+            Remember your password?{' '}
             <Link href="/login" className="font-bold text-accent-blue hover:underline">
               Login
             </Link>
           </p>
         </div>
-
-        <p className="mt-6 text-center font-mono text-xs text-gray-500">
-          By signing up, you agree to our Terms of Service and Privacy Policy
-        </p>
       </motion.div>
     </div>
-  )
-}
-
-export default function SignupPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center bg-brutalist-bg p-6">
-          <div className="w-full max-w-md">
-            <div className="card-brutal">
-              <div className="flex items-center justify-center p-8">
-                <Loading size="sm" />
-              </div>
-            </div>
-          </div>
-        </div>
-      }
-    >
-      <SignupForm />
-    </Suspense>
   )
 }
