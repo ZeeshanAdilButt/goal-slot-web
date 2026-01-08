@@ -20,6 +20,8 @@ export function ScheduleBlockDetailDialog({ isOpen, onClose, block, onEdit }: Sc
   if (!block) return null
 
   const category = categories.find((cat) => cat.value === block.category)
+  const goalCategory = block.goal?.category
+  const goalCategoryColor = goalCategory ? categories.find((cat) => cat.value === goalCategory)?.color : undefined
   const dayName = DAYS_OF_WEEK_FULL[block.dayOfWeek]
 
   const handleEdit = () => {
@@ -47,7 +49,7 @@ export function ScheduleBlockDetailDialog({ isOpen, onClose, block, onEdit }: Sc
           {/* Color indicator */}
           <div
             className="h-4 w-full border-2 border-secondary"
-            style={{ backgroundColor: block.color || category?.color || '#9CA3AF' }}
+            style={{ backgroundColor: goalCategoryColor || block.color || category?.color || '#9CA3AF' }}
           />
 
           {/* Day and Time */}

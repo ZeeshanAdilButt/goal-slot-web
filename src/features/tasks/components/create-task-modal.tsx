@@ -14,9 +14,18 @@ interface CreateTaskModalProps {
   scheduleBlocks: ScheduleBlock[]
   goals: Goal[]
   task?: Task | null
+  defaultGoalId?: string
 }
 
-export function CreateTaskModal({ isOpen, onClose, onSubmit, scheduleBlocks, goals, task }: CreateTaskModalProps) {
+export function CreateTaskModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  scheduleBlocks,
+  goals,
+  task,
+  defaultGoalId,
+}: CreateTaskModalProps) {
   const [creating, setCreating] = useState(false)
   const { data: categories = [] } = useCategoriesQuery()
   //Status is set automatically by the backend to 'pending'
@@ -42,17 +51,33 @@ export function CreateTaskModal({ isOpen, onClose, onSubmit, scheduleBlocks, goa
         dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
       })
     } else if (!task && isOpen) {
-      setForm({
+      const initialForm: CreateTaskForm = {
         title: '',
         description: '',
         category: '',
         estimatedMinutes: '',
-        goalId: '',
+        goalId: defaultGoalId || '',
         scheduleBlockId: '',
         dueDate: '',
-      })
+      }
+
+      // Pre-fill from default goal
+      if (defaultGoalId) {
+        const selectedGoal = goals.find((g) => g.id === defaultGoalId)
+        if (selectedGoal) {
+          if (selectedGoal.category) {
+            initialForm.category = selectedGoal.category
+          }
+          const goalBlock = scheduleBlocks.find((sb) => sb.goalId === defaultGoalId)
+          if (goalBlock) {
+            initialForm.scheduleBlockId = goalBlock.id
+          }
+        }
+      }
+
+      setForm(initialForm)
     }
-  }, [task, isOpen])
+  }, [task, isOpen, defaultGoalId, goals, scheduleBlocks])
 
   const handleSubmit = async () => {
     if (!form.title.trim()) return
@@ -140,7 +165,27 @@ export function CreateTaskModal({ isOpen, onClose, onSubmit, scheduleBlocks, goa
               <label className="font-mono text-sm uppercase">Goal</label>
               <Select
                 value={form.goalId || 'none'}
-                onValueChange={(value) => setForm({ ...form, goalId: value === 'none' ? '' : value })}
+                onValueChange={(value) => {
+                  const goalId = value === 'none' ? '' : value
+                  const newForm = { ...form, goalId }
+
+                  // Auto-select category and schedule from goal
+                  if (goalId) {
+                    const selectedGoal = goals.find((g) => g.id === goalId)
+                    if (selectedGoal) {
+                      if (selectedGoal.category) {
+                        newForm.category = selectedGoal.category
+                      }
+                      // Find first schedule block associated with this goal
+                      const goalBlock = scheduleBlocks.find((sb) => sb.goalId === goalId)
+                      if (goalBlock) {
+                        newForm.scheduleBlockId = goalBlock.id
+                      }
+                    }
+                  }
+
+                  setForm(newForm)
+                }}
               >
                 <SelectTrigger className="input-brutal mt-1 w-full">
                   <SelectValue placeholder="No goal" />
