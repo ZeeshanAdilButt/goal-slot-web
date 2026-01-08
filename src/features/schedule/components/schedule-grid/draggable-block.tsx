@@ -9,7 +9,7 @@ import { ScheduleBlock } from '@/features/schedule/utils/types'
 import { useDraggable } from '@dnd-kit/core'
 import { useIsMutating } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Loader2, Pencil, Target, X } from 'lucide-react'
+import { Pencil, Target, X } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { Loading } from '@/components/ui/loading'

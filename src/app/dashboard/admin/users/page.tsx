@@ -12,7 +12,6 @@ import {
   ChevronRight,
   Crown,
   Eye,
-  Loader2,
   Mail,
   MailCheck,
   MailX,
@@ -28,6 +27,8 @@ import {
 import { toast } from 'react-hot-toast'
 
 import { usersApi } from '@/lib/api'
+import { GoalSlotSpinner } from '@/components/goalslot-logo'
+
 import { useAuthStore } from '@/lib/store'
 import { cn } from '@/lib/utils'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -831,7 +832,7 @@ export default function AdminUsersPage() {
                   className="flex flex-1 items-center justify-center gap-2 border-4 border-black bg-primary px-4 py-2 font-bold shadow-brutal transition-all hover:shadow-brutal-sm disabled:opacity-50"
                 >
                   {isSubmitting ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <GoalSlotSpinner size="xs" className="h-5 w-5" />
                   ) : (
                     <>
                       <Check className="h-5 w-5" />
