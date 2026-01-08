@@ -2,7 +2,7 @@ import Image from 'next/image'
 import { cn } from '@/lib/utils'
 
 interface GoalSlotLogoProps {
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl'
   variant?: 'default' | 'boxed' | 'icon' | 'white' | 'black' | 'gold' | 'gray'
   className?: string
 }
@@ -13,6 +13,8 @@ const sizeClasses = {
   md: 'h-10 w-10',
   lg: 'h-12 w-12',
   xl: 'h-14 w-14',
+  '2xl': 'h-20 w-20',
+  '3xl': 'h-32 w-32',
 }
 
 const sizePx = {
@@ -21,6 +23,8 @@ const sizePx = {
   md: 40,
   lg: 48,
   xl: 56,
+  '2xl': 80,
+  '3xl': 128,
 }
 
 // Map variants to their respective SVG files
@@ -69,7 +73,7 @@ export function GoalSlotLogo({ size = 'md', variant = 'default', className }: Go
  * Perfect for loading states throughout the app
  */
 interface GoalSlotSpinnerProps {
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl'
   className?: string
 }
 

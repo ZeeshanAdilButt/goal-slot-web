@@ -29,10 +29,10 @@ export function Loading({ variant = 'spinner', size = 'sm', className, fullWidth
   }
 
   // Map Loading sizes to GoalSlotSpinner sizes to maintain similar dimensions
-  // Loading sm(h-6) -> GoalSlot sm(h-8) - Increased visibility
+  // Loading sm(h-6) -> GoalSlot md(h-10) - Increased visibility (previously sm/xs)
   // Loading md(h-12) -> GoalSlot xl(h-14) - Increased visibility 
-  // Loading lg(h-16) -> GoalSlot xl(h-14) - Max size
-  const spinnerSize = size === 'sm' ? 'sm' : 'xl'
+  // Loading lg(h-16) -> GoalSlot 2xl(h-20) - Max size
+  const spinnerSize = size === 'sm' ? 'md' : size === 'md' ? 'xl' : '2xl'
 
   return <GoalSlotSpinner size={spinnerSize} className={className} />
 }

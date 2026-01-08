@@ -832,7 +832,7 @@ export default function AdminUsersPage() {
                   className="flex flex-1 items-center justify-center gap-2 border-4 border-black bg-primary px-4 py-2 font-bold shadow-brutal transition-all hover:shadow-brutal-sm disabled:opacity-50"
                 >
                   {isSubmitting ? (
-                    <GoalSlotSpinner size="sm" />
+                    <GoalSlotSpinner size="md" />
                   ) : (
                     <>
                       <Check className="h-5 w-5" />
