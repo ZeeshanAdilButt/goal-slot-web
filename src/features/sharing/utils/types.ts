@@ -47,6 +47,15 @@ export interface ShareInviteResult {
   emailSent: boolean
 }
 
+export interface PublicShareData {
+  owner: SharedUser
+  shareId: string
+  expiresAt?: string
+  accessType: string
+  isAccepted: boolean
+  inviteEmail: string | null
+}
+
 export interface SharedGoal {
   id: string
   title: string

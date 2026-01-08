@@ -47,14 +47,6 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
       accessLevel,
     })
     setInviteResult(result)
-
-    if (result.emailSent) {
-      // Close modal after a short delay if email succeeded
-      setTimeout(() => {
-        onSuccess()
-        onClose()
-      }, 2000)
-    }
   }
 
   const copyInviteLink = () => {
@@ -98,6 +90,20 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
 
           {inviteResult && (
             <div className="space-y-3">
+              {inviteResult.emailSent && (
+                <div className="border-2 border-secondary bg-green-50 p-3 sm:p-4">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600 sm:h-5 sm:w-5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-green-800 sm:text-base">Invitation sent successfully!</p>
+                      <p className="font-mono text-xs text-green-700 sm:text-sm">
+                        {email} will receive an email with the invitation.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {!inviteResult.emailSent && (
                 <div className="border-2 border-red-500 bg-red-50 p-3 sm:p-4">
                   <div className="flex items-start gap-2">
@@ -131,7 +137,7 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
                     </button>
                   </div>
                   <p className="mt-2 font-mono text-[10px] text-gray-600 sm:text-xs">
-                    Share this link if email delivery failed or as a backup
+                    You can also share this link directly with the recipient
                   </p>
                 </div>
               )}

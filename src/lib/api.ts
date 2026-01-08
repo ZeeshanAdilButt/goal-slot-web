@@ -131,7 +131,7 @@ export const sharingApi = {
   invite: (email: string) => api.post('/sharing/invite', { email }),
   share: (data: { email: string; accessLevel?: 'VIEW' | 'EDIT' }) =>
     api.post('/sharing/invite', { email: data.email, accessLevel: data.accessLevel || 'VIEW' }),
-  accept: (token: string) => api.post('/sharing/accept', null, { params: { token } }),
+  accept: (token: string) => api.post('/sharing/accept', { token }, { params: { token } }),
   getAll: () => api.get('/sharing'),
   getMyShares: () => api.get('/sharing/my-shares'),
   getPendingInvites: () => api.get('/sharing/pending-invites'),

@@ -18,6 +18,7 @@ function SignupForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const isPro = searchParams.get('plan') === 'pro'
+  const redirect = searchParams.get('redirect')
 
   // Step management
   const [step, setStep] = useState<1 | 2>(1)
@@ -65,7 +66,10 @@ function SignupForm() {
     },
     onSuccess: () => {
       toast.success('Account created successfully!')
-      if (isPro) {
+      // Redirect to the specified URL, or to checkout if Pro plan, or default to dashboard
+      if (redirect) {
+        router.push(redirect)
+      } else if (isPro) {
         router.push('/billing/checkout')
       } else {
         router.push('/dashboard')
@@ -317,7 +321,10 @@ function SignupForm() {
 
           <p className="mt-6 text-center font-mono text-sm">
             Already have an account?{' '}
-            <Link href="/login" className="font-bold text-accent-blue hover:underline">
+            <Link
+              href={redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login'}
+              className="font-bold text-accent-blue hover:underline"
+            >
               Login
             </Link>
           </p>
