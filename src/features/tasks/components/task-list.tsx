@@ -20,7 +20,7 @@ export function TaskList({ tasks, groupBy, onComplete, onEdit }: TaskListProps) 
   if (!tasks.length) {
     return (
       <div className="px-4 md:-ml-[3px] md:px-0">
-        <div className="card-brutal p-6 text-center font-mono text-gray-600">
+        <div className="card-brutal p-2 text-center font-mono text-gray-600 sm:p-6">
           No tasks yet. Create one to link it to your schedule and goals.
         </div>
       </div>

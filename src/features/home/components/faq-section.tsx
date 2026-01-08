@@ -25,7 +25,7 @@ const faqs = [
 
 export function FAQSection() {
   return (
-    <section className="border-y-3 border-secondary bg-white px-6 py-20">
+    <section className="border-y-3 border-secondary bg-white px-4 py-12 sm:px-6 sm:py-20">
       <div className="mx-auto max-w-4xl">
         <AnimatedSection
           initial={{ opacity: 0, y: 30 }}

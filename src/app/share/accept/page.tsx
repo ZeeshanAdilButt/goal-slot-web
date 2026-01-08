@@ -214,7 +214,7 @@ function PublicShareViewContent() {
 
   if (!token) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-2 sm:p-6">
         <div className="card-brutal max-w-md text-center">
           <Lock className="mx-auto mb-4 h-16 w-16 text-red-500" />
           <h1 className="mb-2 text-2xl font-bold uppercase">Invalid Link</h1>
@@ -234,7 +234,7 @@ function PublicShareViewContent() {
 
   if (shareInfoQuery.isError) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-2 sm:p-6">
         <div className="card-brutal max-w-md text-center">
           <Lock className="mx-auto mb-4 h-16 w-16 text-red-500" />
           <h1 className="mb-2 text-2xl font-bold uppercase">Link Expired or Invalid</h1>
@@ -253,7 +253,7 @@ function PublicShareViewContent() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="border-b-3 border-secondary bg-white">
-        <div className="container mx-auto flex items-center justify-between px-6 py-4">
+        <div className="container mx-auto flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-3">
             <div className="border-3 border-secondary bg-primary p-2 text-xl font-bold">⏱️</div>
             <span className="font-display text-xl font-bold uppercase">GoalSlot</span>
@@ -265,7 +265,7 @@ function PublicShareViewContent() {
         </div>
       </header>
 
-      <main className="container mx-auto max-w-6xl space-y-6 p-6">
+      <main className="container mx-auto max-w-6xl space-y-6 p-2 sm:p-6">
         {/* Owner Info */}
         {owner && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="card-brutal">
@@ -624,7 +624,7 @@ function PublicShareViewContent() {
 
       {/* Footer */}
       <footer className="border-t-3 border-secondary bg-white py-6">
-        <div className="container mx-auto px-6 text-center font-mono text-sm text-gray-600">
+        <div className="container mx-auto px-4 text-center font-mono text-sm text-gray-600 sm:px-6">
           <p>© 2025 GoalSlot. Focus on what matters.</p>
         </div>
       </footer>

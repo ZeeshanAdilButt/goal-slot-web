@@ -135,7 +135,7 @@ function SignupForm() {
   }, [resendCooldown])
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-brutalist-bg p-6">
+    <div className="flex min-h-screen items-center justify-center bg-brutalist-bg p-2 sm:p-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
         {/* Logo */}
         <Link href="/" className="mb-8 flex items-center justify-center gap-3">
@@ -342,7 +342,7 @@ export default function SignupPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-brutalist-bg p-6">
+        <div className="flex min-h-screen items-center justify-center bg-brutalist-bg p-2 sm:p-6">
           <div className="w-full max-w-md">
             <div className="card-brutal">
               <div className="flex items-center justify-center p-8">

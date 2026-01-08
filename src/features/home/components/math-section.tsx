@@ -4,7 +4,7 @@ import { AnimatedSection } from '@/components/animated-section'
 
 export function MathSection() {
   return (
-    <section className="border-y-3 border-secondary bg-secondary px-6 py-20 text-white">
+    <section className="border-y-3 border-secondary bg-secondary px-4 py-12 text-white sm:px-6 sm:py-20">
       <div className="mx-auto max-w-5xl">
         <AnimatedSection
           initial={{ opacity: 0, y: 30 }}
@@ -22,17 +22,17 @@ export function MathSection() {
           </h2>
 
           <div className="mb-8 grid gap-6 md:grid-cols-3">
-            <div className="border-3 border-white p-6">
+            <div className="border-3 border-white">
               <div className="font-mono text-5xl font-bold text-accent-pink">2,920</div>
               <p className="mt-2 font-mono text-gray-300">hours outside work per year</p>
               <p className="mt-1 font-mono text-sm text-gray-400">(8h sleep + 8h work = 8h free × 365)</p>
             </div>
-            <div className="border-3 border-white p-6">
+            <div className="border-3 border-white">
               <div className="font-mono text-5xl font-bold text-accent-orange">???</div>
               <p className="mt-2 font-mono text-gray-300">hours you actually tracked</p>
               <p className="mt-1 font-mono text-sm text-gray-400">(probably close to zero)</p>
             </div>
-            <div className="border-3 border-white p-6">
+            <div className="border-3 border-white">
               <div className="font-mono text-5xl font-bold text-primary">$0</div>
               <p className="mt-2 font-mono text-gray-300">proof of your growth</p>
               <p className="mt-1 font-mono text-sm text-gray-400">(nothing to show for it)</p>

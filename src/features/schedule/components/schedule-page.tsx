@@ -59,14 +59,17 @@ export function SchedulePage() {
 
   const totalBlocks = Object.values(weekSchedule).flat().length
   return (
-    <div className="isolate space-y-8 p-6">
+    <div className="isolate space-y-8 p-2 sm:p-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-4xl font-bold uppercase">Schedule</h1>
           <p className="font-mono uppercase text-gray-600">Plan your weekly time blocks</p>
         </div>
 
-        <button onClick={() => handleAddBlock(1)} className="btn-brutal flex items-center gap-2">
+        <button
+          onClick={() => handleAddBlock(1)}
+          className="btn-brutal flex items-center gap-2 px-2 py-2 sm:px-6 sm:py-3"
+        >
           <Plus className="h-5 w-5" />
           Add Block
         </button>

@@ -8,7 +8,7 @@ import { GoalAchievementSVG } from './svg-illustrations'
 
 export function HeroSection() {
   return (
-    <section className="px-6 pb-20 pt-32">
+    <section className="px-4 pb-12 pt-24 sm:px-6 sm:pb-20 sm:pt-28 md:pt-32">
       <div className="mx-auto max-w-7xl">
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <AnimatedSection
@@ -76,7 +76,7 @@ export function HeroSection() {
             className="relative"
           >
             {/* Goal Achievement Illustration */}
-            <div className="card-brutal overflow-hidden p-8">
+            <div className="card-brutal overflow-hidden">
               <GoalAchievementSVG />
               <div className="mt-4 text-center">
                 <p className="font-display text-xl font-bold uppercase">Your Goals. Tracked. Achieved.</p>

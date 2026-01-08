@@ -6,7 +6,7 @@ import { AnimatedSection } from '@/components/animated-section'
 
 export function CTASection() {
   return (
-    <section className="bg-secondary px-6 py-24 text-white">
+    <section className="bg-secondary px-4 py-12 text-white sm:px-6 sm:py-20 md:py-24">
       <div className="mx-auto max-w-4xl text-center">
         <AnimatedSection
           initial={{ opacity: 0, scale: 0.9 }}
@@ -23,7 +23,7 @@ export function CTASection() {
           </p>
 
           {/* The Stakes */}
-          <div className="mx-auto mb-8 max-w-2xl rounded-lg border-2 border-primary/50 bg-primary/10 p-6">
+          <div className="mx-auto mb-8 max-w-2xl rounded-lg border-2 border-primary/50 bg-primary/10">
             <p className="font-mono text-lg text-gray-200">
               <span className="font-bold text-primary">Here's the truth:</span> You already know how to set goals. The
               problem is you don't have a system to prove you're working on them.

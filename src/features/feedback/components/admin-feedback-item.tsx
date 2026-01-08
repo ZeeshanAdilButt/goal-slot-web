@@ -30,7 +30,7 @@ export const FeedbackItem = ({ feedback, onDelete }: FeedbackItemProps) => {
   }
 
   return (
-    <div className={cn('card-brutal p-6 transition-all', feedback.isArchived && 'opacity-60')}>
+    <div className={cn('card-brutal p-2 transition-all sm:p-6', feedback.isArchived && 'opacity-60')}>
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <div className="flex items-center gap-3">

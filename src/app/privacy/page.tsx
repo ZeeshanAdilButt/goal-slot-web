@@ -10,7 +10,7 @@ export default function PrivacyPolicyPage() {
     <div className="min-h-screen bg-brutalist-bg">
       {/* Navigation */}
       <nav className="fixed left-0 right-0 top-0 z-50 border-b-3 border-secondary bg-brutalist-bg">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
           <Link href="/" className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center border-3 border-secondary bg-primary shadow-brutal">
               <Zap className="h-7 w-7" />
@@ -33,7 +33,7 @@ export default function PrivacyPolicyPage() {
       </nav>
 
       {/* Main Content */}
-      <main className="px-6 pb-20 pt-32">
+      <main className="px-4 pb-12 pt-24 sm:px-6 sm:pb-20 sm:pt-28 md:pt-32">
         <div className="mx-auto max-w-4xl">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             {/* Back Link */}
@@ -63,9 +63,9 @@ export default function PrivacyPolicyPage() {
               <section className="card-brutal">
                 <h2 className="mb-4 font-display text-2xl font-bold uppercase">1. Introduction</h2>
                 <p className="font-mono text-gray-700">
-                  Welcome to GoalSlot. We respect your privacy and are committed to protecting your
-                  personal data. This privacy policy explains how we collect, use, and safeguard your information when
-                  you use our productivity tracking application.
+                  Welcome to GoalSlot. We respect your privacy and are committed to protecting your personal data. This
+                  privacy policy explains how we collect, use, and safeguard your information when you use our
+                  productivity tracking application.
                 </p>
               </section>
 
@@ -196,7 +196,7 @@ export default function PrivacyPolicyPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t-3 border-secondary px-6 py-12">
+      <footer className="border-t-3 border-secondary px-4 py-8 sm:px-6 sm:py-12">
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <div className="flex items-center gap-3">

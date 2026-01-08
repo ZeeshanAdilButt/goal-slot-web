@@ -43,7 +43,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-8 p-6">
+    <div className="space-y-8 p-2 sm:p-6">
       {/* Header */}
       <div>
         <h1 className="font-display text-4xl font-bold uppercase">Settings</h1>
@@ -53,7 +53,7 @@ export default function SettingsPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
         {/* Sidebar */}
         <div className="lg:col-span-1">
-          <div className="card-brutal overflow-hidden p-0">
+          <div className="card-brutal overflow-x-auto p-0">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
@@ -78,7 +78,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Content */}
-        <div className="lg:col-span-3">
+        <div className="overflow-x-auto lg:col-span-3">
           {activeTab === 'profile' && <ProfileSettings />}
           {activeTab === 'categories' && <CategoryManagement />}
           {activeTab === 'billing' && <BillingSettings />}
@@ -123,9 +123,9 @@ function ProfileSettings() {
 
           <div>
             <label className="mb-2 block text-sm font-bold uppercase">Email Address</label>
-            <div className="flex gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row">
               <input type="email" value={email} disabled className="input-brutal flex-1 opacity-75" />
-              <span className="border-3 border-secondary bg-gray-100 px-4 py-3 font-mono text-sm">
+              <span className="border-3 border-secondary bg-gray-100 px-4 py-3 text-center font-mono text-sm sm:text-left">
                 {user?.userType === 'SSO' ? 'SSO' : 'Verified'}
               </span>
             </div>
@@ -147,10 +147,13 @@ function ProfileSettings() {
           <div
             className={cn(
               'px-4 py-2 font-bold uppercase border-3 border-secondary',
-              user?.plan === 'PREMIUM' ? 'bg-primary' : 'bg-gray-100',
+              user?.plan === 'PREMIUM' || user?.plan === 'PRO' ? 'bg-primary' : 'bg-gray-100',
             )}
           >
-            {user?.plan === 'PREMIUM' ? '👑 Premium' : 'Free Plan'}
+            {user?.plan === 'PREMIUM' && '👑 Premium'}
+            {user?.plan === 'PRO' && '⭐ Pro'}
+            {user?.plan === 'FREE' && 'Free Plan'}
+            {!user?.plan && 'Free Plan'}
           </div>
           <div className="font-mono text-sm text-gray-600">
             {user?.userType === 'SSO' && 'Connected via SSO'}
@@ -196,18 +199,35 @@ function BillingSettings() {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       {/* Current Plan */}
-      <div className={cn('card-brutal p-8', user?.plan === 'PREMIUM' ? 'bg-primary' : 'bg-white')}>
+      <div
+        className={cn(
+          'card-brutal p-4 sm:p-8',
+          user?.plan === 'PREMIUM' || user?.plan === 'PRO' ? 'bg-primary' : 'bg-white',
+        )}
+      >
         <div className="mb-4 flex items-center gap-4">
-          {user?.plan === 'PREMIUM' ? <Crown className="h-10 w-10" /> : <CreditCard className="h-10 w-10" />}
+          {user?.plan === 'PREMIUM' || user?.plan === 'PRO' ? (
+            <Crown className="h-8 w-8 sm:h-10 sm:w-10" />
+          ) : (
+            <CreditCard className="h-8 w-8 sm:h-10 sm:w-10" />
+          )}
           <div>
-            <h2 className="text-2xl font-bold uppercase">{user?.plan === 'PREMIUM' ? 'Premium Plan' : 'Free Plan'}</h2>
-            <p className="font-mono">{user?.plan === 'PREMIUM' ? '$10/month' : '$0/month'}</p>
+            <h2 className="text-xl font-bold uppercase sm:text-2xl">
+              {user?.plan === 'PREMIUM' && 'Premium Plan'}
+              {user?.plan === 'PRO' && 'Pro Plan'}
+              {(user?.plan === 'FREE' || !user?.plan) && 'Free Plan'}
+            </h2>
+            <p className="font-mono text-sm sm:text-base">
+              {user?.plan === 'PREMIUM' && '$10/month'}
+              {user?.plan === 'PRO' && '$5/month'}
+              {(user?.plan === 'FREE' || !user?.plan) && '$0/month'}
+            </p>
           </div>
         </div>
 
         {user?.plan === 'FREE' && (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 font-mono text-sm">
+            <div className="grid grid-cols-1 gap-4 font-mono text-sm sm:grid-cols-2">
               <div>✓ 5 Schedule Blocks</div>
               <div>✓ 3 Goals Max</div>
               <div>✓ 3 Time Entries/Day</div>
@@ -219,18 +239,20 @@ function BillingSettings() {
           </div>
         )}
 
-        {user?.plan === 'PREMIUM' && (
+        {(user?.plan === 'PREMIUM' || user?.plan === 'PRO') && (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 font-mono text-sm">
+            <div className="grid grid-cols-1 gap-4 font-mono text-sm sm:grid-cols-2">
               <div>✓ Unlimited Schedules</div>
               <div>✓ Unlimited Goals</div>
               <div>✓ Unlimited Time Entries</div>
               <div>✓ Advanced Reports</div>
-              <div>✓ Priority Support</div>
+              {user?.plan === 'PREMIUM' && <div>✓ Priority Support</div>}
             </div>
-            <button onClick={handleManage} disabled={isLoading} className="btn-brutal-dark">
-              {isLoading ? 'Loading...' : 'Manage Subscription'}
-            </button>
+            {user?.plan === 'PREMIUM' && (
+              <button onClick={handleManage} disabled={isLoading} className="btn-brutal-dark">
+                {isLoading ? 'Loading...' : 'Manage Subscription'}
+              </button>
+            )}
           </div>
         )}
       </div>

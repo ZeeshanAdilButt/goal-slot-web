@@ -44,7 +44,7 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="px-6 py-20">
+    <section id="features" className="px-4 py-12 sm:px-6 sm:py-20">
       <div className="mx-auto max-w-7xl">
         <AnimatedSection
           initial={{ opacity: 0, y: 30 }}
