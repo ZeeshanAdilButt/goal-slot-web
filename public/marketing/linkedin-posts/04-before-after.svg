@@ -1,0 +1,78 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="1200" fill="#FEF3C7"/>
+  
+  <!-- Title -->
+  <text x="600" y="100" font-family="Space Grotesk, sans-serif" font-size="48" font-weight="700" fill="#000000" text-anchor="middle">YOUR CALENDAR</text>
+  
+  <!-- Before section -->
+  <g transform="translate(80, 150)">
+    <rect x="0" y="0" width="480" height="60" fill="#EC4899" stroke="#000000" stroke-width="4"/>
+    <text x="240" y="40" font-family="Space Grotesk, sans-serif" font-size="24" font-weight="700" fill="#000000" text-anchor="middle">BEFORE</text>
+    
+    <!-- Chaotic schedule -->
+    <rect x="0" y="80" width="480" height="400" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    
+    <rect x="20" y="100" width="120" height="40" fill="#EC4899" stroke="#000000" stroke-width="2"/>
+    <rect x="160" y="110" width="80" height="50" fill="#3B82F6" stroke="#000000" stroke-width="2"/>
+    <rect x="260" y="95" width="100" height="35" fill="#F97316" stroke="#000000" stroke-width="2"/>
+    <rect x="380" y="105" width="80" height="45" fill="#8B5CF6" stroke="#000000" stroke-width="2"/>
+    
+    <rect x="30" y="160" width="90" height="55" fill="#22C55E" stroke="#000000" stroke-width="2"/>
+    <rect x="140" y="175" width="110" height="40" fill="#EC4899" stroke="#000000" stroke-width="2"/>
+    <rect x="270" y="155" width="70" height="60" fill="#3B82F6" stroke="#000000" stroke-width="2"/>
+    <rect x="360" y="170" width="100" height="45" fill="#FFD700" stroke="#000000" stroke-width="2"/>
+    
+    <rect x="20" y="240" width="150" height="35" fill="#F97316" stroke="#000000" stroke-width="2"/>
+    <rect x="190" y="250" width="80" height="45" fill="#8B5CF6" stroke="#000000" stroke-width="2"/>
+    <rect x="290" y="235" width="90" height="55" fill="#22C55E" stroke="#000000" stroke-width="2"/>
+    <rect x="400" y="245" width="60" height="40" fill="#EC4899" stroke="#000000" stroke-width="2"/>
+    
+    <rect x="40" y="310" width="100" height="50" fill="#3B82F6" stroke="#000000" stroke-width="2"/>
+    <rect x="160" y="320" width="120" height="40" fill="#FFD700" stroke="#000000" stroke-width="2"/>
+    <rect x="300" y="305" width="80" height="55" fill="#F97316" stroke="#000000" stroke-width="2"/>
+    <rect x="400" y="315" width="60" height="45" fill="#22C55E" stroke="#000000" stroke-width="2"/>
+    
+    <rect x="20" y="380" width="140" height="45" fill="#8B5CF6" stroke="#000000" stroke-width="2"/>
+    <rect x="180" y="390" width="100" height="35" fill="#EC4899" stroke="#000000" stroke-width="2"/>
+    <rect x="300" y="375" width="90" height="50" fill="#3B82F6" stroke="#000000" stroke-width="2"/>
+    <rect x="410" y="385" width="50" height="40" fill="#FFD700" stroke="#000000" stroke-width="2"/>
+    
+    <!-- X mark -->
+    <path d="M380 440 L440 500 M440 440 L380 500" stroke="#EC4899" stroke-width="8" stroke-linecap="round"/>
+  </g>
+  
+  <!-- After section -->
+  <g transform="translate(640, 150)">
+    <rect x="0" y="0" width="480" height="60" fill="#22C55E" stroke="#000000" stroke-width="4"/>
+    <text x="240" y="40" font-family="Space Grotesk, sans-serif" font-size="24" font-weight="700" fill="#000000" text-anchor="middle">AFTER</text>
+    
+    <!-- Organized schedule -->
+    <rect x="0" y="80" width="480" height="400" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    
+    <rect x="20" y="100" width="440" height="70" fill="#3B82F6" stroke="#000000" stroke-width="3"/>
+    <text x="240" y="145" font-family="Inter, sans-serif" font-size="20" font-weight="600" fill="#FFFFFF" text-anchor="middle">Deep Work Block</text>
+    
+    <rect x="20" y="185" width="440" height="55" fill="#FFD700" stroke="#000000" stroke-width="3"/>
+    <text x="240" y="222" font-family="Inter, sans-serif" font-size="20" font-weight="600" fill="#000000" text-anchor="middle">Meetings</text>
+    
+    <rect x="20" y="255" width="440" height="70" fill="#22C55E" stroke="#000000" stroke-width="3"/>
+    <text x="240" y="300" font-family="Inter, sans-serif" font-size="20" font-weight="600" fill="#000000" text-anchor="middle">Creative Work</text>
+    
+    <rect x="20" y="340" width="440" height="55" fill="#8B5CF6" stroke="#000000" stroke-width="3"/>
+    <text x="240" y="377" font-family="Inter, sans-serif" font-size="20" font-weight="600" fill="#FFFFFF" text-anchor="middle">Learning</text>
+    
+    <rect x="20" y="410" width="200" height="50" fill="#F97316" stroke="#000000" stroke-width="3"/>
+    <text x="120" y="445" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#000000" text-anchor="middle">Admin</text>
+    
+    <!-- Checkmark -->
+    <path d="M380 440 L410 470 L460 410" stroke="#22C55E" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+  
+  <!-- Bottom message -->
+  <text x="600" y="700" font-family="Space Grotesk, sans-serif" font-size="36" font-weight="700" fill="#000000" text-anchor="middle">CHAOS → CLARITY</text>
+  <text x="600" y="760" font-family="Inter, sans-serif" font-size="24" fill="#000000" text-anchor="middle">Align your time with your goals</text>
+  
+  <!-- Branding -->
+  <rect x="500" y="850" width="200" height="60" fill="#000000"/>
+  <text x="600" y="890" font-family="JetBrains Mono, monospace" font-size="18" font-weight="600" fill="#FFD700" text-anchor="middle">goalslot.io</text>
+</svg>

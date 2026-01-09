@@ -5,6 +5,7 @@ export interface Goal {
   title: string
   color: string
   status: string
+  category?: string
 }
 
 export interface ScheduleBlock {
@@ -13,6 +14,7 @@ export interface ScheduleBlock {
   startTime: string
   endTime: string
   dayOfWeek: number
+  goalId?: string
 }
 
 export interface Task {

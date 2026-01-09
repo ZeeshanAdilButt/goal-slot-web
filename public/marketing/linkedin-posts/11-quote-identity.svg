@@ -1,0 +1,29 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="1200" fill="#FEF3C7"/>
+  
+  <!-- Large quote mark -->
+  <text x="100" y="280" font-family="Space Grotesk, sans-serif" font-size="300" font-weight="900" fill="#3B82F6" opacity="0.4">"</text>
+  
+  <!-- Quote text -->
+  <text x="120" y="420" font-family="Space Grotesk, sans-serif" font-size="52" font-weight="700" fill="#000000">THE WAY WE</text>
+  <text x="120" y="490" font-family="Space Grotesk, sans-serif" font-size="52" font-weight="700" fill="#000000">SPEND OUR TIME</text>
+  <text x="120" y="560" font-family="Space Grotesk, sans-serif" font-size="52" font-weight="700" fill="#000000">DEFINES WHO</text>
+  <text x="120" y="630" font-family="Space Grotesk, sans-serif" font-size="52" font-weight="700" fill="#000000">WE BECOME.</text>
+  
+  <!-- Accent bar -->
+  <rect x="120" y="680" width="300" height="8" fill="#000000"/>
+  
+  <!-- Attribution -->
+  <text x="120" y="760" font-family="Inter, sans-serif" font-size="24" fill="#000000" opacity="0.7">— Jonathan Estrin</text>
+  
+  <!-- Decorative cards -->
+  <rect x="880" y="100" width="180" height="140" fill="#3B82F6" stroke="#000000" stroke-width="4"/>
+  <rect x="892" y="112" width="180" height="140" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+  
+  <rect x="850" y="880" width="200" height="150" fill="#22C55E" stroke="#000000" stroke-width="4"/>
+  <rect x="862" y="892" width="200" height="150" fill="#FFD700" stroke="#000000" stroke-width="4"/>
+  
+  <!-- Branding -->
+  <rect x="120" y="1050" width="200" height="60" fill="#000000"/>
+  <text x="220" y="1090" font-family="JetBrains Mono, monospace" font-size="18" font-weight="600" fill="#FFD700" text-anchor="middle">goalslot.io</text>
+</svg>

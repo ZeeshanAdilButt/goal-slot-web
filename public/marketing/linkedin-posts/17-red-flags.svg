@@ -1,0 +1,39 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="1200" fill="#FEF3C7"/>
+  
+  <!-- Header -->
+  <rect x="100" y="80" width="300" height="60" fill="#3B82F6" stroke="#000000" stroke-width="4"/>
+  <text x="250" y="122" font-family="Space Grotesk, sans-serif" font-size="28" font-weight="700" fill="#FFFFFF" text-anchor="middle">RED FLAGS 🚩</text>
+  
+  <!-- Title -->
+  <text x="100" y="240" font-family="Space Grotesk, sans-serif" font-size="48" font-weight="700" fill="#000000">SIGNS YOUR</text>
+  <text x="100" y="310" font-family="Space Grotesk, sans-serif" font-size="48" font-weight="700" fill="#000000">CALENDAR IS</text>
+  <text x="100" y="380" font-family="Space Grotesk, sans-serif" font-size="48" font-weight="700" fill="#000000">LYING TO YOU</text>
+  
+  <!-- Red flags list -->
+  <g transform="translate(100, 440)">
+    <rect x="0" y="0" width="1000" height="80" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <text x="30" y="50" font-family="Inter, sans-serif" font-size="24" fill="#000000">🚩 It's full but you feel unproductive</text>
+    
+    <rect x="0" y="95" width="1000" height="80" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <text x="30" y="145" font-family="Inter, sans-serif" font-size="24" fill="#000000">🚩 Goals get pushed to "someday"</text>
+    
+    <rect x="0" y="190" width="1000" height="80" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <text x="30" y="240" font-family="Inter, sans-serif" font-size="24" fill="#000000">🚩 Other people's meetings fill your days</text>
+    
+    <rect x="0" y="285" width="1000" height="80" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <text x="30" y="335" font-family="Inter, sans-serif" font-size="24" fill="#000000">🚩 No blocks for deep work or learning</text>
+    
+    <rect x="0" y="380" width="1000" height="80" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <text x="30" y="430" font-family="Inter, sans-serif" font-size="24" fill="#000000">🚩 Weeks go by, nothing meaningful done</text>
+  </g>
+  
+  <!-- Solution -->
+  <rect x="100" y="970" width="1000" height="100" fill="#22C55E" stroke="#000000" stroke-width="4"/>
+  <text x="600" y="1010" font-family="Inter, sans-serif" font-size="24" fill="#000000" text-anchor="middle">A busy calendar ≠ an aligned calendar.</text>
+  <text x="600" y="1050" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#000000" text-anchor="middle">Schedule what matters first.</text>
+  
+  <!-- Branding -->
+  <rect x="900" y="1100" width="200" height="50" fill="#000000"/>
+  <text x="1000" y="1133" font-family="JetBrains Mono, monospace" font-size="16" font-weight="600" fill="#FFD700" text-anchor="middle">goalslot.io</text>
+</svg>

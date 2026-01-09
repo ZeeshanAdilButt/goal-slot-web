@@ -1,0 +1,29 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="1200" fill="#FEF3C7"/>
+  
+  <!-- Large quote mark -->
+  <text x="100" y="280" font-family="Space Grotesk, sans-serif" font-size="300" font-weight="900" fill="#FFD700" opacity="0.6">"</text>
+  
+  <!-- Quote text -->
+  <text x="120" y="450" font-family="Space Grotesk, sans-serif" font-size="56" font-weight="700" fill="#000000">TIME ISN'T THE</text>
+  <text x="120" y="520" font-family="Space Grotesk, sans-serif" font-size="56" font-weight="700" fill="#000000">PROBLEM.</text>
+  <text x="120" y="620" font-family="Space Grotesk, sans-serif" font-size="56" font-weight="700" fill="#000000">ALIGNMENT IS.</text>
+  
+  <!-- Accent bar -->
+  <rect x="120" y="680" width="200" height="8" fill="#000000"/>
+  
+  <!-- Subtext -->
+  <text x="120" y="780" font-family="Inter, sans-serif" font-size="24" fill="#000000">Most people have enough time.</text>
+  <text x="120" y="820" font-family="Inter, sans-serif" font-size="24" fill="#000000">They just don't align it with what matters.</text>
+  
+  <!-- Decorative cards -->
+  <rect x="900" y="100" width="180" height="140" fill="#22C55E" stroke="#000000" stroke-width="4"/>
+  <rect x="912" y="112" width="180" height="140" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+  
+  <rect x="850" y="900" width="200" height="150" fill="#EC4899" stroke="#000000" stroke-width="4"/>
+  <rect x="862" y="912" width="200" height="150" fill="#FFD700" stroke="#000000" stroke-width="4"/>
+  
+  <!-- Logo space and branding -->
+  <rect x="120" y="1050" width="200" height="60" fill="#000000"/>
+  <text x="220" y="1090" font-family="JetBrains Mono, monospace" font-size="18" font-weight="600" fill="#FFD700" text-anchor="middle">goalslot.io</text>
+</svg>

@@ -1,0 +1,48 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="1200" fill="#FEF3C7"/>
+  
+  <!-- Header -->
+  <rect x="100" y="80" width="200" height="50" fill="#3B82F6" stroke="#000000" stroke-width="3"/>
+  <text x="200" y="115" font-family="Space Grotesk, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF" text-anchor="middle">POLL</text>
+  
+  <!-- Question -->
+  <text x="100" y="220" font-family="Space Grotesk, sans-serif" font-size="48" font-weight="700" fill="#000000">WHAT'S YOUR</text>
+  <text x="100" y="290" font-family="Space Grotesk, sans-serif" font-size="48" font-weight="700" fill="#000000">BIGGEST TIME</text>
+  <text x="100" y="360" font-family="Space Grotesk, sans-serif" font-size="48" font-weight="700" fill="#000000">CHALLENGE?</text>
+  
+  <!-- Options -->
+  <g transform="translate(100, 430)">
+    <rect x="0" y="0" width="1000" height="100" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    <circle cx="50" cy="50" r="25" fill="#FFD700" stroke="#000000" stroke-width="3"/>
+    <text x="50" y="58" font-family="Space Grotesk, sans-serif" font-size="24" font-weight="700" fill="#000000" text-anchor="middle">A</text>
+    <text x="100" y="58" font-family="Inter, sans-serif" font-size="26" fill="#000000">Too many meetings</text>
+    
+    <rect x="0" y="115" width="1000" height="100" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    <circle cx="50" cy="50" r="25" fill="#22C55E" stroke="#000000" stroke-width="3"/>
+    <text x="50" y="173" font-family="Space Grotesk, sans-serif" font-size="24" font-weight="700" fill="#000000" text-anchor="middle">B</text>
+    <text x="100" y="173" font-family="Inter, sans-serif" font-size="26" fill="#000000">Context switching / distractions</text>
+    
+    <rect x="0" y="230" width="1000" height="100" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    <circle cx="50" cy="50" r="25" fill="#3B82F6" stroke="#000000" stroke-width="3"/>
+    <text x="50" y="288" font-family="Space Grotesk, sans-serif" font-size="24" font-weight="700" fill="#FFFFFF" text-anchor="middle">C</text>
+    <text x="100" y="288" font-family="Inter, sans-serif" font-size="26" fill="#000000">Underestimating task duration</text>
+    
+    <rect x="0" y="345" width="1000" height="100" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    <circle cx="50" cy="50" r="25" fill="#EC4899" stroke="#000000" stroke-width="3"/>
+    <text x="50" y="403" font-family="Space Grotesk, sans-serif" font-size="24" font-weight="700" fill="#000000" text-anchor="middle">D</text>
+    <text x="100" y="403" font-family="Inter, sans-serif" font-size="26" fill="#000000">No energy for important work</text>
+    
+    <rect x="0" y="460" width="1000" height="100" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    <circle cx="50" cy="50" r="25" fill="#8B5CF6" stroke="#000000" stroke-width="3"/>
+    <text x="50" y="518" font-family="Space Grotesk, sans-serif" font-size="24" font-weight="700" fill="#FFFFFF" text-anchor="middle">E</text>
+    <text x="100" y="518" font-family="Inter, sans-serif" font-size="26" fill="#000000">All of the above 😅</text>
+  </g>
+  
+  <!-- CTA -->
+  <text x="600" y="1020" font-family="Inter, sans-serif" font-size="28" fill="#000000" text-anchor="middle">Vote in the comments!</text>
+  <text x="600" y="1070" font-family="Inter, sans-serif" font-size="22" fill="#000000" opacity="0.7" text-anchor="middle">Drop A, B, C, D, or E 👇</text>
+  
+  <!-- Branding -->
+  <rect x="900" y="1100" width="200" height="50" fill="#000000"/>
+  <text x="1000" y="1133" font-family="JetBrains Mono, monospace" font-size="16" font-weight="600" fill="#FFD700" text-anchor="middle">goalslot.io</text>
+</svg>

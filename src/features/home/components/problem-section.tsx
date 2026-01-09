@@ -44,7 +44,7 @@ export function ProblemSection() {
             <span className="font-bold uppercase">Sound Familiar?</span>
           </div>
           <h2 className="mb-4 font-display text-4xl font-bold uppercase md:text-5xl">Why Do Goals Fail?</h2>
-          <p className="mx-auto max-w-2xl font-mono text-xl text-gray-600">
+          <p className="mx-auto mt-4 max-w-2xl font-mono text-xl text-gray-600">
             You set goals with good intentions, but without a system, they slip away
           </p>
         </AnimatedSection>

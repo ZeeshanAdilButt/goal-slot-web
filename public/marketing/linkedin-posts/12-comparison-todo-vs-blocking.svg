@@ -1,0 +1,55 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="1200" fill="#FEF3C7"/>
+  
+  <!-- Header -->
+  <text x="100" y="120" font-family="Space Grotesk, sans-serif" font-size="48" font-weight="700" fill="#000000">THIS OR THAT</text>
+  
+  <!-- VS comparison -->
+  <g transform="translate(100, 180)">
+    <!-- Left option -->
+    <rect x="0" y="0" width="450" height="600" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    <rect x="0" y="0" width="450" height="80" fill="#EC4899" stroke="#000000" stroke-width="4"/>
+    <text x="225" y="52" font-family="Space Grotesk, sans-serif" font-size="28" font-weight="700" fill="#000000" text-anchor="middle">TO-DO LISTS</text>
+    
+    <text x="225" y="140" font-family="Inter, sans-serif" font-size="22" fill="#000000" text-anchor="middle">❌ Infinite scrolling</text>
+    <text x="225" y="190" font-family="Inter, sans-serif" font-size="22" fill="#000000" text-anchor="middle">❌ No time estimates</text>
+    <text x="225" y="240" font-family="Inter, sans-serif" font-size="22" fill="#000000" text-anchor="middle">❌ Tasks pile up</text>
+    <text x="225" y="290" font-family="Inter, sans-serif" font-size="22" fill="#000000" text-anchor="middle">❌ Always feels behind</text>
+    <text x="225" y="340" font-family="Inter, sans-serif" font-size="22" fill="#000000" text-anchor="middle">❌ No goal connection</text>
+    
+    <rect x="125" y="420" width="200" height="140" fill="#FEF3C7" stroke="#000000" stroke-width="3"/>
+    <text x="225" y="480" font-family="Inter, sans-serif" font-size="18" fill="#000000" text-anchor="middle">Long list of</text>
+    <text x="225" y="510" font-family="Inter, sans-serif" font-size="18" fill="#000000" text-anchor="middle">random tasks</text>
+    <text x="225" y="540" font-family="Inter, sans-serif" font-size="18" fill="#000000" text-anchor="middle">📝 📝 📝 📝</text>
+  </g>
+  
+  <!-- VS circle -->
+  <circle cx="600" cy="480" r="50" fill="#000000"/>
+  <text x="600" y="495" font-family="Space Grotesk, sans-serif" font-size="28" font-weight="700" fill="#FFD700" text-anchor="middle">VS</text>
+  
+  <g transform="translate(650, 180)">
+    <!-- Right option -->
+    <rect x="0" y="0" width="450" height="600" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    <rect x="0" y="0" width="450" height="80" fill="#22C55E" stroke="#000000" stroke-width="4"/>
+    <text x="225" y="52" font-family="Space Grotesk, sans-serif" font-size="28" font-weight="700" fill="#000000" text-anchor="middle">TIME BLOCKING</text>
+    
+    <text x="225" y="140" font-family="Inter, sans-serif" font-size="22" fill="#000000" text-anchor="middle">✅ Finite daily capacity</text>
+    <text x="225" y="190" font-family="Inter, sans-serif" font-size="22" fill="#000000" text-anchor="middle">✅ Realistic planning</text>
+    <text x="225" y="240" font-family="Inter, sans-serif" font-size="22" fill="#000000" text-anchor="middle">✅ Focus on priorities</text>
+    <text x="225" y="290" font-family="Inter, sans-serif" font-size="22" fill="#000000" text-anchor="middle">✅ Sense of progress</text>
+    <text x="225" y="340" font-family="Inter, sans-serif" font-size="22" fill="#000000" text-anchor="middle">✅ Aligned with goals</text>
+    
+    <rect x="75" y="420" width="300" height="140" fill="#FEF3C7" stroke="#000000" stroke-width="3"/>
+    <rect x="85" y="440" width="280" height="30" fill="#3B82F6" stroke="#000000" stroke-width="2"/>
+    <rect x="85" y="480" width="280" height="30" fill="#FFD700" stroke="#000000" stroke-width="2"/>
+    <rect x="85" y="520" width="280" height="30" fill="#22C55E" stroke="#000000" stroke-width="2"/>
+  </g>
+  
+  <!-- Question -->
+  <text x="600" y="880" font-family="Inter, sans-serif" font-size="28" fill="#000000" text-anchor="middle">Which one are you using?</text>
+  <text x="600" y="930" font-family="Inter, sans-serif" font-size="22" fill="#000000" opacity="0.7" text-anchor="middle">Comment below 👇</text>
+  
+  <!-- Branding -->
+  <rect x="500" y="1020" width="200" height="60" fill="#000000"/>
+  <text x="600" y="1060" font-family="JetBrains Mono, monospace" font-size="18" font-weight="600" fill="#FFD700" text-anchor="middle">goalslot.io</text>
+</svg>

@@ -4,7 +4,7 @@ import { useDeleteGoalMutation } from '@/features/goals/hooks/use-goals-mutation
 import { Goal } from '@/features/goals/utils/types'
 import { format } from 'date-fns'
 import { motion } from 'framer-motion'
-import { Edit2, Trash2 } from 'lucide-react'
+import { Edit2, Lock, Trash2 } from 'lucide-react'
 
 import { cn, getProgressColor } from '@/lib/utils'
 import { ConfirmDialog } from '@/components/confirm-dialog'
@@ -13,9 +13,10 @@ interface GoalItemProps {
   goal: Goal
   index: number
   onEdit: (goal: Goal) => void
+  isLocked?: boolean
 }
 
-export function GoalItem({ goal, index, onEdit }: GoalItemProps) {
+export function GoalItem({ goal, index, onEdit, isLocked = false }: GoalItemProps) {
   const deleteMutation = useDeleteGoalMutation()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
@@ -34,23 +35,35 @@ export function GoalItem({ goal, index, onEdit }: GoalItemProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
-      className="card-brutal-colored relative flex flex-col"
+      className={cn(
+        "card-brutal-colored relative flex flex-col",
+        isLocked && "opacity-60"
+      )}
       style={{ backgroundColor: goal.color + '40', borderLeftColor: goal.color, borderLeftWidth: '8px' }}
     >
+      {/* Locked overlay indicator */}
+      {isLocked && (
+        <div className="absolute -right-2 -top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 border-secondary bg-amber-400 shadow-brutal">
+          <Lock className="h-4 w-4 text-secondary" />
+        </div>
+      )}
+      
       {/* Header row: Status + Actions */}
       <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-2">
-        <span
-          className={cn(
-            'badge-brutal text-xs shrink-0',
-            goal.status === 'ACTIVE'
-              ? 'bg-accent-green text-white'
-              : goal.status === 'COMPLETED'
-                ? 'bg-accent-blue text-white'
-                : 'bg-gray-300',
-          )}
-        >
-          {goal.status}
-        </span>
+        <div className="flex items-center gap-2">
+          <span
+            className={cn(
+              'badge-brutal text-xs shrink-0',
+              goal.status === 'ACTIVE'
+                ? isLocked ? 'bg-amber-400 text-secondary' : 'bg-accent-green text-white'
+                : goal.status === 'COMPLETED'
+                  ? 'bg-accent-blue text-white'
+                  : 'bg-gray-300',
+            )}
+          >
+            {isLocked ? 'LOCKED' : goal.status}
+          </span>
+        </div>
 
         {/* Actions */}
         <div className="flex shrink-0 gap-2">

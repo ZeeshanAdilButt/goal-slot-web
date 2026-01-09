@@ -3,6 +3,7 @@ import { Goal } from '@/features/goals/utils/types'
 import { Plus, Target } from 'lucide-react'
 
 import { Loading } from '@/components/ui/loading'
+import { useAuthStore } from '@/lib/store'
 
 interface GoalsListProps {
   goals: Goal[]
@@ -13,6 +14,9 @@ interface GoalsListProps {
 }
 
 export function GoalsList({ goals, isLoading, filter, onEdit, onCreateClick }: GoalsListProps) {
+  const { user } = useAuthStore()
+  const maxGoals = user?.limits?.maxGoals ?? 3
+
   if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
@@ -43,9 +47,13 @@ export function GoalsList({ goals, isLoading, filter, onEdit, onCreateClick }: G
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
-      {goals.map((goal, i) => (
-        <GoalItem key={goal.id} goal={goal} index={i} onEdit={onEdit} />
-      ))}
+      {goals.map((goal, i) => {
+        // For active goals, check if this goal is over the user's limit
+        const isLocked = filter === 'ACTIVE' && i >= maxGoals
+        return (
+          <GoalItem key={goal.id} goal={goal} index={i} onEdit={onEdit} isLocked={isLocked} />
+        )
+      })}
     </div>
   )
 }

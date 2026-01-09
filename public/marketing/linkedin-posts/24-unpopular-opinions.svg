@@ -1,0 +1,47 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="1200" fill="#FEF3C7"/>
+  
+  <!-- Header -->
+  <rect x="100" y="80" width="250" height="60" fill="#EC4899" stroke="#000000" stroke-width="4"/>
+  <text x="225" y="122" font-family="Space Grotesk, sans-serif" font-size="28" font-weight="700" fill="#000000" text-anchor="middle">UNPOPULAR</text>
+  
+  <!-- Title -->
+  <text x="100" y="240" font-family="Space Grotesk, sans-serif" font-size="56" font-weight="700" fill="#000000">OPINIONS ABOUT</text>
+  <text x="100" y="320" font-family="Space Grotesk, sans-serif" font-size="56" font-weight="700" fill="#000000">PRODUCTIVITY</text>
+  
+  <!-- Opinions -->
+  <g transform="translate(100, 380)">
+    <rect x="0" y="0" width="1000" height="100" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <circle cx="50" cy="50" r="25" fill="#3B82F6"/>
+    <text x="50" y="58" font-family="Space Grotesk, sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle">1</text>
+    <text x="100" y="58" font-family="Inter, sans-serif" font-size="22" fill="#000000">Hustle culture is just poor time management in disguise</text>
+    
+    <rect x="0" y="115" width="1000" height="100" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <circle cx="50" cy="50" r="25" fill="#22C55E"/>
+    <text x="50" y="173" font-family="Space Grotesk, sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle">2</text>
+    <text x="100" y="173" font-family="Inter, sans-serif" font-size="22" fill="#000000">Your to-do list is your enemy, not your friend</text>
+    
+    <rect x="0" y="230" width="1000" height="100" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <circle cx="50" cy="50" r="25" fill="#FFD700"/>
+    <text x="50" y="288" font-family="Space Grotesk, sans-serif" font-size="22" font-weight="700" fill="#000000" text-anchor="middle">3</text>
+    <text x="100" y="288" font-family="Inter, sans-serif" font-size="22" fill="#000000">Most productivity apps make you less productive</text>
+    
+    <rect x="0" y="345" width="1000" height="100" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <circle cx="50" cy="50" r="25" fill="#8B5CF6"/>
+    <text x="50" y="403" font-family="Space Grotesk, sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle">4</text>
+    <text x="100" y="403" font-family="Inter, sans-serif" font-size="22" fill="#000000">Working more hours means you're planning poorly</text>
+    
+    <rect x="0" y="460" width="1000" height="100" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <circle cx="50" cy="50" r="25" fill="#F97316"/>
+    <text x="50" y="518" font-family="Space Grotesk, sans-serif" font-size="22" font-weight="700" fill="#000000" text-anchor="middle">5</text>
+    <text x="100" y="518" font-family="Inter, sans-serif" font-size="22" fill="#000000">Rest isn't a reward—it's a prerequisite for deep work</text>
+  </g>
+  
+  <!-- CTA -->
+  <text x="600" y="1000" font-family="Inter, sans-serif" font-size="26" fill="#000000" text-anchor="middle">Which one do you disagree with? 🔥</text>
+  <text x="600" y="1050" font-family="Inter, sans-serif" font-size="22" fill="#000000" opacity="0.7" text-anchor="middle">Let's debate in the comments</text>
+  
+  <!-- Branding -->
+  <rect x="900" y="1100" width="200" height="50" fill="#000000"/>
+  <text x="1000" y="1133" font-family="JetBrains Mono, monospace" font-size="16" font-weight="600" fill="#FFD700" text-anchor="middle">goalslot.io</text>
+</svg>

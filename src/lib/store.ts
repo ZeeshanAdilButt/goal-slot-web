@@ -13,6 +13,7 @@ export interface User {
   plan: 'FREE' | 'PRO' | 'PREMIUM'
   unlimitedAccess: boolean
   subscriptionStatus?: string
+  subscriptionEndDate?: string | null
   preferences?: {
     timezone?: string
     [key: string]: any

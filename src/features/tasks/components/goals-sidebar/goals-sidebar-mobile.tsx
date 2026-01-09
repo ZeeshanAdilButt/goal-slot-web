@@ -4,7 +4,7 @@ import { GoalModal } from '@/features/goals/components/goal-modal'
 import { ChevronDown, ChevronUp, Plus } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
-import { Loading } from '@/components/ui/loading'
+import { GoalSlotSpinner } from '@/components/goalslot-logo'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 import { GOAL_STATUS_OPTIONS, GoalsSidebarProps, WITHOUT_GOALS_ID } from './types'
@@ -75,7 +75,7 @@ export function GoalsSidebarMobile({
           <div className="max-h-[60vh] overflow-y-auto border-b-3 border-secondary bg-brutalist-bg">
             {isLoading ? (
               <div className="flex min-h-[150px] items-center justify-center">
-                <Loading size="sm" />
+                <GoalSlotSpinner size="sm" />
               </div>
             ) : (
               <div className="space-y-0">

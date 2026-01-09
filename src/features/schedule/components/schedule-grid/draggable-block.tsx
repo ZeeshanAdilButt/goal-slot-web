@@ -9,7 +9,7 @@ import { ScheduleBlock } from '@/features/schedule/utils/types'
 import { useDraggable } from '@dnd-kit/core'
 import { useIsMutating } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Loader2, Pencil, Target, X } from 'lucide-react'
+import { Pencil, Target, X } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { Loading } from '@/components/ui/loading'
@@ -42,7 +42,9 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onVie
       predicate: (mutation) => (mutation.state.variables as { id?: string })?.id === block.id,
     }) > 0
 
-  const categoryColor = categories.find((cat) => cat.value === block.category)?.color
+  // If the block has a linked goal with a category, use the goal's category for color
+  const effectiveCategory = block.goal?.category || block.category
+  const categoryColor = categories.find((cat) => cat.value === effectiveCategory)?.color
 
   const handleDeleteClick = (event: React.MouseEvent) => {
     event.stopPropagation()
@@ -69,7 +71,7 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onVie
   }
 
   const blockStyle: CSSProperties = {
-    backgroundColor: block.color || categoryColor || '#9CA3AF',
+    backgroundColor: categoryColor || block.color || '#9CA3AF',
     top,
     height,
     minHeight: height,

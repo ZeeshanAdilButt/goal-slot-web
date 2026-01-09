@@ -1,4 +1,5 @@
-import { Goal, WeekSchedule } from '@/features/schedule/utils/types'
+import { WeekSchedule } from '@/features/schedule/utils/types'
+import { Goal } from '@/features/goals/utils/types'
 import { queryOptions } from '@tanstack/react-query'
 
 import { goalsApi, scheduleApi } from '@/lib/api'

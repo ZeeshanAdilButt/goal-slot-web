@@ -1,0 +1,32 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="1200" fill="#FEF3C7"/>
+  
+  <!-- Header -->
+  <rect x="100" y="100" width="1000" height="80" fill="#000000"/>
+  <text x="600" y="155" font-family="Space Grotesk, sans-serif" font-size="32" font-weight="700" fill="#FFD700" text-anchor="middle">DID YOU KNOW?</text>
+  
+  <!-- Big stat -->
+  <text x="600" y="450" font-family="Space Grotesk, sans-serif" font-size="200" font-weight="900" fill="#000000" text-anchor="middle">21%</text>
+  
+  <!-- Stat explanation -->
+  <text x="600" y="550" font-family="Inter, sans-serif" font-size="36" fill="#000000" text-anchor="middle">of the average workday is spent on</text>
+  <rect x="350" y="580" width="500" height="70" fill="#FFD700" stroke="#000000" stroke-width="4"/>
+  <text x="600" y="628" font-family="Space Grotesk, sans-serif" font-size="32" font-weight="700" fill="#000000" text-anchor="middle">UNPRODUCTIVE TASKS</text>
+  
+  <!-- Visual representation -->
+  <g transform="translate(200, 720)">
+    <rect x="0" y="0" width="800" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    <rect x="4" y="4" width="168" height="52" fill="#EC4899"/>
+    <rect x="172" y="4" width="624" height="52" fill="#22C55E"/>
+  </g>
+  
+  <text x="370" y="830" font-family="JetBrains Mono, monospace" font-size="18" fill="#000000">Wasted</text>
+  <text x="680" y="830" font-family="JetBrains Mono, monospace" font-size="18" fill="#000000">Productive</text>
+  
+  <!-- CTA -->
+  <text x="600" y="940" font-family="Inter, sans-serif" font-size="28" fill="#000000" text-anchor="middle">Track your time. Align with your goals.</text>
+  
+  <!-- Branding -->
+  <rect x="500" y="1020" width="200" height="60" fill="#000000"/>
+  <text x="600" y="1060" font-family="JetBrains Mono, monospace" font-size="18" font-weight="600" fill="#FFD700" text-anchor="middle">goalslot.io</text>
+</svg>

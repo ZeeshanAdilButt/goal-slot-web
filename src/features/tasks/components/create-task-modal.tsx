@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useCategoriesQuery } from '@/features/categories'
 import { CreateTaskForm, Goal, ScheduleBlock, Task } from '@/features/tasks/utils/types'
 
-import { DAYS_OF_WEEK_FULL } from '@/lib/utils'
+import { DAYS_OF_WEEK_FULL, getLocalDateString } from '@/lib/utils'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
@@ -14,10 +14,20 @@ interface CreateTaskModalProps {
   scheduleBlocks: ScheduleBlock[]
   goals: Goal[]
   task?: Task | null
+  defaultGoalId?: string
 }
 
-export function CreateTaskModal({ isOpen, onClose, onSubmit, scheduleBlocks, goals, task }: CreateTaskModalProps) {
+export function CreateTaskModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  scheduleBlocks,
+  goals,
+  task,
+  defaultGoalId,
+}: CreateTaskModalProps) {
   const [creating, setCreating] = useState(false)
+  const [estimatedHours, setEstimatedHours] = useState('')
   const { data: categories = [] } = useCategoriesQuery()
   //Status is set automatically by the backend to 'pending'
   const [form, setForm] = useState<CreateTaskForm>({
@@ -41,23 +51,68 @@ export function CreateTaskModal({ isOpen, onClose, onSubmit, scheduleBlocks, goa
         scheduleBlockId: task.scheduleBlockId || '',
         dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
       })
+      
+      // Calculate hours from minutes (e.g. 90 mins -> 1.5 hours)
+      if (task.estimatedMinutes) {
+        setEstimatedHours((task.estimatedMinutes / 60).toString())
+      } else {
+        setEstimatedHours('')
+      }
     } else if (!task && isOpen) {
-      setForm({
+      const initialForm: CreateTaskForm = {
         title: '',
         description: '',
         category: '',
         estimatedMinutes: '',
-        goalId: '',
+        goalId: defaultGoalId || '',
         scheduleBlockId: '',
         dueDate: '',
-      })
+      }
+
+      setEstimatedHours('')
+
+      // Pre-fill from default goal
+      if (defaultGoalId) {
+        const selectedGoal = goals.find((g) => g.id === defaultGoalId)
+        if (selectedGoal) {
+          if (selectedGoal.category) {
+            initialForm.category = selectedGoal.category
+          }
+
+          // Pick schedule block for today if available, otherwise any block for this goal
+          const today = new Date().getDay()
+          const todayDate = getLocalDateString()
+          
+          initialForm.dueDate = todayDate
+
+          const goalBlock = 
+            scheduleBlocks.find((sb) => sb.goalId === defaultGoalId && sb.dayOfWeek === today) ||
+            scheduleBlocks.find((sb) => sb.goalId === defaultGoalId)
+            
+          if (goalBlock) {
+            initialForm.scheduleBlockId = goalBlock.id
+          }
+        }
+      }
+
+      setForm(initialForm)
     }
-  }, [task, isOpen])
+  }, [task, isOpen, defaultGoalId, goals, scheduleBlocks])
 
   const handleSubmit = async () => {
     if (!form.title.trim()) return
     setCreating(true)
-    const success = await onSubmit(form)
+    
+    // Convert hours back to minutes for submission if valid (e.g. 1.5 -> 90)
+    let finalForm = { ...form }
+    if (estimatedHours && !isNaN(parseFloat(estimatedHours))) {
+      finalForm.estimatedMinutes = Math.round(parseFloat(estimatedHours) * 60).toString()
+    } else {
+        // If empty or invalid, keep as is (likely empty string from form state)
+       finalForm.estimatedMinutes = ''
+    }
+
+    const success = await onSubmit(finalForm)
     setCreating(false)
     if (success) {
       setForm({
@@ -69,6 +124,7 @@ export function CreateTaskModal({ isOpen, onClose, onSubmit, scheduleBlocks, goa
         scheduleBlockId: '',
         dueDate: '',
       })
+      setEstimatedHours('')
       onClose()
     }
   }
@@ -140,7 +196,27 @@ export function CreateTaskModal({ isOpen, onClose, onSubmit, scheduleBlocks, goa
               <label className="font-mono text-sm uppercase">Goal</label>
               <Select
                 value={form.goalId || 'none'}
-                onValueChange={(value) => setForm({ ...form, goalId: value === 'none' ? '' : value })}
+                onValueChange={(value) => {
+                  const goalId = value === 'none' ? '' : value
+                  const newForm = { ...form, goalId }
+
+                  // Auto-select category and schedule from goal
+                  if (goalId) {
+                    const selectedGoal = goals.find((g) => g.id === goalId)
+                    if (selectedGoal) {
+                      if (selectedGoal.category) {
+                        newForm.category = selectedGoal.category
+                      }
+                      // Find first schedule block associated with this goal
+                      const goalBlock = scheduleBlocks.find((sb) => sb.goalId === goalId)
+                      if (goalBlock) {
+                        newForm.scheduleBlockId = goalBlock.id
+                      }
+                    }
+                  }
+
+                  setForm(newForm)
+                }}
               >
                 <SelectTrigger className="input-brutal mt-1 w-full">
                   <SelectValue placeholder="No goal" />
@@ -158,13 +234,15 @@ export function CreateTaskModal({ isOpen, onClose, onSubmit, scheduleBlocks, goa
           </div>
           <div className="grid gap-3 md:grid-cols-3">
             <div>
-              <label className="font-mono text-sm uppercase">Est. Minutes</label>
+              <label className="font-mono text-sm uppercase">Est. Hours</label>
               <input
                 type="number"
-                min={1}
+                min={0}
+                step={0.1}
                 className="input-brutal mt-1 w-full"
-                value={form.estimatedMinutes}
-                onChange={(e) => setForm({ ...form, estimatedMinutes: e.target.value })}
+                value={estimatedHours}
+                onChange={(e) => setEstimatedHours(e.target.value)}
+                placeholder="e.g. 1.5"
               />
             </div>
             <div className="md:col-span-2">

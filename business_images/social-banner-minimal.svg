@@ -1,0 +1,30 @@
+<svg width="1500" height="500" viewBox="0 0 1500 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&amp;display=swap');
+      .big-type { font-family: 'Space Grotesk', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: -0.04em; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1500" height="500" fill="#FFFFFF" />
+
+  <!-- Giant Text Background -->
+  <text x="-50" y="400" class="big-type" font-size="400" fill="#FAFAFA" stroke="none">SLOT</text>
+
+  <!-- Content Container -->
+  <rect x="100" y="100" width="600" height="300" fill="#FFFFFF" stroke="#000000" stroke-width="8" />
+  
+  <rect x="100" y="100" width="600" height="60" fill="#000000" />
+  <text x="130" y="140" class="big-type" font-size="30" fill="#FFFFFF">GOALSLOT_01</text>
+
+  <text x="130" y="250" class="big-type" font-size="60" fill="#000000">STOP</text>
+  <text x="130" y="320" class="big-type" font-size="60" fill="#000000">WASTING</text>
+  <text x="130" y="390" class="big-type" font-size="60" fill="#000000">TIME.</text>
+
+  <!-- Accent Element -->
+  <rect x="800" y="100" width="300" height="300" fill="#FFD700" stroke="#000000" stroke-width="8" />
+  <text x="950" y="260" class="big-type" font-size="40" fill="#000000" text-anchor="middle">FOCUS</text>
+  <text x="950" y="300" class="big-type" font-size="40" fill="#000000" text-anchor="middle">MODE</text>
+
+</svg>

@@ -1,0 +1,79 @@
+<svg width="1080" height="1080" viewBox="0 0 1080 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Neo-brutalist Instagram Square -->
+  
+  <!-- Background -->
+  <rect width="1080" height="1080" fill="#FEF3C7"/>
+  
+  <!-- Logo space at top - empty area -->
+  
+  <!-- Main calendar/time slot visualization -->
+  <g transform="translate(140, 200)">
+    <!-- Calendar header -->
+    <rect x="0" y="0" width="800" height="70" fill="#000000"/>
+    <text x="400" y="48" font-family="Space Grotesk, sans-serif" font-size="28" font-weight="700" fill="#FFD700" text-anchor="middle">THIS WEEK</text>
+    
+    <!-- Days row -->
+    <g transform="translate(0, 80)">
+      <rect x="0" y="0" width="110" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+      <text x="55" y="36" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600" fill="#000000" text-anchor="middle">MON</text>
+      
+      <rect x="115" y="0" width="110" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+      <text x="170" y="36" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600" fill="#000000" text-anchor="middle">TUE</text>
+      
+      <rect x="230" y="0" width="110" height="55" fill="#FFD700" stroke="#000000" stroke-width="3"/>
+      <text x="285" y="36" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700" fill="#000000" text-anchor="middle">WED</text>
+      
+      <rect x="345" y="0" width="110" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+      <text x="400" y="36" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600" fill="#000000" text-anchor="middle">THU</text>
+      
+      <rect x="460" y="0" width="110" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+      <text x="515" y="36" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600" fill="#000000" text-anchor="middle">FRI</text>
+      
+      <rect x="575" y="0" width="110" height="55" fill="#FEF3C7" stroke="#000000" stroke-width="2"/>
+      <text x="630" y="36" font-family="JetBrains Mono, monospace" font-size="14" fill="#000000" opacity="0.5" text-anchor="middle">SAT</text>
+      
+      <rect x="690" y="0" width="110" height="55" fill="#FEF3C7" stroke="#000000" stroke-width="2"/>
+      <text x="745" y="36" font-family="JetBrains Mono, monospace" font-size="14" fill="#000000" opacity="0.5" text-anchor="middle">SUN</text>
+    </g>
+    
+    <!-- Time slots grid -->
+    <g transform="translate(0, 150)">
+      <!-- Row 1 -->
+      <rect x="0" y="0" width="800" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="2"/>
+      <rect x="230" y="0" width="110" height="50" fill="#22C55E" stroke="#000000" stroke-width="3"/>
+      <path d="M305 15 L320 30 L345 5" stroke="#000000" stroke-width="3" stroke-linecap="square" fill="none"/>
+      
+      <!-- Row 2 -->
+      <rect x="0" y="55" width="800" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="2"/>
+      <rect x="230" y="55" width="110" height="50" fill="#FFD700" stroke="#000000" stroke-width="3"/>
+      <rect x="345" y="55" width="110" height="50" fill="#3B82F6" stroke="#000000" stroke-width="3"/>
+      <path d="M305 70 L320 85 L345 60" stroke="#000000" stroke-width="3" stroke-linecap="square" fill="none"/>
+      
+      <!-- Row 3 -->
+      <rect x="0" y="110" width="800" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="2"/>
+      <rect x="115" y="110" width="110" height="50" fill="#EC4899" stroke="#000000" stroke-width="3"/>
+      <rect x="230" y="110" width="110" height="50" fill="#FFD700" stroke="#000000" stroke-width="3"/>
+      <path d="M305 125 L320 140 L345 115" stroke="#000000" stroke-width="3" stroke-linecap="square" fill="none"/>
+      
+      <!-- Row 4 -->
+      <rect x="0" y="165" width="800" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="2"/>
+      <rect x="230" y="165" width="110" height="50" fill="#8B5CF6" stroke="#000000" stroke-width="3"/>
+    </g>
+  </g>
+  
+  <!-- Decorative stacked cards on right -->
+  <rect x="820" y="700" width="140" height="100" fill="#22C55E" stroke="#000000" stroke-width="4"/>
+  <rect x="828" y="708" width="140" height="100" fill="#FFD700" stroke="#000000" stroke-width="4"/>
+  
+  <!-- Main heading -->
+  <text x="540" y="750" font-family="Space Grotesk, sans-serif" font-size="56" font-weight="700" fill="#000000" text-anchor="middle">ALIGN YOUR</text>
+  <text x="540" y="820" font-family="Space Grotesk, sans-serif" font-size="56" font-weight="700" fill="#000000" text-anchor="middle">TIME</text>
+  
+  <!-- CTA Button -->
+  <rect x="340" y="880" width="400" height="70" fill="#FFD700" stroke="#000000" stroke-width="4"/>
+  <rect x="350" y="890" width="400" height="70" fill="#000000"/>
+  <text x="550" y="935" font-family="Space Grotesk, sans-serif" font-size="24" font-weight="700" fill="#FFD700" text-anchor="middle">GOALSLOT.IO</text>
+  
+  <!-- Bottom tagline -->
+  <text x="540" y="1020" font-family="Inter, sans-serif" font-size="20" fill="#000000" text-anchor="middle">Smart time tracking for goal-oriented people</text>
+</svg>

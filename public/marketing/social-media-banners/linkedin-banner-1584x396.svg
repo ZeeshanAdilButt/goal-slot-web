@@ -1,0 +1,59 @@
+<svg width="1584" height="396" viewBox="0 0 1584 396" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Neo-brutalist LinkedIn Banner -->
+  
+  <!-- Background -->
+  <rect width="1584" height="396" fill="#FEF3C7"/>
+  
+  <!-- Right side - stacked cards representing goals -->
+  <rect x="1050" y="50" width="200" height="130" fill="#8B5CF6" stroke="#000000" stroke-width="4"/>
+  <rect x="1058" y="58" width="200" height="130" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+  
+  <rect x="1150" y="140" width="180" height="110" fill="#22C55E" stroke="#000000" stroke-width="4"/>
+  <rect x="1158" y="148" width="180" height="110" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+  
+  <rect x="1080" y="220" width="160" height="100" fill="#F97316" stroke="#000000" stroke-width="4"/>
+  <rect x="1088" y="228" width="160" height="100" fill="#FFD700" stroke="#000000" stroke-width="4"/>
+  
+  <!-- Progress bars inside cards -->
+  <g transform="translate(1100, 90)">
+    <rect x="0" y="0" width="140" height="16" fill="#FEF3C7" stroke="#000000" stroke-width="2"/>
+    <rect x="2" y="2" width="110" height="12" fill="#8B5CF6"/>
+    
+    <rect x="0" y="26" width="140" height="16" fill="#FEF3C7" stroke="#000000" stroke-width="2"/>
+    <rect x="2" y="28" width="90" height="12" fill="#22C55E"/>
+    
+    <rect x="0" y="52" width="140" height="16" fill="#FEF3C7" stroke="#000000" stroke-width="2"/>
+    <rect x="2" y="54" width="125" height="12" fill="#EC4899"/>
+  </g>
+  
+  <!-- Time slot visualization -->
+  <g transform="translate(1300, 80)">
+    <rect x="0" y="0" width="140" height="30" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <rect x="0" y="38" width="140" height="30" fill="#FFD700" stroke="#000000" stroke-width="3"/>
+    <rect x="0" y="76" width="140" height="30" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <rect x="0" y="114" width="140" height="30" fill="#FFD700" stroke="#000000" stroke-width="3"/>
+    <rect x="0" y="152" width="140" height="30" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    
+    <!-- Checkmarks -->
+    <path d="M105 53 L115 63 L135 40" stroke="#000000" stroke-width="3" stroke-linecap="square" fill="none"/>
+    <path d="M105 129 L115 139 L135 116" stroke="#000000" stroke-width="3" stroke-linecap="square" fill="none"/>
+  </g>
+  
+  <!-- Left accent -->
+  <rect x="80" y="80" width="10" height="220" fill="#000000"/>
+  <rect x="100" y="100" width="6" height="180" fill="#FFD700" stroke="#000000" stroke-width="2"/>
+  
+  <!-- Logo space at top - empty for logo -->
+  
+  <!-- Main heading -->
+  <text x="140" y="190" font-family="Space Grotesk, sans-serif" font-size="42" font-weight="700" fill="#000000">ALIGN YOUR TIME</text>
+  <text x="140" y="245" font-family="Space Grotesk, sans-serif" font-size="42" font-weight="700" fill="#000000">WITH YOUR GOALS</text>
+  
+  <!-- Subheading -->
+  <text x="140" y="290" font-family="Inter, sans-serif" font-size="16" fill="#000000">Smart time tracking for professionals who achieve more</text>
+  
+  <!-- CTA Button -->
+  <rect x="140" y="320" width="180" height="44" fill="#FFD700" stroke="#000000" stroke-width="4"/>
+  <rect x="148" y="328" width="180" height="44" fill="#000000"/>
+  <text x="238" y="356" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600" fill="#FFD700" text-anchor="middle">goalslot.io</text>
+</svg>

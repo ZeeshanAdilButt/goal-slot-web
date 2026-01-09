@@ -52,9 +52,9 @@ export function FeaturesSection() {
           viewport={{ once: true }}
           className="mb-16 text-center"
         >
-          <h2 className="mb-4 font-display text-4xl font-bold uppercase md:text-5xl">Everything You Need</h2>
-          <p className="mx-auto max-w-2xl font-mono text-xl text-gray-600">
-            One tool to rule your goals, time, and progress
+          <h2 className="mb-4 font-display text-4xl font-bold uppercase md:text-5xl">Built for Builders</h2>
+          <p className="mx-auto mt-4 max-w-2xl font-mono text-xl text-gray-600">
+            Track time. Set goals. Prove progress. All in one place.
           </p>
         </AnimatedSection>
 

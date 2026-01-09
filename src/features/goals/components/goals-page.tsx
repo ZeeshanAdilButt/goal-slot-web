@@ -7,6 +7,7 @@ import { GoalsFilters } from '@/features/goals/components/goals-filters'
 import { GoalsHeader } from '@/features/goals/components/goals-header'
 import { GoalsList } from '@/features/goals/components/goals-list'
 import { GoalsStats } from '@/features/goals/components/goals-stats'
+import { GoalsLimitBanner } from '@/features/goals/components/goals-limit-banner'
 import { useGoalsQuery } from '@/features/goals/hooks/use-goals-queries'
 import { Goal, GoalFilters } from '@/features/goals/utils/types'
 
@@ -16,6 +17,9 @@ export function GoalsPage() {
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null)
 
   const goalsQuery = useGoalsQuery(filters)
+  // Also fetch active goals count for limit banner
+  const activeGoalsQuery = useGoalsQuery({ status: 'ACTIVE' })
+  const activeGoalsCount = activeGoalsQuery.data?.length ?? 0
 
   const handleEdit = (goal: Goal) => {
     setEditingGoal(goal)
@@ -34,6 +38,8 @@ export function GoalsPage() {
   return (
     <div className="space-y-6 p-4 sm:space-y-8 sm:p-6">
       <GoalsHeader onCreateClick={() => setShowModal(true)} />
+
+      <GoalsLimitBanner activeGoalsCount={activeGoalsCount} />
 
       <GoalsStats />
 

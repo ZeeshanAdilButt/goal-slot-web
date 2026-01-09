@@ -1,0 +1,37 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Blog header template - Deep Dive / Ultimate Guide -->
+  <rect width="1200" height="630" fill="#FEF3C7"/>
+  
+  <!-- Decorative background pattern -->
+  <rect x="900" y="-50" width="200" height="200" fill="#FFD700" stroke="#000000" stroke-width="4" transform="rotate(15, 1000, 50)"/>
+  <rect x="920" y="-30" width="200" height="200" fill="#FFFFFF" stroke="#000000" stroke-width="4" transform="rotate(15, 1000, 50)"/>
+  
+  <rect x="1000" y="450" width="160" height="160" fill="#F97316" stroke="#000000" stroke-width="4"/>
+  <rect x="1012" y="462" width="160" height="160" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+  
+  <!-- Badge -->
+  <rect x="100" y="80" width="280" height="50" fill="#F97316" stroke="#000000" stroke-width="3"/>
+  <text x="240" y="115" font-family="Space Grotesk, sans-serif" font-size="22" font-weight="700" fill="#000000" text-anchor="middle">ULTIMATE GUIDE</text>
+  
+  <!-- Title area -->
+  <text x="100" y="230" font-family="Space Grotesk, sans-serif" font-size="60" font-weight="700" fill="#000000">THE COMPLETE</text>
+  <text x="100" y="310" font-family="Space Grotesk, sans-serif" font-size="60" font-weight="700" fill="#000000">GUIDE TO</text>
+  <text x="100" y="390" font-family="Space Grotesk, sans-serif" font-size="60" font-weight="700" fill="#000000">[YOUR TOPIC]</text>
+  
+  <!-- What's inside -->
+  <rect x="100" y="430" width="600" height="130" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+  <text x="130" y="470" font-family="Inter, sans-serif" font-size="20" font-weight="600" fill="#000000">What's inside:</text>
+  <text x="130" y="505" font-family="Inter, sans-serif" font-size="16" fill="#000000" opacity="0.8">• Chapter 1  • Chapter 2  • Chapter 3  • Chapter 4</text>
+  <text x="130" y="535" font-family="Inter, sans-serif" font-size="16" fill="#000000" opacity="0.8">• Templates  • Examples  • Checklists  • Resources</text>
+  
+  <!-- Reading time -->
+  <rect x="720" y="430" width="160" height="50" fill="#FFD700" stroke="#000000" stroke-width="3"/>
+  <text x="800" y="463" font-family="JetBrains Mono, monospace" font-size="18" fill="#000000" text-anchor="middle">⏱ XX min</text>
+  
+  <rect x="720" y="490" width="160" height="50" fill="#22C55E" stroke="#000000" stroke-width="3"/>
+  <text x="800" y="523" font-family="JetBrains Mono, monospace" font-size="18" fill="#000000" text-anchor="middle">📄 XX pages</text>
+  
+  <!-- Branding -->
+  <rect x="100" y="580" width="160" height="40" fill="#000000"/>
+  <text x="180" y="607" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600" fill="#FFD700" text-anchor="middle">goalslot.io</text>
+</svg>

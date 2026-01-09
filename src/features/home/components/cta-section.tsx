@@ -14,23 +14,21 @@ export function CTASection() {
           viewport={{ once: true }}
         >
           {/* Emotional Hook */}
-          <p className="mb-4 font-mono text-lg text-primary">You've read this far because something needs to change.</p>
+          <p className="mb-4 font-mono text-lg text-primary">Feeling doesn't equal doing. Proof does.</p>
 
-          <h2 className="mb-6 font-display text-4xl font-bold uppercase md:text-6xl">Stop Dreaming. Start Tracking.</h2>
+          <h2 className="mb-6 font-display text-4xl font-bold uppercase md:text-6xl">Your Growth, Measured.</h2>
 
           <p className="mx-auto mb-4 max-w-2xl font-mono text-xl text-gray-300">
-            A year from now, you'll wish you started today.
+            365 days. 2,000+ hours to invest. Where will yours go?
           </p>
 
           {/* The Stakes */}
-          <div className="mx-auto mb-8 max-w-2xl rounded-lg border-2 border-primary/50 bg-primary/10">
+          <div className="mx-auto mb-8 max-w-2xl rounded-lg border-2 border-primary/50 bg-primary/10 p-4">
             <p className="font-mono text-lg text-gray-200">
-              <span className="font-bold text-primary">Here's the truth:</span> You already know how to set goals. The
-              problem is you don't have a system to prove you're working on them.
+              <span className="font-bold text-primary">The 10,000-hour rule is real.</span> But you can't count what you don't track.
             </p>
             <p className="mt-4 font-mono text-gray-300">
-              Every day without tracking is a day you can't get back. Every hour unlogged is an hour you can't prove
-              happened.
+              Every hour logged is a brick in your foundation. Start stacking.
             </p>
           </div>
 
@@ -62,12 +60,12 @@ export function CTASection() {
 
           {/* Social Proof Reminder */}
           <p className="mt-8 font-mono text-sm text-gray-500">
-            Join 500+ developers who stopped guessing and started tracking.
+            500+ developers already tracking their growth.
           </p>
 
           {/* Final Micro-Copy */}
           <p className="mt-4 font-display text-2xl font-bold text-primary">
-            Your future self is counting on you. Make them proud.
+            Stack your hours. Prove your progress.
           </p>
         </AnimatedSection>
       </div>

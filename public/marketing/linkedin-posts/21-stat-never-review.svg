@@ -1,0 +1,30 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="1200" fill="#FEF3C7"/>
+  
+  <!-- Header -->
+  <rect x="100" y="80" width="200" height="50" fill="#F97316" stroke="#000000" stroke-width="3"/>
+  <text x="200" y="115" font-family="Space Grotesk, sans-serif" font-size="20" font-weight="700" fill="#000000" text-anchor="middle">DID YOU KNOW</text>
+  
+  <!-- Big stat -->
+  <text x="600" y="380" font-family="Space Grotesk, sans-serif" font-size="200" font-weight="900" fill="#000000" text-anchor="middle">91%</text>
+  
+  <!-- Context -->
+  <text x="600" y="480" font-family="Inter, sans-serif" font-size="36" fill="#000000" text-anchor="middle">of people never review</text>
+  <text x="600" y="540" font-family="Inter, sans-serif" font-size="36" fill="#000000" text-anchor="middle">their annual goals after</text>
+  <text x="600" y="600" font-family="Inter, sans-serif" font-size="36" fill="#000000" text-anchor="middle">setting them in January</text>
+  
+  <!-- Divider -->
+  <rect x="400" y="680" width="400" height="6" fill="#000000"/>
+  
+  <!-- Insight -->
+  <rect x="150" y="750" width="900" height="160" fill="#22C55E" stroke="#000000" stroke-width="4"/>
+  <text x="600" y="810" font-family="Inter, sans-serif" font-size="28" fill="#000000" text-anchor="middle">The solution isn't more goals.</text>
+  <text x="600" y="860" font-family="Inter, sans-serif" font-size="28" font-weight="700" fill="#000000" text-anchor="middle">It's a system to track progress weekly.</text>
+  
+  <!-- Source -->
+  <text x="600" y="990" font-family="Inter, sans-serif" font-size="18" fill="#000000" opacity="0.6" text-anchor="middle">Source: University of Scranton Research</text>
+  
+  <!-- Branding -->
+  <rect x="500" y="1060" width="200" height="60" fill="#000000"/>
+  <text x="600" y="1100" font-family="JetBrains Mono, monospace" font-size="18" font-weight="600" fill="#FFD700" text-anchor="middle">goalslot.io</text>
+</svg>

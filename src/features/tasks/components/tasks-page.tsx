@@ -102,6 +102,7 @@ export function TasksPage() {
             onSubmit={createTask}
             scheduleBlocks={scheduleBlocks}
             goals={goals}
+            {...(selectedGoalId ? { defaultGoalId: selectedGoalId } : {})}
           />
 
           <CreateTaskModal

@@ -1,0 +1,74 @@
+<svg width="2560" height="1440" viewBox="0 0 2560 1440" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Neo-brutalist YouTube Banner -->
+  
+  <!-- Background -->
+  <rect width="2560" height="1440" fill="#FEF3C7"/>
+  
+  <!-- Left decorative column of time slots -->
+  <g transform="translate(200, 350)">
+    <rect x="0" y="0" width="280" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    <rect x="0" y="72" width="280" height="60" fill="#FFD700" stroke="#000000" stroke-width="4"/>
+    <rect x="0" y="144" width="280" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    <rect x="0" y="216" width="280" height="60" fill="#22C55E" stroke="#000000" stroke-width="4"/>
+    <rect x="0" y="288" width="280" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    <rect x="0" y="360" width="280" height="60" fill="#FFD700" stroke="#000000" stroke-width="4"/>
+    <rect x="0" y="432" width="280" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    <rect x="0" y="504" width="280" height="60" fill="#EC4899" stroke="#000000" stroke-width="4"/>
+    
+    <!-- Checkmarks on colored slots -->
+    <path d="M220 102 L238 120 L268 85" stroke="#000000" stroke-width="4" stroke-linecap="square" fill="none"/>
+    <path d="M220 246 L238 264 L268 229" stroke="#000000" stroke-width="4" stroke-linecap="square" fill="none"/>
+    <path d="M220 390 L238 408 L268 373" stroke="#000000" stroke-width="4" stroke-linecap="square" fill="none"/>
+    <path d="M220 534 L238 552 L268 517" stroke="#000000" stroke-width="4" stroke-linecap="square" fill="none"/>
+  </g>
+  
+  <!-- Right decorative column of goal progress -->
+  <g transform="translate(2060, 350)">
+    <text x="0" y="0" font-family="Space Grotesk, sans-serif" font-size="24" font-weight="700" fill="#000000">YOUR GOALS</text>
+    
+    <!-- Progress bars -->
+    <rect x="0" y="40" width="300" height="28" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <rect x="4" y="44" width="240" height="20" fill="#8B5CF6"/>
+    <text x="310" y="60" font-family="JetBrains Mono, monospace" font-size="16" font-weight="600" fill="#000000">80%</text>
+    
+    <rect x="0" y="90" width="300" height="28" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <rect x="4" y="94" width="195" height="20" fill="#22C55E"/>
+    <text x="310" y="110" font-family="JetBrains Mono, monospace" font-size="16" font-weight="600" fill="#000000">65%</text>
+    
+    <rect x="0" y="140" width="300" height="28" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <rect x="4" y="144" width="270" height="20" fill="#3B82F6"/>
+    <text x="310" y="160" font-family="JetBrains Mono, monospace" font-size="16" font-weight="600" fill="#000000">90%</text>
+    
+    <rect x="0" y="190" width="300" height="28" fill="#FFFFFF" stroke="#000000" stroke-width="3"/>
+    <rect x="4" y="194" width="150" height="20" fill="#F97316"/>
+    <text x="310" y="210" font-family="JetBrains Mono, monospace" font-size="16" font-weight="600" fill="#000000">50%</text>
+    
+    <!-- Stacked achievement cards -->
+    <rect x="0" y="280" width="180" height="120" fill="#FFD700" stroke="#000000" stroke-width="4"/>
+    <rect x="10" y="290" width="180" height="120" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    
+    <rect x="100" y="360" width="160" height="100" fill="#22C55E" stroke="#000000" stroke-width="4"/>
+    <rect x="110" y="370" width="160" height="100" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+  </g>
+  
+  <!-- Center content - Logo space at top (empty) -->
+  
+  <!-- Accent bars -->
+  <rect x="600" y="450" width="12" height="300" fill="#000000"/>
+  <rect x="620" y="480" width="8" height="240" fill="#FFD700" stroke="#000000" stroke-width="3"/>
+  
+  <!-- Main heading -->
+  <text x="1280" y="620" font-family="Space Grotesk, sans-serif" font-size="96" font-weight="700" fill="#000000" text-anchor="middle">ALIGN YOUR TIME</text>
+  <text x="1280" y="740" font-family="Space Grotesk, sans-serif" font-size="96" font-weight="700" fill="#000000" text-anchor="middle">WITH YOUR GOALS</text>
+  
+  <!-- Subheading -->
+  <text x="1280" y="840" font-family="Inter, sans-serif" font-size="32" fill="#000000" text-anchor="middle">Smart time tracking for people who want to achieve more</text>
+  
+  <!-- CTA Button -->
+  <rect x="1030" y="920" width="500" height="90" fill="#FFD700" stroke="#000000" stroke-width="5"/>
+  <rect x="1045" y="935" width="500" height="90" fill="#000000"/>
+  <text x="1295" y="995" font-family="Space Grotesk, sans-serif" font-size="36" font-weight="700" fill="#FFD700" text-anchor="middle">START FREE TODAY</text>
+  
+  <!-- Website -->
+  <text x="1280" y="1100" font-family="JetBrains Mono, monospace" font-size="28" font-weight="600" fill="#000000" text-anchor="middle">goalslot.io</text>
+</svg>

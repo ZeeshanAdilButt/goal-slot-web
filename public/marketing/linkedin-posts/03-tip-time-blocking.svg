@@ -1,0 +1,47 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="1200" fill="#FEF3C7"/>
+  
+  <!-- Badge -->
+  <rect x="100" y="80" width="180" height="50" fill="#3B82F6" stroke="#000000" stroke-width="3"/>
+  <text x="190" y="115" font-family="Space Grotesk, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF" text-anchor="middle">PRO TIP</text>
+  
+  <!-- Main title -->
+  <text x="100" y="220" font-family="Space Grotesk, sans-serif" font-size="64" font-weight="700" fill="#000000">TIME BLOCKING</text>
+  <text x="100" y="300" font-family="Space Grotesk, sans-serif" font-size="64" font-weight="700" fill="#000000">101</text>
+  
+  <!-- Time blocks visualization -->
+  <g transform="translate(100, 380)">
+    <rect x="0" y="0" width="1000" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    <text x="20" y="45" font-family="JetBrains Mono, monospace" font-size="18" fill="#000000">08:00</text>
+    <rect x="100" y="0" width="300" height="70" fill="#3B82F6" stroke="#000000" stroke-width="4"/>
+    <text x="250" y="45" font-family="Inter, sans-serif" font-size="20" font-weight="600" fill="#FFFFFF" text-anchor="middle">Deep Work</text>
+    
+    <rect x="0" y="85" width="1000" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    <text x="20" y="130" font-family="JetBrains Mono, monospace" font-size="18" fill="#000000">11:00</text>
+    <rect x="100" y="85" width="250" height="70" fill="#FFD700" stroke="#000000" stroke-width="4"/>
+    <text x="225" y="130" font-family="Inter, sans-serif" font-size="20" font-weight="600" fill="#000000" text-anchor="middle">Meetings</text>
+    
+    <rect x="0" y="170" width="1000" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    <text x="20" y="215" font-family="JetBrains Mono, monospace" font-size="18" fill="#000000">14:00</text>
+    <rect x="100" y="170" width="350" height="70" fill="#22C55E" stroke="#000000" stroke-width="4"/>
+    <text x="275" y="215" font-family="Inter, sans-serif" font-size="20" font-weight="600" fill="#000000" text-anchor="middle">Creative Work</text>
+    
+    <rect x="0" y="255" width="1000" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+    <text x="20" y="300" font-family="JetBrains Mono, monospace" font-size="18" fill="#000000">17:00</text>
+    <rect x="100" y="255" width="200" height="70" fill="#8B5CF6" stroke="#000000" stroke-width="4"/>
+    <text x="200" y="300" font-family="Inter, sans-serif" font-size="20" font-weight="600" fill="#FFFFFF" text-anchor="middle">Admin</text>
+  </g>
+  
+  <!-- Key insight -->
+  <rect x="100" y="780" width="8" height="100" fill="#000000"/>
+  <text x="130" y="820" font-family="Inter, sans-serif" font-size="24" fill="#000000">Protect your peak hours for</text>
+  <text x="130" y="860" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#000000">your most important work.</text>
+  
+  <!-- Decorative element -->
+  <rect x="900" y="780" width="160" height="120" fill="#FFD700" stroke="#000000" stroke-width="4"/>
+  <rect x="912" y="792" width="160" height="120" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+  
+  <!-- Branding -->
+  <rect x="100" y="1050" width="200" height="60" fill="#000000"/>
+  <text x="200" y="1090" font-family="JetBrains Mono, monospace" font-size="18" font-weight="600" fill="#FFD700" text-anchor="middle">goalslot.io</text>
+</svg>

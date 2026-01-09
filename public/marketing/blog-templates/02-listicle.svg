@@ -1,0 +1,40 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Blog header template - Listicle -->
+  <rect width="1200" height="630" fill="#FEF3C7"/>
+  
+  <!-- Large number -->
+  <text x="100" y="350" font-family="Space Grotesk, sans-serif" font-size="280" font-weight="900" fill="#22C55E" opacity="0.3">X</text>
+  
+  <!-- Badge -->
+  <rect x="100" y="80" width="150" height="50" fill="#22C55E" stroke="#000000" stroke-width="3"/>
+  <text x="175" y="115" font-family="Space Grotesk, sans-serif" font-size="22" font-weight="700" fill="#000000" text-anchor="middle">LISTICLE</text>
+  
+  <!-- Title area -->
+  <text x="100" y="220" font-family="Space Grotesk, sans-serif" font-size="52" font-weight="700" fill="#000000">X [THINGS/WAYS/TIPS]</text>
+  <text x="100" y="295" font-family="Space Grotesk, sans-serif" font-size="52" font-weight="700" fill="#000000">[YOUR TOPIC]</text>
+  
+  <!-- Subtitle -->
+  <text x="100" y="380" font-family="Inter, sans-serif" font-size="26" fill="#000000" opacity="0.7">Proven strategies for [desired outcome]</text>
+  
+  <!-- Preview items -->
+  <rect x="700" y="150" width="400" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="2"/>
+  <text x="720" y="183" font-family="Inter, sans-serif" font-size="18" fill="#000000">1. First thing...</text>
+  
+  <rect x="720" y="210" width="400" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="2"/>
+  <text x="740" y="243" font-family="Inter, sans-serif" font-size="18" fill="#000000">2. Second thing...</text>
+  
+  <rect x="740" y="270" width="400" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="2"/>
+  <text x="760" y="303" font-family="Inter, sans-serif" font-size="18" fill="#000000">3. Third thing...</text>
+  
+  <!-- Reading time -->
+  <rect x="100" y="440" width="160" height="45" fill="#FFD700" stroke="#000000" stroke-width="3"/>
+  <text x="180" y="472" font-family="JetBrains Mono, monospace" font-size="18" fill="#000000" text-anchor="middle">⏱ X min read</text>
+  
+  <!-- Decorative -->
+  <rect x="1020" y="480" width="140" height="110" fill="#8B5CF6" stroke="#000000" stroke-width="4"/>
+  <rect x="1032" y="492" width="140" height="110" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+  
+  <!-- Branding -->
+  <rect x="100" y="540" width="160" height="50" fill="#000000"/>
+  <text x="180" y="573" font-family="JetBrains Mono, monospace" font-size="16" font-weight="600" fill="#FFD700" text-anchor="middle">goalslot.io</text>
+</svg>
