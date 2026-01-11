@@ -1,8 +1,9 @@
 import { useCategoriesQuery } from '@/features/categories'
 import { Goal } from '@/features/time-tracker/utils/types'
+import { useTimerStore } from '@/lib/use-timer-store'
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { X } from 'lucide-react'
+import { X, Clock } from 'lucide-react'
 
 interface TimerSettingsProps {
   goals: Goal[]
@@ -24,10 +25,41 @@ export function TimerSettings({
   onGoalIdChange,
 }: TimerSettingsProps) {
   const { data: categories = [] } = useCategoriesQuery()
+  const REMINDER_OPTIONS = [5, 10, 15, 20, 30, 45, 60]
+  const { reminderInterval, setReminderInterval } = useTimerStore((state) => ({
+      reminderInterval: state.reminderInterval || 15,
+      setReminderInterval: state.setReminderInterval
+  }))
+
   const canClearAll = timerState === 'STOPPED' && (!!currentGoalId || !!currentCategory)
 
   return (
     <div className="mb-6">
+      <div className="mb-4">
+        <label className="mb-2 block text-sm font-bold uppercase opacity-75">
+            Reminder Frequency (Minutes)
+        </label>
+        <Select
+            value={reminderInterval.toString()}
+            onValueChange={(val) => setReminderInterval(Number(val))}
+            disabled={timerState === 'RUNNING'}
+        >
+            <SelectTrigger className="w-full border-2 border-white/30 bg-white/10 px-4 py-2 text-white shadow-none hover:border-white/50 hover:bg-white/20 hover:text-white hover:shadow-none focus:border-primary focus:ring-0 disabled:opacity-50 data-[state=open]:bg-white/20 data-[state=open]:text-white">
+                <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    <SelectValue />
+                </div>
+            </SelectTrigger>
+            <SelectContent>
+                {REMINDER_OPTIONS.map((min) => (
+                    <SelectItem key={min} value={min.toString()}>
+                        Every {min} minutes
+                    </SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
+      </div>
+
       {canClearAll && (
         <div className="mb-3 flex justify-end">
           <button

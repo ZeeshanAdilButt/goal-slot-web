@@ -14,7 +14,7 @@ interface TaskActionsProps {
 }
 
 export function TaskActions({ task, isHovered, onEdit, onDelete, onRestore }: TaskActionsProps) {
-  const { setTaskId, setTask, setCategory, setGoalId, start } = useTimerStore()
+  const { start } = useTimerStore()
   const updateTaskMutation = useUpdateTaskMutation()
 
   const handleStartTimer = (): void => {
@@ -25,11 +25,7 @@ export function TaskActions({ task, isHovered, onEdit, onDelete, onRestore }: Ta
       })
     }
 
-    setTaskId(task.id)
-    setTask(task.title)
-    setCategory(task.category || 'DEEP_WORK')
-    setGoalId(task.goalId || '')
-    start(task.title, task.category || 'DEEP_WORK', task.goalId || '')
+    start(task.title, task.id, task.category || 'DEEP_WORK', task.goalId || '')
   }
 
   return (

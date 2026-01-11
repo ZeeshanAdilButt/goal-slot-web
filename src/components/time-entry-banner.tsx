@@ -3,9 +3,10 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
-import { Clock3, Pause, Timer } from 'lucide-react'
+import { Clock3, Pause, Timer, Bell } from 'lucide-react'
 
 import { useTimerStore } from '@/lib/use-timer-store'
+import { useTimerNotifications } from '@/hooks/use-timer-notifications'
 
 const formatTimerDisplay = (seconds: number) => {
   const hrs = Math.floor(seconds / 3600)
@@ -22,6 +23,7 @@ export function TimeEntryBanner() {
     pausedElapsedTime: state.pausedElapsedTime,
   }))
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
+  const { permission, requestPermission } = useTimerNotifications()
 
   useEffect(() => {
     if (timerState === 'RUNNING' && startTimestamp) {
@@ -56,6 +58,16 @@ export function TimeEntryBanner() {
         </div>
 
         <div className="flex items-center gap-3">
+          {permission === 'default' && (
+            <button
+              onClick={requestPermission}
+              className="btn-brutal flex h-10 items-center gap-2 bg-yellow-400 px-3 text-sm font-bold text-black hover:bg-yellow-500"
+              title="Enable Reminders"
+            >
+              <Bell className="h-4 w-4" />
+              <span className="hidden sm:inline">Remind Me</span>
+            </button>
+          )}
           <span className="badge-brutal bg-white font-mono text-sm uppercase tracking-tight text-secondary">
             {formatTimerDisplay(elapsedSeconds)}
           </span>
