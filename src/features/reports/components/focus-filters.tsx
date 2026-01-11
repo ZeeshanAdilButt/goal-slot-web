@@ -88,11 +88,6 @@ export function FocusFilters({ filters, onChange }: FocusFiltersProps) {
             >
               <Filter className="h-4 w-4" />
               <span className="hidden sm:inline">Filters</span>
-              {activeFilterCount > 0 && (
-                <Badge className="ml-1 h-5 min-w-[1.25rem] rounded-full p-0 px-1 text-xs">
-                  {activeFilterCount}
-                </Badge>
-              )}
             </Button>
           </DropdownMenuTrigger>
           {activeFilterCount > 0 && (

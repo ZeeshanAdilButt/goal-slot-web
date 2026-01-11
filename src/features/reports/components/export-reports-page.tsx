@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths } from 'date-fns'
 import { Download, FileSpreadsheet, FileText, FileJson, Filter, Calendar, Target, Layers, DollarSign, X, ChevronDown } from 'lucide-react'
 
@@ -40,6 +40,8 @@ const DATE_PRESETS: Array<{ value: DatePreset; label: string }> = [
   { value: 'last-30-days', label: 'Last 30 Days' },
   { value: 'custom', label: 'Custom Range' },
 ]
+
+const HOURLY_RATE_STORAGE_KEY = 'reportsHourlyRate'
 
 const VIEW_TYPE_OPTIONS: Array<{ value: ReportViewType; label: string; description: string }> = [
   { value: 'detailed', label: 'Detailed View', description: 'Shows every entry with timestamps' },
@@ -116,7 +118,28 @@ export function ExportReportsPage() {
 
   // Billable settings
   const [includeBillable, setIncludeBillable] = useState(false)
-  const [hourlyRate, setHourlyRate] = useState<number>(50)
+  const [hourlyRateInput, setHourlyRateInput] = useState('50')
+
+  // Schedule context (beautification option)
+  const [showScheduleContext, setShowScheduleContext] = useState(false)
+
+  // Restore persisted hourly rate on mount
+  useEffect(() => {
+    try {
+      const storedRate = typeof window !== 'undefined' ? window.localStorage.getItem(HOURLY_RATE_STORAGE_KEY) : null
+      if (storedRate) {
+        setHourlyRateInput(storedRate)
+      }
+    } catch (error) {
+      console.error('Failed to read saved hourly rate', error)
+    }
+  }, [])
+
+  // Derived numeric hourly rate for filters/requests
+  const hourlyRate = useMemo(() => {
+    const parsed = parseFloat(hourlyRateInput)
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined
+  }, [hourlyRateInput])
 
   // Export dialog state
   const [exportDialogOpen, setExportDialogOpen] = useState(false)
@@ -144,8 +167,9 @@ export function ExportReportsPage() {
       taskIds: selectedTaskIds.length > 0 ? selectedTaskIds : undefined,
       includeBillable,
       hourlyRate: includeBillable ? hourlyRate : undefined,
+      showScheduleContext,
     }),
-    [dateRange, viewType, groupBy, selectedGoalIds, selectedTaskIds, includeBillable, hourlyRate]
+    [dateRange, viewType, groupBy, selectedGoalIds, selectedTaskIds, includeBillable, hourlyRate, showScheduleContext]
   )
 
   // Queries
@@ -676,13 +700,44 @@ export function ExportReportsPage() {
                     type="number"
                     min={0}
                     step={0.01}
-                    value={hourlyRate}
-                    onChange={(e) => setHourlyRate(parseFloat(e.target.value) || 0)}
+                    value={hourlyRateInput}
+                    onChange={(e) => {
+                      const next = e.target.value
+                      setHourlyRateInput(next)
+                      const parsed = parseFloat(next)
+                      if (Number.isFinite(parsed) && parsed >= 0) {
+                        try {
+                          window.localStorage.setItem(HOURLY_RATE_STORAGE_KEY, next)
+                        } catch (error) {
+                          console.error('Failed to save hourly rate', error)
+                        }
+                      }
+                    }}
                     className="w-24 border-2 border-secondary pl-7"
                   />
                 </div>
                 <span className="text-sm text-gray-500">/hour</span>
               </div>
+            )}
+          </div>
+
+          {/* Schedule Context Toggle */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Schedule Blocks
+            </Label>
+            <div className="flex items-center gap-4 rounded-lg border-2 border-secondary p-3">
+              <Switch
+                checked={showScheduleContext}
+                onCheckedChange={setShowScheduleContext}
+              />
+              <span className="text-sm">Show schedule context</span>
+            </div>
+            {showScheduleContext && (
+              <p className="text-xs text-gray-500">
+                Entries will display which schedule block they were logged from
+              </p>
             )}
           </div>
         </div>
@@ -708,6 +763,7 @@ export function ExportReportsPage() {
             summary={detailedQuery.data.summary}
             billable={detailedQuery.data.billable}
             showBillable={includeBillable}
+            showScheduleContext={showScheduleContext}
           />
         ) : viewType === 'summary' && summaryQuery.data ? (
           <SummaryReportView
@@ -768,35 +824,53 @@ export function ExportReportsPage() {
         ) : viewType === 'day_total' && dayTotalQuery.data ? (
           <div className="p-6">
              <h3 className="mb-4 text-lg font-bold">Day Total Report</h3>
-             <div className="overflow-x-auto">
-               <table className="w-full text-sm">
-                 <thead className="bg-gray-50">
-                   <tr>
-                     <th className="w-32 px-4 py-2 text-left font-bold">Date</th>
-                     <th className="px-4 py-2 text-left font-bold">Tasks Included</th>
-                     <th className="w-24 px-4 py-2 text-right font-bold">Total</th>
-                   </tr>
-                 </thead>
-                 <tbody className="divide-y divide-gray-100">
-                    {dayTotalQuery.data.dailyBreakdown.map((day, i) => (
-                      <tr key={i}>
-                        <td className="px-4 py-2 font-medium text-gray-900">
-                           {format(new Date(day.date), 'MMM d')}
-                           <div className="text-xs text-gray-500">{day.dayOfWeek}</div>
-                        </td>
-                        <td className="px-4 py-2 text-gray-600 font-mono text-xs">{day.taskNames}</td>
-                        <td className="px-4 py-2 text-right font-bold text-gray-900">{day.totalFormatted}</td>
-                      </tr>
-                   ))}
-                   {dayTotalQuery.data.dailyBreakdown.length === 0 && (
-                     <tr>
-                       <td colSpan={3} className="px-4 py-8 text-center text-gray-500">
-                         No activity found for this period.
-                       </td>
-                     </tr>
-                   )}
-                 </tbody>
-               </table>
+             <div className="space-y-4">
+               {dayTotalQuery.data.dailyBreakdown.map((day, i) => (
+                 <div key={i} className="border-2 border-gray-200 bg-white shadow-brutal">
+                   {/* Day Header */}
+                   <div className="flex items-center justify-between border-b-2 border-gray-200 bg-gray-50 px-4 py-3">
+                     <div className="flex items-center gap-3">
+                       <span className="text-lg font-bold text-gray-900">
+                         {format(new Date(day.date), 'EEEE, MMMM d')}
+                       </span>
+                     </div>
+                     <div className="text-right">
+                       <span className="font-mono text-lg font-bold text-gray-900">{day.totalFormatted}</span>
+                     </div>
+                   </div>
+                   
+                   {/* Goal Groups */}
+                   <div className="divide-y divide-gray-100">
+                     {day.goalGroups && day.goalGroups.length > 0 ? (
+                       day.goalGroups.map((group, gi) => (
+                         <div key={gi} className="flex items-start gap-3 px-4 py-3">
+                           {/* Goal Color Indicator */}
+                           <div 
+                             className="mt-1 h-4 w-4 flex-shrink-0 border-2 border-gray-800"
+                             style={{ backgroundColor: group.goalColor || '#94a3b8' }}
+                           />
+                           {/* Goal Info */}
+                           <div className="flex-1 min-w-0">
+                             <div className="font-bold text-gray-900">{group.goalTitle}</div>
+                             <div className="text-sm text-gray-600 font-mono">{group.taskNames}</div>
+                           </div>
+                           {/* Goal Time */}
+                           <div className="flex-shrink-0 text-right">
+                             <span className="font-mono font-bold text-gray-700">{group.totalFormatted}</span>
+                           </div>
+                         </div>
+                       ))
+                     ) : (
+                       <div className="px-4 py-3 text-gray-600 font-mono text-sm">{day.taskNames}</div>
+                     )}
+                   </div>
+                 </div>
+               ))}
+               {dayTotalQuery.data.dailyBreakdown.length === 0 && (
+                 <div className="border-2 border-gray-200 bg-white px-4 py-8 text-center text-gray-500 shadow-brutal">
+                   No activity found for this period.
+                 </div>
+               )}
              </div>
            </div>
         ) : (

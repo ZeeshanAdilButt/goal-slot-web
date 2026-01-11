@@ -1,5 +1,5 @@
 import { sharingQueries } from '@/features/sharing/utils/queries'
-import { CreateShareForm, ShareInviteResult } from '@/features/sharing/utils/types'
+import { CreatePublicLinkParams, CreateShareForm, PublicLink, ShareInviteResult } from '@/features/sharing/utils/types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 
@@ -23,6 +23,41 @@ export function useShareMutation() {
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Failed to send invite')
+    },
+  })
+}
+
+export function useCreatePublicLinkMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (data?: CreatePublicLinkParams) => {
+      const res = await sharingApi.createPublicLink(data)
+      return res.data as PublicLink
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: sharingQueries.all })
+      toast.success('Public link created!')
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Failed to create public link')
+    },
+  })
+}
+
+export function useDeletePublicLinkMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (shareId: string) => {
+      await sharingApi.deletePublicLink(shareId)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: sharingQueries.all })
+      toast.success('Public link deleted')
+    },
+    onError: () => {
+      toast.error('Failed to delete public link')
     },
   })
 }

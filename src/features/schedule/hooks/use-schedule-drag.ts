@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { useUpdateScheduleBlock } from '@/features/schedule/hooks/use-schedule-mutations'
 import { DAY_END_MIN, DAY_START_MIN, MIN_DURATION, PX_PER_MIN } from '@/features/schedule/utils/constants'
-import { DraftSelection, ScheduleBlock, WeekSchedule } from '@/features/schedule/utils/types'
+import { DraftSelection, ScheduleBlock, ScheduleUpdatePayload, WeekSchedule } from '@/features/schedule/utils/types'
 import { hasOverlap, snapMinutes } from '@/features/schedule/utils/utils'
 import { DragEndEvent, DragMoveEvent, DragStartEvent } from '@dnd-kit/core'
 import { toast } from 'react-hot-toast'
@@ -28,7 +28,7 @@ export function useScheduleDrag({ weekSchedule, draftKey }: UseScheduleDragArgs)
 
   const commitUpdate = useCallback(
     async (block: ScheduleBlock, day: number, start: number, end: number) => {
-      const payload = {
+      const payload: ScheduleUpdatePayload = {
         title: block.title,
         category: block.category,
         color: block.color,
@@ -36,6 +36,7 @@ export function useScheduleDrag({ weekSchedule, draftKey }: UseScheduleDragArgs)
         dayOfWeek: day,
         startTime: minutesToTime(start),
         endTime: minutesToTime(end),
+        updateScope: 'single',
       }
 
       updateBlock(

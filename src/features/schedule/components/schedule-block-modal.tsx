@@ -3,12 +3,24 @@ import { useEffect, useState } from 'react'
 import { useCategoriesQuery } from '@/features/categories'
 import { useCreateScheduleBlocks, useUpdateScheduleBlock } from '@/features/schedule/hooks/use-schedule-mutations'
 import { useActiveGoals } from '@/features/schedule/hooks/use-schedule-queries'
-import { ScheduleBlock, SchedulePayload } from '@/features/schedule/utils/types'
+import {
+  ScheduleBlock,
+  SchedulePayload,
+  ScheduleUpdatePayload,
+  ScheduleUpdateScope,
+} from '@/features/schedule/utils/types'
 import { toast } from 'react-hot-toast'
 
 import { cn, DAYS_OF_WEEK_FULL, TIME_OPTIONS } from '@/lib/utils'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
+const generateSeriesId = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return Math.random().toString(36).slice(2, 10)
+}
 
 type ScheduleBlockModalProps = {
   isOpen: boolean
@@ -16,9 +28,17 @@ type ScheduleBlockModalProps = {
   block: ScheduleBlock | null
   dayOfWeek: number | null
   presetTimes?: { startTime: string; endTime: string } | null
+  seriesBlockCount?: number
 }
 
-export function ScheduleBlockModal({ isOpen, onClose, block, dayOfWeek, presetTimes }: ScheduleBlockModalProps) {
+export function ScheduleBlockModal({
+  isOpen,
+  onClose,
+  block,
+  dayOfWeek,
+  presetTimes,
+  seriesBlockCount = 0,
+}: ScheduleBlockModalProps) {
   const [title, setTitle] = useState('')
   const [startTime, setStartTime] = useState('09:00')
   const [endTime, setEndTime] = useState('10:00')
@@ -26,14 +46,17 @@ export function ScheduleBlockModal({ isOpen, onClose, block, dayOfWeek, presetTi
   const [selectedDays, setSelectedDays] = useState<number[]>([1])
   const [goalId, setGoalId] = useState('')
   const [color, setColor] = useState('#FFD700')
+  const [updateScope, setUpdateScope] = useState<ScheduleUpdateScope>('single')
   const { mutateAsync: createBlocks, isPending: isCreating } = useCreateScheduleBlocks()
   const { mutateAsync: updateBlock, isPending: isUpdating } = useUpdateScheduleBlock()
   const { data: goals = [], isPending: isGoalsPending } = useActiveGoals()
   const { data: categories = [] } = useCategoriesQuery()
 
   const isSaving = isCreating || isUpdating
+  const isSeriesEdit = Boolean(block && seriesBlockCount > 1)
 
   useEffect(() => {
+    setUpdateScope('single')
     if (block) {
       setTitle(block.title)
       setStartTime(block.startTime)
@@ -108,20 +131,35 @@ export function ScheduleBlockModal({ isOpen, onClose, block, dayOfWeek, presetTi
       }
 
       if (block) {
+        const scopeToApply: ScheduleUpdateScope = isSeriesEdit ? updateScope : 'single'
+        const updatePayload: ScheduleUpdatePayload = {
+          ...payloadBase,
+          updateScope: scopeToApply,
+        }
+
+        if (scopeToApply === 'single') {
+          updatePayload.dayOfWeek = selectedDays[0]
+        }
+
         await updateBlock({
           id: block.id,
-          data: {
-            ...payloadBase,
-            dayOfWeek: selectedDays[0],
-          },
+          data: updatePayload,
         })
-        toast.success('Block updated')
+
+        const linkedCount = seriesBlockCount > 0 ? seriesBlockCount : 1
+        toast.success(
+          scopeToApply === 'series'
+            ? `Updated ${linkedCount} linked block${linkedCount > 1 ? 's' : ''}`
+            : 'Block updated',
+        )
       } else {
+        const sharedSeriesId = selectedDays.length > 1 ? generateSeriesId() : undefined
         const payloads = selectedDays.map(
           (day) =>
             ({
               ...payloadBase,
               dayOfWeek: day,
+              ...(sharedSeriesId ? { seriesId: sharedSeriesId } : {}),
             }) satisfies SchedulePayload,
         )
         await createBlocks(payloads)
@@ -159,7 +197,11 @@ export function ScheduleBlockModal({ isOpen, onClose, block, dayOfWeek, presetTi
           <div>
             <label className="mb-2 block text-sm font-bold uppercase">{block ? 'Day' : 'Days (select multiple)'}</label>
             {block ? (
-              <Select value={selectedDays[0].toString()} onValueChange={(value) => setSelectedDays([parseInt(value)])}>
+              <Select
+                value={selectedDays[0].toString()}
+                onValueChange={(value) => setSelectedDays([parseInt(value)])}
+                disabled={isSeriesEdit && updateScope === 'series'}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select day" />
                 </SelectTrigger>
@@ -189,6 +231,38 @@ export function ScheduleBlockModal({ isOpen, onClose, block, dayOfWeek, presetTi
               </div>
             )}
           </div>
+
+          {isSeriesEdit && (
+            <div>
+              <label className="mb-2 block text-sm font-bold uppercase">Apply changes to</label>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                {([
+                  { label: 'This block only', value: 'single' as ScheduleUpdateScope },
+                  {
+                    label: `All ${seriesBlockCount} linked block${seriesBlockCount > 1 ? 's' : ''}`,
+                    value: 'series' as ScheduleUpdateScope,
+                  },
+                ] as const).map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setUpdateScope(option.value)}
+                    className={cn(
+                      'flex-1 px-3 py-2 border-3 border-secondary text-sm font-bold uppercase transition-all',
+                      updateScope === option.value ? 'bg-primary shadow-brutal' : 'bg-white hover:bg-gray-100',
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 font-mono text-xs uppercase text-gray-600">
+                {updateScope === 'series'
+                  ? 'Day assignments stay the same; other changes update across every linked block.'
+                  : 'Only this specific block will be updated.'}
+              </p>
+            </div>
+          )}
 
           <div>
             <label className="mb-2 block text-sm font-bold uppercase">Category</label>

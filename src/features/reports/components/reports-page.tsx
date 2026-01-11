@@ -15,7 +15,7 @@ import { FocusTrendCard } from '@/features/reports/components/focus-trend-card'
 import { useExportReportMutation } from '@/features/reports/hooks/use-detailed-summary-reports'
 import type { FocusGranularity, ExportFormat } from '@/features/reports/utils/types'
 
-import { cn } from '@/lib/utils'
+import { cn, formatDuration } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'

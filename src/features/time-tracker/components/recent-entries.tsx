@@ -35,7 +35,7 @@ export function RecentEntries() {
       }
       return data
     },
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
   })
 
   const entries: TimeEntry[] = recentQuery.data?.items || []

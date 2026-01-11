@@ -198,7 +198,7 @@ export function NoteEditor({ note, onDelete }: NoteEditorProps) {
 
   // Copy note link
   const handleCopyLink = () => {
-    const link = `${window.location.origin}/dashboard/notes/${note.id}`
+    const link = `${window.location.origin}/dashboard/notes?noteId=${note.id}`
     navigator.clipboard.writeText(link)
     setCopySuccess('link')
     setTimeout(() => setCopySuccess(null), 2000)

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import {
-  cancelDropdown,
   closestCenter,
   DndContext,
   DragEndEvent,
@@ -27,7 +26,9 @@ import { cn } from '@/lib/utils'
 import { Loading } from '@/components/ui/loading'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
-import { Goal, GOAL_STATUS_OPTIONS, GoalsSidebarProps, WITHOUT_GOALS_ID } from './types'
+import { GOAL_STATUS_OPTIONS, GoalsSidebarProps, WITHOUT_GOALS_ID } from './types'
+import type { Goal as TaskGoal } from '@/features/tasks/utils/types'
+import type { Goal as FullGoal } from '@/features/goals/utils/types'
 
 function SortableGoalItem({
   goal,
@@ -35,7 +36,7 @@ function SortableGoalItem({
   onSelect,
   onEdit,
 }: {
-  goal: Goal
+  goal: TaskGoal
   isSelected: boolean
   onSelect: () => void
   onEdit: () => void
@@ -95,7 +96,7 @@ export function GoalsSidebarDesktop({
   isLoading,
 }: GoalsSidebarProps) {
   const [showModal, setShowModal] = useState(false)
-  const [editingGoal, setEditingGoal] = useState<Goal | null>(null)
+  const [editingGoal, setEditingGoal] = useState<FullGoal | null>(null)
   const [orderedGoals, setOrderedGoals] = useState(goals)
   const [activeId, setActiveId] = useState<string | null>(null)
   
@@ -142,8 +143,9 @@ export function GoalsSidebarDesktop({
     setShowModal(true)
   }
 
-  const handleEditGoal = (goal: Goal) => {
-    setEditingGoal(goal)
+  const handleEditGoal = (goal: TaskGoal) => {
+    // Cast to FullGoal for the modal - the modal handles missing fields
+    setEditingGoal(goal as unknown as FullGoal)
     setShowModal(true)
   }
 

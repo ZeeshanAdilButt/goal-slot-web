@@ -88,7 +88,7 @@ export function TaskBoard({ tasks, onEdit, onComplete }: TaskBoardProps) {
     const overId = over ? String(over.id) : null
 
     setActiveTaskId(null)
-    if (!overId) return
+    if (!overId || !over) return
 
     const activeType = active.data.current?.type as string | undefined
     const overType = over.data.current?.type as string | undefined

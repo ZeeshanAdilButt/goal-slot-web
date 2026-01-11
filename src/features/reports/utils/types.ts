@@ -53,6 +53,7 @@ export interface ReportFilters {
   sortBy?: ReportSortBy
   includeBillable?: boolean
   hourlyRate?: number
+  showScheduleContext?: boolean
 }
 
 export interface ExportReportParams extends ReportFilters {
@@ -77,6 +78,13 @@ export interface DetailedTimeEntry {
   goal: { id: string; title: string; color: string } | null
   task: { id: string; title: string } | null
   category: string | null
+  scheduleBlock?: {
+    id: string
+    title: string
+    startTime: string
+    endTime: string
+    color?: string
+  } | null
 }
 
 export interface DailyBreakdown {
@@ -212,11 +220,21 @@ export interface DayByTaskReportResponse {
   dailyBreakdown: DayByTaskBreakdown[]
 }
 
-// Report by Day - shows total hours per day with merged task names
+// Report by Day - shows total hours per day with tasks grouped by goal
+export interface DayTotalGoalGroup {
+  goalId: string | null
+  goalTitle: string
+  goalColor: string | null
+  taskNames: string // Comma-separated unique task names for this goal
+  totalMinutes: number
+  totalFormatted: string
+}
+
 export interface DayTotalBreakdown {
   date: string
   dayOfWeek: string
-  taskNames: string // Comma-separated unique task names
+  taskNames: string // Comma-separated unique task names (all goals combined for backward compat)
+  goalGroups: DayTotalGoalGroup[] // Tasks grouped by goal
   totalMinutes: number
   totalFormatted: string
   totalHours: number
@@ -241,6 +259,98 @@ export interface DayTotalReportResponse {
   }
   billable: BillableInfo | null
   dailyBreakdown: DayTotalBreakdown[]
+}
+
+// ==========================================
+// Schedule-Based Report Types ("Beautify by Schedule")
+// ==========================================
+
+export interface SchedulePattern {
+  /** Unique key for the pattern (e.g., "Deep Work|09:00-18:00") */
+  patternKey: string
+  /** Title of the schedule block */
+  title: string
+  /** Start time in HH:mm format */
+  startTime: string
+  /** End time in HH:mm format */
+  endTime: string
+  /** Category of the schedule block */
+  category?: string
+  /** Color of the schedule block */
+  color?: string
+  /** Goal associated with this schedule block */
+  goalTitle?: string
+  goalColor?: string
+  /** Days of week this pattern appears (0=Sun, 1=Mon, etc.) */
+  daysOfWeek: number[]
+  /** Formatted display string e.g., "9:00 AM - 6:00 PM" */
+  timeRangeFormatted: string
+}
+
+export interface ScheduleDayData {
+  /** Date string (YYYY-MM-DD) */
+  date: string
+  /** Day of week (Mon, Tue, etc.) */
+  dayOfWeek: string
+  /** Day number (0-6) */
+  dayNumber: number
+  /** Minutes logged during this schedule on this day */
+  loggedMinutes: number
+  /** Formatted logged time */
+  loggedFormatted: string
+  /** Expected minutes based on schedule duration */
+  expectedMinutes: number
+  /** Completion percentage */
+  percentage: number
+  /** Tasks worked on during this schedule slot */
+  tasks: Array<{
+    taskName: string
+    minutes: number
+    formatted: string
+  }>
+}
+
+export interface ScheduleReportRow {
+  /** The schedule pattern this row represents */
+  pattern: SchedulePattern
+  /** Data for each day in the report range */
+  days: ScheduleDayData[]
+  /** Total minutes logged across all days for this schedule */
+  totalLogged: number
+  totalLoggedFormatted: string
+  /** Total expected minutes (schedule duration * active days) */
+  totalExpected: number
+  /** Overall completion percentage */
+  overallPercentage: number
+}
+
+export interface ScheduleReportResponse {
+  reportType: 'schedule'
+  startDate: string
+  endDate: string
+  generatedAt: string
+  filters: {
+    goalIds?: string[]
+    taskIds?: string[]
+    category?: string
+  }
+  summary: {
+    totalMinutes: number
+    totalFormatted: string
+    totalExpectedMinutes: number
+    totalExpectedFormatted: string
+    overallPercentage: number
+    totalEntries: number
+    schedulesTracked: number
+  }
+  /** Days included in the report (for column headers) */
+  days: Array<{
+    date: string
+    dayOfWeek: string
+    dayNumber: number
+  }>
+  /** Rows grouped by schedule pattern */
+  rows: ScheduleReportRow[]
 }
 
 

@@ -236,7 +236,7 @@ export function FocusTaskTotalCard({ view, filters }: FocusTaskTotalCardProps) {
                         <div className="flex-1 truncate">
                           <span className="font-medium">{task.taskName}</span>
                           {task.goalTitle && (
-                            <span className="ml-2 text-xs text-gray-500">({task.goalTitle})</span>
+                            <span className="ml-2 text-xs font-semibold text-gray-700">({task.goalTitle})</span>
                           )}
                         </div>
                         <span className="font-mono text-sm font-semibold text-secondary">

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 
@@ -67,26 +67,33 @@ export function AppSidebar() {
   const isCollapsed = state === 'collapsed'
   const shouldShowPopover = isCollapsed && !isMobile
 
+  const activeNavHref = useMemo(() => {
+    const matchingItem = navItems
+      .filter((item) => pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href)))
+      .sort((a, b) => b.href.length - a.href.length)[0]
+    return matchingItem?.href
+  }, [pathname])
+
   const handleLogout = () => {
     logout()
     setPopoverOpen(false)
-    // Refresh page to clear all cached data
-    window.location.href = '/'
+    const returnUrl = typeof window !== 'undefined'
+      ? `${window.location.pathname}${window.location.search}${window.location.hash}`
+      : '/dashboard'
+    window.location.href = `/login?redirect=${encodeURIComponent(returnUrl)}`
   }
 
   return (
     <Sidebar side="left" variant="sidebar" collapsible="icon" className="border-r-3 border-secondary bg-brutalist-bg">
       <SidebarHeader className="border-b-3 border-secondary p-4 group-data-[collapsible=icon]:p-2">
-        <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
+        <div className="flex items-center gap-2">
           <Link href="/dashboard" className="group-data-[collapsible=icon]:hidden">
             <GoalSlotBrand size="md" tagline="Your growth, measured." />
           </Link>
           <Link href="/dashboard" className="hidden group-data-[collapsible=icon]:block">
             <GoalSlotLogo size="md" />
           </Link>
-          <div className="hidden group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:justify-center md:flex">
-            <SidebarTrigger className="h-8 w-8 border-3 border-secondary !bg-primary !text-secondary shadow-brutal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:!bg-primary hover:shadow-brutal-hover active:translate-x-1 active:translate-y-1 active:shadow-none" />
-          </div>
+          <SidebarTrigger className="ml-auto h-9 w-9 border-3 border-secondary !bg-primary !text-secondary shadow-brutal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:!bg-primary hover:shadow-brutal-hover active:translate-x-1 active:translate-y-1 active:shadow-none" />
         </div>
       </SidebarHeader>
 
@@ -95,8 +102,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => {
-                const isActive =
-                  pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
+                const isActive = item.href === activeNavHref
 
                 return (
                   <SidebarMenuItem key={item.href}>

@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useEffect, useMemo } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 import { motion } from 'framer-motion'
 
@@ -11,9 +11,16 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/s
 import { AppSidebar } from '@/components/app-sidebar'
 import { TimeEntryBanner } from '@/components/time-entry-banner'
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const { isLoading, isAuthenticated, loadUser } = useAuthStore()
+
+  const returnTo = useMemo(() => {
+    const search = searchParams?.toString()
+    return search ? `${pathname}?${search}` : pathname
+  }, [pathname, searchParams])
 
   useEffect(() => {
     loadUser()
@@ -21,9 +28,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push('/login')
+      router.replace(`/login?redirect=${encodeURIComponent(returnTo || '/dashboard')}`)
     }
-  }, [isLoading, isAuthenticated, router])
+  }, [isLoading, isAuthenticated, router, returnTo])
 
   if (isLoading) {
     return (
@@ -50,5 +57,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </SidebarInset>
     </SidebarProvider>
+  )
+}
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-brutalist-bg">
+        <GoalSlotSpinner size="xl" />
+      </div>
+    }>
+      <DashboardLayoutContent>{children}</DashboardLayoutContent>
+    </Suspense>
   )
 }

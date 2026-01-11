@@ -1,5 +1,5 @@
 import { scheduleQueries } from '@/features/schedule/utils/queries'
-import { SchedulePayload, WeekSchedule } from '@/features/schedule/utils/types'
+import { SchedulePayload, ScheduleUpdatePayload, WeekSchedule } from '@/features/schedule/utils/types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { scheduleApi } from '@/lib/api'
@@ -21,7 +21,7 @@ export function useUpdateScheduleBlock() {
 
   return useMutation({
     mutationKey: scheduleQueries.mutation.update(),
-    mutationFn: async ({ id, data }: { id: string; data: SchedulePayload }) => {
+    mutationFn: async ({ id, data }: { id: string; data: ScheduleUpdatePayload }) => {
       return scheduleApi.update(id, data)
     },
     onMutate: async ({ id, data }) => {
@@ -30,7 +30,7 @@ export function useUpdateScheduleBlock() {
       const previous = queryClient.getQueryData(queryKey)
       const rollback = () => queryClient.setQueryData(queryKey, previous)
 
-      if (previous) {
+      if (previous && data.updateScope !== 'series') {
         const next: WeekSchedule = { ...previous }
 
         Object.keys(next).forEach((dayKey) => {
@@ -47,12 +47,14 @@ export function useUpdateScheduleBlock() {
             isRecurring: false,
           } as any)
 
+        const { updateScope: _ignoredScope, ...blockChanges } = data
+
         const updatedBlock = {
           ...existing,
-          ...data,
+          ...blockChanges,
         }
 
-        const targetDay = data.dayOfWeek
+        const targetDay = blockChanges.dayOfWeek ?? existing.dayOfWeek
         const updatedDay = [...(next[targetDay] || []), updatedBlock].sort(
           (a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime),
         )
@@ -66,11 +68,8 @@ export function useUpdateScheduleBlock() {
     onError: (_err, _variables, rollback) => {
       rollback?.()
     },
-    onSettled: () => {
-      const remaining = queryClient.isMutating({ mutationKey: ['schedule', 'update'] })
-      if (remaining === 0) {
-        queryClient.invalidateQueries({ queryKey: scheduleQueries.weekly().queryKey })
-      }
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: scheduleQueries.weekly().queryKey })
     },
   })
 }

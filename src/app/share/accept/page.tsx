@@ -39,6 +39,7 @@ interface PublicShareData {
   accessType: string
   isAccepted: boolean
   inviteEmail: string | null
+  isPublicLink: boolean
 }
 
 interface SharedGoal {
@@ -144,7 +145,14 @@ function PublicShareViewContent() {
     },
   })
 
-  // Fetch time entries
+  // Determine if data should be visible
+  // For public links: always visible
+  // For email invites: only visible when authenticated (must create account first)
+  const shareData = shareInfoQuery.data
+  const isPublicLink = shareData?.isPublicLink ?? false
+  const canViewData = isPublicLink || isAuthenticated
+
+  // Fetch time entries (only if allowed to view data)
   const entriesQuery = useQuery({
     queryKey: ['public-share-entries', token, range.startDate, range.endDate],
     queryFn: async () => {
@@ -152,10 +160,10 @@ function PublicShareViewContent() {
       const res = await sharingApi.getPublicSharedTimeEntries(token, range.startDate, range.endDate)
       return res.data as SharedTimeEntry[]
     },
-    enabled: !!token && !!shareInfoQuery.data,
+    enabled: !!token && !!shareInfoQuery.data && canViewData,
   })
 
-  // Fetch goals
+  // Fetch goals (only if allowed to view data)
   const goalsQuery = useQuery({
     queryKey: ['public-share-goals', token],
     queryFn: async () => {
@@ -163,7 +171,7 @@ function PublicShareViewContent() {
       const res = await sharingApi.getPublicSharedGoals(token)
       return res.data as SharedGoal[]
     },
-    enabled: !!token && !!shareInfoQuery.data,
+    enabled: !!token && !!shareInfoQuery.data && canViewData,
   })
 
   const entries = useMemo(() => entriesQuery.data ?? [], [entriesQuery.data])
@@ -351,8 +359,8 @@ function PublicShareViewContent() {
           </motion.div>
         )}
 
-        {/* Invitation Acceptance Notice for Unauthenticated Users */}
-        {!isAuthenticated && shareInfoQuery.data && !shareInfoQuery.data.isAccepted && (
+        {/* Invitation Acceptance Notice for Unauthenticated Users - Email Invites Only */}
+        {!isAuthenticated && shareInfoQuery.data && !shareInfoQuery.data.isAccepted && !shareInfoQuery.data.isPublicLink && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -361,11 +369,11 @@ function PublicShareViewContent() {
             <div className="mb-4">
               <h3 className="mb-2 flex items-center gap-2 text-lg font-bold uppercase">
                 <Mail className="h-5 w-5" />
-                Accept Invitation
+                Account Required
               </h3>
               <p className="font-mono text-sm opacity-90">
-                {owner?.name} has invited you to view their focus time reports. To accept this invitation, please create
-                an account or log in.
+                {owner?.name} has invited you to view their focus time reports. To access this data, you must create
+                an account or log in first.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -385,13 +393,12 @@ function PublicShareViewContent() {
           </motion.div>
         )}
 
-        {/* Security Notice for Already Accepted or View-Only */}
-        {!isAuthenticated && shareInfoQuery.data && shareInfoQuery.data.isAccepted && (
+        {/* Public Link Notice for Unauthenticated Users */}
+        {!isAuthenticated && shareInfoQuery.data && shareInfoQuery.data.isPublicLink && (
           <div className="flex items-start gap-3 border-2 border-secondary bg-blue-50 p-4">
             <Lock className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" />
             <div className="font-mono text-sm">
-              <strong>Secure View-Only Access:</strong> You&apos;re viewing shared focus time reports. This link is
-              unique to you and provides read-only access.
+              <strong>Public View-Only Access:</strong> You&apos;re viewing shared focus time reports via a public link.
               <Link
                 href={`/signup?redirect=${encodeURIComponent(`/share/accept?token=${token}`)}`}
                 className="ml-1 text-blue-600 underline"
@@ -403,7 +410,8 @@ function PublicShareViewContent() {
           </div>
         )}
 
-        {/* Date Range Selector */}
+        {/* Date Range Selector - Only show if data is viewable */}
+        {canViewData && (
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
@@ -427,9 +435,10 @@ function PublicShareViewContent() {
             )}
           </div>
         </div>
+        )}
 
-        {/* Stats Overview */}
-        {!entriesQuery.isLoading && (
+        {/* Stats Overview - Only show if data is viewable */}
+        {canViewData && !entriesQuery.isLoading && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -469,8 +478,8 @@ function PublicShareViewContent() {
           </motion.div>
         )}
 
-        {/* Charts */}
-        {!entriesQuery.isLoading && entries.length > 0 && (
+        {/* Charts - Only show if data is viewable */}
+        {canViewData && !entriesQuery.isLoading && entries.length > 0 && (
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
             {/* Daily Breakdown Chart */}
             <motion.div
@@ -549,8 +558,8 @@ function PublicShareViewContent() {
           </div>
         )}
 
-        {/* Goals Progress */}
-        {!goalsQuery.isLoading && goals.length > 0 && (
+        {/* Goals Progress - Only show if data is viewable */}
+        {canViewData && !goalsQuery.isLoading && goals.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -594,8 +603,8 @@ function PublicShareViewContent() {
           </motion.div>
         )}
 
-        {/* No entries message */}
-        {!entriesQuery.isLoading && entries.length === 0 && (
+        {/* No entries message - Only show if data is viewable */}
+        {canViewData && !entriesQuery.isLoading && entries.length === 0 && (
           <div className="card-brutal py-12 text-center">
             <Clock className="mx-auto mb-4 h-12 w-12 opacity-30" />
             <h3 className="mb-2 font-bold uppercase">No focus time logged</h3>

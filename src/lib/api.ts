@@ -29,11 +29,13 @@ api.interceptors.response.use(
         // Don't redirect if we're already on the login page or making auth requests
         const isAuthRequest = error.config?.url?.includes('/auth/')
         const isLoginPage = window.location.pathname === '/login'
+        const returnUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`
+        const redirectUrl = `/login?redirect=${encodeURIComponent(returnUrl || '/dashboard')}`
 
         if (!isAuthRequest && !isLoginPage) {
           localStorage.removeItem('accessToken')
           localStorage.removeItem('refreshToken')
-          window.location.href = '/login'
+          window.location.href = redirectUrl
         }
       }
     }
@@ -120,6 +122,7 @@ export const reportsApi = {
   getSummary: (params: ReportFilters) => api.get('/reports/summary', { params }),
   getDayByTask: (params: ReportFilters) => api.get('/reports/day-by-task', { params }),
   getDayTotal: (params: ReportFilters) => api.get('/reports/day-total', { params }),
+  getScheduleReport: (params: ReportFilters) => api.get('/reports/schedule', { params }),
   getFilterableGoals: () => api.get('/reports/filterable-goals'),
   getFilterableTasks: (goalId?: string) => api.get('/reports/filterable-tasks', { params: { goalId } }),
   exportReport: (data: ExportReportParams) => api.post('/reports/export', data, {
@@ -131,7 +134,7 @@ export const reportsApi = {
 export interface ReportFilters {
   startDate: string
   endDate: string
-  viewType?: 'detailed' | 'summary' | 'day_by_task' | 'day_total'
+  viewType?: 'detailed' | 'summary' | 'day_by_task' | 'day_total' | 'schedule'
   groupBy?: 'goal' | 'task' | 'date' | 'category'
   goalIds?: string
   taskIds?: string
@@ -182,6 +185,11 @@ export const sharingApi = {
   getSharedUserTimeEntries: (ownerId: string, startDate: string, endDate: string) =>
     api.get(`/sharing/user/${ownerId}/time-entries`, { params: { startDate, endDate } }),
   getSharedUserGoals: (ownerId: string) => api.get(`/sharing/user/${ownerId}/goals`),
+  // Public link management
+  createPublicLink: (data?: { accessLevel?: 'VIEW' | 'EDIT'; expiresInDays?: number }) =>
+    api.post('/sharing/public-link', data || {}),
+  getMyPublicLinks: () => api.get('/sharing/my-public-links'),
+  deletePublicLink: (shareId: string) => api.delete(`/sharing/public-link/${shareId}`),
   // Public access methods (no auth required)
   getPublicSharedData: (token: string) => api.get(`/public/share/view/${token}`),
   getPublicSharedTimeEntries: (token: string, startDate: string, endDate: string) =>

@@ -24,6 +24,7 @@ interface DetailedReportViewProps {
     currency: string
   } | null
   showBillable?: boolean
+  showScheduleContext?: boolean
 }
 
 export function DetailedReportView({
@@ -31,6 +32,7 @@ export function DetailedReportView({
   summary,
   billable,
   showBillable = false,
+  showScheduleContext = false,
 }: DetailedReportViewProps) {
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set(dailyBreakdown.map((d) => d.date)))
 
@@ -148,7 +150,7 @@ export function DetailedReportView({
             {expandedDays.has(day.date) && (
               <div className="divide-y divide-gray-100">
                 {day.entries.map((entry) => (
-                  <EntryRow key={entry.id} entry={entry} />
+                  <EntryRow key={entry.id} entry={entry} showScheduleContext={showScheduleContext} />
                 ))}
                 {/* Daily Subtotal */}
                 <div className="flex items-center justify-end gap-4 bg-gray-50 px-4 py-2 font-mono text-sm">
@@ -175,9 +177,10 @@ export function DetailedReportView({
   )
 }
 
-function EntryRow({ entry }: { entry: DetailedTimeEntry }) {
+function EntryRow({ entry, showScheduleContext }: { entry: DetailedTimeEntry; showScheduleContext: boolean }) {
   const startTime = entry.startedAt ? format(parseISO(entry.startedAt), 'h:mm a') : '—'
   const endTime = entry.endedAt ? format(parseISO(entry.endedAt), 'h:mm a') : '—'
+  const hasScheduleBlock = showScheduleContext && entry.scheduleBlock && entry.scheduleBlock.title
 
   return (
     <div className="grid grid-cols-1 gap-2 px-4 py-3 transition-colors hover:bg-gray-50 sm:grid-cols-12 sm:items-center sm:gap-0">
@@ -194,6 +197,23 @@ function EntryRow({ entry }: { entry: DetailedTimeEntry }) {
         <div className="font-medium">{entry.taskName}</div>
         {entry.task && entry.task.title !== entry.taskName && (
           <div className="text-xs text-gray-500">{entry.task.title}</div>
+        )}
+        {/* Schedule Block Badge */}
+        {hasScheduleBlock && (
+          <div className="mt-1 inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px]"
+            style={{ 
+              borderColor: entry.scheduleBlock?.color || '#e5e7eb',
+              backgroundColor: entry.scheduleBlock?.color ? `${entry.scheduleBlock.color}15` : '#f9fafb'
+            }}
+          >
+            <Calendar className="h-2.5 w-2.5" style={{ color: entry.scheduleBlock?.color || '#6b7280' }} />
+            <span className="font-medium" style={{ color: entry.scheduleBlock?.color || '#374151' }}>
+              {entry.scheduleBlock?.title}
+            </span>
+            <span className="text-gray-500">
+              {entry.scheduleBlock?.startTime}–{entry.scheduleBlock?.endTime}
+            </span>
+          </div>
         )}
       </div>
 

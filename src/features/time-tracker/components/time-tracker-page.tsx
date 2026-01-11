@@ -19,7 +19,7 @@ import {
   getGoalIdFromCategory,
   getTaskByGoalOrCategory,
 } from '@/features/time-tracker/utils/selection-helpers'
-import { Task } from '@/features/time-tracker/utils/types'
+import { Goal, Task } from '@/features/time-tracker/utils/types'
 import { useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
@@ -194,7 +194,7 @@ export function TimeTrackerPage() {
   }
 
   const filteredTasks = filterTasks(tasks, currentCategory || undefined, currentGoalId || undefined)
-  const filteredGoals = goals.filter((goal) => {
+  const filteredGoals = goals.filter((goal: Goal) => {
     if (currentCategory) {
       return goal.category === currentCategory
     }

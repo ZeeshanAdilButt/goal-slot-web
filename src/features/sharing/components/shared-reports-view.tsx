@@ -1,31 +1,82 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths } from 'date-fns'
 
 import { useSharedUserGoalsQuery, useSharedUserTimeEntriesQuery } from '@/features/sharing/hooks/use-sharing-queries'
-import { calculateStatistics, getRollingWeekRange } from '@/features/sharing/utils/helpers'
+import { calculateStatistics } from '@/features/sharing/utils/helpers'
 import { SharedGoal, SharedTimeEntry, SharedWithMeUser } from '@/features/sharing/utils/types'
 import { motion } from 'framer-motion'
-import { BarChart3, Calendar, Clock, Target, TrendingUp, User, Users } from 'lucide-react'
+import { BarChart3, Calendar, ChevronDown, Clock, Download, FileSpreadsheet, Target, TrendingUp, User, Users } from 'lucide-react'
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { cn, formatDuration } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 interface SharedReportsViewProps {
   sharedWithMe: SharedWithMeUser[]
 }
 
+type DatePreset = 'this-week' | 'last-week' | 'this-month' | 'last-month' | 'last-30-days'
+
+const DATE_PRESETS: Array<{ value: DatePreset; label: string }> = [
+  { value: 'this-week', label: 'This Week' },
+  { value: 'last-week', label: 'Last Week' },
+  { value: 'this-month', label: 'This Month' },
+  { value: 'last-month', label: 'Last Month' },
+  { value: 'last-30-days', label: 'Last 30 Days' },
+]
+
 const COLORS = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8']
+
+function getDateRange(preset: DatePreset): { startDate: string; endDate: string; label: string } {
+  const today = new Date()
+  const formatDate = (d: Date) => format(d, 'yyyy-MM-dd')
+  const formatLabel = (start: Date, end: Date) => `${format(start, 'MMM d')} - ${format(end, 'MMM d, yyyy')}`
+
+  switch (preset) {
+    case 'this-week': {
+      const start = startOfWeek(today, { weekStartsOn: 1 })
+      const end = endOfWeek(today, { weekStartsOn: 1 })
+      return { startDate: formatDate(start), endDate: formatDate(end), label: formatLabel(start, end) }
+    }
+    case 'last-week': {
+      const lastWeekStart = subDays(startOfWeek(today, { weekStartsOn: 1 }), 7)
+      const lastWeekEnd = subDays(startOfWeek(today, { weekStartsOn: 1 }), 1)
+      return { startDate: formatDate(lastWeekStart), endDate: formatDate(lastWeekEnd), label: formatLabel(lastWeekStart, lastWeekEnd) }
+    }
+    case 'this-month': {
+      const start = startOfMonth(today)
+      const end = endOfMonth(today)
+      return { startDate: formatDate(start), endDate: formatDate(end), label: formatLabel(start, end) }
+    }
+    case 'last-month': {
+      const lastMonth = subMonths(today, 1)
+      const start = startOfMonth(lastMonth)
+      const end = endOfMonth(lastMonth)
+      return { startDate: formatDate(start), endDate: formatDate(end), label: formatLabel(start, end) }
+    }
+    case 'last-30-days': {
+      const start = subDays(today, 30)
+      return { startDate: formatDate(start), endDate: formatDate(today), label: formatLabel(start, today) }
+    }
+    default: {
+      const start = startOfWeek(today, { weekStartsOn: 1 })
+      const end = endOfWeek(today, { weekStartsOn: 1 })
+      return { startDate: formatDate(start), endDate: formatDate(end), label: formatLabel(start, end) }
+    }
+  }
+}
 
 export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(
     sharedWithMe.length > 0 ? sharedWithMe[0].owner.id : null,
   )
-  const [weekOffset, setWeekOffset] = useState(0)
+  const [datePreset, setDatePreset] = useState<DatePreset>('this-week')
 
   const selectedUser = sharedWithMe.find((s) => s.owner.id === selectedUserId)?.owner
-  const range = useMemo(() => getRollingWeekRange(weekOffset), [weekOffset])
+  const range = useMemo(() => getDateRange(datePreset), [datePreset])
 
   // Fetch time entries for selected user
   const entriesQuery = useSharedUserTimeEntriesQuery(selectedUserId, range.startDate, range.endDate)
@@ -38,6 +89,30 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
 
   // Calculate statistics
   const stats = useMemo(() => calculateStatistics(entries), [entries])
+
+  // Export to CSV
+  const handleExportCSV = () => {
+    if (!selectedUser || entries.length === 0) return
+    
+    const headers = ['Date', 'Duration', 'Goal', 'Task']
+    const rows = entries.map(entry => [
+      entry.date,
+      formatDuration(entry.duration),
+      entry.goal?.title || '',
+      entry.taskName || '',
+    ])
+    
+    const csvContent = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${selectedUser.name}-time-report-${range.startDate}-to-${range.endDate}.csv`
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+  }
 
   if (sharedWithMe.length === 0) {
     return (
@@ -53,7 +128,7 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* User Selector */}
+      {/* User Selector Card */}
       <div className="card-brutal">
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
           <div>
@@ -65,18 +140,20 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
           </div>
 
           <Select value={selectedUserId || ''} onValueChange={(v) => setSelectedUserId(v)}>
-            <SelectTrigger className="w-full border-3 border-secondary sm:w-[280px]">
+            <SelectTrigger className="w-full border-3 border-secondary bg-white sm:w-[300px]">
               <SelectValue placeholder="Select a person" />
             </SelectTrigger>
             <SelectContent>
               {sharedWithMe.map((share) => (
                 <SelectItem key={share.owner.id} value={share.owner.id}>
                   <div className="flex items-center gap-2">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold">
+                    <div className="flex h-6 w-6 items-center justify-center border-2 border-secondary bg-primary text-xs font-bold">
                       {share.owner.name?.[0]?.toUpperCase() || '?'}
                     </div>
-                    <span>{share.owner.name}</span>
-                    <span className="text-gray-500">({share.owner.email})</span>
+                    <div className="flex flex-col items-start">
+                      <span className="font-bold">{share.owner.name}</span>
+                      <span className="font-mono text-xs text-gray-500">{share.owner.email}</span>
+                    </div>
                   </div>
                 </SelectItem>
               ))}
@@ -87,35 +164,92 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
 
       {selectedUser && (
         <>
-          {/* Date Range Selector */}
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span className="font-mono text-xs sm:text-sm">{range.label}</span>
+          {/* Mentee Profile Card */}
+          {(() => {
+            const share = sharedWithMe.find((s) => s.owner.id === selectedUserId)
+            if (!share) return null
+            return (
+              <div className="card-brutal bg-gradient-to-r from-primary/10 to-transparent">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                  {/* Avatar */}
+                  <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center border-3 border-secondary bg-primary text-2xl font-black text-white shadow-brutal">
+                    {share.owner.avatar ? (
+                      <img src={share.owner.avatar} alt={share.owner.name} className="h-full w-full object-cover" />
+                    ) : (
+                      share.owner.name?.[0]?.toUpperCase() || '?'
+                    )}
+                  </div>
+                  
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-xl font-bold">{share.owner.name}</h3>
+                    <p className="font-mono text-sm text-gray-600">{share.owner.email}</p>
+                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
+                      <span className={cn(
+                        "inline-flex items-center gap-1 rounded-full border-2 px-2 py-0.5 font-bold uppercase",
+                        share.accessLevel === 'EDIT' 
+                          ? "border-green-600 bg-green-100 text-green-700"
+                          : "border-blue-600 bg-blue-100 text-blue-700"
+                      )}>
+                        {share.accessLevel === 'EDIT' ? '✏️ Edit Access' : '👁️ View Only'}
+                      </span>
+                      <span className="font-mono text-gray-500">
+                        Shared {format(new Date(share.createdAt), 'MMM d, yyyy')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* Controls Bar */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+            {/* Date Range */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2 font-mono text-sm">
+                <Calendar className="h-4 w-4" />
+                <span>{range.label}</span>
+              </div>
+              
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="btn-brutal-secondary flex items-center gap-1 px-3 py-2 text-xs">
+                    <span>Change</span>
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-48 border-3 border-secondary p-0" align="start">
+                  <div className="flex flex-col">
+                    {DATE_PRESETS.map((preset) => (
+                      <button
+                        key={preset.value}
+                        onClick={() => setDatePreset(preset.value)}
+                        className={cn(
+                          'px-4 py-2 text-left text-sm font-medium transition-colors hover:bg-gray-100',
+                          datePreset === preset.value && 'bg-primary font-bold',
+                        )}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setWeekOffset((o) => o - 1)}
-                className="btn-brutal-secondary flex-1 px-3 py-2 text-xs sm:flex-none"
-              >
-                Prev Week
-              </button>
-              <button
-                onClick={() => setWeekOffset((o) => Math.min(o + 1, 0))}
-                disabled={weekOffset >= 0}
-                className={cn(
-                  'btn-brutal-secondary flex-1 px-3 py-2 text-xs sm:flex-none',
-                  weekOffset >= 0 && 'opacity-50',
-                )}
-              >
-                Next Week
-              </button>
-              {weekOffset !== 0 && (
-                <button onClick={() => setWeekOffset(0)} className="btn-brutal flex-1 px-3 py-2 text-xs sm:flex-none">
-                  Today
-                </button>
+
+            {/* Export Button */}
+            <button
+              onClick={handleExportCSV}
+              disabled={entries.length === 0}
+              className={cn(
+                'btn-brutal-secondary flex items-center gap-2 px-4 py-2 text-xs',
+                entries.length === 0 && 'cursor-not-allowed opacity-50',
               )}
-            </div>
+            >
+              <Download className="h-4 w-4" />
+              <span>Export CSV</span>
+            </button>
           </div>
 
           {/* Loading State */}
