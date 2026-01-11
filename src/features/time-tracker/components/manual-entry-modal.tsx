@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react'
 
 import { useCategoriesQuery } from '@/features/categories'
 import { useCreateTimeEntry } from '@/features/time-tracker/hooks/use-time-tracker-mutations'
+import { buildLocalDateFromParts, findScheduleBlockForDateTime } from '@/features/time-tracker/utils/schedule'
+import { filterTasks, getCategoryFromGoal, getGoalIdFromCategory, getTaskByGoalOrCategory } from '@/features/time-tracker/utils/selection-helpers'
 import { Goal, Task } from '@/features/time-tracker/utils/types'
+import { WeekSchedule } from '@/features/schedule/utils/types'
 
-import { cn, getLocalDateString } from '@/lib/utils'
+import { cn, getLocalDateString, getLocalTimeString } from '@/lib/utils'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
@@ -13,19 +16,22 @@ interface ManualEntryModalProps {
   onClose: () => void
   goals: Goal[]
   tasks: Task[]
+  weeklySchedule?: WeekSchedule
 }
 
-export function ManualEntryModal({ isOpen, onClose, goals, tasks }: ManualEntryModalProps) {
+export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule }: ManualEntryModalProps) {
   const [title, setTitle] = useState('')
   const [duration, setDuration] = useState(30)
   const [category, setCategory] = useState('')
   const [goalId, setGoalId] = useState('')
   const [date, setDate] = useState(getLocalDateString())
-  const [startTime, setStartTime] = useState('09:00')
+  const [startTime, setStartTime] = useState(getLocalTimeString())
   const [taskId, setTaskId] = useState('')
+  const [scheduleBlockId, setScheduleBlockId] = useState('')
 
   const createEntry = useCreateTimeEntry()
   const { data: categories = [] } = useCategoriesQuery()
+  const visibleTasks = filterTasks(tasks, category || undefined, goalId || undefined)
 
   // Set default category when categories load
   useEffect(() => {
@@ -34,10 +40,49 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks }: ManualEntryM
     }
   }, [categories, category])
 
+  // Reset date/time defaults whenever the modal opens so schedule detection uses the current local context
+  useEffect(() => {
+    if (isOpen) {
+      setDate(getLocalDateString())
+      setStartTime(getLocalTimeString())
+    }
+  }, [isOpen])
+
+  useEffect(() => {
+    if (!isOpen) {
+      setScheduleBlockId('')
+      return
+    }
+
+    if (!weeklySchedule) return
+
+    const localDate = buildLocalDateFromParts(date, startTime)
+    const activeBlock = findScheduleBlockForDateTime(weeklySchedule, localDate)
+
+    if (!activeBlock) {
+      setScheduleBlockId('')
+      return
+    }
+
+    setScheduleBlockId(activeBlock.id)
+
+    if (!taskId && activeBlock.goalId) {
+      setGoalId(activeBlock.goalId)
+    }
+
+    if (!taskId && !category && activeBlock.category) {
+      setCategory(activeBlock.category)
+    }
+
+    if (!taskId && !title) {
+      setTitle(activeBlock.title)
+    }
+  }, [isOpen, weeklySchedule, date, startTime, taskId, category, title])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const startedAt = startTime ? new Date(`${date}T${startTime}:00`).toISOString() : undefined
+    const startedAt = startTime ? buildLocalDateFromParts(date, startTime).toISOString() : undefined
     const taskTitle = taskId ? tasks.find((t) => t.id === taskId)?.title || title : title
 
     createEntry.mutate({
@@ -49,11 +94,14 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks }: ManualEntryM
       date,
       notes: `Manual entry`,
       goalId: goalId || undefined,
+      scheduleBlockId: scheduleBlockId || undefined,
     })
     onClose()
     setTitle('')
     setDuration(30)
     setTaskId('')
+    setScheduleBlockId('')
+    setStartTime(getLocalTimeString())
   }
 
   return (
@@ -84,7 +132,7 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks }: ManualEntryM
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="no_task">Choose a task</SelectItem>
-                {tasks.map((task) => (
+                {visibleTasks.map((task) => (
                   <SelectItem key={task.id} value={task.id}>
                     {task.title}
                   </SelectItem>
@@ -157,7 +205,21 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks }: ManualEntryM
             <label className="mb-2 block text-sm font-bold uppercase">
               Category {taskId && <span className="text-xs opacity-70">(From Task)</span>}
             </label>
-            <Select value={category} onValueChange={setCategory} disabled={!!taskId}>
+            <Select
+              value={category}
+              onValueChange={(value) => {
+                if (taskId) return
+                setCategory(value)
+                const linkedGoal = getGoalIdFromCategory(value, goals)
+                setGoalId(linkedGoal)
+                const linkedTask = getTaskByGoalOrCategory(tasks, linkedGoal || undefined, value)
+                if (linkedTask) {
+                  setTaskId(linkedTask.id)
+                  setTitle(linkedTask.title)
+                }
+              }}
+              disabled={!!taskId}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
@@ -177,7 +239,20 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks }: ManualEntryM
             </label>
             <Select
               value={goalId || 'no_goal'}
-              onValueChange={(value) => setGoalId(value === 'no_goal' ? '' : value)}
+              onValueChange={(value) => {
+                if (taskId) return
+                const normalized = value === 'no_goal' ? '' : value
+                setGoalId(normalized)
+                const derivedCategory = getCategoryFromGoal(normalized, goals)
+                if (derivedCategory) {
+                  setCategory(derivedCategory)
+                }
+                const linkedTask = getTaskByGoalOrCategory(tasks, normalized || undefined, derivedCategory || category)
+                if (linkedTask) {
+                  setTaskId(linkedTask.id)
+                  setTitle(linkedTask.title)
+                }
+              }}
               disabled={!!taskId}
             >
               <SelectTrigger>

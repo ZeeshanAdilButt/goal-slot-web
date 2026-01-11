@@ -31,6 +31,7 @@ function LoginForm() {
       await login(email, password)
       toast.success('Welcome back!')
       // Redirect to the specified URL or default to dashboard
+      // If we are already on login page and not coming from anywhere specific, go to dashboard
       router.push(redirect || '/dashboard')
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Invalid credentials')

@@ -1,9 +1,9 @@
+import { TiptapEditor } from '@/components/tiptap-editor/tiptap-editor'
 import { useEffect, useState } from 'react'
 
-import { useCategoriesQuery } from '@/features/categories'
 import { CreateTaskForm, Goal, ScheduleBlock, Task } from '@/features/tasks/utils/types'
 
-import { DAYS_OF_WEEK_FULL, getLocalDateString } from '@/lib/utils'
+import { getLocalDateString } from '@/lib/utils'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
@@ -17,6 +17,13 @@ interface CreateTaskModalProps {
   defaultGoalId?: string
 }
 
+const STATUS_OPTIONS = [
+  { value: 'BACKLOG', label: 'Backlog' },
+  { value: 'TODO', label: 'To Do' },
+  { value: 'DOING', label: 'Doing' },
+  { value: 'DONE', label: 'Done' },
+]
+
 export function CreateTaskModal({
   isOpen,
   onClose,
@@ -28,8 +35,8 @@ export function CreateTaskModal({
 }: CreateTaskModalProps) {
   const [creating, setCreating] = useState(false)
   const [estimatedHours, setEstimatedHours] = useState('')
-  const { data: categories = [] } = useCategoriesQuery()
-  //Status is set automatically by the backend to 'pending'
+  const [status, setStatus] = useState('BACKLOG')
+  
   const [form, setForm] = useState<CreateTaskForm>({
     title: '',
     description: '',
@@ -51,6 +58,7 @@ export function CreateTaskModal({
         scheduleBlockId: task.scheduleBlockId || '',
         dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
       })
+      setStatus(task.status || 'BACKLOG')
       
       // Calculate hours from minutes (e.g. 90 mins -> 1.5 hours)
       if (task.estimatedMinutes) {
@@ -70,6 +78,7 @@ export function CreateTaskModal({
       }
 
       setEstimatedHours('')
+      setStatus('BACKLOG')
 
       // Pre-fill from default goal
       if (defaultGoalId) {
@@ -79,19 +88,8 @@ export function CreateTaskModal({
             initialForm.category = selectedGoal.category
           }
 
-          // Pick schedule block for today if available, otherwise any block for this goal
-          const today = new Date().getDay()
           const todayDate = getLocalDateString()
-          
           initialForm.dueDate = todayDate
-
-          const goalBlock = 
-            scheduleBlocks.find((sb) => sb.goalId === defaultGoalId && sb.dayOfWeek === today) ||
-            scheduleBlocks.find((sb) => sb.goalId === defaultGoalId)
-            
-          if (goalBlock) {
-            initialForm.scheduleBlockId = goalBlock.id
-          }
         }
       }
 
@@ -104,11 +102,10 @@ export function CreateTaskModal({
     setCreating(true)
     
     // Convert hours back to minutes for submission if valid (e.g. 1.5 -> 90)
-    let finalForm = { ...form }
+    let finalForm = { ...form, status }
     if (estimatedHours && !isNaN(parseFloat(estimatedHours))) {
       finalForm.estimatedMinutes = Math.round(parseFloat(estimatedHours) * 60).toString()
     } else {
-        // If empty or invalid, keep as is (likely empty string from form state)
        finalForm.estimatedMinutes = ''
     }
 
@@ -125,13 +122,14 @@ export function CreateTaskModal({
         dueDate: '',
       })
       setEstimatedHours('')
+      setStatus('BACKLOG')
       onClose()
     }
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="modal-brutal max-w-xl">
+      <DialogContent className="modal-brutal w-[90vw] max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold uppercase">{task ? 'Edit Task' : 'New Task'}</DialogTitle>
         </DialogHeader>
@@ -144,95 +142,24 @@ export function CreateTaskModal({
               onChange={(e) => setForm({ ...form, title: e.target.value })}
             />
           </div>
-          <div>
-            <label className="font-mono text-sm uppercase">Description</label>
-            <textarea
-              className="input-brutal mt-1 w-full"
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              rows={3}
-            />
-          </div>
-          <div>
-            <label className="font-mono text-sm uppercase">Category</label>
-            <Select
-              value={form.category || 'none'}
-              onValueChange={(value) => setForm({ ...form, category: value === 'none' ? '' : value })}
-            >
-              <SelectTrigger className="input-brutal mt-1 w-full">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Select category</SelectItem>
-                {categories.map((cat) => (
-                  <SelectItem key={cat.value} value={cat.value}>
-                    {cat.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-3 md:grid-cols-2">
+
+          {/* Options row above description */}
+          <div className="grid gap-3 sm:grid-cols-3">
             <div>
-              <label className="font-mono text-sm uppercase">Schedule Block</label>
-              <Select
-                value={form.scheduleBlockId || 'none'}
-                onValueChange={(value) => setForm({ ...form, scheduleBlockId: value === 'none' ? '' : value })}
-              >
+              <label className="font-mono text-sm uppercase">Status</label>
+              <Select value={status} onValueChange={setStatus}>
                 <SelectTrigger className="input-brutal mt-1 w-full">
-                  <SelectValue placeholder="No schedule" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">No schedule</SelectItem>
-                  {scheduleBlocks.map((block) => (
-                    <SelectItem key={block.id} value={block.id}>
-                      {DAYS_OF_WEEK_FULL[block.dayOfWeek]} • {block.startTime}-{block.endTime} • {block.title}
+                  {STATUS_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <label className="font-mono text-sm uppercase">Goal</label>
-              <Select
-                value={form.goalId || 'none'}
-                onValueChange={(value) => {
-                  const goalId = value === 'none' ? '' : value
-                  const newForm = { ...form, goalId }
-
-                  // Auto-select category and schedule from goal
-                  if (goalId) {
-                    const selectedGoal = goals.find((g) => g.id === goalId)
-                    if (selectedGoal) {
-                      if (selectedGoal.category) {
-                        newForm.category = selectedGoal.category
-                      }
-                      // Find first schedule block associated with this goal
-                      const goalBlock = scheduleBlocks.find((sb) => sb.goalId === goalId)
-                      if (goalBlock) {
-                        newForm.scheduleBlockId = goalBlock.id
-                      }
-                    }
-                  }
-
-                  setForm(newForm)
-                }}
-              >
-                <SelectTrigger className="input-brutal mt-1 w-full">
-                  <SelectValue placeholder="No goal" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No goal</SelectItem>
-                  {goals.map((goal) => (
-                    <SelectItem key={goal.id} value={goal.id}>
-                      {goal.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="grid gap-3 md:grid-cols-3">
             <div>
               <label className="font-mono text-sm uppercase">Est. Hours</label>
               <input
@@ -245,7 +172,7 @@ export function CreateTaskModal({
                 placeholder="e.g. 1.5"
               />
             </div>
-            <div className="md:col-span-2">
+            <div>
               <label className="font-mono text-sm uppercase">Due Date</label>
               <input
                 type="date"
@@ -254,6 +181,20 @@ export function CreateTaskModal({
                 onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
               />
             </div>
+          </div>
+
+          {/* Description with resizable textarea */}
+          <div>
+            <label className="font-mono text-sm uppercase">Description</label>
+            <div className="mt-1 w-full rounded-none border-3 border-secondary bg-white">
+              <TiptapEditor
+                content={form.description}
+                onChange={(html) => setForm({ ...form, description: html })}
+                placeholder="Details of the task..."
+                className="min-h-[350px] max-h-[600px] overflow-y-auto resize-y border-none shadow-none"
+              />
+            </div>
+            <p className="mt-1 text-[10px] uppercase text-gray-500">Drag bottom-right corner to resize</p>
           </div>
         </div>
         <DialogFooter className="flex-row gap-3 pt-4">

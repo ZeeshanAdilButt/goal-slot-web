@@ -7,6 +7,7 @@ export interface ScheduleBlock {
   category: string
   color: string
   isRecurring: boolean
+  seriesId: string
   goalId?: string
   goal?: { id: string; title: string; color: string; category?: string }
   tasks?: { id: string; title: string; status: string }[]
@@ -22,6 +23,13 @@ export type SchedulePayload = {
   category: string
   color: string
   goalId?: string
+  seriesId?: string
+}
+
+export type ScheduleUpdateScope = 'single' | 'series'
+
+export type ScheduleUpdatePayload = Partial<Omit<SchedulePayload, 'seriesId'>> & {
+  updateScope?: ScheduleUpdateScope
 }
 
 export type DraftSelection = {

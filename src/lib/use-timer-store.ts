@@ -11,12 +11,14 @@ interface TimerStoreState {
   currentTaskId: string
   currentCategory: string
   currentGoalId: string
+  currentScheduleBlockId: string
 
   setTask: (task: string) => void
   setTaskId: (taskId: string) => void
   setCategory: (category: string) => void
   setGoalId: (goalId: string) => void
-  start: (task: string, category: string, goalId: string) => void
+  setScheduleBlockId: (scheduleBlockId: string) => void
+  start: (task: string, category: string, goalId: string, scheduleBlockId?: string) => void
   pause: (elapsedSeconds: number) => void
   resume: () => void
   reset: () => void
@@ -34,13 +36,15 @@ export const useTimerStore = create<TimerStoreState>()(
       currentTaskId: '',
       currentCategory: 'DEEP_WORK',
       currentGoalId: '',
+      currentScheduleBlockId: '',
 
       setTask: (task) => set({ currentTask: task }),
       setTaskId: (taskId) => set({ currentTaskId: taskId }),
       setCategory: (category) => set({ currentCategory: category }),
       setGoalId: (goalId) => set({ currentGoalId: goalId }),
+      setScheduleBlockId: (scheduleBlockId) => set({ currentScheduleBlockId: scheduleBlockId }),
 
-      start: (task, category, goalId) =>
+      start: (task, category, goalId, scheduleBlockId) =>
         set({
           timerState: 'RUNNING',
           startTimestamp: Date.now(),
@@ -49,6 +53,7 @@ export const useTimerStore = create<TimerStoreState>()(
           currentTaskId: get().currentTaskId,
           currentCategory: category,
           currentGoalId: goalId,
+          currentScheduleBlockId: scheduleBlockId ?? get().currentScheduleBlockId,
         }),
 
       pause: (elapsedSeconds) =>
@@ -73,6 +78,7 @@ export const useTimerStore = create<TimerStoreState>()(
           currentTask: '',
           currentTaskId: '',
           currentGoalId: '',
+          currentScheduleBlockId: '',
         }),
     }),
     {

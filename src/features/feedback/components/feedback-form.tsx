@@ -4,6 +4,7 @@ import { FeedbackEmojiSelector } from '@/features/feedback/components/feedback-e
 import { MSupportedIcon } from '@/features/feedback/components/feedback-icons'
 import { Button1 } from '@/features/feedback/components/ui/button-1'
 import { useCreateFeedbackMutation } from '@/features/feedback/hooks/use-feedback-mutations'
+import { useAuthStore } from '@/lib/store'
 
 import { Textarea } from '@/components/ui/textarea'
 
@@ -17,9 +18,12 @@ export const FeedbackForm = ({ onSuccess, variant = 'default' }: FeedbackFormPro
   const [feedbackText, setFeedbackText] = useState<string>('')
 
   const createMutation = useCreateFeedbackMutation()
+  const { isAuthenticated } = useAuthStore()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!isAuthenticated) return
 
     // Don't submit if neither emoji nor text is provided
     if (selectedEmoji === null && !feedbackText.trim()) {
@@ -45,10 +49,11 @@ export const FeedbackForm = ({ onSuccess, variant = 'default' }: FeedbackFormPro
     <form onSubmit={handleSubmit}>
       <div className="flex flex-col gap-2 p-2">
         <Textarea
-          placeholder="Your feedback..."
+          placeholder={isAuthenticated ? 'Your feedback...' : 'Log in to send feedback'}
           className="h-[100px]"
           value={feedbackText}
           onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFeedbackText(e.target.value)}
+          disabled={!isAuthenticated}
         />
         <div className="ml-auto flex items-center gap-1 text-sm text-gray-900">
           <MSupportedIcon /> supported.
@@ -59,8 +64,8 @@ export const FeedbackForm = ({ onSuccess, variant = 'default' }: FeedbackFormPro
         style={{ backgroundColor: 'var(--accents-1)', borderColor: 'var(--accents-2)' }}
       >
         <FeedbackEmojiSelector selectedEmoji={selectedEmoji} onEmojiSelect={setSelectedEmoji} variant={variant} />
-        <Button1 size="small" htmlType="submit" disabled={createMutation.isPending}>
-          {createMutation.isPending ? 'Sending...' : 'Send'}
+        <Button1 size="small" htmlType="submit" disabled={!isAuthenticated || createMutation.isPending}>
+          {!isAuthenticated ? 'Log in to send' : createMutation.isPending ? 'Sending...' : 'Send'}
         </Button1>
       </div>
     </form>

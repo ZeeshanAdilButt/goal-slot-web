@@ -1,3 +1,5 @@
+import { TaskStatus } from '@/features/tasks/utils/types'
+
 export interface Goal {
   id: string
   title: string
@@ -11,6 +13,8 @@ export interface TimeEntry {
   notes?: string
   duration: number
   date: string
+  scheduleBlockId?: string
+  scheduleBlock?: { id: string; title: string; category?: string }
   goalId?: string
   goal?: Goal
   startedAt?: string
@@ -25,7 +29,7 @@ export interface Task {
   goalId?: string
   goalTitle?: string
   goal?: { id: string; title: string; color: string }
-  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED'
+  status: TaskStatus
 }
 
 export interface CreateTimeEntryPayload {
@@ -37,4 +41,5 @@ export interface CreateTimeEntryPayload {
   notes?: string
   goalId?: string
   startedAt?: string
+  scheduleBlockId?: string
 }

@@ -1,34 +1,45 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
+import { useFilteredEntries, type ReportFilterState } from '@/features/reports/components/focus-filters'
 import { FocusUpdatingOverlay } from '@/features/reports/components/focus-updating-overlay'
 import { useFocusTimeEntriesRangeQuery } from '@/features/reports/hooks/use-focus-time-entries'
-import { getRollingRange } from '@/features/reports/utils/dates'
-import type { FocusGranularity } from '@/features/reports/utils/types'
+import { getPeriodRange } from '@/features/reports/utils/dates'
+import type { FocusGranularity, FocusTimeEntry } from '@/features/reports/utils/types'
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
 import { cn, formatDuration } from '@/lib/utils'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import AnimateChangeInHeight from '@/components/animate-change-in-height'
-
-const GRANULARITY_OPTIONS: Array<{ value: FocusGranularity; label: string }> = [
-  { value: 'day', label: 'Daily' },
-  { value: 'week', label: 'Weekly' },
-  { value: 'month', label: 'Monthly' },
-]
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1']
 
-export function FocusCategoryPieCard() {
-  const [granularity, setGranularity] = useState<FocusGranularity>('week')
+interface FocusCategoryPieCardProps {
+  view: FocusGranularity
+  filters?: ReportFilterState
+  explicitEntries?: FocusTimeEntry[]
+  isLoading?: boolean
+}
+
+export function FocusCategoryPieCard({ view, filters, explicitEntries, isLoading: explicitLoading }: FocusCategoryPieCardProps) {
   const [offset, setOffset] = useState(0)
 
-  const range = useMemo(() => getRollingRange({ granularity, offset }), [granularity, offset])
+  useEffect(() => {
+    setOffset(0)
+  }, [view])
+
+  const granularity = view
+
+  const range = useMemo(() => getPeriodRange({ period: granularity, offset }), [granularity, offset])
   const entriesQuery = useFocusTimeEntriesRangeQuery({ startDate: range.startDate, endDate: range.endDate })
+  
+  const rawEntries = explicitEntries ?? entriesQuery.data ?? []
+  const entries = useFilteredEntries(rawEntries, filters ?? { goalIds: [], categoryIds: [] })
+
+  const showLoading = (explicitLoading ?? entriesQuery.isLoading) && rawEntries.length === 0
+  const showUpdating = (explicitLoading ?? entriesQuery.isFetching) && !showLoading
 
   const data = useMemo(() => {
-    const entries = entriesQuery.data || []
     const categoryMap = new Map<string, number>()
 
     entries.forEach((entry) => {
@@ -47,10 +58,7 @@ export function FocusCategoryPieCard() {
     return Array.from(categoryMap.entries())
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value)
-  }, [entriesQuery.data])
-
-  const showLoading = entriesQuery.isLoading && data.length === 0
-  const showUpdating = entriesQuery.isFetching && !showLoading
+  }, [entries])
 
   return (
     <div className="card-brutal">
@@ -76,25 +84,6 @@ export function FocusCategoryPieCard() {
           >
             Next
           </button>
-
-          <Select
-            value={granularity}
-            onValueChange={(v) => {
-              setGranularity(v as FocusGranularity)
-              setOffset(0)
-            }}
-          >
-            <SelectTrigger className="h-10 w-[140px] border-3 border-secondary">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {GRANULARITY_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
       </div>
 

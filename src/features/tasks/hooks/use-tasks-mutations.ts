@@ -108,7 +108,7 @@ export function useCreateTaskMutation() {
         id: optimisticId,
         title: form.title,
         description: normalized.description || undefined,
-        status: 'PENDING',
+        status: 'BACKLOG',
         category: normalized.category || undefined,
         estimatedMinutes: normalized.estimatedMinutes,
         goalId: normalized.goalId,
@@ -182,7 +182,7 @@ export function useCompleteTaskMutation() {
       if (original) {
         syncTaskInCache(queryClient, {
           ...original,
-          status: 'COMPLETED',
+          status: 'DONE',
           actualMinutes: minutes,
           completedAt: new Date().toISOString(),
         })
@@ -234,7 +234,7 @@ export function useRestoreTaskMutation() {
       if (original) {
         syncTaskInCache(queryClient, {
           ...original,
-          status: 'PENDING',
+          status: 'TODO',
           completedAt: undefined,
           actualMinutes: undefined,
         })
@@ -244,5 +244,18 @@ export function useRestoreTaskMutation() {
     onSuccess: () => toast.success('Task restored'),
     onError: (err, _, context) => handleMutationError(queryClient, context, err, 'Failed to restore task'),
     onSettled: () => queryClient.invalidateQueries({ queryKey: taskQueries.all }),
+  })
+}
+
+export function useReorderTasksMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      await tasksApi.reorder(ids)
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: taskQueries.all })
+    },
   })
 }

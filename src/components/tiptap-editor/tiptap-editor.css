@@ -297,12 +297,16 @@
 
 /* Tables */
 .tiptap-editor .ProseMirror table {
-  @apply w-full border-collapse my-4;
+  @apply border-collapse my-4;
+  width: 100%;
+  table-layout: fixed;
 }
 
 .tiptap-editor .ProseMirror table th,
 .tiptap-editor .ProseMirror table td {
-  @apply border-2 border-border p-2 text-left align-top min-w-[100px];
+  @apply border-2 border-border p-2 text-left align-top;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .tiptap-editor .ProseMirror table th {
@@ -314,7 +318,8 @@
 }
 
 .tiptap-editor .ProseMirror .tableWrapper {
-  @apply overflow-x-auto;
+  @apply w-full;
+  overflow: visible;
 }
 
 .tiptap-editor .ProseMirror table .selectedCell {

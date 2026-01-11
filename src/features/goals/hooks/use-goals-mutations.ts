@@ -175,3 +175,16 @@ export function useDeleteGoalMutation() {
     },
   })
 }
+
+export function useReorderGoalsMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      await goalsApi.reorder(ids)
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: goalQueries.all })
+    },
+  })
+}

@@ -34,6 +34,7 @@ export interface SharedWithMeUser {
   id: string
   ownerId: string
   owner: SharedUser
+  accessLevel: AccessLevel
   createdAt: string
 }
 
@@ -102,4 +103,21 @@ export interface SharedReportsStats {
     color: string
     minutes: number
   }>
+}
+
+export type ShareMode = 'email' | 'public-link'
+
+export interface PublicLink {
+  id: string
+  publicLink: string
+  token: string
+  expiresAt: string
+  accessLevel: AccessLevel
+  createdAt: string
+  isExpired?: boolean
+}
+
+export interface CreatePublicLinkParams {
+  accessLevel?: AccessLevel
+  expiresInDays?: number
 }

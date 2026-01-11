@@ -1,42 +1,48 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
+import { useFilteredEntries, type ReportFilterState } from '@/features/reports/components/focus-filters'
 import { FocusUpdatingOverlay } from '@/features/reports/components/focus-updating-overlay'
 import { useFocusTimeEntriesRangeQuery } from '@/features/reports/hooks/use-focus-time-entries'
 import { buildStackedSeries, formatMinutesAsHoursTick } from '@/features/reports/utils/aggregation'
 import { getRollingRange } from '@/features/reports/utils/dates'
-import type { FocusGranularity, FocusGroupBy } from '@/features/reports/utils/types'
+import { getDateOnlyFromIsoString } from '@/features/reports/utils/dates'
+import type { FocusGranularity, FocusGroupBy, FocusTimeEntry } from '@/features/reports/utils/types'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { cn, formatDuration } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import AnimateChangeInHeight from '@/components/animate-change-in-height'
 
-const GRANULARITY_OPTIONS: Array<{ value: FocusGranularity; label: string }> = [
-  { value: 'day', label: 'Daily' },
-  { value: 'week', label: 'Weekly' },
-  { value: 'month', label: 'Monthly' },
-]
 
-const GROUP_BY_OPTIONS: Array<{ value: FocusGroupBy; label: string }> = [
-  { value: 'goal', label: 'Goal' },
-  { value: 'task', label: 'Task' },
-]
+interface FocusBreakdownCardProps {
+  view: FocusGranularity
+  groupBy: FocusGroupBy
+  filters?: ReportFilterState
+  explicitEntries?: FocusTimeEntry[]
+  isLoading?: boolean
+}
 
-export function FocusBreakdownCard() {
-  const [groupBy, setGroupBy] = useState<FocusGroupBy>('goal')
-  const [granularity, setGranularity] = useState<FocusGranularity>('week')
+export function FocusBreakdownCard({ view, groupBy, filters, explicitEntries, isLoading: explicitLoading }: FocusBreakdownCardProps) {
   const [offset, setOffset] = useState(0)
+
+  useEffect(() => {
+    setOffset(0)
+  }, [view])
+
+  const granularity = view
 
   const range = useMemo(() => getRollingRange({ granularity, offset }), [granularity, offset])
   const entriesQuery = useFocusTimeEntriesRangeQuery({ startDate: range.startDate, endDate: range.endDate })
-  const entries = entriesQuery.data ?? []
-  const showLoading = entriesQuery.isLoading && entries.length === 0
-  const showUpdating = entriesQuery.isFetching && !showLoading
+  
+  const rawEntries = explicitEntries ?? entriesQuery.data ?? []
+  const entries = useFilteredEntries(rawEntries, filters ?? { goalIds: [], categoryIds: [] })
+  
+  const showLoading = (explicitLoading ?? entriesQuery.isLoading) && rawEntries.length === 0
+  const showUpdating = (explicitLoading ?? entriesQuery.isFetching) && !showLoading
 
   const series = useMemo(() => {
-    const entries = entriesQuery.data ?? []
     const topN = groupBy === 'task' ? 8 : 6
     return buildStackedSeries({
       entries,
@@ -46,7 +52,7 @@ export function FocusBreakdownCard() {
       startDate: range.startDate,
       endDate: range.endDate,
     })
-  }, [entriesQuery, granularity, groupBy, range])
+  }, [entries, granularity, groupBy, range])
 
   const stackLabelByKey = useMemo(() => Object.fromEntries(series.stacks.map((s) => [s.key, s.label])), [series.stacks])
 
@@ -74,38 +80,6 @@ export function FocusBreakdownCard() {
           >
             Next
           </button>
-
-          <Select value={groupBy} onValueChange={(v) => setGroupBy(v as FocusGroupBy)}>
-            <SelectTrigger className="h-10 w-[140px] border-3 border-secondary">
-              <SelectValue placeholder="Group by" />
-            </SelectTrigger>
-            <SelectContent>
-              {GROUP_BY_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={granularity}
-            onValueChange={(v) => {
-              setGranularity(v as FocusGranularity)
-              setOffset(0)
-            }}
-          >
-            <SelectTrigger className="h-10 w-[140px] border-3 border-secondary">
-              <SelectValue placeholder="Granularity" />
-            </SelectTrigger>
-            <SelectContent>
-              {GRANULARITY_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
       </div>
 

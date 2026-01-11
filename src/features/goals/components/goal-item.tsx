@@ -17,6 +17,7 @@ interface GoalItemProps {
 }
 
 export function GoalItem({ goal, index, onEdit, isLocked = false }: GoalItemProps) {
+  const canEdit = !isLocked
   const deleteMutation = useDeleteGoalMutation()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
@@ -68,14 +69,22 @@ export function GoalItem({ goal, index, onEdit, isLocked = false }: GoalItemProp
         {/* Actions */}
         <div className="flex shrink-0 gap-2">
           <button
-            onClick={() => onEdit(goal)}
-            className="flex h-8 w-8 items-center justify-center border-2 border-secondary bg-white transition-colors hover:bg-gray-100"
+            onClick={() => canEdit && onEdit(goal)}
+            disabled={!canEdit}
+            className={cn(
+              'flex h-8 w-8 items-center justify-center border-2 border-secondary bg-white transition-colors hover:bg-gray-100',
+              !canEdit && 'cursor-not-allowed opacity-50 hover:bg-white'
+            )}
           >
             <Edit2 className="h-4 w-4" />
           </button>
           <button
-            onClick={handleDelete}
-            className="flex h-8 w-8 items-center justify-center border-2 border-secondary bg-white text-red-500 transition-colors hover:bg-red-100"
+            onClick={() => canEdit && handleDelete()}
+            disabled={!canEdit}
+            className={cn(
+              'flex h-8 w-8 items-center justify-center border-2 border-secondary bg-white text-red-500 transition-colors hover:bg-red-100',
+              !canEdit && 'cursor-not-allowed opacity-50 hover:bg-white'
+            )}
           >
             <Trash2 className="h-4 w-4" />
           </button>

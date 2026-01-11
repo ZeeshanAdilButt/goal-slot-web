@@ -1,20 +1,29 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 
 import './globals.css'
 
 import { Feedback } from '@/features/feedback'
+import { NotificationsButton } from '@/features/notifications/components/notifications-button'
 import { Toaster } from 'react-hot-toast'
 
 import { ReactQueryProvider } from '@/lib/react-query-provider'
 
+export const viewport: Viewport = {
+  themeColor: '#000000',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+}
+
 export const metadata: Metadata = {
+  manifest: '/manifest.json',
   title: 'GoalSlot.io | Your Growth, Measured',
   description: 'Track your hours, see real progress, and level up. The productivity stack for developers and learners.',
   keywords: ['productivity', 'time tracking', 'goals', 'developer', 'learning', 'progress tracking'],
   authors: [{ name: 'GoalSlot' }],
   icons: {
-    icon: '/favicon.svg',
-    shortcut: '/favicon.svg',
+    icon: '/icons/goalslot-logo-boxed.svg',
+    shortcut: '/icons/goalslot-logo-boxed.svg',
     apple: '/icons/goalslot-logo-boxed.svg',
   },
   openGraph: {
@@ -37,7 +46,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <ReactQueryProvider>
           {children}
-          <div className="fixed bottom-6 right-6 z-50">
+          <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+            <NotificationsButton />
             <Feedback label="Feedback" />
           </div>
           <Toaster

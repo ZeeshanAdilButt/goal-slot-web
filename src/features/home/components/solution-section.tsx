@@ -68,15 +68,15 @@ export function SolutionSection() {
             <ul className="mt-6 space-y-2">
               <li className="flex items-center gap-2 font-mono text-sm text-white">
                 <CheckCircle className="h-4 w-4" />
-                Goals → Schedule → Time Tracking → Reports
+                Goals → Schedule → Time Tracking → Analytics
+              </li>
+              <li className="flex items-center gap-2 font-mono text-sm text-white">
+                <CheckCircle className="h-4 w-4" />
+                Notes with /commands for quick capture
               </li>
               <li className="flex items-center gap-2 font-mono text-sm text-white">
                 <CheckCircle className="h-4 w-4" />
                 Everything connected, everything in sync
-              </li>
-              <li className="flex items-center gap-2 font-mono text-sm text-white">
-                <CheckCircle className="h-4 w-4" />
-                See exactly where your time goes
               </li>
             </ul>
             <div className="mt-4 border-t-2 border-green-400 pt-4">

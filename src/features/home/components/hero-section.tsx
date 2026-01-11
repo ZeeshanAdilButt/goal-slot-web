@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-import { ArrowRight, ChevronRight, Sparkles, Star } from 'lucide-react'
+import { ArrowRight, ChevronRight, Star } from 'lucide-react'
 
 import { AnimatedSection } from '@/components/animated-section'
 
@@ -16,12 +16,6 @@ export function HeroSection() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
           >
-            {/* Urgency Badge */}
-            <div className="mb-6 inline-flex items-center gap-2 border-3 border-secondary bg-accent-pink px-4 py-2 text-white shadow-brutal-sm">
-              <Sparkles className="h-4 w-4" />
-              <span className="text-sm font-bold uppercase">Make 2026 Your Year</span>
-            </div>
-
             <h1 className="mb-6 font-display text-5xl font-bold uppercase leading-tight md:text-6xl lg:text-7xl">
               Your Growth,<span className="block text-primary drop-shadow-[4px_4px_0px_#000]">Measured.</span>
             </h1>
@@ -41,33 +35,34 @@ export function HeroSection() {
               </div>
               <p className="flex items-center gap-2 text-sm font-bold text-gray-600">
                 <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
-                Free for individual developers
+                60-day Pro trial free for all new users
               </p>
             </div>
 
             {/* Social Proof */}
-            <div className="mt-8 flex items-center gap-6">
-              <div className="flex -space-x-3">
+            <div className="mt-8 flex items-center gap-4 rounded-lg border-2 border-gray-200 bg-white/60 px-4 py-3 backdrop-blur-sm">
+              <div className="flex -space-x-2">
                 {[
-                  'from-accent-pink to-accent-purple',
-                  'from-accent-blue to-accent-green',
-                  'from-primary to-accent-orange',
-                  'from-accent-purple to-accent-blue',
-                  'from-accent-green to-primary',
+                  'bg-gradient-to-br from-blue-400 to-blue-600',
+                  'bg-gradient-to-br from-green-400 to-green-600',
+                  'bg-gradient-to-br from-purple-400 to-purple-600',
+                  'bg-gradient-to-br from-orange-400 to-orange-600',
                 ].map((gradient, i) => (
                   <div
                     key={i}
-                    className={`h-10 w-10 rounded-full border-3 border-secondary bg-gradient-to-br ${gradient}`}
+                    className={`h-8 w-8 rounded-full border-2 border-white ${gradient}`}
                   />
                 ))}
               </div>
+              <div className="h-8 w-px bg-gray-200" />
               <div>
                 <div className="flex items-center gap-1">
                   {[1, 2, 3, 4, 5].map((i) => (
-                    <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+                    <Star key={i} className="h-3.5 w-3.5 fill-primary text-primary" />
                   ))}
+                  <span className="ml-1 text-sm font-semibold text-gray-700">4.9</span>
                 </div>
-                <span className="font-mono text-sm">500+ developers tracking their growth</span>
+                <span className="text-xs text-gray-600">Trusted by 500+ developers</span>
               </div>
             </div>
           </AnimatedSection>
@@ -82,33 +77,33 @@ export function HeroSection() {
             <div className="card-brutal overflow-hidden bg-white">
               <GoalAchievementSVG />
               <div className="mt-4 text-center">
-                <p className="font-display text-xl font-bold uppercase">Your Goals. Tracked. Achieved.</p>
+                <p className="text-lg font-semibold text-gray-800">Your Goals. Tracked. Achieved.</p>
               </div>
             </div>
             
-            <div className="mt-2 text-center">
-              <p className="font-mono text-sm font-bold text-gray-800">
+            <div className="mt-3 text-center">
+              <p className="text-sm text-gray-600">
                 Every hour logged is proof of progress.
               </p>
             </div>
 
             {/* Floating Stats */}
             <AnimatedSection
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 2, repeat: 'Infinity' }}
-              className="absolute -right-4 top-4 border-3 border-secondary bg-accent-purple p-4 text-white shadow-brutal"
+              animate={{ y: [0, -6, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+              className="absolute -right-2 top-8 rounded-lg border-2 border-gray-200 bg-white px-4 py-3 shadow-lg sm:-right-4"
             >
-              <div className="font-mono text-2xl font-bold">87%</div>
-              <div className="text-xs font-bold uppercase">Goals Hit</div>
+              <div className="font-mono text-xl font-bold text-gray-900">87%</div>
+              <div className="text-xs font-medium text-gray-500">Goals Achieved</div>
             </AnimatedSection>
 
             <AnimatedSection
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 2.5, repeat: 'Infinity' }}
-              className="absolute -left-4 bottom-8 border-3 border-secondary bg-accent-blue p-4 text-white shadow-brutal"
+              animate={{ y: [0, 6, 0] }}
+              transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+              className="absolute -left-2 bottom-12 rounded-lg border-2 border-gray-200 bg-white px-4 py-3 shadow-lg sm:-left-4"
             >
-              <div className="font-mono text-2xl font-bold">142h</div>
-              <div className="text-xs font-bold uppercase">Tracked</div>
+              <div className="font-mono text-xl font-bold text-gray-900">142h</div>
+              <div className="text-xs font-medium text-gray-500">Time Tracked</div>
             </AnimatedSection>
           </AnimatedSection>
         </div>

@@ -1,8 +1,24 @@
 /** @type {import('next').NextConfig} */
+const withPWA = require("@ducanh2912/next-pwa").default({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
+});
+
 const nextConfig = {
   reactStrictMode: true,
+  // Silence Turbopack warning by validating we acknowledge it
+  turbopack: {},
   images: {
-    domains: ['avatars.githubusercontent.com', 'lh3.googleusercontent.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
+    ],
   },
   async rewrites() {
     return [
@@ -14,4 +30,4 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig
+module.exports = withPWA(nextConfig)

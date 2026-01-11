@@ -4,9 +4,10 @@ import { GroupBy, GroupedTasks, Task } from './types'
 
 export function groupTasksByStatus(tasks: Task[]): GroupedTasks {
   const groups = {
-    IN_PROGRESS: [] as Task[],
-    PENDING: [] as Task[],
-    COMPLETED: [] as Task[],
+    BACKLOG: [] as Task[],
+    TODO: [] as Task[],
+    DOING: [] as Task[],
+    DONE: [] as Task[],
   }
 
   tasks.forEach((task) => {

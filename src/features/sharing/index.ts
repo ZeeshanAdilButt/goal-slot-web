@@ -1,5 +1,5 @@
 export { SharingPage } from '@/features/sharing/components/sharing-page'
-export { SharedReportsView } from '@/features/sharing/components/shared-reports-view'
+export { SharedReportsView } from './components/shared-reports-view'
 export {
   useMySharesQuery,
   usePendingInvitesQuery,

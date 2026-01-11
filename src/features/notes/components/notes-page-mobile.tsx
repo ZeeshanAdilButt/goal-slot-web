@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 
 import { FileText, Menu, Plus, X } from 'lucide-react'
 
@@ -16,32 +17,73 @@ interface NotesPageMobileProps {
 }
 
 export function NotesPageMobile({ initialNoteId }: NotesPageMobileProps = {}) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+
   const { data: notes = [], isLoading } = useNotesQuery()
   const createMutation = useCreateNoteMutation()
   const [selectedNote, setSelectedNote] = useState<Note | null>(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [hasInitialized, setHasInitialized] = useState(false)
 
-  // Select note based on initialNoteId or first note
+  // Select note based on URL param, initialNoteId, localStorage, or first note
   useEffect(() => {
-    if (!isLoading && notes.length > 0 && !hasInitialized) {
-      if (initialNoteId) {
-        const noteToSelect = notes.find((n) => n.id === initialNoteId)
-        if (noteToSelect) {
-          setSelectedNote(noteToSelect)
-        } else {
-          setSelectedNote(notes[0])
-        }
-      } else {
-        setSelectedNote(notes[0])
+    if (!isLoading && notes.length > 0) {
+      const paramNoteId = searchParams.get('noteId')
+      let noteToSelect: Note | undefined
+
+      // 1. Try URL param first
+      if (paramNoteId) {
+        noteToSelect = notes.find((n) => n.id === paramNoteId)
       }
-      setHasInitialized(true)
+
+      // 2. If no URL param, try initialNoteId (prop)
+      if (!noteToSelect && initialNoteId && !hasInitialized) {
+        noteToSelect = notes.find((n) => n.id === initialNoteId)
+      }
+
+      // 3. If still nothing, try localStorage
+      if (!noteToSelect && !paramNoteId && !hasInitialized) {
+        const lastNoteId = localStorage.getItem('dw-last-note-id')
+        if (lastNoteId) {
+          noteToSelect = notes.find((n) => n.id === lastNoteId)
+        }
+      }
+
+      // 4. Fallback to first note if nothing selected yet
+      if (!noteToSelect && !selectedNote) {
+        noteToSelect = notes[0]
+      }
+
+      // Apply selection
+      if (noteToSelect && noteToSelect.id !== selectedNote?.id) {
+        setSelectedNote(noteToSelect)
+        localStorage.setItem('dw-last-note-id', noteToSelect.id)
+        
+        // Update URL if missing
+        if (!paramNoteId) {
+            const params = new URLSearchParams(searchParams.toString())
+            params.set('noteId', noteToSelect.id)
+            router.replace(`${pathname}?${params.toString()}`)
+        }
+      }
+
+      if (!hasInitialized) {
+        setHasInitialized(true)
+      }
     }
-  }, [notes, isLoading, initialNoteId, hasInitialized])
+  }, [notes, isLoading, initialNoteId, hasInitialized, searchParams, selectedNote, router, pathname])
 
   const handleSelectNote = (note: Note) => {
     setSelectedNote(note)
     setIsSidebarOpen(false) // Close sidebar after selecting
+    localStorage.setItem('dw-last-note-id', note.id)
+
+    // Update URL
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('noteId', note.id)
+    router.push(`${pathname}?${params.toString()}`)
   }
 
   const handleCreateNote = () => {
@@ -52,8 +94,7 @@ export function NotesPageMobile({ initialNoteId }: NotesPageMobileProps = {}) {
       },
       {
         onSuccess: (newNote) => {
-          setSelectedNote(newNote)
-          setIsSidebarOpen(false)
+          handleSelectNote(newNote)
         },
       },
     )
@@ -62,9 +103,16 @@ export function NotesPageMobile({ initialNoteId }: NotesPageMobileProps = {}) {
   const handleDeleteNote = () => {
     if (notes.length > 1) {
       const remainingNotes = notes.filter((n) => n.id !== selectedNote?.id)
-      setSelectedNote(remainingNotes[0] || null)
+      const nextNote = remainingNotes[0]
+      if (nextNote) {
+        handleSelectNote(nextNote)
+      } else {
+        setSelectedNote(null)
+        router.replace(pathname)
+      }
     } else {
       setSelectedNote(null)
+      router.replace(pathname)
     }
   }
 

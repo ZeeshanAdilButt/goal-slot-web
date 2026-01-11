@@ -15,14 +15,15 @@ export function GoalsLimitBanner({ activeGoalsCount }: GoalsLimitBannerProps) {
   if (!user) return null
 
   const maxGoals = user.limits?.maxGoals ?? 3
-  const isOverLimit = activeGoalsCount > maxGoals
+  const isUnlimited = user.plan === 'PRO' || user.unlimitedAccess || user.userType === 'INTERNAL'
+  const isOverLimit = !isUnlimited && activeGoalsCount > maxGoals
   const excessGoals = activeGoalsCount - maxGoals
 
   // Don't show banner if user is within their limit
   if (!isOverLimit) return null
 
-  // Check if subscription has expired (had a plan but now effectively on free limits)
-  const hadPremium = user.plan !== 'FREE'
+  // Check if subscription has expired (had a paid plan but now effectively on free limits)
+  const hadPaidPlan = user.plan !== 'FREE'
   const isExpired = user.subscriptionEndDate && new Date(user.subscriptionEndDate) < new Date()
 
   return (
@@ -32,7 +33,7 @@ export function GoalsLimitBanner({ activeGoalsCount }: GoalsLimitBannerProps) {
           <AlertTriangle className="mt-0.5 h-6 w-6 shrink-0 text-amber-600" />
           <div>
             <h3 className="font-bold uppercase text-secondary">
-              {hadPremium && isExpired ? 'Subscription Expired' : 'Goal Limit Reached'}
+              {hadPaidPlan && isExpired ? 'Subscription Expired' : 'Goal Limit Reached'}
             </h3>
             <p className="mt-1 font-mono text-sm text-gray-700">
               You have <strong>{activeGoalsCount}</strong> active goals but your current plan allows{' '}

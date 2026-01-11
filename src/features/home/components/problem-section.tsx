@@ -39,12 +39,12 @@ export function ProblemSection() {
           viewport={{ once: true }}
           className="mb-16 text-center"
         >
-          <div className="mb-4 inline-flex items-center gap-2 border-3 border-secondary bg-accent-pink px-4 py-2 text-white shadow-brutal-sm">
-            <AlertCircle className="h-5 w-5" />
-            <span className="font-bold uppercase">Sound Familiar?</span>
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-2">
+            <AlertCircle className="h-4 w-4 text-red-500" />
+            <span className="text-sm font-semibold text-gray-700">Sound Familiar?</span>
           </div>
           <h2 className="mb-4 font-display text-4xl font-bold uppercase md:text-5xl">Why Do Goals Fail?</h2>
-          <p className="mx-auto mt-4 max-w-2xl font-mono text-xl text-gray-600">
+          <p className="mx-auto mt-4 max-w-2xl text-xl text-gray-600">
             You set goals with good intentions, but without a system, they slip away
           </p>
         </AnimatedSection>

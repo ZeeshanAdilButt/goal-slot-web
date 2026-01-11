@@ -37,7 +37,7 @@ export function CompactTaskList({ tasks, groupBy, onEdit, onComplete }: CompactT
             <h3
               className={cn(
                 'font-display text-xs md:text-sm font-bold uppercase',
-                group === 'IN_PROGRESS' ? 'text-accent-blue' : 'text-gray-700',
+                group === 'DOING' ? 'text-accent-blue' : 'text-gray-700',
               )}
             >
               {group.replace('_', ' ')}
@@ -45,7 +45,7 @@ export function CompactTaskList({ tasks, groupBy, onEdit, onComplete }: CompactT
             <span
               className={cn(
                 'px-2 py-0.5 text-[10px] md:text-xs font-bold uppercase border-2 border-secondary flex-shrink-0',
-                group === 'IN_PROGRESS' ? 'bg-accent-blue text-white' : 'bg-white text-secondary',
+                group === 'DOING' ? 'bg-accent-blue text-white' : 'bg-white text-secondary',
               )}
             >
               {groupTasks.length}

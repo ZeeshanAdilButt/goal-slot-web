@@ -12,42 +12,42 @@ interface SharingTabsProps {
 
 export function SharingTabs({ activeTab, onTabChange, activeSharesCount, sharedWithMeCount }: SharingTabsProps) {
   return (
-    <div className="flex border-b-3 border-secondary">
+    <div className="flex">
       <button
         onClick={() => onTabChange('my')}
         className={cn(
-          'flex-1 px-3 py-2 font-bold uppercase transition-colors border-b-4 -mb-[3px] sm:flex-none sm:px-6 sm:py-3',
-          activeTab === 'my' ? 'border-primary bg-primary text-secondary' : 'border-transparent hover:bg-gray-100',
+          'relative flex items-center gap-2 border-3 border-secondary px-4 py-3 font-bold uppercase transition-all sm:px-6',
+          activeTab === 'my'
+            ? 'z-10 bg-primary text-secondary shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
+            : 'bg-white text-secondary hover:bg-gray-50',
+          activeTab === 'shared-with-me' && '-mr-[3px]',
         )}
       >
-        <div className="flex items-center justify-center gap-1 sm:gap-2">
-          <Share2 className="h-4 w-4 sm:h-5 sm:w-5" />
-          <span className="text-xs sm:text-base">My</span>
-          {activeSharesCount > 0 && (
-            <span className="rounded-full bg-secondary px-1.5 py-0.5 text-[10px] text-white sm:px-2 sm:text-xs">
-              {activeSharesCount}
-            </span>
-          )}
-        </div>
+        <Share2 className="h-4 w-4 sm:h-5 sm:w-5" />
+        <span className="text-xs sm:text-sm">My</span>
+        {activeSharesCount > 0 && (
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-white sm:h-6 sm:w-6 sm:text-xs">
+            {activeSharesCount}
+          </span>
+        )}
       </button>
       <button
         onClick={() => onTabChange('shared-with-me')}
         className={cn(
-          'flex-1 px-3 py-2 font-bold uppercase transition-colors border-b-4 -mb-[3px] sm:flex-none sm:px-6 sm:py-3',
+          'relative flex items-center gap-2 border-3 border-secondary px-4 py-3 font-bold uppercase transition-all sm:px-6',
           activeTab === 'shared-with-me'
-            ? 'border-primary bg-primary text-secondary'
-            : 'border-transparent hover:bg-gray-100',
+            ? 'z-10 bg-primary text-secondary shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
+            : 'bg-white text-secondary hover:bg-gray-50',
+          activeTab === 'my' && '-ml-[3px]',
         )}
       >
-        <div className="flex items-center justify-center gap-1 sm:gap-2">
-          <Users className="h-4 w-4 sm:h-5 sm:w-5" />
-          <span className="text-xs sm:text-base">Shared with me</span>
-          {sharedWithMeCount > 0 && (
-            <span className="rounded-full bg-secondary px-1.5 py-0.5 text-[10px] text-white sm:px-2 sm:text-xs">
-              {sharedWithMeCount}
-            </span>
-          )}
-        </div>
+        <Users className="h-4 w-4 sm:h-5 sm:w-5" />
+        <span className="text-xs sm:text-sm">Shared with me</span>
+        {sharedWithMeCount > 0 && (
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-white sm:h-6 sm:w-6 sm:text-xs">
+            {sharedWithMeCount}
+          </span>
+        )}
       </button>
     </div>
   )

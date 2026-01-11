@@ -16,7 +16,7 @@ import { WhoItsForSection } from './who-its-for-section'
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-brutalist-bg">
+    <div className="min-h-screen bg-brutalist-bg pb-32">
       <Navigation />
       <HeroSection />
       <ProblemSection />

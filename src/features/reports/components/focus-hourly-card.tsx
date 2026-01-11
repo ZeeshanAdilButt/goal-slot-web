@@ -1,7 +1,8 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
+import { useFilteredEntries, type ReportFilterState } from '@/features/reports/components/focus-filters'
 import { FocusUpdatingOverlay } from '@/features/reports/components/focus-updating-overlay'
 import { useFocusTimeEntriesRangeQuery } from '@/features/reports/hooks/use-focus-time-entries'
 import {
@@ -15,25 +16,34 @@ import type { FocusPeriod, FocusTimeEntry } from '@/features/reports/utils/types
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { cn, formatDuration } from '@/lib/utils'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import AnimateChangeInHeight from '@/components/animate-change-in-height'
-
-const PERIOD_OPTIONS: Array<{ value: FocusPeriod; label: string }> = [
-  { value: 'week', label: 'Week' },
-  { value: 'month', label: 'Month' },
-]
 
 const EMPTY_ENTRIES: FocusTimeEntry[] = []
 
-export function FocusHourlyCard() {
-  const [period, setPeriod] = useState<FocusPeriod>('week')
+interface FocusHourlyCardProps {
+  view: FocusPeriod
+  filters?: ReportFilterState
+  explicitEntries?: FocusTimeEntry[]
+  isLoading?: boolean
+}
+
+export function FocusHourlyCard({ view, filters, explicitEntries, isLoading: explicitLoading }: FocusHourlyCardProps) {
   const [offset, setOffset] = useState(0)
+
+  useEffect(() => {
+    setOffset(0)
+  }, [view])
+
+  const period = view
 
   const range = useMemo(() => getPeriodRange({ period, offset }), [period, offset])
   const entriesQuery = useFocusTimeEntriesRangeQuery({ startDate: range.startDate, endDate: range.endDate })
-  const entries = entriesQuery.data ?? EMPTY_ENTRIES
-  const showLoading = entriesQuery.isLoading && entries.length === 0
-  const showUpdating = entriesQuery.isFetching && !showLoading
+  
+  const rawEntries = explicitEntries ?? entriesQuery.data ?? EMPTY_ENTRIES
+  const entries = useFilteredEntries(rawEntries, filters ?? { goalIds: [], categoryIds: [] })
+  
+  const showLoading = (explicitLoading ?? entriesQuery.isLoading) && rawEntries.length === 0
+  const showUpdating = (explicitLoading ?? entriesQuery.isFetching) && !showLoading
 
   const histogram = useMemo(() => buildHourlyHistogram(entries, range.days), [entries, range.days])
   const excludedNote = useMemo(
@@ -67,25 +77,6 @@ export function FocusHourlyCard() {
           >
             Next
           </button>
-
-          <Select
-            value={period}
-            onValueChange={(v) => {
-              setPeriod(v as FocusPeriod)
-              setOffset(0)
-            }}
-          >
-            <SelectTrigger className="h-10 w-[140px] border-3 border-secondary">
-              <SelectValue placeholder="Period" />
-            </SelectTrigger>
-            <SelectContent>
-              {PERIOD_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
       </div>
 

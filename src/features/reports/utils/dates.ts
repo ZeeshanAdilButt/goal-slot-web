@@ -61,6 +61,18 @@ export function getPeriodRange({ period, offset }: { period: FocusPeriod; offset
 } {
   const now = new Date()
 
+  if (period === 'day') {
+    const anchor = addDays(now, offset)
+    const day = toDateOnlyString(anchor)
+
+    return {
+      startDate: day,
+      endDate: day,
+      label: format(anchor, 'MMM d'),
+      days: [day],
+    }
+  }
+
   if (period === 'week') {
     const anchor = addWeeks(now, offset)
     const start = startOfWeek(anchor, { weekStartsOn: 1 })

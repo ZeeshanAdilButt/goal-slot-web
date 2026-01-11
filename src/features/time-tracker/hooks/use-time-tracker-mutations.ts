@@ -24,6 +24,7 @@ export function useCreateTimeEntry() {
         notes: payload.notes,
         duration: payload.duration,
         date: payload.date,
+        scheduleBlockId: payload.scheduleBlockId,
         goalId: payload.goalId,
         startedAt: payload.startedAt,
         taskId: payload.taskId,
@@ -57,6 +58,7 @@ export function useCreateTimeEntry() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: timeTrackerQueries.recentEntries() })
+      queryClient.invalidateQueries({ queryKey: ['time-tracker', 'recent-entries', 'paged'] })
       // Invalidate tasks cache because trackedMinutes changes
       queryClient.invalidateQueries({ queryKey: taskQueries.all })
       // Invalidate goals cache because loggedHours changes
@@ -64,6 +66,48 @@ export function useCreateTimeEntry() {
       queryClient.invalidateQueries({ queryKey: ['schedule', 'goals', 'active'] })
       queryClient.invalidateQueries({ queryKey: ['time-tracker', 'goals'] })
       // Invalidate reports queries to refresh reports when time is logged
+      queryClient.invalidateQueries({ queryKey: focusQueries.all })
+    },
+  })
+}
+
+export function useDeleteTimeEntry() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (entryId: string) => {
+      await timeEntriesApi.delete(entryId)
+      return entryId
+    },
+    onMutate: async (entryId) => {
+      await queryClient.cancelQueries({ queryKey: timeTrackerQueries.recentEntries() })
+      const previous = queryClient.getQueryData<TimeEntry[]>(timeTrackerQueries.recentEntries())
+
+      if (Array.isArray(previous)) {
+        queryClient.setQueryData(
+          timeTrackerQueries.recentEntries(),
+          previous.filter((entry) => entry.id !== entryId),
+        )
+      }
+
+      return { previous }
+    },
+    onError: (error: any, _entryId, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(timeTrackerQueries.recentEntries(), context.previous)
+      }
+      toast.error(error.response?.data?.message || 'Failed to delete time entry')
+    },
+    onSuccess: () => {
+      toast.success('Time entry deleted')
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: timeTrackerQueries.recentEntries() })
+      queryClient.invalidateQueries({ queryKey: ['time-tracker', 'recent-entries', 'paged'] })
+      queryClient.invalidateQueries({ queryKey: taskQueries.all })
+      queryClient.invalidateQueries({ queryKey: ['goals', 'active'] })
+      queryClient.invalidateQueries({ queryKey: ['schedule', 'goals', 'active'] })
+      queryClient.invalidateQueries({ queryKey: ['time-tracker', 'goals'] })
       queryClient.invalidateQueries({ queryKey: focusQueries.all })
     },
   })

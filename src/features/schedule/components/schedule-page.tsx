@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { useCategoriesQuery } from '@/features/categories'
 import { ScheduleBlockDetailDialog } from '@/features/schedule/components/schedule-block-detail-dialog'
@@ -23,6 +23,11 @@ export function SchedulePage() {
   const hasProAccess = useHasProAccess()
   const { data: weekSchedule = {} as WeekSchedule, isPending: isSchedulePending } = useWeeklySchedule()
   const { data: categories = [] } = useCategoriesQuery()
+  const seriesBlockCount = useMemo(() => {
+    if (!editingBlock) return 0
+    const allBlocks = Object.values(weekSchedule || {}).flat()
+    return allBlocks.filter((block) => block.seriesId === editingBlock.seriesId).length
+  }, [editingBlock, weekSchedule])
 
   const handleEdit = (block: ScheduleBlock) => {
     setEditingBlock(block)
@@ -115,6 +120,7 @@ export function SchedulePage() {
         block={editingBlock}
         dayOfWeek={selectedDay}
         presetTimes={presetTimes}
+        seriesBlockCount={seriesBlockCount}
       />
 
       <ScheduleBlockDetailDialog

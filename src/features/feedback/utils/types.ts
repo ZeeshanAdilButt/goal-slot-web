@@ -18,6 +18,25 @@ export interface Feedback {
   }
 }
 
+export interface FeedbackResponse {
+  id: string
+  feedbackId: string
+  senderId: string
+  message: string
+  createdAt: string
+  sender: {
+    id: string
+    name: string
+    email: string
+    avatar?: string
+  }
+}
+
+export interface FeedbackThreadResponse {
+  feedback: Feedback
+  responses: FeedbackResponse[]
+}
+
 export interface CreateFeedbackForm {
   emoji?: number
   text?: string

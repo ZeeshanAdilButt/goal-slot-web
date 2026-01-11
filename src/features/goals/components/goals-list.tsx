@@ -16,6 +16,7 @@ interface GoalsListProps {
 export function GoalsList({ goals, isLoading, filter, onEdit, onCreateClick }: GoalsListProps) {
   const { user } = useAuthStore()
   const maxGoals = user?.limits?.maxGoals ?? 3
+  const isUnlimited = !user || user.plan === 'PRO' || user.unlimitedAccess || user.userType === 'INTERNAL'
 
   if (isLoading) {
     return (
@@ -48,11 +49,9 @@ export function GoalsList({ goals, isLoading, filter, onEdit, onCreateClick }: G
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
       {goals.map((goal, i) => {
-        // For active goals, check if this goal is over the user's limit
-        const isLocked = filter === 'ACTIVE' && i >= maxGoals
-        return (
-          <GoalItem key={goal.id} goal={goal} index={i} onEdit={onEdit} isLocked={isLocked} />
-        )
+        // For active goals, lock only when limit exists and user is not unlimited
+        const isLocked = filter === 'ACTIVE' && !isUnlimited && i >= maxGoals
+        return <GoalItem key={goal.id} goal={goal} index={i} onEdit={onEdit} isLocked={isLocked} />
       })}
     </div>
   )

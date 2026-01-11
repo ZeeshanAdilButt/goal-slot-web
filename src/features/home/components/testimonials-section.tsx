@@ -39,9 +39,9 @@ export function TestimonialsSection() {
           viewport={{ once: true }}
           className="mb-16 text-center"
         >
-          <div className="mb-4 inline-flex items-center gap-2 border-3 border-secondary bg-primary px-4 py-2 shadow-brutal-sm">
-            <Heart className="h-5 w-5" />
-            <span className="font-bold uppercase">Real Results</span>
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-2">
+            <Heart className="h-4 w-4 text-primary" />
+            <span className="text-sm font-semibold text-gray-700">Real Results</span>
           </div>
           <h2 className="mb-4 font-display text-4xl font-bold uppercase md:text-5xl">
             Developers Like You Are Achieving More

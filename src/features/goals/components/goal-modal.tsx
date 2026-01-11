@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 
 import { useCategoriesQuery } from '@/features/categories'
 import { useCreateGoalMutation, useUpdateGoalMutation } from '@/features/goals/hooks/use-goals-mutations'
+import { TiptapEditor } from '@/components/tiptap-editor/tiptap-editor'
 import {
   CreateGoalForm,
   Goal,
   GOAL_STATUS_OPTIONS,
+
   GoalFormState,
   GoalStatus,
   LABEL_COLORS,
@@ -294,15 +296,16 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
             {/* Right column */}
             <div className="space-y-4">
               {/* Description */}
-              <div>
+              <div className="flex flex-col h-full">
                 <label className="mb-1.5 block text-xs font-bold uppercase">Description</label>
-                <textarea
-                  value={form.description}
-                  onChange={(e) => updateField('description', e.target.value)}
-                  className="input-brutal w-full py-2"
-                  rows={2}
-                  placeholder="What do you want to achieve?"
-                />
+                <div className="flex-1 rounded-none border-3 border-secondary bg-white">
+                  <TiptapEditor
+                    content={form.description}
+                    onChange={(html) => updateField('description', html)}
+                    placeholder="What do you want to achieve?"
+                    className="h-full min-h-[180px] border-none shadow-none"
+                  />
+                </div>
               </div>
 
               {/* Labels */}

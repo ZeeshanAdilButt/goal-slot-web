@@ -23,21 +23,21 @@ const plans = [
       'Basic Analytics',
       '7-Day Data History',
     ],
-    helpText: 'Upgrade anytime. No pressure.',
+    helpText: 'Try Pro free for 60 days!',
   },
   {
     name: 'Pro',
     price: '$7',
     period: '/month',
     oldPrice: '$10/month',
-    subtext: 'Save 30% – Founding Member Rate',
+    subtext: '60-day free trial included',
     badge: 'Pro',
     badgeColor: 'bg-white',
-    buttonText: 'Get Pro – 30-Day Guarantee',
+    buttonText: 'Start 60-Day Free Trial',
     buttonHref: '/signup?plan=pro',
     buttonClass: 'btn-brutal-dark',
     isPopular: true,
-    popularBanner: '⭐ Most Popular – Best for Most Users',
+    popularBanner: 'Most Popular – 60-Day Free Trial',
     features: [
       '10 Active Goals',
       'Unlimited Schedules',
@@ -48,7 +48,7 @@ const plans = [
       'Export Reports',
       'Share with Mentor',
     ],
-    helpText: 'Lock in $7/mo forever. Price goes up soon.',
+    helpText: 'No charge for 60 days. Cancel anytime.',
     className: 'bg-primary scale-105',
   },
   {
@@ -56,14 +56,14 @@ const plans = [
     price: '$12',
     period: '/month',
     oldPrice: '$15/month',
-    subtext: 'Save 20% – Founding Member Rate',
+    subtext: '60-day free trial included',
     badge: 'Max',
     badgeColor: 'bg-white text-secondary',
-    buttonText: 'Get Max – 30-Day Guarantee',
+    buttonText: 'Start 60-Day Free Trial',
     buttonHref: '/signup?plan=max',
     buttonClass: 'btn-brutal',
     isMax: true,
-    maxBanner: '🚀 Power User – Go Unlimited',
+    maxBanner: 'Power User – Go Unlimited',
     features: [
       'Unlimited Goals',
       'Unlimited Schedules',
@@ -76,7 +76,7 @@ const plans = [
       'Share with Team',
       'API Access',
     ],
-    helpText: 'For teams & power users. No limits ever.',
+    helpText: 'No charge for 60 days. Cancel anytime.',
     className: 'bg-accent-blue text-white',
   },
 ]
@@ -91,22 +91,22 @@ export function PricingSection() {
           viewport={{ once: true }}
           className="mb-8 text-center"
         >
-          {/* Urgency Banner */}
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border-2 border-accent-pink bg-accent-pink/20 px-4 py-2">
-            <Flame className="h-5 w-5 animate-pulse text-accent-pink" />
-            <span className="font-mono text-sm font-bold text-accent-pink">
-              🎉 Founding Member Pricing – Lock in these rates forever!
+          {/* Trial Banner */}
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-accent-green/30 bg-accent-green/10 px-4 py-2">
+            <Flame className="h-4 w-4 text-accent-green" />
+            <span className="text-sm font-semibold text-gray-800">
+              60-Day Free Pro Trial for All New Users
             </span>
           </div>
 
           <h2 className="mb-4 font-display text-4xl font-bold uppercase md:text-5xl">Simple Pricing</h2>
-          <p className="font-mono text-xl text-gray-600">Choose the plan that works for you</p>
+          <p className="text-xl text-gray-600">Start with 60 days of Pro features, no credit card required</p>
 
           {/* Money-back guarantee */}
-          <div className="mt-6 inline-flex items-center gap-2 rounded-lg border-2 border-accent-green bg-accent-green/10 px-4 py-2">
-            <Shield className="h-5 w-5 text-accent-green" />
-            <span className="font-mono text-sm font-semibold text-accent-green">
-              30-Day Money-Back Guarantee – No questions asked
+          <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2">
+            <Shield className="h-4 w-4 text-gray-500" />
+            <span className="text-sm font-medium text-gray-600">
+              30-Day Money-Back Guarantee after trial
             </span>
           </div>
         </AnimatedSection>

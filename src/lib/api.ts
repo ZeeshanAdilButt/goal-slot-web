@@ -29,11 +29,13 @@ api.interceptors.response.use(
         // Don't redirect if we're already on the login page or making auth requests
         const isAuthRequest = error.config?.url?.includes('/auth/')
         const isLoginPage = window.location.pathname === '/login'
+        const returnUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`
+        const redirectUrl = `/login?redirect=${encodeURIComponent(returnUrl || '/dashboard')}`
 
         if (!isAuthRequest && !isLoginPage) {
           localStorage.removeItem('accessToken')
           localStorage.removeItem('refreshToken')
-          window.location.href = '/login'
+          window.location.href = redirectUrl
         }
       }
     }
@@ -48,6 +50,8 @@ export const feedbackApi = {
   getOne: (id: string) => api.get(`/feedback/${id}`),
   archive: (id: string, data: { isArchived: boolean }) => api.put(`/feedback/${id}/archive`, data),
   delete: (id: string) => api.delete(`/feedback/${id}`),
+  reply: (id: string, data: { message: string }) => api.post(`/feedback/${id}/responses`, data),
+  getThread: (id: string) => api.get(`/feedback/${id}/thread`),
 }
 
 // Auth API
@@ -76,6 +80,7 @@ export const goalsApi = {
   create: (data: any) => api.post('/goals', data),
   update: (id: string, data: any) => api.put(`/goals/${id}`, data),
   delete: (id: string) => api.delete(`/goals/${id}`),
+  reorder: (ids: string[]) => api.put('/goals/reorder', { ids }),
   getStats: () => api.get('/goals/stats'),
 }
 
@@ -88,7 +93,8 @@ export const timeEntriesApi = {
     api.get('/time-entries/range', { params: { startDate, endDate } }),
   getToday: () => api.get('/time-entries/today'),
   getWeeklyTotal: () => api.get('/time-entries/weekly-total'),
-  getRecent: (limit?: number) => api.get('/time-entries/recent', { params: { limit } }),
+  getRecent: (params?: { page?: number; pageSize?: number; startDate?: string; endDate?: string }) =>
+    api.get('/time-entries/recent', { params }),
   create: (data: any) => api.post('/time-entries', data),
   update: (id: string, data: any) => api.put(`/time-entries/${id}`, data),
   delete: (id: string) => api.delete(`/time-entries/${id}`),
@@ -112,6 +118,41 @@ export const reportsApi = {
   getGoalsProgress: () => api.get('/reports/goals-progress'),
   getGoalProgress: () => api.get('/reports/goal-progress'),
   getMonthly: (year: number, month: number) => api.get('/reports/monthly', { params: { year, month } }),
+  
+  // New detailed and summary report endpoints
+  getDetailed: (params: ReportFilters) => api.get('/reports/detailed', { params }),
+  getSummary: (params: ReportFilters) => api.get('/reports/summary', { params }),
+  getDayByTask: (params: ReportFilters) => api.get('/reports/day-by-task', { params }),
+  getDayTotal: (params: ReportFilters) => api.get('/reports/day-total', { params }),
+  getScheduleReport: (params: ReportFilters) => api.get('/reports/schedule', { params }),
+  getFilterableGoals: () => api.get('/reports/filterable-goals'),
+  getFilterableTasks: (goalId?: string) => api.get('/reports/filterable-tasks', { params: { goalId } }),
+  exportReport: (data: ExportReportParams) => api.post('/reports/export', data, {
+    responseType: data.format === 'csv' ? 'blob' : 'json',
+  }),
+}
+
+// Report filter types
+export interface ReportFilters {
+  startDate: string
+  endDate: string
+  viewType?: 'detailed' | 'summary' | 'day_by_task' | 'day_total' | 'schedule'
+  groupBy?: 'goal' | 'task' | 'date' | 'category'
+  goalIds?: string
+  taskIds?: string
+  category?: string
+  sortBy?: 'date_asc' | 'date_desc' | 'duration_asc' | 'duration_desc' | 'goal' | 'task'
+  includeBillable?: boolean
+  hourlyRate?: number
+}
+
+export interface ExportReportParams extends ReportFilters {
+  format: 'csv' | 'pdf' | 'json'
+  title?: string
+  includeClientInfo?: boolean
+  clientName?: string
+  projectName?: string
+  notes?: string
 }
 
 // Tasks API
@@ -124,6 +165,7 @@ export const tasksApi = {
   complete: (id: string, data: { actualMinutes: number; notes?: string; date?: string }) =>
     api.post(`/tasks/${id}/complete`, data),
   restore: (id: string) => api.post(`/tasks/${id}/restore`),
+  reorder: (ids: string[]) => api.put('/tasks/reorder', { ids }),
 }
 
 // Sharing API
@@ -145,11 +187,31 @@ export const sharingApi = {
   getSharedUserTimeEntries: (ownerId: string, startDate: string, endDate: string) =>
     api.get(`/sharing/user/${ownerId}/time-entries`, { params: { startDate, endDate } }),
   getSharedUserGoals: (ownerId: string) => api.get(`/sharing/user/${ownerId}/goals`),
+  // Public link management
+  createPublicLink: (data?: { accessLevel?: 'VIEW' | 'EDIT'; expiresInDays?: number }) =>
+    api.post('/sharing/public-link', data || {}),
+  getMyPublicLinks: () => api.get('/sharing/my-public-links'),
+  deletePublicLink: (shareId: string) => api.delete(`/sharing/public-link/${shareId}`),
   // Public access methods (no auth required)
   getPublicSharedData: (token: string) => api.get(`/public/share/view/${token}`),
   getPublicSharedTimeEntries: (token: string, startDate: string, endDate: string) =>
     api.get(`/public/share/view/${token}/time-entries`, { params: { startDate, endDate } }),
   getPublicSharedGoals: (token: string) => api.get(`/public/share/view/${token}/goals`),
+}
+
+export const notificationsApi = {
+  list: (params?: { cursor?: string; limit?: number }) => api.get('/notifications', { params }),
+  markRead: (id: string) => api.patch(`/notifications/${id}/read`),
+}
+
+export const releaseNotesApi = {
+  latest: () => api.get('/release-notes/latest'),
+  unseen: () => api.get('/release-notes/unseen'),
+  markSeen: (id: string) => api.patch(`/release-notes/${id}/seen`),
+  create: (data: { version: string; title: string; content: string; publishedAt?: string }) => api.post('/release-notes', data),
+  update: (id: string, data: { version?: string; title?: string; content?: string; publishedAt?: string; resetSeen?: boolean }) => api.patch(`/release-notes/${id}`, data),
+  list: () => api.get('/release-notes'),
+  delete: (id: string) => api.delete(`/release-notes/${id}`),
 }
 
 // Stripe API

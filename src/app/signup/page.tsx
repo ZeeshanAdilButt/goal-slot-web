@@ -11,7 +11,7 @@ import { ArrowLeft, ArrowRight, Eye, EyeOff, Lock, Mail, User } from 'lucide-rea
 import { GoalSlotBrand } from '@/components/goalslot-logo'
 import { toast } from 'react-hot-toast'
 
-import { authApi } from '@/lib/api'
+import { authApi, stripeApi } from '@/lib/api'
 import { useAuthStore } from '@/lib/store'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
 import { Loading } from '@/components/ui/loading'
@@ -19,7 +19,8 @@ import { Loading } from '@/components/ui/loading'
 function SignupForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const isPro = searchParams.get('plan') === 'pro'
+  const selectedPlan = searchParams.get('plan')
+  const checkoutPlan = selectedPlan === 'max' ? 'PRO' : selectedPlan === 'pro' ? 'BASIC' : null
   const redirect = searchParams.get('redirect')
 
   // Step management
@@ -66,16 +67,24 @@ function SignupForm() {
     mutationFn: async () => {
       await register(email, password, name, otp)
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success('Account created successfully!')
-      // Redirect to the specified URL, or to checkout if Pro plan, or default to dashboard
       if (redirect) {
         router.push(redirect)
-      } else if (isPro) {
-        router.push('/billing/checkout')
-      } else {
-        router.push('/dashboard')
+        return
       }
+
+      if (checkoutPlan) {
+        try {
+          const res = await stripeApi.createCheckoutSession(checkoutPlan)
+          window.location.href = res.data.url
+          return
+        } catch (error) {
+          toast.error('Could not start checkout automatically. You can upgrade from Settings > Billing.')
+        }
+      }
+
+      router.push('/dashboard')
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Registration failed')
@@ -145,9 +154,9 @@ function SignupForm() {
         </Link>
 
         {/* Plan Badge */}
-        {isPro && (
+        {checkoutPlan && (
           <div className="mb-6 border-3 border-secondary bg-primary p-4 text-center shadow-brutal">
-            <span className="font-bold uppercase">Pro Plan Selected</span>
+            <span className="font-bold uppercase">{checkoutPlan === 'PRO' ? 'Max Plan' : 'Pro Plan'} Selected</span>
             <p className="mt-1 font-mono text-sm">You'll be redirected to checkout after signup</p>
           </div>
         )}
