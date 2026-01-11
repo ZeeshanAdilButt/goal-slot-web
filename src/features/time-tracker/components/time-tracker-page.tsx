@@ -215,7 +215,7 @@ export function TimeTrackerPage() {
     setElapsedTime(0)
     const blockForStart = currentScheduleBlockId || findScheduleBlockForDateTime(weeklySchedule, new Date())?.id || ''
     setScheduleBlockId(blockForStart)
-    start(selectedTaskTitle, currentCategory, currentGoalId, blockForStart)
+    start(selectedTaskTitle, currentTaskId, currentCategory, currentGoalId, blockForStart)
   }
 
   const pauseTimer = () => {

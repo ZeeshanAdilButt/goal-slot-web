@@ -12,13 +12,15 @@ interface TimerStoreState {
   currentCategory: string
   currentGoalId: string
   currentScheduleBlockId: string
+  reminderInterval: number // in minutes
 
   setTask: (task: string) => void
   setTaskId: (taskId: string) => void
   setCategory: (category: string) => void
   setGoalId: (goalId: string) => void
   setScheduleBlockId: (scheduleBlockId: string) => void
-  start: (task: string, category: string, goalId: string, scheduleBlockId?: string) => void
+  setReminderInterval: (interval: number) => void
+  start: (task: string, taskId: string, category: string, goalId: string, scheduleBlockId?: string) => void
   pause: (elapsedSeconds: number) => void
   resume: () => void
   reset: () => void
@@ -37,20 +39,22 @@ export const useTimerStore = create<TimerStoreState>()(
       currentCategory: 'DEEP_WORK',
       currentGoalId: '',
       currentScheduleBlockId: '',
+      reminderInterval: 15,
 
       setTask: (task) => set({ currentTask: task }),
       setTaskId: (taskId) => set({ currentTaskId: taskId }),
       setCategory: (category) => set({ currentCategory: category }),
       setGoalId: (goalId) => set({ currentGoalId: goalId }),
       setScheduleBlockId: (scheduleBlockId) => set({ currentScheduleBlockId: scheduleBlockId }),
+      setReminderInterval: (interval) => set({ reminderInterval: interval }),
 
-      start: (task, category, goalId, scheduleBlockId) =>
+      start: (task, taskId, category, goalId, scheduleBlockId) =>
         set({
           timerState: 'RUNNING',
           startTimestamp: Date.now(),
           pausedElapsedTime: 0,
           currentTask: task,
-          currentTaskId: get().currentTaskId,
+          currentTaskId: taskId,
           currentCategory: category,
           currentGoalId: goalId,
           currentScheduleBlockId: scheduleBlockId ?? get().currentScheduleBlockId,
