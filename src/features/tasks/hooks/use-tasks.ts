@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useLocalStorage } from '@/hooks/use-local-storage'
 
 import { useTasksQuery } from '@/features/tasks/hooks/use-tasks-queries'
 import { Goal, ScheduleBlock, Task, TaskStatus } from '@/features/tasks/utils/types'
@@ -9,7 +10,7 @@ import { goalsApi, scheduleApi } from '@/lib/api'
 export function useTasks() {
   const [statusFilter, setStatusFilter] = useState<TaskStatus | ''>('')
   const [goalFilter, setGoalFilter] = useState<string | ''>('')
-  const [goalStatus, setGoalStatus] = useState<string>('ACTIVE')
+  const [goalStatus, setGoalStatus] = useLocalStorage<string>('tasks-goal-status', 'ACTIVE')
 
   const tasksQuery = useTasksQuery({
     status: statusFilter || undefined,

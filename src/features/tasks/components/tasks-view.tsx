@@ -12,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { startOfDay, startOfWeek, endOfWeek, isSameDay, isBefore, isAfter, addDays, getWeek, addWeeks, isWithinInterval } from 'date-fns'
+import { useLocalStorage } from '@/hooks/use-local-storage'
 
 interface TasksViewProps {
   tasks: Task[]
@@ -42,17 +43,17 @@ export function TasksView({
   onSelectStatus,
   goalsLoading = false,
 }: TasksViewProps) {
-  const [dueDateFilter, setDueDateFilter] = useState<string>('all')
-  const [durationFilter, setDurationFilter] = useState<string>('all')
+  const [dueDateFilter, setDueDateFilter] = useLocalStorage<string>('tasks-due-date-filter', 'all')
+  const [durationFilter, setDurationFilter] = useLocalStorage<string>('tasks-duration-filter', 'all')
   const [searchQuery, setSearchQuery] = useState('')
   
   // Custom date filter state
-  const [customDateStart, setCustomDateStart] = useState('')
-  const [customDateEnd, setCustomDateEnd] = useState('')
+  const [customDateStart, setCustomDateStart] = useLocalStorage('tasks-custom-date-start', '')
+  const [customDateEnd, setCustomDateEnd] = useLocalStorage('tasks-custom-date-end', '')
   
   // Custom duration filter state (in minutes)
-  const [customDurationMin, setCustomDurationMin] = useState<number | ''>('')
-  const [customDurationMax, setCustomDurationMax] = useState<number | ''>('')
+  const [customDurationMin, setCustomDurationMin] = useLocalStorage<number | ''>('tasks-custom-duration-min', '')
+  const [customDurationMax, setCustomDurationMax] = useLocalStorage<number | ''>('tasks-custom-duration-max', '')
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {

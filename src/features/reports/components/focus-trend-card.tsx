@@ -7,7 +7,7 @@ import { FocusUpdatingOverlay } from '@/features/reports/components/focus-updati
 import { useFocusTimeEntriesRangeQuery } from '@/features/reports/hooks/use-focus-time-entries'
 import { buildTrendSeries, formatMinutesAsHoursTick } from '@/features/reports/utils/aggregation'
 import { getRollingRange } from '@/features/reports/utils/dates'
-import type { FocusGranularity } from '@/features/reports/utils/types'
+import type { FocusGranularity, FocusTimeEntry } from '@/features/reports/utils/types'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { cn, formatDuration } from '@/lib/utils'
@@ -16,9 +16,11 @@ import AnimateChangeInHeight from '@/components/animate-change-in-height'
 interface FocusTrendCardProps {
   view: FocusGranularity
   filters?: ReportFilterState
+  explicitEntries?: FocusTimeEntry[]
+  isLoading?: boolean
 }
 
-export function FocusTrendCard({ view, filters }: FocusTrendCardProps) {
+export function FocusTrendCard({ view, filters, explicitEntries, isLoading: explicitLoading }: FocusTrendCardProps) {
   const [offset, setOffset] = useState(0)
 
   useEffect(() => {
@@ -29,10 +31,12 @@ export function FocusTrendCard({ view, filters }: FocusTrendCardProps) {
 
   const range = useMemo(() => getRollingRange({ granularity, offset }), [granularity, offset])
   const entriesQuery = useFocusTimeEntriesRangeQuery({ startDate: range.startDate, endDate: range.endDate })
-  const rawEntries = entriesQuery.data ?? []
+  
+  const rawEntries = explicitEntries ?? entriesQuery.data ?? []
   const entries = useFilteredEntries(rawEntries, filters ?? { goalIds: [], categoryIds: [] })
-  const showLoading = entriesQuery.isLoading && rawEntries.length === 0
-  const showUpdating = entriesQuery.isFetching && !showLoading
+  
+  const showLoading = (explicitLoading ?? entriesQuery.isLoading) && rawEntries.length === 0
+  const showUpdating = (explicitLoading ?? entriesQuery.isFetching) && !showLoading
 
   const series = useMemo(() => {
     return buildTrendSeries({ entries, granularity, startDate: range.startDate, endDate: range.endDate })

@@ -13,6 +13,7 @@ import {
   useUpdateTaskMutation,
 } from '@/features/tasks/hooks/use-tasks-mutations'
 import { CreateTaskForm, Task, TaskStatus } from '@/features/tasks/utils/types'
+import { useLocalStorage } from '@/hooks/use-local-storage'
 
 export function TasksPage() {
   const { tasks, scheduleBlocks, goals, isLoading, goalStatus, setGoalStatus } = useTasks()
@@ -24,16 +25,22 @@ export function TasksPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [completingTask, setCompletingTask] = useState<Task | null>(null)
-  const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null)
+  
+  const [selectedGoalId, setSelectedGoalId, isGoalIdInitialized] = useLocalStorage<string | null>('tasks-selected-goal-id', null)
 
-  // Auto-select first goal when goals change
+  // Auto-select first goal when goals change 
   useEffect(() => {
-    if (goals.length > 0 && (!selectedGoalId || !goals.some((g) => g.id === selectedGoalId))) {
-      setSelectedGoalId(goals[0].id)
+    if (!isGoalIdInitialized || isLoading) return
+
+    if (goals.length > 0) {
+      const isValid = selectedGoalId && goals.some((g) => g.id === selectedGoalId)
+      if (!isValid) {
+        setSelectedGoalId(goals[0].id)
+      }
     } else if (goals.length === 0) {
-      setSelectedGoalId(null)
+       if (selectedGoalId !== null) setSelectedGoalId(null)
     }
-  }, [goals, selectedGoalId])
+  }, [goals, selectedGoalId, isGoalIdInitialized, isLoading, setSelectedGoalId])
 
   // Filter tasks for selected goal
   const tasksForGoal = selectedGoalId ? tasks.filter((t) => t.goalId === selectedGoalId) : []

@@ -206,8 +206,12 @@ export const notificationsApi = {
 
 export const releaseNotesApi = {
   latest: () => api.get('/release-notes/latest'),
+  unseen: () => api.get('/release-notes/unseen'),
   markSeen: (id: string) => api.patch(`/release-notes/${id}/seen`),
   create: (data: { version: string; title: string; content: string; publishedAt?: string }) => api.post('/release-notes', data),
+  update: (id: string, data: { version?: string; title?: string; content?: string; publishedAt?: string; resetSeen?: boolean }) => api.patch(`/release-notes/${id}`, data),
+  list: () => api.get('/release-notes'),
+  delete: (id: string) => api.delete(`/release-notes/${id}`),
 }
 
 // Stripe API

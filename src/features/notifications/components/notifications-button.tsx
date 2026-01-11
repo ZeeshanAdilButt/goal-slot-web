@@ -15,7 +15,7 @@ export const NotificationsButton = () => {
   const { isAuthenticated, isLoading } = useAuthStore()
   const openThread = useFeedbackWidgetStore((state) => state.openThread)
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading: isQueryLoading } =
-    useNotificationsQuery()
+    useNotificationsQuery(10, { enabled: isAuthenticated })
   const markRead = useMarkNotificationRead()
 
   const [isOpen, setIsOpen] = useState(false)

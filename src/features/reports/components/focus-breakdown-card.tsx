@@ -7,7 +7,8 @@ import { FocusUpdatingOverlay } from '@/features/reports/components/focus-updati
 import { useFocusTimeEntriesRangeQuery } from '@/features/reports/hooks/use-focus-time-entries'
 import { buildStackedSeries, formatMinutesAsHoursTick } from '@/features/reports/utils/aggregation'
 import { getRollingRange } from '@/features/reports/utils/dates'
-import type { FocusGranularity, FocusGroupBy } from '@/features/reports/utils/types'
+import { getDateOnlyFromIsoString } from '@/features/reports/utils/dates'
+import type { FocusGranularity, FocusGroupBy, FocusTimeEntry } from '@/features/reports/utils/types'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { cn, formatDuration } from '@/lib/utils'
@@ -19,9 +20,11 @@ interface FocusBreakdownCardProps {
   view: FocusGranularity
   groupBy: FocusGroupBy
   filters?: ReportFilterState
+  explicitEntries?: FocusTimeEntry[]
+  isLoading?: boolean
 }
 
-export function FocusBreakdownCard({ view, groupBy, filters }: FocusBreakdownCardProps) {
+export function FocusBreakdownCard({ view, groupBy, filters, explicitEntries, isLoading: explicitLoading }: FocusBreakdownCardProps) {
   const [offset, setOffset] = useState(0)
 
   useEffect(() => {
@@ -32,10 +35,12 @@ export function FocusBreakdownCard({ view, groupBy, filters }: FocusBreakdownCar
 
   const range = useMemo(() => getRollingRange({ granularity, offset }), [granularity, offset])
   const entriesQuery = useFocusTimeEntriesRangeQuery({ startDate: range.startDate, endDate: range.endDate })
-  const rawEntries = entriesQuery.data ?? []
+  
+  const rawEntries = explicitEntries ?? entriesQuery.data ?? []
   const entries = useFilteredEntries(rawEntries, filters ?? { goalIds: [], categoryIds: [] })
-  const showLoading = entriesQuery.isLoading && rawEntries.length === 0
-  const showUpdating = entriesQuery.isFetching && !showLoading
+  
+  const showLoading = (explicitLoading ?? entriesQuery.isLoading) && rawEntries.length === 0
+  const showUpdating = (explicitLoading ?? entriesQuery.isFetching) && !showLoading
 
   const series = useMemo(() => {
     const topN = groupBy === 'task' ? 8 : 6

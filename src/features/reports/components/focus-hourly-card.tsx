@@ -23,9 +23,11 @@ const EMPTY_ENTRIES: FocusTimeEntry[] = []
 interface FocusHourlyCardProps {
   view: FocusPeriod
   filters?: ReportFilterState
+  explicitEntries?: FocusTimeEntry[]
+  isLoading?: boolean
 }
 
-export function FocusHourlyCard({ view, filters }: FocusHourlyCardProps) {
+export function FocusHourlyCard({ view, filters, explicitEntries, isLoading: explicitLoading }: FocusHourlyCardProps) {
   const [offset, setOffset] = useState(0)
 
   useEffect(() => {
@@ -36,10 +38,12 @@ export function FocusHourlyCard({ view, filters }: FocusHourlyCardProps) {
 
   const range = useMemo(() => getPeriodRange({ period, offset }), [period, offset])
   const entriesQuery = useFocusTimeEntriesRangeQuery({ startDate: range.startDate, endDate: range.endDate })
-  const rawEntries = entriesQuery.data ?? EMPTY_ENTRIES
+  
+  const rawEntries = explicitEntries ?? entriesQuery.data ?? EMPTY_ENTRIES
   const entries = useFilteredEntries(rawEntries, filters ?? { goalIds: [], categoryIds: [] })
-  const showLoading = entriesQuery.isLoading && rawEntries.length === 0
-  const showUpdating = entriesQuery.isFetching && !showLoading
+  
+  const showLoading = (explicitLoading ?? entriesQuery.isLoading) && rawEntries.length === 0
+  const showUpdating = (explicitLoading ?? entriesQuery.isFetching) && !showLoading
 
   const histogram = useMemo(() => buildHourlyHistogram(entries, range.days), [entries, range.days])
   const excludedNote = useMemo(

@@ -14,6 +14,7 @@ import { FocusTimeGridCard } from '@/features/reports/components/focus-time-grid
 import { FocusTrendCard } from '@/features/reports/components/focus-trend-card'
 import { useExportReportMutation } from '@/features/reports/hooks/use-detailed-summary-reports'
 import type { FocusGranularity, ExportFormat } from '@/features/reports/utils/types'
+import { useLocalStorage } from '@/hooks/use-local-storage'
 
 import { cn, formatDuration } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -60,9 +61,9 @@ function getDateRangeForView(view: FocusGranularity): { startDate: string; endDa
 }
 
 export function FocusPage() {
-  const [view, setView] = useState<FocusGranularity>('week')
-  const [groupBy, setGroupBy] = useState<'goal' | 'task'>('goal')
-  const [filters, setFilters] = useState<ReportFilterState>(emptyFilters)
+  const [view, setView] = useLocalStorage<FocusGranularity>('reports-view', 'week')
+  const [groupBy, setGroupBy] = useLocalStorage<'goal' | 'task'>('reports-group-by', 'goal')
+  const [filters, setFilters] = useLocalStorage<ReportFilterState>('reports-filters', emptyFilters)
   const [exportDialogOpen, setExportDialogOpen] = useState(false)
   const [exportViewType, setExportViewType] = useState<'detailed' | 'summary' | 'day_by_task' | 'day_total'>('summary')
   const [exportTitle, setExportTitle] = useState('Time Report')

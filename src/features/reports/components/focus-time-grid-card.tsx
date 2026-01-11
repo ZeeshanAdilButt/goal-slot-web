@@ -32,9 +32,11 @@ function getFallbackClass(minutes: number): string {
 interface FocusTimeGridCardProps {
   view: FocusPeriod
   filters?: ReportFilterState
+  explicitEntries?: FocusTimeEntry[]
+  isLoading?: boolean
 }
 
-export function FocusTimeGridCard({ view, filters }: FocusTimeGridCardProps) {
+export function FocusTimeGridCard({ view, filters, explicitEntries, isLoading: explicitLoading }: FocusTimeGridCardProps) {
   const [offset, setOffset] = useState(0)
 
   useEffect(() => {
@@ -45,10 +47,12 @@ export function FocusTimeGridCard({ view, filters }: FocusTimeGridCardProps) {
 
   const range = useMemo(() => getPeriodRange({ period, offset }), [period, offset])
   const entriesQuery = useFocusTimeEntriesRangeQuery({ startDate: range.startDate, endDate: range.endDate })
-  const rawEntries = entriesQuery.data ?? EMPTY_ENTRIES
+  
+  const rawEntries = explicitEntries ?? entriesQuery.data ?? EMPTY_ENTRIES
   const entries = useFilteredEntries(rawEntries, filters ?? { goalIds: [], categoryIds: [] })
-  const showLoading = entriesQuery.isLoading && rawEntries.length === 0
-  const showUpdating = entriesQuery.isFetching && !showLoading
+  
+  const showLoading = (explicitLoading ?? entriesQuery.isLoading) && rawEntries.length === 0
+  const showUpdating = (explicitLoading ?? entriesQuery.isFetching) && !showLoading
 
   const gridResult = useMemo(() => buildTimeGrid(entries, range.days), [entries, range.days])
   const excludedNote = useMemo(

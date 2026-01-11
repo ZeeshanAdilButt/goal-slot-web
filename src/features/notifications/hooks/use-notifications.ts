@@ -4,7 +4,7 @@ import type { NotificationListResponse } from '@/features/notifications/utils/ty
 
 const notificationsKey = ['notifications'] as const
 
-export function useNotificationsQuery(pageSize = 10) {
+export function useNotificationsQuery(pageSize = 10, options: { enabled?: boolean } = {}) {
   return useInfiniteQuery<NotificationListResponse>({
     queryKey: notificationsKey,
     queryFn: async ({ pageParam }) => {
@@ -13,6 +13,7 @@ export function useNotificationsQuery(pageSize = 10) {
     },
     initialPageParam: undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
+    enabled: options.enabled,
   })
 }
 

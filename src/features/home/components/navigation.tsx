@@ -125,7 +125,7 @@ export function Navigation() {
             </Popover>
           ) : (
             <>
-              <Link href="/login" className="btn-brutal-secondary px-4 py-2 text-sm">
+              <Link href="/login?redirect=/dashboard" className="btn-brutal-secondary px-4 py-2 text-sm">
                 Login
               </Link>
               <Link href="/signup" className="btn-brutal px-4 py-2 text-sm">

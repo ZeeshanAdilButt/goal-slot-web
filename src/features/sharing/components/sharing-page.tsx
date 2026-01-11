@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-import { SharedReportsView } from '@/features/sharing/components/shared-reports-view'
+import { SharedReportsView } from './shared-reports-view'
 import { SharingActiveShares } from '@/features/sharing/components/sharing-active-shares'
 import { SharingHeader } from '@/features/sharing/components/sharing-header'
 import { SharingInviteModal } from '@/features/sharing/components/sharing-invite-modal'

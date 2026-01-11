@@ -6,7 +6,7 @@ import { useFilteredEntries, type ReportFilterState } from '@/features/reports/c
 import { FocusUpdatingOverlay } from '@/features/reports/components/focus-updating-overlay'
 import { useFocusTimeEntriesRangeQuery } from '@/features/reports/hooks/use-focus-time-entries'
 import { getPeriodRange } from '@/features/reports/utils/dates'
-import type { FocusGranularity } from '@/features/reports/utils/types'
+import type { FocusGranularity, FocusTimeEntry } from '@/features/reports/utils/types'
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
 import { cn, formatDuration } from '@/lib/utils'
@@ -17,9 +17,11 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'
 interface FocusCategoryPieCardProps {
   view: FocusGranularity
   filters?: ReportFilterState
+  explicitEntries?: FocusTimeEntry[]
+  isLoading?: boolean
 }
 
-export function FocusCategoryPieCard({ view, filters }: FocusCategoryPieCardProps) {
+export function FocusCategoryPieCard({ view, filters, explicitEntries, isLoading: explicitLoading }: FocusCategoryPieCardProps) {
   const [offset, setOffset] = useState(0)
 
   useEffect(() => {
@@ -30,8 +32,12 @@ export function FocusCategoryPieCard({ view, filters }: FocusCategoryPieCardProp
 
   const range = useMemo(() => getPeriodRange({ period: granularity, offset }), [granularity, offset])
   const entriesQuery = useFocusTimeEntriesRangeQuery({ startDate: range.startDate, endDate: range.endDate })
-  const rawEntries = entriesQuery.data || []
+  
+  const rawEntries = explicitEntries ?? entriesQuery.data ?? []
   const entries = useFilteredEntries(rawEntries, filters ?? { goalIds: [], categoryIds: [] })
+
+  const showLoading = (explicitLoading ?? entriesQuery.isLoading) && rawEntries.length === 0
+  const showUpdating = (explicitLoading ?? entriesQuery.isFetching) && !showLoading
 
   const data = useMemo(() => {
     const categoryMap = new Map<string, number>()
@@ -53,9 +59,6 @@ export function FocusCategoryPieCard({ view, filters }: FocusCategoryPieCardProp
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value)
   }, [entries])
-
-  const showLoading = entriesQuery.isLoading && rawEntries.length === 0
-  const showUpdating = entriesQuery.isFetching && !showLoading
 
   return (
     <div className="card-brutal">

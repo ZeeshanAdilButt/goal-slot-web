@@ -33,12 +33,17 @@ export interface ReportFilterState {
 interface FocusFiltersProps {
   filters: ReportFilterState
   onChange: (filters: ReportFilterState) => void
+  explicitGoals?: Goal[]
+  explicitCategories?: Category[]
 }
 
-export function FocusFilters({ filters, onChange }: FocusFiltersProps) {
+export function FocusFilters({ filters, onChange, explicitGoals, explicitCategories }: FocusFiltersProps) {
   const [open, setOpen] = useState(false)
-  const { goals } = useTimeTrackerData()
-  const { data: categories = [] } = useCategoriesQuery() as { data: Category[] }
+  const { goals: myGoals } = useTimeTrackerData()
+  const { data: myCategories = [] } = useCategoriesQuery() as { data: Category[] }
+
+  const goals = explicitGoals ?? myGoals
+  const categories = explicitCategories ?? myCategories
 
   const activeFilterCount = useMemo(() => {
     return filters.goalIds.length + filters.categoryIds.length
