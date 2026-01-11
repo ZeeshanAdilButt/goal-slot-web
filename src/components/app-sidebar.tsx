@@ -17,6 +17,7 @@ import {
   Shield,
   Target,
   Users,
+  Megaphone,
 } from 'lucide-react'
 
 import { GoalSlotBrand, GoalSlotLogo } from '@/components/goalslot-logo'
@@ -55,6 +56,7 @@ const navItems = [
 const adminNavItems = [
   { href: '/dashboard/admin/users', label: 'Users', icon: Users },
   { href: '/dashboard/admin/feedback', label: 'Feedback', icon: MessageSquare },
+  { href: '/dashboard/admin/release-notes', label: 'Release Notes', icon: Megaphone },
 ]
 
 export function AppSidebar() {

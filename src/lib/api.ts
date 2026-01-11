@@ -204,6 +204,12 @@ export const notificationsApi = {
   markRead: (id: string) => api.patch(`/notifications/${id}/read`),
 }
 
+export const releaseNotesApi = {
+  latest: () => api.get('/release-notes/latest'),
+  markSeen: (id: string) => api.patch(`/release-notes/${id}/seen`),
+  create: (data: { version: string; title: string; content: string; publishedAt?: string }) => api.post('/release-notes', data),
+}
+
 // Stripe API
 export const stripeApi = {
   createCheckout: () => api.post('/stripe/create-checkout-session'),

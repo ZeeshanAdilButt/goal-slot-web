@@ -10,6 +10,7 @@ import { GoalSlotSpinner } from '@/components/goalslot-logo'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { TimeEntryBanner } from '@/components/time-entry-banner'
+import { ReleaseNoteBanner } from '@/features/release-notes/components/release-note-banner'
 
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -52,6 +53,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           <SidebarTrigger className="h-10 w-10 border-3 border-secondary !bg-primary !text-secondary shadow-brutal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:!bg-primary hover:shadow-brutal-hover active:translate-x-1 active:translate-y-1 active:shadow-none" />
         </div>
         <TimeEntryBanner />
+        <ReleaseNoteBanner />
         <div className="flex-1 overflow-hidden">
           {children}
         </div>
