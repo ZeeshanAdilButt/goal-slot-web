@@ -58,7 +58,6 @@ export const useTimerStore = create<TimerStoreState>()(
           currentCategory: category,
           currentGoalId: goalId,
           currentScheduleBlockId: scheduleBlockId ?? get().currentScheduleBlockId,
-          currentScheduleBlockId: scheduleBlockId ?? get().currentScheduleBlockId,
         }),
 
       pause: (elapsedSeconds) =>
