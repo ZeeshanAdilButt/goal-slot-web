@@ -7,16 +7,20 @@ import { FeedbackForm } from '@/features/feedback/components/feedback-form'
 import clsx from 'clsx'
 
 import { useClickOutside } from '@/hooks/use-click-outside'
+import { useAuthStore } from '@/lib/store'
 
 interface FeedbackButtonInlineProps {
   label: string
 }
 
 export const FeedbackButtonInline = ({ label }: FeedbackButtonInlineProps) => {
+  const { isAuthenticated, isLoading } = useAuthStore()
   const [expanded, setExpanded] = useState<boolean>(false)
   const [selectedEmoji, setSelectedEmoji] = useState<number | null>(null)
   const ref = useRef<HTMLDivElement | null>(null)
   const [showContent, setShowContent] = useState(false)
+
+  if (!isLoading && !isAuthenticated) return null
 
   useEffect(() => {
     if (expanded) {

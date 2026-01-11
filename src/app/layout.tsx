@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 import { Feedback } from '@/features/feedback'
+import { NotificationsButton } from '@/features/notifications/components/notifications-button'
 import { Toaster } from 'react-hot-toast'
 
 import { ReactQueryProvider } from '@/lib/react-query-provider'
@@ -37,7 +38,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <ReactQueryProvider>
           {children}
-          <div className="fixed bottom-6 right-6 z-50">
+          <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+            <NotificationsButton />
             <Feedback label="Feedback" />
           </div>
           <Toaster

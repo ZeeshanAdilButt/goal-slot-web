@@ -50,6 +50,8 @@ export const feedbackApi = {
   getOne: (id: string) => api.get(`/feedback/${id}`),
   archive: (id: string, data: { isArchived: boolean }) => api.put(`/feedback/${id}/archive`, data),
   delete: (id: string) => api.delete(`/feedback/${id}`),
+  reply: (id: string, data: { message: string }) => api.post(`/feedback/${id}/responses`, data),
+  getThread: (id: string) => api.get(`/feedback/${id}/thread`),
 }
 
 // Auth API
@@ -195,6 +197,11 @@ export const sharingApi = {
   getPublicSharedTimeEntries: (token: string, startDate: string, endDate: string) =>
     api.get(`/public/share/view/${token}/time-entries`, { params: { startDate, endDate } }),
   getPublicSharedGoals: (token: string) => api.get(`/public/share/view/${token}/goals`),
+}
+
+export const notificationsApi = {
+  list: (params?: { cursor?: string; limit?: number }) => api.get('/notifications', { params }),
+  markRead: (id: string) => api.patch(`/notifications/${id}/read`),
 }
 
 // Stripe API
