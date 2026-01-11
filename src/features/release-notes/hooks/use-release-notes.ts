@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { releaseNotesApi } from '@/lib/api'
-import type { LatestReleaseNoteResponse } from '@/features/release-notes/utils/types'
+import type { LatestReleaseNoteResponse, ReleaseNote } from '@/features/release-notes/utils/types'
 
 const latestReleaseNoteKey = ['release-notes', 'latest'] as const
 const unseenReleaseNotesKey = ['release-notes', 'unseen'] as const
@@ -21,15 +21,7 @@ export function useLatestReleaseNote() {
 }
 
 export function useUnseenReleaseNotes() {
-  return useQuery<{
-    note: {
-      id: string;
-      version: string;
-      title: string;
-      content: string;
-      publishedAt: string;
-    }
-  }[]>({
+  return useQuery<ReleaseNote[]>({
     queryKey: unseenReleaseNotesKey,
     queryFn: async () => {
       const res = await releaseNotesApi.unseen()
