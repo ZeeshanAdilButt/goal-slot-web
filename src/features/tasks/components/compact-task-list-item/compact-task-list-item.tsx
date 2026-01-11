@@ -35,8 +35,8 @@ export function CompactTaskListItem({
   const deleteTaskMutation = useDeleteTaskMutation()
   const restoreTaskMutation = useRestoreTaskMutation()
 
-  const isCompleted = task.status === 'COMPLETED'
-  const isInProgress = task.status === 'IN_PROGRESS'
+  const isCompleted = task.status === 'DONE'
+  const isInProgress = task.status === 'DOING'
   const goalColor = task.goal?.color
 
   const handleDelete = async (): Promise<void> => {
@@ -96,7 +96,7 @@ export function CompactTaskListItem({
           >
             {/* Action Buttons - Always visible on mobile, show on hover on desktop */}
             <div className="flex items-center gap-1.5 sm:gap-2">
-              {onComplete && task.status !== 'COMPLETED' && (
+              {onComplete && task.status !== 'DONE' && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation()

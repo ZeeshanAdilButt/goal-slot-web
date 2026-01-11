@@ -9,6 +9,7 @@ import {
   Calendar,
   CheckSquare,
   Clock,
+  Download,
   FileText,
   LayoutDashboard,
   MessageSquare,
@@ -47,6 +48,7 @@ const navItems = [
   { href: '/dashboard/notes', label: 'Notes', icon: FileText },
   { href: '/dashboard/time-tracker', label: 'Time Tracker', icon: Clock },
   { href: '/dashboard/reports', label: 'Reports', icon: BarChart3 },
+  { href: '/dashboard/reports/export', label: 'Export Reports', icon: Download },
   { href: '/dashboard/sharing', label: 'Sharing', icon: Share2 },
 ]
 
@@ -82,7 +84,7 @@ export function AppSidebar() {
           <Link href="/dashboard" className="hidden group-data-[collapsible=icon]:block">
             <GoalSlotLogo size="md" />
           </Link>
-          <div className="hidden group-data-[collapsible=icon]:justify-center md:flex">
+          <div className="hidden group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:justify-center md:flex">
             <SidebarTrigger className="h-8 w-8 border-3 border-secondary !bg-primary !text-secondary shadow-brutal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:!bg-primary hover:shadow-brutal-hover active:translate-x-1 active:translate-y-1 active:shadow-none" />
           </div>
         </div>
@@ -107,7 +109,7 @@ export function AppSidebar() {
                     >
                       <Link href={item.href}>
                         <item.icon className="h-6 w-6 group-data-[collapsible=icon]:-ml-1 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5" />
-                        <span>{item.label}</span>
+                        <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -139,7 +141,7 @@ export function AppSidebar() {
                       >
                         <Link href={item.href}>
                           <item.icon className="h-5 w-5 group-data-[collapsible=icon]:h-6 group-data-[collapsible=icon]:w-6" />
-                          <span>{item.label}</span>
+                          <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>

@@ -30,12 +30,12 @@ export function TaskList({ tasks, groupBy, onComplete, onEdit }: TaskListProps) 
   return (
     <div className="space-y-4 px-4 md:-ml-[3px] md:space-y-6 md:px-0">
       {groupedTasks.map(([group, groupTasks]) => (
-        <div key={group} className={cn('card-brutal p-3 sm:p-4', group === 'COMPLETED' ? 'bg-gray-50 opacity-75' : '')}>
+        <div key={group} className={cn('card-brutal p-3 sm:p-4', group === 'DONE' ? 'bg-gray-50 opacity-75' : '')}>
           <div className="mb-2 flex items-center justify-between sm:mb-3">
             <h3
               className={cn(
                 'font-display text-sm sm:text-base font-bold uppercase',
-                group === 'IN_PROGRESS' ? 'text-accent-blue' : '',
+                group === 'DOING' ? 'text-accent-blue' : '',
               )}
             >
               {group.replace('_', ' ')}
@@ -43,7 +43,7 @@ export function TaskList({ tasks, groupBy, onComplete, onEdit }: TaskListProps) 
             <span
               className={cn(
                 'badge-brutal text-[10px] sm:text-xs flex-shrink-0',
-                group === 'IN_PROGRESS' ? 'bg-accent-blue text-white' : '',
+                group === 'DOING' ? 'bg-accent-blue text-white' : '',
               )}
             >
               {groupTasks.length}

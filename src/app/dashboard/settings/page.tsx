@@ -147,11 +147,11 @@ function ProfileSettings() {
           <div
             className={cn(
               'px-4 py-2 font-bold uppercase border-3 border-secondary',
-              user?.plan === 'PREMIUM' || user?.plan === 'PRO' ? 'bg-primary' : 'bg-gray-100',
+              user?.plan === 'BASIC' || user?.plan === 'PRO' ? 'bg-primary' : 'bg-gray-100',
             )}
           >
-            {user?.plan === 'PREMIUM' && '👑 Premium'}
-            {user?.plan === 'PRO' && '⭐ Pro'}
+            {user?.plan === 'PRO' && '🚀 Max'}
+            {user?.plan === 'BASIC' && '⭐ Pro'}
             {user?.plan === 'FREE' && 'Free Plan'}
             {!user?.plan && 'Free Plan'}
           </div>
@@ -171,11 +171,10 @@ function BillingSettings() {
   const { user, setUser } = useAuthStore()
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleUpgrade = async () => {
+  const startCheckout = async (plan: 'BASIC' | 'PRO') => {
     setIsLoading(true)
     try {
-      const res = await stripeApi.createCheckoutSession('premium_monthly')
-      // Redirect to Stripe checkout
+      const res = await stripeApi.createCheckoutSession(plan)
       window.location.href = res.data.url
     } catch (error) {
       toast.error('Failed to start checkout')
@@ -202,24 +201,24 @@ function BillingSettings() {
       <div
         className={cn(
           'card-brutal p-4 sm:p-8',
-          user?.plan === 'PREMIUM' || user?.plan === 'PRO' ? 'bg-primary' : 'bg-white',
+          user?.plan === 'BASIC' || user?.plan === 'PRO' ? 'bg-primary' : 'bg-white',
         )}
       >
         <div className="mb-4 flex items-center gap-4">
-          {user?.plan === 'PREMIUM' || user?.plan === 'PRO' ? (
+          {user?.plan === 'BASIC' || user?.plan === 'PRO' ? (
             <Crown className="h-8 w-8 sm:h-10 sm:w-10" />
           ) : (
             <CreditCard className="h-8 w-8 sm:h-10 sm:w-10" />
           )}
           <div>
             <h2 className="text-xl font-bold uppercase sm:text-2xl">
-              {user?.plan === 'PREMIUM' && 'Premium Plan'}
-              {user?.plan === 'PRO' && 'Pro Plan'}
+              {user?.plan === 'PRO' && 'Max Plan'}
+              {user?.plan === 'BASIC' && 'Pro Plan'}
               {(user?.plan === 'FREE' || !user?.plan) && 'Free Plan'}
             </h2>
             <p className="font-mono text-sm sm:text-base">
-              {user?.plan === 'PREMIUM' && '$10/month'}
-              {user?.plan === 'PRO' && '$5/month'}
+              {user?.plan === 'PRO' && '$12/month'}
+              {user?.plan === 'BASIC' && '$7/month'}
               {(user?.plan === 'FREE' || !user?.plan) && '$0/month'}
             </p>
           </div>
@@ -233,22 +232,40 @@ function BillingSettings() {
               <div>✓ 3 Time Entries/Day</div>
               <div>✓ Basic Reports</div>
             </div>
-            <button onClick={handleUpgrade} disabled={isLoading} className="btn-brutal-dark w-full">
-              {isLoading ? 'Loading...' : 'Upgrade to Premium - $10/month'}
-            </button>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button
+                onClick={() => startCheckout('BASIC')}
+                disabled={isLoading}
+                className="btn-brutal-dark w-full"
+              >
+                {isLoading ? 'Loading…' : 'Upgrade to Pro – $7/mo'}
+              </button>
+              <button
+                onClick={() => startCheckout('PRO')}
+                disabled={isLoading}
+                className="btn-brutal w-full"
+              >
+                {isLoading ? 'Loading…' : 'Go Max – $12/mo'}
+              </button>
+            </div>
           </div>
         )}
 
-        {(user?.plan === 'PREMIUM' || user?.plan === 'PRO') && (
+        {(user?.plan === 'BASIC' || user?.plan === 'PRO') && (
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4 font-mono text-sm sm:grid-cols-2">
               <div>✓ Unlimited Schedules</div>
-              <div>✓ Unlimited Goals</div>
+              <div>{user?.plan === 'BASIC' ? '✓ 10 Goals' : '✓ Unlimited Goals'}</div>
               <div>✓ Unlimited Time Entries</div>
               <div>✓ Advanced Reports</div>
-              {user?.plan === 'PREMIUM' && <div>✓ Priority Support</div>}
+              {user?.plan === 'PRO' && <div>✓ Priority Support</div>}
             </div>
-            {user?.plan === 'PREMIUM' && (
+            {user?.plan === 'BASIC' && (
+              <button onClick={() => startCheckout('PRO')} disabled={isLoading} className="btn-brutal">
+                {isLoading ? 'Loading…' : 'Upgrade to Max – $12/mo'}
+              </button>
+            )}
+            {user?.plan === 'PRO' && (
               <button onClick={handleManage} disabled={isLoading} className="btn-brutal-dark">
                 {isLoading ? 'Loading...' : 'Manage Subscription'}
               </button>
@@ -257,14 +274,14 @@ function BillingSettings() {
         )}
       </div>
 
-      {/* Premium Features */}
+      {/* Paid Features */}
       {user?.plan === 'FREE' && (
         <div className="card-brutal">
-          <h3 className="mb-4 text-xl font-bold uppercase">Premium Benefits</h3>
+          <h3 className="mb-4 text-xl font-bold uppercase">Pro & Max Benefits</h3>
           <div className="space-y-3">
             {[
               'Unlimited schedule blocks',
-              'Unlimited goals',
+              '10+ goals (upgrade for unlimited)',
               'Unlimited time entries per day',
               'Advanced analytics & reports',
               'Priority support',

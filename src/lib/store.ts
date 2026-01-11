@@ -10,7 +10,7 @@ export interface User {
   avatar?: string
   role: 'SUPER_ADMIN' | 'ADMIN' | 'USER'
   userType: 'INTERNAL' | 'EXTERNAL' | 'SSO'
-  plan: 'FREE' | 'PRO' | 'PREMIUM'
+  plan: 'FREE' | 'BASIC' | 'PRO'
   unlimitedAccess: boolean
   subscriptionStatus?: string
   subscriptionEndDate?: string | null
@@ -146,5 +146,5 @@ export const useIsSuperAdmin = () => {
 export const useHasProAccess = () => {
   const user = useAuthStore((state) => state.user)
   if (!user) return false
-  return user.plan === 'PRO' || user.plan === 'PREMIUM' || user.unlimitedAccess || user.userType === 'INTERNAL'
+  return user.plan === 'BASIC' || user.plan === 'PRO' || user.unlimitedAccess || user.userType === 'INTERNAL'
 }

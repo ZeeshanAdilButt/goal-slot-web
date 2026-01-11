@@ -1,4 +1,4 @@
-export type TaskStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED'
+export type TaskStatus = 'BACKLOG' | 'TODO' | 'DOING' | 'DONE'
 
 export interface Goal {
   id: string
@@ -6,6 +6,7 @@ export interface Goal {
   color: string
   status: string
   category?: string
+  order?: number
 }
 
 export interface ScheduleBlock {
@@ -32,6 +33,7 @@ export interface Task {
   goal?: Goal
   scheduleBlockId?: string
   scheduleBlock?: ScheduleBlock
+  order?: number
 }
 
 export interface CreateTaskForm {

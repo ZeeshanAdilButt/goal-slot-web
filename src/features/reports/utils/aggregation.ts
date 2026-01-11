@@ -307,18 +307,33 @@ export function buildHourlyHistogram(
   return { data, excludedMinutes, excludedEntries, includedEntries }
 }
 
+export interface TimeGridItem {
+  taskId?: string
+  taskName: string
+  goalId?: string
+  goalTitle?: string
+  goalColor?: string
+  minutes: number
+}
+
+export interface TimeGridCell {
+  totalMinutes: number
+  items: TimeGridItem[]
+}
+
 export function buildTimeGrid(
   entries: FocusTimeEntry[],
   days: string[],
 ): {
-  grid: Record<string, number[]>
+  grid: Record<string, TimeGridCell[]>
   excludedMinutes: number
   excludedEntries: number
   includedEntries: number
 } {
-  const grid: Record<string, number[]> = {}
+  const grid: Record<string, TimeGridCell[]> = {}
   for (const day of days) {
-    grid[day] = new Array<number>(24).fill(0)
+    // Initialize with empty cells
+    grid[day] = Array.from({ length: 24 }, () => ({ totalMinutes: 0, items: [] }))
   }
 
   let excludedMinutes = 0
@@ -335,7 +350,32 @@ export function buildTimeGrid(
     includedEntries += 1
     for (const alloc of distributeEntryAcrossHours(entry)) {
       if (!grid[alloc.day]) continue
-      grid[alloc.day][alloc.hour] += alloc.minutes
+      
+      const cell = grid[alloc.day][alloc.hour]
+      cell.totalMinutes += alloc.minutes
+
+      // Add or update item in this cell
+      // We group by taskName + goalId to avoid duplicates if split weirdly, 
+      // though typically one entry per hour per task unless multiple small entries.
+      const existingItem = cell.items.find(
+        (i) => i.taskName === entry.taskName && i.goalId === entry.goalId
+      )
+
+      if (existingItem) {
+        existingItem.minutes += alloc.minutes
+      } else {
+        cell.items.push({
+          taskId: entry.taskId || undefined,
+          taskName: entry.taskName,
+          goalId: entry.goalId || undefined,
+          goalTitle: entry.goal?.title,
+          goalColor: entry.goal?.color,
+          minutes: alloc.minutes,
+        })
+      }
+      
+      // Keep items sorted by duration desc for easy "dominant" logic
+      cell.items.sort((a, b) => b.minutes - a.minutes)
     }
   }
 

@@ -1,7 +1,8 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
+import { useFilteredEntries, type ReportFilterState } from '@/features/reports/components/focus-filters'
 import { FocusUpdatingOverlay } from '@/features/reports/components/focus-updating-overlay'
 import { useFocusTimeEntriesRangeQuery } from '@/features/reports/hooks/use-focus-time-entries'
 import { buildTrendSeries, formatMinutesAsHoursTick } from '@/features/reports/utils/aggregation'
@@ -10,29 +11,32 @@ import type { FocusGranularity } from '@/features/reports/utils/types'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { cn, formatDuration } from '@/lib/utils'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import AnimateChangeInHeight from '@/components/animate-change-in-height'
 
-const GRANULARITY_OPTIONS: Array<{ value: FocusGranularity; label: string }> = [
-  { value: 'day', label: 'Daily' },
-  { value: 'week', label: 'Weekly' },
-  { value: 'month', label: 'Monthly' },
-]
+interface FocusTrendCardProps {
+  view: FocusGranularity
+  filters?: ReportFilterState
+}
 
-export function FocusTrendCard() {
-  const [granularity, setGranularity] = useState<FocusGranularity>('week')
+export function FocusTrendCard({ view, filters }: FocusTrendCardProps) {
   const [offset, setOffset] = useState(0)
+
+  useEffect(() => {
+    setOffset(0)
+  }, [view])
+
+  const granularity = view
 
   const range = useMemo(() => getRollingRange({ granularity, offset }), [granularity, offset])
   const entriesQuery = useFocusTimeEntriesRangeQuery({ startDate: range.startDate, endDate: range.endDate })
-  const entries = entriesQuery.data ?? []
-  const showLoading = entriesQuery.isLoading && entries.length === 0
+  const rawEntries = entriesQuery.data ?? []
+  const entries = useFilteredEntries(rawEntries, filters ?? { goalIds: [], categoryIds: [] })
+  const showLoading = entriesQuery.isLoading && rawEntries.length === 0
   const showUpdating = entriesQuery.isFetching && !showLoading
 
   const series = useMemo(() => {
-    const entries = entriesQuery.data ?? []
     return buildTrendSeries({ entries, granularity, startDate: range.startDate, endDate: range.endDate })
-  }, [entriesQuery, granularity, range])
+  }, [entries, granularity, range])
 
   return (
     <div className="card-brutal">
@@ -58,25 +62,6 @@ export function FocusTrendCard() {
           >
             Next
           </button>
-
-          <Select
-            value={granularity}
-            onValueChange={(v) => {
-              setGranularity(v as FocusGranularity)
-              setOffset(0)
-            }}
-          >
-            <SelectTrigger className="h-10 w-[140px] border-3 border-secondary">
-              <SelectValue placeholder="Granularity" />
-            </SelectTrigger>
-            <SelectContent>
-              {GRANULARITY_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
       </div>
 

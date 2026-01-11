@@ -18,10 +18,10 @@ export function TaskActions({ task, isHovered, onEdit, onDelete, onRestore }: Ta
   const updateTaskMutation = useUpdateTaskMutation()
 
   const handleStartTimer = (): void => {
-    if (task.status === 'PENDING') {
+    if (task.status === 'BACKLOG' || task.status === 'TODO') {
       updateTaskMutation.mutate({
         taskId: task.id,
-        data: { status: 'IN_PROGRESS' },
+        data: { status: 'DOING' },
       })
     }
 
@@ -40,7 +40,7 @@ export function TaskActions({ task, isHovered, onEdit, onDelete, onRestore }: Ta
         isHovered && 'sm:opacity-100',
       )}
     >
-      {task.status !== 'COMPLETED' && (
+      {task.status !== 'DONE' && (
         <button
           onClick={handleStartTimer}
           className="rounded-sm border-2 border-primary bg-white p-1.5 shadow-brutal-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal"
@@ -49,7 +49,7 @@ export function TaskActions({ task, isHovered, onEdit, onDelete, onRestore }: Ta
           <Play className="h-3.5 w-3.5 text-primary" />
         </button>
       )}
-      {task.status === 'COMPLETED' && (
+      {task.status === 'DONE' && (
         <button
           onClick={onRestore}
           className="rounded-sm border-2 border-green-300 bg-white p-1.5 shadow-brutal-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal"

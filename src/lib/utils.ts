@@ -43,6 +43,13 @@ export function getLocalDateString(date: Date = new Date()): string {
   return `${year}-${month}-${day}`
 }
 
+// Return local time in HH:mm so we can align schedule detection to the user's clock
+export function getLocalTimeString(date: Date = new Date()): string {
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${hours}:${minutes}`
+}
+
 export function getProgressColor(progress: number): string {
   if (progress >= 75) return 'bg-accent-green'
   if (progress >= 50) return 'bg-primary'

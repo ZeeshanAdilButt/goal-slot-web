@@ -39,7 +39,7 @@ const faqCategories: FAQCategory[] = [
       {
         question: 'Is GoalSlot free to use?',
         answer:
-          'Yes! We offer a generous free tier that includes all essential features. Premium features are available for users who want advanced analytics, team collaboration, and priority support.',
+          'Yes! We offer a generous free tier that includes all essential features. Pro and Max unlock advanced analytics, collaboration, and priority support.',
       },
     ],
   },
@@ -142,33 +142,33 @@ const faqCategories: FAQCategory[] = [
       {
         question: 'What authentication methods do you support?',
         answer:
-          'We support email/password authentication and Google OAuth. Two-factor authentication is available for premium accounts.',
+          'We support email/password authentication and Google OAuth. Two-factor authentication is available for Pro and Max accounts.',
       },
     ],
   },
   {
-    title: 'Premium & Billing',
+    title: 'Plans & Billing',
     icon: <CreditCard className="h-6 w-6" />,
     color: 'bg-purple-500',
     items: [
       {
-        question: 'What features are included in Premium?',
+        question: 'What do Pro and Max include?',
         answer:
-          'Premium includes advanced analytics, unlimited goal categories, priority support, team collaboration features, custom themes, and API access for integrations.',
+          'Pro unlocks 10 active goals, unlimited schedules/tasks, and advanced analytics. Max removes all limits and adds priority support plus API access for integrations.',
       },
       {
-        question: 'How do I upgrade to Premium?',
+        question: 'How do I upgrade to Pro or Max?',
         answer:
-          "Click on 'Upgrade' in your dashboard or visit the pricing page. We accept all major credit cards and offer monthly or annual billing with a discount for yearly subscriptions.",
+          "Click on 'Upgrade' in your dashboard billing tab or choose a plan from the pricing page. We accept all major credit cards and offer monthly billing.",
       },
       {
         question: 'Can I get a refund?',
         answer:
-          "We offer a 14-day money-back guarantee. If you're not satisfied with Premium, contact support within 14 days of purchase for a full refund.",
+          "We offer a 14-day money-back guarantee. If you're not satisfied, contact support within 14 days of purchase for a full refund.",
       },
       {
         question: 'Do you offer student discounts?',
-        answer: 'Yes! Students get 50% off Premium with a valid student email address.',
+        answer: 'Yes! Students get 50% off Pro with a valid student email address.',
       },
     ],
   },

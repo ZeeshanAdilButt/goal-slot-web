@@ -55,12 +55,13 @@ export default function DashboardPage() {
       const [statsRes, goalsRes, activityRes] = await Promise.all([
         reportsApi.getDashboard(),
         goalsApi.getAll({ status: 'ACTIVE' }),
-        timeEntriesApi.getRecent(5),
+        timeEntriesApi.getRecent({ page: 1, pageSize: 5 }),
       ])
 
       setStats(statsRes.data)
       setGoals(goalsRes.data)
-      setRecentActivity(activityRes.data)
+      const recentItems = Array.isArray(activityRes.data) ? activityRes.data : activityRes.data?.items || []
+      setRecentActivity(recentItems)
     } catch (error) {
       toast.error('Failed to load dashboard data')
     } finally {

@@ -27,9 +27,16 @@ export function GoalsSidebarMobile({
       {/* Mobile Goal Selector - Inline below header */}
       <div className="border-3 border-secondary bg-brutalist-bg md:hidden">
         {/* Current Goal Display - Click to expand */}
-        <button
+        <div
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex w-full items-center justify-between gap-3 border-b-3 border-secondary bg-white p-4 transition-all hover:bg-gray-50"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              setIsExpanded(!isExpanded)
+            }
+          }}
+          className="flex w-full cursor-pointer items-center justify-between gap-3 border-b-3 border-secondary bg-white p-4 transition-all hover:bg-gray-50"
         >
           <div className="flex min-w-0 flex-1 items-center gap-3">
             {isWithoutGoals ? (
@@ -68,7 +75,7 @@ export function GoalsSidebarMobile({
               <ChevronDown className="h-5 w-5 flex-shrink-0" />
             )}
           </div>
-        </button>
+        </div>
 
         {/* Expanded Goals List */}
         {isExpanded && (

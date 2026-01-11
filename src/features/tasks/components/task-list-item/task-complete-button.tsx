@@ -7,7 +7,7 @@ interface TaskCompleteButtonProps {
 }
 
 export function TaskCompleteButton({ task, onComplete }: TaskCompleteButtonProps) {
-  if (task.status === 'COMPLETED') {
+  if (task.status === 'DONE') {
     return (
       <div className="flex items-center gap-2 rounded-md bg-accent-green/10 px-3 py-2 text-xs font-bold uppercase text-accent-green">
         <CheckCircle2 className="h-4 w-4" />

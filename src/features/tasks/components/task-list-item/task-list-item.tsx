@@ -46,7 +46,7 @@ export function TaskListItem({ task, onComplete, onEdit }: TaskListItemProps) {
       className={cn(
         'card-brutal relative h-full overflow-hidden p-3 transition-all duration-150 sm:p-4 md:p-5',
         'hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal',
-        task.status === 'COMPLETED' ? 'opacity-90' : '',
+        task.status === 'DONE' ? 'opacity-90' : '',
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
