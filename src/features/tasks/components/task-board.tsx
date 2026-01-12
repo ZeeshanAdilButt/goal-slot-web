@@ -317,7 +317,7 @@ function TaskCard({
             </span>
           ) : null}
         </div>
-        <div className="flex items-center gap-1 rounded-sm border-2 border-secondary/20 bg-secondary/10 p-1 shadow-brutal-sm transition sm:absolute sm:right-0 sm:top-0 sm:pointer-events-none sm:opacity-0 sm:group-hover:pointer-events-auto sm:group-hover:opacity-100 sm:group-focus-within:pointer-events-auto sm:group-focus-within:opacity-100">
+        <div className="flex items-center gap-1 rounded-sm border-2 border-secondary/30 bg-secondary/20 p-1 shadow-brutal-sm transition sm:absolute sm:right-0 sm:top-0 sm:pointer-events-none sm:opacity-0 sm:group-hover:pointer-events-auto sm:group-hover:opacity-100 sm:group-focus-within:pointer-events-auto sm:group-focus-within:opacity-100">
           <button
             {...listeners}
             {...attributes}
@@ -414,7 +414,17 @@ function TaskDetailDialog({ task, onClose }: TaskDetailDialogProps) {
           <DialogTitle className="text-xl font-bold uppercase text-secondary sm:text-2xl">Task Details</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <TaskHeader task={task} />
+          <div className="space-y-2">
+            <h4 className="font-display text-base font-bold uppercase leading-tight text-secondary sm:text-lg">
+              {task.title}
+            </h4>
+            {task.description ? (
+              <div
+                className="max-w-full break-words text-xs text-gray-700 sm:text-sm"
+                dangerouslySetInnerHTML={{ __html: task.description }}
+              />
+            ) : null}
+          </div>
           <TaskMetadata task={task} />
           <TaskProgress task={task} />
         </div>

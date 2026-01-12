@@ -23,6 +23,7 @@ const STATUS_OPTIONS = [
   { value: 'DOING', label: 'Doing' },
   { value: 'DONE', label: 'Done' },
 ]
+const NO_GOAL_VALUE = 'none'
 
 export function CreateTaskModal({
   isOpen,
@@ -144,7 +145,7 @@ export function CreateTaskModal({
           </div>
 
           {/* Options row above description */}
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <label className="font-mono text-sm uppercase">Status</label>
               <Select value={status} onValueChange={setStatus}>
@@ -180,6 +181,25 @@ export function CreateTaskModal({
                 value={form.dueDate}
                 onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
               />
+            </div>
+            <div>
+              <label className="font-mono text-sm uppercase">Goal</label>
+              <Select
+                value={form.goalId || NO_GOAL_VALUE}
+                onValueChange={(value) => setForm({ ...form, goalId: value === NO_GOAL_VALUE ? '' : value })}
+              >
+                <SelectTrigger className="input-brutal mt-1 w-full">
+                  <SelectValue placeholder="Select a goal" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_GOAL_VALUE}>No Goal</SelectItem>
+                  {goals.map((goal) => (
+                    <SelectItem key={goal.id} value={goal.id}>
+                      {goal.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

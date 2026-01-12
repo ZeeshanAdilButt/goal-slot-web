@@ -11,6 +11,7 @@ import type { FocusPeriod, FocusTimeEntry } from '@/features/reports/utils/types
 import { format, parseISO } from 'date-fns'
 
 import { cn, formatDuration } from '@/lib/utils'
+import { Loading } from '@/components/ui/loading'
 import AnimateChangeInHeight from '@/components/animate-change-in-height'
 
 const EMPTY_ENTRIES: FocusTimeEntry[] = []
@@ -97,7 +98,7 @@ export function FocusTimeGridCard({ view, filters, explicitEntries, isLoading: e
       <AnimateChangeInHeight>
         {showLoading ? (
           <div className="flex h-72 items-center justify-center">
-            <div className="h-10 w-10 animate-spin border-4 border-secondary border-t-primary" />
+            <Loading size="md" />
           </div>
         ) : entries.length === 0 ? (
           <div className="py-10 text-center text-gray-500">
@@ -166,43 +167,45 @@ export function FocusTimeGridCard({ view, filters, explicitEntries, isLoading: e
                         const cell = gridResult.grid[day]?.[hour]
                         const minutes = cell?.totalMinutes ?? 0
                         const items = cell?.items ?? []
-                        
+
                         const dominantItem = items.length > 0 ? items[0] : undefined
                         const dominantColor = dominantItem?.goalColor
                         const taskName = dominantItem?.taskName
-                        
+
                         // Build tooltip text
                         let tooltip = `${format(parseISO(day), 'MMM d')} • ${formatHourLabel(hour)}`
                         if (minutes > 0) {
                           tooltip += ` • ${formatDuration(minutes)}\n`
-                          tooltip += items.map(i => `• ${i.taskName} (${formatDuration(i.minutes)})`).join('\n')
+                          tooltip += items.map((i) => `• ${i.taskName} (${formatDuration(i.minutes)})`).join('\n')
                         }
 
                         return (
                           <div
                             key={day}
                             title={tooltip}
-                            className={cn(
-                              'group relative h-12 w-full rounded-[2px] transition-all hover:z-10',
-                            )}
+                            className={cn('group relative h-12 w-full rounded-[2px] transition-all hover:z-10')}
                           >
-                             {/* Background Layer to handle Opacity independently of content */}
-                             <div 
-                                className={cn(
-                                  "absolute inset-0 rounded-[2px] transition-all group-hover:brightness-95 group-hover:scale-105", 
-                                  !dominantColor && getFallbackClass(minutes)
-                                )}
-                                style={dominantColor ? { backgroundColor: dominantColor, opacity: getOpacity(minutes) } : undefined}
-                             />
+                            {/* Background Layer to handle Opacity independently of content */}
+                            <div
+                              className={cn(
+                                'absolute inset-0 rounded-[2px] transition-all group-hover:brightness-95 group-hover:scale-105',
+                                !dominantColor && getFallbackClass(minutes),
+                              )}
+                              style={
+                                dominantColor
+                                  ? { backgroundColor: dominantColor, opacity: getOpacity(minutes) }
+                                  : undefined
+                              }
+                            />
 
-                             {/* Content Layer - always readable */}
-                             {minutes > 0 && (
-                               <div className="pointer-events-none relative z-10 flex h-full flex-col justify-center overflow-hidden px-1 text-[10px] leading-none text-slate-900 mix-blend-multiply opacity-0 transition-opacity group-hover:opacity-100 sm:opacity-100">
-                                  <span className="truncate font-semibold">{taskName}</span>
-                                  {items.length > 1 && <span className="text-[9px]">+ {items.length - 1} more</span>}
-                                  <span className="mt-0.5 opacity-75">{formatDuration(minutes)}</span>
-                               </div>
-                             )}
+                            {/* Content Layer - always readable */}
+                            {minutes > 0 && (
+                              <div className="pointer-events-none relative z-10 flex h-full flex-col justify-center overflow-hidden px-1 text-[10px] leading-none text-slate-900 opacity-0 mix-blend-multiply transition-opacity group-hover:opacity-100 sm:opacity-100">
+                                <span className="truncate font-semibold">{taskName}</span>
+                                {items.length > 1 && <span className="text-[9px]">+ {items.length - 1} more</span>}
+                                <span className="mt-0.5 opacity-75">{formatDuration(minutes)}</span>
+                              </div>
+                            )}
                           </div>
                         )
                       })}

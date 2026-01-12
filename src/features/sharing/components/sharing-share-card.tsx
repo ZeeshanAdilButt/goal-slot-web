@@ -24,7 +24,7 @@ export function SharingShareCard({ share, onRevoke, isPending = false }: Sharing
             share.accessLevel === 'EDIT' ? 'bg-primary' : 'bg-gray-100',
           )}
         >
-          {share.sharedWith?.name?.[0] || share.email[0].toUpperCase()}
+          {share.sharedWith?.name?.[0] || share.email?.[0]?.toUpperCase() || '?'}
         </div>
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-bold sm:text-base">{share.sharedWith?.name || share.email}</div>

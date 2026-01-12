@@ -11,6 +11,7 @@ import type { FocusGranularity, FocusTimeEntry } from '@/features/reports/utils/
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { cn, formatDuration } from '@/lib/utils'
+import { Loading } from '@/components/ui/loading'
 import AnimateChangeInHeight from '@/components/animate-change-in-height'
 
 interface FocusTrendCardProps {
@@ -72,7 +73,7 @@ export function FocusTrendCard({ view, filters, explicitEntries, isLoading: expl
       <AnimateChangeInHeight>
         {showLoading ? (
           <div className="flex h-72 items-center justify-center">
-            <div className="h-10 w-10 animate-spin border-4 border-secondary border-t-primary" />
+            <Loading size="md" />
           </div>
         ) : series.totalMinutes === 0 ? (
           <div className="py-10 text-center text-gray-500">

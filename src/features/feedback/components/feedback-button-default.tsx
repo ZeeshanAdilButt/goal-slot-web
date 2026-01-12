@@ -1,10 +1,10 @@
 'use client'
 
 import { forwardRef } from 'react'
-import { MessageSquare } from 'lucide-react'
 
 import { Button1 } from '@/features/feedback/components/ui/button-1'
 import { useFeedbackWidgetStore } from '@/features/feedback/store/use-feedback-widget-store'
+import { MessageSquare } from 'lucide-react'
 
 interface FeedbackButtonDefaultProps {
   label: string
@@ -19,11 +19,10 @@ export const FeedbackButtonDefault = forwardRef<HTMLButtonElement, FeedbackButto
       size="small"
       ref={ref}
       onClick={() => openNew()}
-      className="!h-10 !w-10 !p-0 font-medium md:!h-auto md:!w-auto md:!px-4 md:!py-2"
+      className="!h-8 !w-8 !p-0 font-medium"
       title={label}
     >
-      <MessageSquare className="h-5 w-5 md:hidden" />
-      <span className="hidden md:inline">{label}</span>
+      <MessageSquare className="h-4 w-4" />
     </Button1>
   )
 })

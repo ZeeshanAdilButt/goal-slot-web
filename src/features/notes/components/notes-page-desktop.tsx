@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 import { FileText, PanelLeft, PanelLeftClose, Plus } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
+import { Loading } from '@/components/ui/loading'
 
 import { useCreateNoteMutation, useNotesQuery } from '../hooks/use-notes'
 import { Note } from '../utils/types'
@@ -61,7 +62,7 @@ export function NotesPageDesktop({ initialNoteId }: NotesPageDesktopProps = {}) 
       if (noteToSelect && noteToSelect.id !== selectedNote?.id) {
         setSelectedNote(noteToSelect)
         localStorage.setItem('dw-last-note-id', noteToSelect.id)
-        
+
         // Update URL if missing
         if (!paramNoteId) {
           const params = new URLSearchParams(searchParams.toString())
@@ -69,7 +70,7 @@ export function NotesPageDesktop({ initialNoteId }: NotesPageDesktopProps = {}) 
           router.replace(`${pathname}?${params.toString()}`)
         }
       }
-      
+
       if (!hasInitialized) {
         setHasInitialized(true)
       }
@@ -79,7 +80,7 @@ export function NotesPageDesktop({ initialNoteId }: NotesPageDesktopProps = {}) 
   const handleSelectNote = (note: Note) => {
     setSelectedNote(note)
     localStorage.setItem('dw-last-note-id', note.id)
-    
+
     // Update URL
     const params = new URLSearchParams(searchParams.toString())
     params.set('noteId', note.id)
@@ -190,7 +191,7 @@ export function NotesPageDesktop({ initialNoteId }: NotesPageDesktopProps = {}) 
             >
               {createMutation.isPending ? (
                 <>
-                  <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  <Loading size="sm" />
                   <span className="text-xs">Creating...</span>
                 </>
               ) : (
@@ -223,7 +224,7 @@ export function NotesPageDesktop({ initialNoteId }: NotesPageDesktopProps = {}) 
               >
                 {createMutation.isPending ? (
                   <>
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    <Loading size="sm" />
                     Creating...
                   </>
                 ) : (

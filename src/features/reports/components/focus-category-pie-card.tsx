@@ -10,6 +10,7 @@ import type { FocusGranularity, FocusTimeEntry } from '@/features/reports/utils/
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
 import { cn, formatDuration } from '@/lib/utils'
+import { Loading } from '@/components/ui/loading'
 import AnimateChangeInHeight from '@/components/animate-change-in-height'
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1']
@@ -90,7 +91,7 @@ export function FocusCategoryPieCard({ view, filters, explicitEntries, isLoading
       <AnimateChangeInHeight>
         {showLoading ? (
           <div className="flex h-[300px] items-center justify-center">
-            <div className="h-10 w-10 animate-spin border-4 border-secondary border-t-primary" />
+            <Loading size="md" />
           </div>
         ) : data.length === 0 ? (
           <div className="flex h-[300px] flex-col items-center justify-center text-gray-500">

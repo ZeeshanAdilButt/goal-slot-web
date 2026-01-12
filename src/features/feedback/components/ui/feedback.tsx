@@ -157,11 +157,10 @@ const Default = ({ label }: { label: string }) => {
         size="small"
         ref={inputRef}
         onClick={() => setIsOpen(true)}
-        className="!h-10 !w-10 !p-0 font-medium md:!h-auto md:!w-auto md:!px-4 md:!py-2"
+        className="!h-8 !w-8 !p-0 font-medium"
         title={label}
       >
-        <MessageSquare className="h-5 w-5 md:hidden" />
-        <span className="hidden md:inline">{label}</span>
+        <MessageSquare className="h-4 w-4" />
       </Button1>
       <Material
         type="menu"
