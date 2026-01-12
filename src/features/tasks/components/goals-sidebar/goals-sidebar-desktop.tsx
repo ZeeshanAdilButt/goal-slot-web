@@ -1,4 +1,9 @@
 import { useEffect, useState } from 'react'
+
+import { GoalModal } from '@/features/goals/components/goal-modal'
+import { useReorderGoalsMutation } from '@/features/goals/hooks/use-goals-mutations'
+import type { Goal as FullGoal } from '@/features/goals/utils/types'
+import type { Goal as TaskGoal } from '@/features/tasks/utils/types'
 import {
   closestCenter,
   DndContext,
@@ -18,8 +23,6 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GoalModal } from '@/features/goals/components/goal-modal'
-import { useReorderGoalsMutation } from '@/features/goals/hooks/use-goals-mutations'
 import { GripVertical, Pencil, Plus, Target } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -27,8 +30,6 @@ import { Loading } from '@/components/ui/loading'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 import { GOAL_STATUS_OPTIONS, GoalsSidebarProps, WITHOUT_GOALS_ID } from './types'
-import type { Goal as TaskGoal } from '@/features/tasks/utils/types'
-import type { Goal as FullGoal } from '@/features/goals/utils/types'
 
 function SortableGoalItem({
   goal,
@@ -54,7 +55,7 @@ function SortableGoalItem({
     <div ref={setNodeRef} style={style} className={cn('group relative', isDragging && 'opacity-50')}>
       <div
         className={cn(
-          'flex w-full cursor-pointer items-center gap-2 border-3 border-secondary px-3 py-2 text-left text-xs font-bold uppercase transition-all',
+          'flex w-full cursor-pointer items-center gap-2 border-3 border-secondary px-2 py-2 text-left text-xs font-bold uppercase transition-all',
           isSelected
             ? 'bg-primary text-secondary shadow-brutal-sm -translate-x-0.5 -translate-y-0.5'
             : 'bg-white hover:bg-gray-50 hover:shadow-brutal-sm hover:-translate-x-0.5 hover:-translate-y-0.5',
@@ -70,9 +71,7 @@ function SortableGoalItem({
           <GripVertical className="h-3 w-3 text-gray-400" />
         </div>
         <span className="inline-block h-2 w-2 flex-shrink-0 rounded-full" style={{ background: goal.color }} />
-        <span className="flex-1 truncate">
-          {goal.title}
-        </span>
+        <span className="flex-1 truncate">{goal.title}</span>
         <button
           onClick={(e) => {
             e.stopPropagation()
@@ -99,7 +98,7 @@ export function GoalsSidebarDesktop({
   const [editingGoal, setEditingGoal] = useState<FullGoal | null>(null)
   const [orderedGoals, setOrderedGoals] = useState(goals)
   const [activeId, setActiveId] = useState<string | null>(null)
-  
+
   const reorderGoalsMutation = useReorderGoalsMutation()
 
   useEffect(() => {
@@ -130,9 +129,9 @@ export function GoalsSidebarDesktop({
         const oldIndex = items.findIndex((item) => item.id === active.id)
         const newIndex = items.findIndex((item) => item.id === over.id)
         const newItems = arrayMove(items, oldIndex, newIndex)
-        
+
         reorderGoalsMutation.mutate(newItems.map((g) => g.id))
-        
+
         return newItems
       })
     }
@@ -154,7 +153,7 @@ export function GoalsSidebarDesktop({
   return (
     <>
       <aside className="hidden h-full w-64 flex-shrink-0 flex-col border-r-3 border-secondary bg-brutalist-bg md:flex">
-        <div className="flex-shrink-0 border-b-3 border-secondary p-4">
+        <div className="flex-shrink-0 border-b-3 border-secondary px-2 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Target className="h-4 w-4" />
@@ -175,7 +174,7 @@ export function GoalsSidebarDesktop({
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-4">
+        <div className="min-h-0 flex-1 overflow-y-auto px-2 py-4">
           {isLoading ? (
             <div className="flex min-h-[200px] items-center justify-center">
               <Loading size="sm" />
@@ -186,7 +185,7 @@ export function GoalsSidebarDesktop({
               <button
                 onClick={() => onSelectGoal(WITHOUT_GOALS_ID)}
                 className={cn(
-                  'flex w-full items-center gap-2 border-3 border-secondary px-3 py-2 text-left text-xs font-bold uppercase transition-all',
+                  'flex w-full items-center gap-2 border-3 border-secondary px-2 py-2 text-left text-xs font-bold uppercase transition-all',
                   selectedGoalId === WITHOUT_GOALS_ID
                     ? 'bg-primary text-secondary shadow-brutal-sm -translate-x-0.5 -translate-y-0.5'
                     : 'bg-white hover:bg-gray-50 hover:shadow-brutal-sm hover:-translate-x-0.5 hover:-translate-y-0.5',
@@ -221,7 +220,7 @@ export function GoalsSidebarDesktop({
                   </SortableContext>
                   <DragOverlay>
                     {activeGoal ? (
-                      <div className="flex w-full items-center gap-2 border-3 border-secondary bg-white px-3 py-2 text-left text-xs font-bold uppercase opacity-80 shadow-brutal-2xl outline outline-2 outline-primary">
+                      <div className="shadow-brutal-2xl flex w-full items-center gap-2 border-3 border-secondary bg-white px-2 py-2 text-left text-xs font-bold uppercase opacity-80 outline outline-2 outline-primary">
                         <GripVertical className="h-3 w-3 text-gray-400" />
                         <span
                           className="inline-block h-2 w-2 flex-shrink-0 rounded-full"
@@ -237,10 +236,10 @@ export function GoalsSidebarDesktop({
           )}
         </div>
 
-        <div className="flex-shrink-0 border-t-3 border-secondary p-4">
+        <div className="flex-shrink-0 border-t-3 border-secondary px-2 py-4">
           <button
             onClick={handleNewGoal}
-            className="flex w-full items-center justify-center gap-2 border-3 border-secondary bg-white px-3 py-2 text-sm font-bold uppercase transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-primary hover:shadow-brutal-sm"
+            className="flex w-full items-center justify-center gap-2 border-3 border-secondary bg-white px-2 py-2 text-sm font-bold uppercase transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-primary hover:shadow-brutal-sm"
           >
             <Plus className="h-4 w-4" />
             <span>New Goal</span>

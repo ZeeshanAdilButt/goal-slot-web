@@ -3,14 +3,14 @@
 import { Suspense, useEffect, useMemo } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
+import { ReleaseNoteBanner } from '@/features/release-notes/components/release-note-banner'
 import { motion } from 'framer-motion'
 
 import { useAuthStore } from '@/lib/store'
-import { GoalSlotSpinner } from '@/components/goalslot-logo'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
+import { GoalSlotSpinner } from '@/components/goalslot-logo'
 import { TimeEntryBanner } from '@/components/time-entry-banner'
-import { ReleaseNoteBanner } from '@/features/release-notes/components/release-note-banner'
 
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -54,11 +54,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         </div>
         <TimeEntryBanner />
         <ReleaseNoteBanner />
-        <div className="flex-1 overflow-y-auto overflow-x-hidden">
-          <div className="min-h-full pb-32">
-            {children}
-          </div>
-        </div>
+        <div className="flex-1 overflow-hidden">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   )
@@ -66,11 +62,13 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-brutalist-bg">
-        <GoalSlotSpinner size="xl" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-brutalist-bg">
+          <GoalSlotSpinner size="xl" />
+        </div>
+      }
+    >
       <DashboardLayoutContent>{children}</DashboardLayoutContent>
     </Suspense>
   )

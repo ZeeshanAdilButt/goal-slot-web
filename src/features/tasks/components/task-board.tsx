@@ -1,8 +1,10 @@
-"use client"
+'use client'
 
-import type { CSSProperties, ReactNode } from "react"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 
+import { useReorderTasksMutation, useUpdateTaskMutation } from '@/features/tasks/hooks/use-tasks-mutations'
+import { taskStatusStyles } from '@/features/tasks/utils/task-status-styles'
+import { Task, TaskStatus } from '@/features/tasks/utils/types'
 import {
   DndContext,
   DragEndEvent,
@@ -13,30 +15,22 @@ import {
   useDroppable,
   useSensor,
   useSensors,
-} from "@dnd-kit/core"
-import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable"
-import { CSS } from "@dnd-kit/utilities"
-import { Check, GripVertical, PencilLine, Play } from "lucide-react"
+} from '@dnd-kit/core'
+import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { Check, GripVertical, PencilLine, Play } from 'lucide-react'
 
-import { useUpdateTaskMutation, useReorderTasksMutation } from "@/features/tasks/hooks/use-tasks-mutations"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { taskStatusStyles } from "@/features/tasks/utils/task-status-styles"
-import { Task, TaskStatus } from "@/features/tasks/utils/types"
-
-import { cn } from "@/lib/utils"
-
-const STATUS_LABELS: Record<TaskStatus, string> = {
-  BACKLOG: "Backlog",
-  TODO: "To Do",
-  DOING: "Doing",
-  DONE: "Done",
-}
+import { cn } from '@/lib/utils'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { TaskHeader } from '@/features/tasks/components/task-list-item/task-header'
+import { TaskMetadata } from '@/features/tasks/components/task-list-item/task-metadata'
+import { TaskProgress } from '@/features/tasks/components/task-list-item/task-progress'
 
 const BOARD_COLUMNS: Array<{ id: TaskStatus; title: string; helper: string; accent: string; text: string }> = [
-  { id: "BACKLOG", title: "Backlog", helper: "Capture ideas", accent: "bg-gray-50", text: "text-gray-700" },
-  { id: "TODO", title: "To Do", helper: "Ready to start next", accent: "bg-amber-50", text: "text-secondary" },
-  { id: "DOING", title: "Doing", helper: "In motion right now", accent: "bg-blue-50", text: "text-blue-700" },
-  { id: "DONE", title: "Done", helper: "Shipped and finished", accent: "bg-green-50", text: "text-green-700" },
+  { id: 'BACKLOG', title: 'Backlog', helper: 'Capture ideas', accent: 'bg-gray-50', text: 'text-gray-700' },
+  { id: 'TODO', title: 'To Do', helper: 'Ready to start next', accent: 'bg-amber-50', text: 'text-secondary' },
+  { id: 'DOING', title: 'Doing', helper: 'In motion right now', accent: 'bg-blue-50', text: 'text-blue-700' },
+  { id: 'DONE', title: 'Done', helper: 'Shipped and finished', accent: 'bg-green-50', text: 'text-green-700' },
 ]
 
 interface TaskBoardProps {
@@ -48,7 +42,10 @@ interface TaskBoardProps {
 export function TaskBoard({ tasks, onEdit, onComplete }: TaskBoardProps) {
   const updateTaskMutation = useUpdateTaskMutation()
   const reorderTasksMutation = useReorderTasksMutation()
-  
+
+  // Track drag operations to prevent sync during drag
+  const isDraggingRef = useRef(false)
+
   // Group tasks by status locally to handle drag and drop optimistic updates properly
   const [columns, setColumns] = useState<Record<TaskStatus, Task[]>>({
     BACKLOG: [],
@@ -58,9 +55,13 @@ export function TaskBoard({ tasks, onEdit, onComplete }: TaskBoardProps) {
   })
 
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
+  const [detailTask, setDetailTask] = useState<Task | null>(null)
 
-  // Sync props to local state whenever tasks change
+  // Sync props to local state whenever tasks change (but not during drag)
   useEffect(() => {
+    // Don't overwrite optimistic updates during drag
+    if (isDraggingRef.current) return
+
     const next: Record<TaskStatus, Task[]> = {
       BACKLOG: [],
       TODO: [],
@@ -79,6 +80,7 @@ export function TaskBoard({ tasks, onEdit, onComplete }: TaskBoardProps) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
 
   const handleDragStart = (event: DragStartEvent) => {
+    isDraggingRef.current = true
     setActiveTaskId(String(event.active.id))
   }
 
@@ -88,6 +90,11 @@ export function TaskBoard({ tasks, onEdit, onComplete }: TaskBoardProps) {
     const overId = over ? String(over.id) : null
 
     setActiveTaskId(null)
+    // Reset drag flag after a small delay to ensure state is applied first
+    setTimeout(() => {
+      isDraggingRef.current = false
+    }, 100)
+
     if (!overId || !over) return
 
     const activeType = active.data.current?.type as string | undefined
@@ -98,13 +105,13 @@ export function TaskBoard({ tasks, onEdit, onComplete }: TaskBoardProps) {
     const sourceColumn = activeColumn
     // If dropped on a column droppable, use that. Otherwise use the task's column.
     // Also handle case where overId matches a column name directly.
-    let targetColumn: TaskStatus | undefined = overType === "column" ? (over.id as TaskStatus) : overColumnFromTask
-    
+    let targetColumn: TaskStatus | undefined = overType === 'column' ? (over.id as TaskStatus) : overColumnFromTask
+
     // Fallback: check if overId is a column ID
-    if (!targetColumn && BOARD_COLUMNS.some(c => c.id === overId)) {
+    if (!targetColumn && BOARD_COLUMNS.some((c) => c.id === overId)) {
       targetColumn = overId as TaskStatus
     }
-    
+
     if (!sourceColumn || !targetColumn) return
 
     // Build working copy
@@ -120,7 +127,7 @@ export function TaskBoard({ tasks, onEdit, onComplete }: TaskBoardProps) {
       // Reorder within same column - use arrayMove on original array
       const overIndex = sourceItems.findIndex((t) => t.id === overId)
       if (overIndex === -1 || movingIndex === overIndex) return
-      
+
       const reordered = arrayMove(sourceItems, movingIndex, overIndex)
       next[sourceColumn] = reordered
       setColumns(next)
@@ -143,26 +150,8 @@ export function TaskBoard({ tasks, onEdit, onComplete }: TaskBoardProps) {
     updateTaskMutation.mutate({ taskId: activeId, data: { status: targetColumn } })
     reorderTasksMutation.mutate(destItems.map((t) => t.id))
 
-    if (targetColumn === "DONE" && onComplete) {
+    if (targetColumn === 'DONE' && onComplete) {
       onComplete(updatedTask)
-    }
-  }
-
-  const handleStatusChange = (task: Task, newStatus: TaskStatus) => {
-    if (task.status === newStatus) return
-    
-    // Optimistic update
-    setColumns((prev) => {
-      const next = { ...prev }
-      next[task.status] = prev[task.status].filter((t) => t.id !== task.id)
-      next[newStatus] = [...prev[newStatus], { ...task, status: newStatus }]
-      return next
-    })
-    
-    updateTaskMutation.mutate({ taskId: task.id, data: { status: newStatus } })
-    
-    if (newStatus === "DONE" && onComplete) {
-      onComplete({ ...task, status: newStatus })
     }
   }
 
@@ -173,14 +162,18 @@ export function TaskBoard({ tasks, onEdit, onComplete }: TaskBoardProps) {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex w-full snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-6 scrollbar-hide">
+      <div className="scrollbar-hide flex h-full w-full snap-x snap-mandatory gap-1.5 overflow-x-auto px-4 pb-6">
         {BOARD_COLUMNS.map((colDef) => (
-          <BoardColumn 
-            key={colDef.id} 
-            column={{...colDef, tasks: columns[colDef.id]}}
-          >
+          <BoardColumn key={colDef.id} column={{ ...colDef, tasks: columns[colDef.id] }}>
             {columns[colDef.id].map((task) => (
-              <SortableTaskCard key={task.id} task={task} columnId={colDef.id} onEdit={onEdit} onComplete={onComplete} onStatusChange={handleStatusChange} />
+              <SortableTaskCard
+                key={task.id}
+                task={task}
+                columnId={colDef.id}
+                onEdit={onEdit}
+                onComplete={onComplete}
+                onView={setDetailTask}
+              />
             ))}
           </BoardColumn>
         ))}
@@ -189,12 +182,17 @@ export function TaskBoard({ tasks, onEdit, onComplete }: TaskBoardProps) {
       <DragOverlay>
         {activeTaskId ? (
           // Find the task in columns to render overlay
-          <TaskCard 
-             task={Object.values(columns).flat().find(t => t.id === activeTaskId) as Task} 
-             dragging 
+          <TaskCard
+            task={
+              Object.values(columns)
+                .flat()
+                .find((t) => t.id === activeTaskId) as Task
+            }
+            dragging
           />
         ) : null}
       </DragOverlay>
+      <TaskDetailDialog task={detailTask} onClose={() => setDetailTask(null)} />
     </DndContext>
   )
 }
@@ -212,28 +210,30 @@ interface BoardColumnProps {
 }
 
 function BoardColumn({ column, children }: BoardColumnProps) {
-  const { setNodeRef, isOver } = useDroppable({ id: column.id, data: { type: "column" } })
+  const { setNodeRef, isOver } = useDroppable({ id: column.id, data: { type: 'column' } })
   const taskIds = useMemo(() => column.tasks.map((t) => t.id), [column.tasks])
 
   return (
     <div
       ref={setNodeRef}
       className={cn(
-        "card-brutal flex min-h-[260px] min-w-[280px] snap-center flex-col gap-3 p-3 sm:min-w-[320px] sm:p-4 md:min-w-[350px]",
+        'flex min-h-[260px] min-w-[280px] snap-center flex-col gap-3 p-0 sm:min-w-[320px] md:min-w-[350px]',
         column.accent,
-        isOver ? "ring-2 ring-secondary" : "ring-0",
+        isOver ? 'ring-2 ring-secondary' : 'ring-0',
       )}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-3 px-2 py-3">
         <div>
           <p className="font-display text-sm font-bold uppercase text-secondary sm:text-base">{column.title}</p>
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-secondary/70 sm:text-xs">{column.helper}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-secondary/70 sm:text-xs">
+            {column.helper}
+          </p>
         </div>
         <span className="badge-brutal text-[11px] sm:text-xs">{column.tasks.length}</span>
       </div>
 
       <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
-        <div className="flex flex-1 flex-col gap-3">
+        <div className="flex flex-1 flex-col gap-2">
           {column.tasks.length ? (
             children
           ) : (
@@ -251,7 +251,7 @@ interface TaskCardProps {
   task: Task
   onEdit?: (task: Task) => void
   onComplete?: (task: Task) => void
-  onStatusChange?: (task: Task, status: TaskStatus) => void
+  onView?: (task: Task) => void
   listeners?: any
   attributes?: any
   setNodeRef?: (element: HTMLElement | null) => void
@@ -259,102 +259,88 @@ interface TaskCardProps {
   dragging?: boolean
 }
 
-function TaskCard({ task, onEdit, onComplete, onStatusChange, listeners, attributes, setNodeRef, style, dragging = false }: TaskCardProps) {
+function TaskCard({
+  task,
+  onEdit,
+  onComplete,
+  onView,
+  listeners,
+  attributes,
+  setNodeRef,
+  style,
+  dragging = false,
+}: TaskCardProps) {
   const statusStyle = taskStatusStyles[task.status]
 
   return (
     <div
       ref={setNodeRef}
       style={style}
+      onClick={() => {
+        if (!dragging) onView?.(task)
+      }}
       className={cn(
-        "card-brutal group relative flex flex-col gap-2 overflow-hidden p-3 transition-all sm:p-3.5",
-        dragging ? "shadow-brutal" : "hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal",
+        'group relative flex cursor-pointer flex-col gap-2 rounded-md border border-secondary/20 bg-white p-2 transition-all sm:p-2.5',
+        dragging ? '' : 'hover:-translate-x-0.5 hover:-translate-y-0.5 hover:border-secondary/40',
       )}
     >
-      <div aria-hidden className={cn("pointer-events-none absolute inset-0 opacity-70", statusStyle.glow)} />
+      <div aria-hidden className={cn('pointer-events-none absolute inset-0 opacity-70', statusStyle.glow)} />
 
-      <div className="relative flex items-start gap-2">
-        <button
-          {...listeners}
-          {...attributes}
-          className="mt-0.5 inline-flex cursor-grab rounded-sm border-2 border-secondary bg-white p-1 shadow-brutal-sm transition group-hover:-translate-x-0.5 group-hover:-translate-y-0.5"
-          aria-label="Drag task"
-        >
-          <GripVertical className="h-3.5 w-3.5 text-secondary" />
-        </button>
-
-        <div className="relative flex-1 space-y-1">
-          <div className="flex items-start justify-between gap-2">
-            <h3 
-              onClick={(e) => {
-                e.stopPropagation()
-                onEdit?.(task)
-              }}
-              className="cursor-pointer font-display text-sm font-bold uppercase leading-tight text-secondary transition-colors hover:text-primary hover:underline sm:text-base"
-            >
-              {task.title}
-            </h3>
-            {task.estimatedMinutes ? (
-              <span className="badge-brutal text-[10px] sm:text-xs">
-                {parseFloat((task.estimatedMinutes / 60).toFixed(2))}h
-              </span>
-            ) : null}
-          </div>
-          {task.description ? (
-            <div className="line-clamp-2 text-[11px] leading-relaxed text-secondary/80 sm:text-xs" dangerouslySetInnerHTML={{ __html: task.description || '' }} />
-          ) : null}
-          <div className="flex flex-wrap items-center gap-2">
-            {task.goal?.title ? (
-              <span className="rounded-sm border-2 border-secondary bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-secondary shadow-brutal-sm">
-                {task.goal.title}
-              </span>
-            ) : null}
-            {task.dueDate ? (
-              <span className="rounded-sm border border-dashed border-secondary/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-secondary/80">
-                Due {new Date(task.dueDate).toLocaleDateString()}
-              </span>
-            ) : null}
-          </div>
-        </div>
-      </div>
-
-      <div className="relative mt-2 flex items-center justify-between gap-2">
-        {onStatusChange ? (
-          <Select 
-            value={task.status} 
-            onValueChange={(value) => onStatusChange(task, value as TaskStatus)}
+      <div className="relative flex flex-col gap-2">
+        <div className="flex items-start gap-2">
+          <h3
+            className="flex-1 font-display text-sm font-bold uppercase leading-tight text-secondary transition-colors hover:text-primary hover:underline sm:text-base"
           >
-            <SelectTrigger 
-              className={cn(
-                "h-6 w-auto gap-1 border-2 px-2 text-[10px] font-bold uppercase shadow-brutal-sm sm:text-xs",
-                statusStyle.badge
-              )}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {BOARD_COLUMNS.map((col) => (
-                <SelectItem key={col.id} value={col.id}>
-                  {col.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : (
-          <span className={cn("badge-brutal text-[10px] sm:text-xs", statusStyle.badge)}>{STATUS_LABELS[task.status]}</span>
-        )}
-        <div className="flex items-center gap-1.5">
+            {task.title}
+          </h3>
+          {task.estimatedMinutes ? (
+            <span className="badge-brutal hidden text-[10px] sm:inline-flex sm:text-xs">
+              {parseFloat((task.estimatedMinutes / 60).toFixed(2))}h
+            </span>
+          ) : null}
+        </div>
+        {task.description ? (
+          <div
+            className="hidden text-[11px] leading-relaxed text-secondary/80 sm:line-clamp-2 sm:block sm:text-xs"
+            dangerouslySetInnerHTML={{ __html: task.description || '' }}
+          />
+        ) : null}
+        <div className="hidden flex-wrap items-center gap-2 sm:flex">
+          {task.goal?.title ? (
+            <span className="rounded-sm border-2 border-secondary bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-secondary">
+              {task.goal.title}
+            </span>
+          ) : null}
+          {task.dueDate ? (
+            <span className="rounded-sm border border-dashed border-secondary/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-secondary/80">
+              Due {new Date(task.dueDate).toLocaleDateString()}
+            </span>
+          ) : null}
+        </div>
+        <div className="flex items-center gap-1 rounded-sm border-2 border-secondary/20 bg-secondary/10 p-1 shadow-brutal-sm transition sm:absolute sm:right-0 sm:top-0 sm:pointer-events-none sm:opacity-0 sm:group-hover:pointer-events-auto sm:group-hover:opacity-100 sm:group-focus-within:pointer-events-auto sm:group-focus-within:opacity-100">
           <button
-            className="rounded-sm border-2 border-secondary bg-white p-1.5 shadow-brutal-sm transition hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal"
+            {...listeners}
+            {...attributes}
+            onClick={(event) => event.stopPropagation()}
+            className="inline-flex cursor-grab rounded-sm border-2 border-secondary bg-white p-1 transition sm:hover:-translate-x-0.5 sm:hover:-translate-y-0.5"
+            aria-label="Drag task"
+          >
+            <GripVertical className="h-3.5 w-3.5 text-secondary" />
+          </button>
+          <button
+            onClick={(event) => event.stopPropagation()}
+            className="rounded-sm border-2 border-secondary bg-white p-1.5 transition sm:hover:-translate-x-0.5 sm:hover:-translate-y-0.5"
             aria-label="Start timer"
           >
             <Play className="h-4 w-4 fill-secondary text-secondary" />
           </button>
-          {onComplete && task.status !== "DONE" && (
+          {onComplete && task.status !== 'DONE' && (
             <button
-              onClick={() => onComplete(task)}
-              className="rounded-sm border-2 border-green-600 bg-green-100 p-1.5 shadow-brutal-sm transition hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-green-200 hover:shadow-brutal"
+              onClick={(event) => {
+                event.stopPropagation()
+                onComplete(task)
+              }}
+              className="rounded-sm border-2 border-green-600 bg-green-100 p-1.5 transition sm:hover:-translate-x-0.5 sm:hover:-translate-y-0.5 sm:hover:bg-green-200"
               aria-label="Complete task"
             >
               <Check className="h-4 w-4 text-green-700" />
@@ -362,8 +348,11 @@ function TaskCard({ task, onEdit, onComplete, onStatusChange, listeners, attribu
           )}
           {onEdit && (
             <button
-              onClick={() => onEdit(task)}
-              className="rounded-sm border-2 border-secondary bg-white p-1.5 shadow-brutal-sm transition hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal"
+              onClick={(event) => {
+                event.stopPropagation()
+                onEdit(task)
+              }}
+              className="rounded-sm border-2 border-secondary bg-white p-1.5 transition sm:hover:-translate-x-0.5 sm:hover:-translate-y-0.5"
               aria-label="Edit task"
             >
               <PencilLine className="h-4 w-4 text-secondary" />
@@ -380,19 +369,19 @@ interface DraggableTaskCardProps {
   columnId: TaskStatus
   onEdit?: (task: Task) => void
   onComplete?: (task: Task) => void
-  onStatusChange?: (task: Task, status: TaskStatus) => void
+  onView?: (task: Task) => void
 }
 
-function SortableTaskCard({ task, columnId, onEdit, onComplete, onStatusChange }: DraggableTaskCardProps) {
+function SortableTaskCard({ task, columnId, onEdit, onComplete, onView }: DraggableTaskCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
-    data: { type: "task", columnId },
+    data: { type: 'task', columnId },
   })
 
   const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition: transition || undefined,
-    visibility: isDragging ? 'hidden' : 'visible',
+    opacity: isDragging ? 0.5 : 1,
   }
 
   return (
@@ -400,12 +389,36 @@ function SortableTaskCard({ task, columnId, onEdit, onComplete, onStatusChange }
       task={task}
       onEdit={onEdit}
       onComplete={onComplete}
-      onStatusChange={onStatusChange}
+      onView={onView}
       listeners={listeners}
       attributes={attributes}
       setNodeRef={setNodeRef}
       style={style}
       dragging={isDragging}
     />
+  )
+}
+
+interface TaskDetailDialogProps {
+  task: Task | null
+  onClose: () => void
+}
+
+function TaskDetailDialog({ task, onClose }: TaskDetailDialogProps) {
+  if (!task) return null
+
+  return (
+    <Dialog open={!!task} onOpenChange={(open) => (!open ? onClose() : null)}>
+      <DialogContent className="modal-brutal w-[90vw] max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold uppercase text-secondary sm:text-2xl">Task Details</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <TaskHeader task={task} />
+          <TaskMetadata task={task} />
+          <TaskProgress task={task} />
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }

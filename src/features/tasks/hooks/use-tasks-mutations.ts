@@ -254,6 +254,50 @@ export function useReorderTasksMutation() {
     mutationFn: async (ids: string[]) => {
       await tasksApi.reorder(ids)
     },
+    onMutate: async (ids) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: taskQueries.all })
+
+      // Snapshot previous state for rollback
+      const previous = queryClient.getQueriesData({ queryKey: taskQueries.all })
+
+      // Optimistically update cache with new order
+      const activeLists = queryClient.getQueriesData<Task[]>({
+        queryKey: taskQueries.all,
+        type: 'active',
+      })
+
+      activeLists.forEach(([queryKey, data]) => {
+        if (!Array.isArray(data) || queryKey[1] !== 'list') return
+
+        // Create a map of ID to new index
+        const orderMap = new Map(ids.map((id, index) => [id, index]))
+
+        // Sort tasks by new order, keeping tasks not in the reorder list at the end
+        const reordered = [...data].sort((a, b) => {
+          const aOrder = orderMap.get(a.id)
+          const bOrder = orderMap.get(b.id)
+
+          if (aOrder !== undefined && bOrder !== undefined) {
+            return aOrder - bOrder
+          }
+          if (aOrder !== undefined) return -1
+          if (bOrder !== undefined) return 1
+          return 0
+        })
+
+        queryClient.setQueryData(queryKey, reordered)
+      })
+
+      return { previous }
+    },
+    onError: (err, _, context) => {
+      // Rollback on error
+      if (context?.previous) {
+        context.previous.forEach(([key, data]: any) => queryClient.setQueryData(key, data))
+      }
+      toast.error('Failed to reorder tasks')
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: taskQueries.all })
     },
