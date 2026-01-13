@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { CompleteTaskModal } from '@/features/tasks/components/complete-task-modal'
 import { CreateTaskModal } from '@/features/tasks/components/create-task-modal'
 import { GoalsSidebar } from '@/features/tasks/components/goals-sidebar'
+import { WITHOUT_GOALS_ID } from '@/features/tasks/components/goals-sidebar/types'
 import { TasksView } from '@/features/tasks/components/tasks-view'
 import { useTasks } from '@/features/tasks/hooks/use-tasks'
 import {
@@ -13,6 +14,7 @@ import {
   useUpdateTaskMutation,
 } from '@/features/tasks/hooks/use-tasks-mutations'
 import { CreateTaskForm, Task, TaskStatus } from '@/features/tasks/utils/types'
+
 import { useLocalStorage } from '@/hooks/use-local-storage'
 
 export function TasksPage() {
@@ -25,12 +27,18 @@ export function TasksPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [completingTask, setCompletingTask] = useState<Task | null>(null)
-  
-  const [selectedGoalId, setSelectedGoalId, isGoalIdInitialized] = useLocalStorage<string | null>('tasks-selected-goal-id', null)
 
-  // Auto-select first goal when goals change 
+  const [selectedGoalId, setSelectedGoalId, isGoalIdInitialized] = useLocalStorage<string | null>(
+    'tasks-selected-goal-id',
+    null,
+  )
+
+  // Auto-select first goal when goals change
   useEffect(() => {
     if (!isGoalIdInitialized || isLoading) return
+
+    // Don't auto-select if "Without Goals" is selected
+    if (selectedGoalId === WITHOUT_GOALS_ID) return
 
     if (goals.length > 0) {
       const isValid = selectedGoalId && goals.some((g) => g.id === selectedGoalId)
@@ -38,12 +46,17 @@ export function TasksPage() {
         setSelectedGoalId(goals[0].id)
       }
     } else if (goals.length === 0) {
-       if (selectedGoalId !== null) setSelectedGoalId(null)
+      if (selectedGoalId !== null && selectedGoalId !== WITHOUT_GOALS_ID) setSelectedGoalId(null)
     }
   }, [goals, selectedGoalId, isGoalIdInitialized, isLoading, setSelectedGoalId])
 
   // Filter tasks for selected goal
-  const tasksForGoal = selectedGoalId ? tasks.filter((t) => t.goalId === selectedGoalId) : []
+  const tasksForGoal =
+    selectedGoalId === WITHOUT_GOALS_ID
+      ? tasks.filter((t) => t.goalId === null)
+      : selectedGoalId
+        ? tasks.filter((t) => t.goalId === selectedGoalId)
+        : []
 
   const createTask = async (form: CreateTaskForm) => {
     try {
@@ -109,7 +122,7 @@ export function TasksPage() {
             onSubmit={createTask}
             scheduleBlocks={scheduleBlocks}
             goals={goals}
-            {...(selectedGoalId ? { defaultGoalId: selectedGoalId } : {})}
+            {...(selectedGoalId && selectedGoalId !== WITHOUT_GOALS_ID ? { defaultGoalId: selectedGoalId } : {})}
           />
 
           <CreateTaskModal

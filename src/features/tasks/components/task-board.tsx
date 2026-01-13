@@ -2,7 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 
-import { useReorderTasksMutation, useUpdateTaskMutation } from '@/features/tasks/hooks/use-tasks-mutations'
+import { TaskMetadata } from '@/features/tasks/components/task-list-item/task-metadata'
+import { TaskProgress } from '@/features/tasks/components/task-list-item/task-progress'
+import {
+  useDeleteTaskMutation,
+  useReorderTasksMutation,
+  useUpdateTaskMutation,
+} from '@/features/tasks/hooks/use-tasks-mutations'
 import { taskStatusStyles } from '@/features/tasks/utils/task-status-styles'
 import { Task, TaskStatus } from '@/features/tasks/utils/types'
 import {
@@ -18,13 +24,12 @@ import {
 } from '@dnd-kit/core'
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Check, GripVertical, PencilLine, Play } from 'lucide-react'
+import { Calendar, Check, GripVertical, PencilLine, Play, Trash2 } from 'lucide-react'
 
-import { cn } from '@/lib/utils'
+import { useTimerStore } from '@/lib/use-timer-store'
+import { cn, formatDate } from '@/lib/utils'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { TaskHeader } from '@/features/tasks/components/task-list-item/task-header'
-import { TaskMetadata } from '@/features/tasks/components/task-list-item/task-metadata'
-import { TaskProgress } from '@/features/tasks/components/task-list-item/task-progress'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 
 const BOARD_COLUMNS: Array<{ id: TaskStatus; title: string; helper: string; accent: string; text: string }> = [
   { id: 'BACKLOG', title: 'Backlog', helper: 'Capture ideas', accent: 'bg-gray-50', text: 'text-gray-700' },
@@ -42,6 +47,11 @@ interface TaskBoardProps {
 export function TaskBoard({ tasks, onEdit, onComplete }: TaskBoardProps) {
   const updateTaskMutation = useUpdateTaskMutation()
   const reorderTasksMutation = useReorderTasksMutation()
+  const deleteTaskMutation = useDeleteTaskMutation()
+
+  const handleDelete = async (task: Task): Promise<void> => {
+    await deleteTaskMutation.mutateAsync(task.id)
+  }
 
   // Track drag operations to prevent sync during drag
   const isDraggingRef = useRef(false)
@@ -173,6 +183,7 @@ export function TaskBoard({ tasks, onEdit, onComplete }: TaskBoardProps) {
                 onEdit={onEdit}
                 onComplete={onComplete}
                 onView={setDetailTask}
+                onDelete={handleDelete}
               />
             ))}
           </BoardColumn>
@@ -252,6 +263,7 @@ interface TaskCardProps {
   onEdit?: (task: Task) => void
   onComplete?: (task: Task) => void
   onView?: (task: Task) => void
+  onDelete?: (task: Task) => void
   listeners?: any
   attributes?: any
   setNodeRef?: (element: HTMLElement | null) => void
@@ -264,6 +276,7 @@ function TaskCard({
   onEdit,
   onComplete,
   onView,
+  onDelete,
   listeners,
   attributes,
   setNodeRef,
@@ -271,6 +284,29 @@ function TaskCard({
   dragging = false,
 }: TaskCardProps) {
   const statusStyle = taskStatusStyles[task.status]
+  const { start } = useTimerStore()
+  const updateTaskMutation = useUpdateTaskMutation()
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const deleteTaskMutation = useDeleteTaskMutation()
+
+  const handleStartTimer = (): void => {
+    if (task.status === 'BACKLOG' || task.status === 'TODO') {
+      updateTaskMutation.mutate({
+        taskId: task.id,
+        data: { status: 'DOING' },
+      })
+    }
+
+    start(task.title, task.id, task.category || 'DEEP_WORK', task.goalId || '')
+  }
+
+  const handleDelete = async (): Promise<void> => {
+    if (onDelete) {
+      await onDelete(task)
+    } else {
+      await deleteTaskMutation.mutateAsync(task.id)
+    }
+  }
 
   return (
     <div
@@ -288,9 +324,7 @@ function TaskCard({
 
       <div className="relative flex flex-col gap-2">
         <div className="flex items-start gap-2">
-          <h3
-            className="flex-1 font-display text-sm font-bold uppercase leading-tight text-secondary transition-colors hover:text-primary hover:underline sm:text-base"
-          >
+          <h3 className="flex-1 font-display text-sm font-bold uppercase leading-tight text-secondary transition-colors hover:text-primary hover:underline sm:text-base">
             {task.title}
           </h3>
           {task.estimatedMinutes ? (
@@ -317,22 +351,25 @@ function TaskCard({
             </span>
           ) : null}
         </div>
-        <div className="flex items-center gap-1 rounded-sm border-2 border-secondary/30 bg-secondary/20 p-1 shadow-brutal-sm transition sm:absolute sm:right-0 sm:top-0 sm:pointer-events-none sm:opacity-0 sm:group-hover:pointer-events-auto sm:group-hover:opacity-100 sm:group-focus-within:pointer-events-auto sm:group-focus-within:opacity-100">
+        <div className="flex items-center gap-0.5 rounded-sm border-2 border-secondary/30 bg-secondary/20 p-0.5 shadow-brutal-sm transition sm:pointer-events-none sm:absolute sm:right-0 sm:top-0 sm:opacity-0 sm:group-focus-within:pointer-events-auto sm:group-focus-within:opacity-100 sm:group-hover:pointer-events-auto sm:group-hover:opacity-100">
           <button
             {...listeners}
             {...attributes}
             onClick={(event) => event.stopPropagation()}
-            className="inline-flex cursor-grab rounded-sm border-2 border-secondary bg-white p-1 transition sm:hover:-translate-x-0.5 sm:hover:-translate-y-0.5"
+            className="inline-flex cursor-grab rounded-sm border-2 border-secondary bg-white p-0.5 transition sm:hover:-translate-x-0.5 sm:hover:-translate-y-0.5"
             aria-label="Drag task"
           >
-            <GripVertical className="h-3.5 w-3.5 text-secondary" />
+            <GripVertical className="h-3 w-3 text-secondary" />
           </button>
           <button
-            onClick={(event) => event.stopPropagation()}
-            className="rounded-sm border-2 border-secondary bg-white p-1.5 transition sm:hover:-translate-x-0.5 sm:hover:-translate-y-0.5"
+            onClick={(event) => {
+              event.stopPropagation()
+              handleStartTimer()
+            }}
+            className="rounded-sm border-2 border-secondary bg-white p-1 transition sm:hover:-translate-x-0.5 sm:hover:-translate-y-0.5"
             aria-label="Start timer"
           >
-            <Play className="h-4 w-4 fill-secondary text-secondary" />
+            <Play className="h-3 w-3 fill-secondary text-secondary" />
           </button>
           {onComplete && task.status !== 'DONE' && (
             <button
@@ -340,10 +377,10 @@ function TaskCard({
                 event.stopPropagation()
                 onComplete(task)
               }}
-              className="rounded-sm border-2 border-green-600 bg-green-100 p-1.5 transition sm:hover:-translate-x-0.5 sm:hover:-translate-y-0.5 sm:hover:bg-green-200"
+              className="rounded-sm border-2 border-green-600 bg-green-100 p-1 transition sm:hover:-translate-x-0.5 sm:hover:-translate-y-0.5 sm:hover:bg-green-200"
               aria-label="Complete task"
             >
-              <Check className="h-4 w-4 text-green-700" />
+              <Check className="h-3 w-3 text-green-700" />
             </button>
           )}
           {onEdit && (
@@ -352,14 +389,36 @@ function TaskCard({
                 event.stopPropagation()
                 onEdit(task)
               }}
-              className="rounded-sm border-2 border-secondary bg-white p-1.5 transition sm:hover:-translate-x-0.5 sm:hover:-translate-y-0.5"
+              className="rounded-sm border-2 border-secondary bg-white p-1 transition sm:hover:-translate-x-0.5 sm:hover:-translate-y-0.5"
               aria-label="Edit task"
             >
-              <PencilLine className="h-4 w-4 text-secondary" />
+              <PencilLine className="h-3 w-3 text-secondary" />
             </button>
           )}
+          <button
+            onClick={(event) => {
+              event.stopPropagation()
+              setShowDeleteConfirm(true)
+            }}
+            className="rounded-sm border-2 border-red-300 bg-white p-1 transition sm:hover:-translate-x-0.5 sm:hover:-translate-y-0.5"
+            aria-label="Delete task"
+          >
+            <Trash2 className="h-3 w-3 text-red-600" />
+          </button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Delete Task"
+        description={`Are you sure you want to delete "${task.title}"? This action cannot be undone.`}
+        onConfirm={handleDelete}
+        confirmButtonText="Delete"
+        cancelButtonText="Cancel"
+        variant="destructive"
+        isLoading={deleteTaskMutation.isPending}
+      />
     </div>
   )
 }
@@ -370,9 +429,10 @@ interface DraggableTaskCardProps {
   onEdit?: (task: Task) => void
   onComplete?: (task: Task) => void
   onView?: (task: Task) => void
+  onDelete?: (task: Task) => void
 }
 
-function SortableTaskCard({ task, columnId, onEdit, onComplete, onView }: DraggableTaskCardProps) {
+function SortableTaskCard({ task, columnId, onEdit, onComplete, onView, onDelete }: DraggableTaskCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
     data: { type: 'task', columnId },
@@ -390,6 +450,7 @@ function SortableTaskCard({ task, columnId, onEdit, onComplete, onView }: Dragga
       onEdit={onEdit}
       onComplete={onComplete}
       onView={onView}
+      onDelete={onDelete}
       listeners={listeners}
       attributes={attributes}
       setNodeRef={setNodeRef}
@@ -427,6 +488,12 @@ function TaskDetailDialog({ task, onClose }: TaskDetailDialogProps) {
           </div>
           <TaskMetadata task={task} />
           <TaskProgress task={task} />
+          {task.createdAt && (
+            <div className="flex items-center gap-2 border-t border-dashed border-secondary/20 pt-4 text-xs text-gray-600">
+              <Calendar className="h-4 w-4 shrink-0" />
+              <span>Created on {formatDate(task.createdAt, 'MMM d, yyyy')}</span>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
