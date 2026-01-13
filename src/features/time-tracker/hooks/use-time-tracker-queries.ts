@@ -1,8 +1,8 @@
-import { useTasksQuery } from '@/features/tasks'
+import { Goal } from '@/features/goals/utils/types'
 import { useWeeklySchedule } from '@/features/schedule/hooks/use-schedule-queries'
+import { useTasksQuery } from '@/features/tasks'
 import { fetchGoals, fetchRecentEntries, timeTrackerQueries } from '@/features/time-tracker/utils/queries'
 import { Task } from '@/features/time-tracker/utils/types'
-import { Goal } from '@/features/goals/utils/types'
 import { useQuery } from '@tanstack/react-query'
 
 export function useTimeTrackerData() {
