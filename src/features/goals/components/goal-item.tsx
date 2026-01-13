@@ -8,6 +8,7 @@ import { Edit2, Lock, Trash2 } from 'lucide-react'
 
 import { cn, getProgressColor } from '@/lib/utils'
 import { ConfirmDialog } from '@/components/confirm-dialog'
+import { HtmlContent } from '@/components/html-content'
 
 interface GoalItemProps {
   goal: Goal
@@ -114,9 +115,9 @@ export function GoalItem({ goal, index, onEdit, isLocked = false }: GoalItemProp
 
       {/* Description */}
       {goal.description && (
-        <div
+        <HtmlContent
+          html={goal.description}
           className="prose prose-sm mt-2 max-w-none font-mono text-sm text-gray-700"
-          dangerouslySetInnerHTML={{ __html: goal.description }}
         />
       )}
 

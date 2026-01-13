@@ -30,6 +30,7 @@ import { useTimerStore } from '@/lib/use-timer-store'
 import { cn, formatDate } from '@/lib/utils'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { ConfirmDialog } from '@/components/confirm-dialog'
+import { HtmlContent } from '@/components/html-content'
 
 const BOARD_COLUMNS: Array<{ id: TaskStatus; title: string; helper: string; accent: string; text: string }> = [
   { id: 'BACKLOG', title: 'Backlog', helper: 'Capture ideas', accent: 'bg-gray-50', text: 'text-gray-700' },
@@ -334,9 +335,10 @@ function TaskCard({
           ) : null}
         </div>
         {task.description ? (
-          <div
-            className="hidden text-[11px] leading-relaxed text-secondary/80 sm:line-clamp-2 sm:block sm:text-xs"
-            dangerouslySetInnerHTML={{ __html: task.description || '' }}
+          <HtmlContent
+            html={task.description}
+            truncate={2}
+            className="hidden text-[11px] leading-relaxed text-secondary/80 sm:block sm:text-xs"
           />
         ) : null}
         <div className="hidden flex-wrap items-center gap-2 sm:flex">
@@ -480,9 +482,9 @@ function TaskDetailDialog({ task, onClose }: TaskDetailDialogProps) {
               {task.title}
             </h4>
             {task.description ? (
-              <div
+              <HtmlContent
+                html={task.description}
                 className="max-w-full break-words text-xs text-gray-700 sm:text-sm"
-                dangerouslySetInnerHTML={{ __html: task.description }}
               />
             ) : null}
           </div>

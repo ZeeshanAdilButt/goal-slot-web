@@ -2,6 +2,8 @@ import { TaskMetadata } from '@/features/tasks/components/task-list-item/task-me
 import { TaskProgress } from '@/features/tasks/components/task-list-item/task-progress'
 import { Task } from '@/features/tasks/utils/types'
 
+import { HtmlContent } from '@/components/html-content'
+
 interface CompactTaskExpandedProps {
   task: Task
 }
@@ -11,7 +13,10 @@ export function CompactTaskExpanded({ task }: CompactTaskExpandedProps) {
     <div className="space-y-3 border-t-3 border-secondary p-3 sm:p-4">
       {/* Task Description */}
       {task.description && (
-        <p className="max-w-full break-words text-xs text-gray-700 sm:max-w-[62ch] sm:text-sm">{task.description}</p>
+        <HtmlContent
+          html={task.description}
+          className="max-w-full break-words text-xs text-gray-700 sm:max-w-[62ch] sm:text-sm"
+        />
       )}
 
       {/* Task Metadata */}
