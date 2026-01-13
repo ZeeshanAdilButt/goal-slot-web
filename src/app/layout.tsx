@@ -46,7 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <ReactQueryProvider>
           {children}
-          <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+          <div className="fixed bottom-6 right-6 z-50 flex flex-row items-end gap-2">
             <NotificationsButton />
             <Feedback label="Feedback" />
           </div>

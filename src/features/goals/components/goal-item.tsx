@@ -36,10 +36,7 @@ export function GoalItem({ goal, index, onEdit, isLocked = false }: GoalItemProp
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
-      className={cn(
-        "card-brutal-colored relative flex flex-col",
-        isLocked && "opacity-60"
-      )}
+      className={cn('card-brutal-colored relative flex flex-col', isLocked && 'opacity-60')}
       style={{ backgroundColor: goal.color + '40', borderLeftColor: goal.color, borderLeftWidth: '8px' }}
     >
       {/* Locked overlay indicator */}
@@ -48,7 +45,7 @@ export function GoalItem({ goal, index, onEdit, isLocked = false }: GoalItemProp
           <Lock className="h-4 w-4 text-secondary" />
         </div>
       )}
-      
+
       {/* Header row: Status + Actions */}
       <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-2">
         <div className="flex items-center gap-2">
@@ -56,7 +53,9 @@ export function GoalItem({ goal, index, onEdit, isLocked = false }: GoalItemProp
             className={cn(
               'badge-brutal text-xs shrink-0',
               goal.status === 'ACTIVE'
-                ? isLocked ? 'bg-amber-400 text-secondary' : 'bg-accent-green text-white'
+                ? isLocked
+                  ? 'bg-amber-400 text-secondary'
+                  : 'bg-accent-green text-white'
                 : goal.status === 'COMPLETED'
                   ? 'bg-accent-blue text-white'
                   : 'bg-gray-300',
@@ -73,7 +72,7 @@ export function GoalItem({ goal, index, onEdit, isLocked = false }: GoalItemProp
             disabled={!canEdit}
             className={cn(
               'flex h-8 w-8 items-center justify-center border-2 border-secondary bg-white transition-colors hover:bg-gray-100',
-              !canEdit && 'cursor-not-allowed opacity-50 hover:bg-white'
+              !canEdit && 'cursor-not-allowed opacity-50 hover:bg-white',
             )}
           >
             <Edit2 className="h-4 w-4" />
@@ -83,7 +82,7 @@ export function GoalItem({ goal, index, onEdit, isLocked = false }: GoalItemProp
             disabled={!canEdit}
             className={cn(
               'flex h-8 w-8 items-center justify-center border-2 border-secondary bg-white text-red-500 transition-colors hover:bg-red-100',
-              !canEdit && 'cursor-not-allowed opacity-50 hover:bg-white'
+              !canEdit && 'cursor-not-allowed opacity-50 hover:bg-white',
             )}
           >
             <Trash2 className="h-4 w-4" />
@@ -114,7 +113,12 @@ export function GoalItem({ goal, index, onEdit, isLocked = false }: GoalItemProp
       )}
 
       {/* Description */}
-      {goal.description && <p className="mt-2 font-mono text-sm text-gray-700">{goal.description}</p>}
+      {goal.description && (
+        <div
+          className="prose prose-sm mt-2 max-w-none font-mono text-sm text-gray-700"
+          dangerouslySetInnerHTML={{ __html: goal.description }}
+        />
+      )}
 
       {/* Progress */}
       <div className="mt-4 flex items-center gap-3">

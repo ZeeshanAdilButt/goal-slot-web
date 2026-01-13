@@ -1,23 +1,23 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'
-import { Download, User } from 'lucide-react'
 
 import { FocusBreakdownCard } from '@/features/reports/components/focus-breakdown-card'
 import { FocusCategoryPieCard } from '@/features/reports/components/focus-category-pie-card'
-import { FocusFilters, emptyFilters, type ReportFilterState } from '@/features/reports/components/focus-filters'
+import { emptyFilters, FocusFilters, type ReportFilterState } from '@/features/reports/components/focus-filters'
 import { FocusHourlyCard } from '@/features/reports/components/focus-hourly-card'
 import { FocusTaskTotalCard } from '@/features/reports/components/focus-task-total-card'
 import { FocusTimeGridCard } from '@/features/reports/components/focus-time-grid-card'
 import { FocusTrendCard } from '@/features/reports/components/focus-trend-card'
 import type { FocusGranularity, FocusTimeEntry } from '@/features/reports/utils/types'
-
 import { useSharedUserGoalsQuery, useSharedUserTimeEntriesQuery } from '@/features/sharing/hooks/use-sharing-queries'
 import { SharedGoal, SharedTimeEntry, SharedWithMeUser } from '@/features/sharing/utils/types'
+import { endOfMonth, endOfWeek, format, startOfMonth, startOfWeek } from 'date-fns'
+import { Download, User } from 'lucide-react'
+
 import { cn, formatDuration } from '@/lib/utils'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface SharedReportsViewProps {
   sharedWithMe: SharedWithMeUser[]
@@ -63,20 +63,22 @@ const adaptSharedEntry = (entry: SharedTimeEntry): FocusTimeEntry => ({
   date: entry.date,
   startedAt: null,
   goalId: entry.goal?.id,
-  goal: entry.goal ? {
-    id: entry.goal.id,
-    title: entry.goal.title,
-    color: entry.goal.color,
-    category: entry.goal.category
-  } : null,
+  goal: entry.goal
+    ? {
+        id: entry.goal.id,
+        title: entry.goal.title,
+        color: entry.goal.color,
+        category: entry.goal.category,
+      }
+    : null,
   taskId: null,
   task: {
     id: 'shared-task',
     title: entry.taskName,
-    category: null
+    category: null,
   },
   scheduleBlockId: null,
-  scheduleBlock: null
+  scheduleBlock: null,
 })
 
 export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
@@ -91,52 +93,56 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
 
   // Fetch time entries for selected user
   const entriesQuery = useSharedUserTimeEntriesQuery(selectedUserId, dateRange.startDate, dateRange.endDate)
-  
+
   // Fetch goals for selected user to populate filters
   const goalsQuery = useSharedUserGoalsQuery(selectedUserId)
 
   const rawEntries = useMemo(() => (entriesQuery.data ?? []) as SharedTimeEntry[], [entriesQuery.data])
   const adaptedEntries = useMemo(() => rawEntries.map(adaptSharedEntry), [rawEntries])
-  
+
   const sharedGoals = useMemo(() => (goalsQuery.data ?? []) as SharedGoal[], [goalsQuery.data])
-  
+
   // Adapt shared goals for the filter component
-  const filterGoals = useMemo(() => sharedGoals.map(g => ({
-    id: g.id,
-    title: g.title,
-    color: g.color,
-    isEnabled: true,
-    order: 0,
-    targetHours: g.targetHours,
-    period: 'weekly'
-  })), [sharedGoals])
+  const filterGoals = useMemo(
+    () =>
+      sharedGoals.map((g) => ({
+        id: g.id,
+        title: g.title,
+        color: g.color,
+        isEnabled: true,
+        order: 0,
+        targetHours: g.targetHours,
+        period: 'weekly',
+      })),
+    [sharedGoals],
+  )
 
   // Extract categories from shared goals for the filter component
   const filterCategories = useMemo(() => {
     const uniqueCategories = new Set<string>()
-    sharedGoals.forEach(g => {
+    sharedGoals.forEach((g) => {
       if (g.category) uniqueCategories.add(g.category)
     })
-    return Array.from(uniqueCategories).map(cat => ({
+    return Array.from(uniqueCategories).map((cat) => ({
       id: cat, // Using name as ID for simplicity in shared view
       name: cat,
-      color: null
+      color: null,
     }))
   }, [sharedGoals])
 
   // Export to CSV
   const handleExportCSV = () => {
     if (!selectedUser || rawEntries.length === 0) return
-    
+
     const headers = ['Date', 'Duration', 'Goal', 'Task']
-    const rows = rawEntries.map(entry => [
+    const rows = rawEntries.map((entry) => [
       entry.date,
       formatDuration(entry.duration),
       entry.goal?.title || '',
       entry.taskName || '',
     ])
-    
-    const csvContent = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n')
+
+    const csvContent = [headers, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(',')).join('\n')
     const blob = new Blob([csvContent], { type: 'text/csv' })
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -198,8 +204,8 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
 
       {selectedUser && (
         <div className="space-y-6">
-           {/* Controls Bar */}
-           <div className="flex flex-col gap-4 sticky top-0 z-10 bg-background/95 pb-2 pt-2 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          {/* Controls Bar */}
+          <div className="sticky top-0 z-10 flex flex-col gap-4 bg-background/95 pb-2 pt-2 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1 rounded-lg border-2 border-secondary bg-white p-1">
                 {VIEW_TABS.map((tab) => (
@@ -219,86 +225,82 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
               </div>
 
               <div className="flex items-center gap-2">
-                 <FocusFilters 
-                    filters={filters} 
-                    onChange={setFilters} 
-                    explicitGoals={filterGoals as any} 
-                    explicitCategories={filterCategories}
-                 />
+                <FocusFilters
+                  filters={filters}
+                  onChange={setFilters}
+                  explicitGoals={filterGoals as any}
+                  explicitCategories={filterCategories}
+                />
 
-                 <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9 gap-2 border-2"
-                    onClick={handleExportCSV}
-                    disabled={adaptedEntries.length === 0}
-                  >
-                    <Download className="h-4 w-4" />
-                    <span className="hidden sm:inline">Export</span>
-                  </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 gap-2 border-2"
+                  onClick={handleExportCSV}
+                  disabled={adaptedEntries.length === 0}
+                >
+                  <Download className="h-4 w-4" />
+                  <span className="hidden sm:inline">Export</span>
+                </Button>
               </div>
             </div>
-            
-            <div className="flex items-center gap-2 text-sm font-mono text-gray-500">
-               <span>
-                  {dateRange.label}
-               </span>
-               <span className="h-1 w-1 rounded-full bg-gray-300" />
-               <span>
-                  {adaptedEntries.length} entries found
-               </span>
+
+            <div className="flex items-center gap-2 font-mono text-sm text-gray-500">
+              <span>{dateRange.label}</span>
+              <span className="h-1 w-1 rounded-full bg-gray-300" />
+              <span>{adaptedEntries.length} entries found</span>
             </div>
           </div>
 
           <div className="grid gap-6">
-            <FocusTrendCard 
-              view={view} 
-              filters={filters} 
+            <FocusTrendCard
+              view={view}
+              filters={filters}
               explicitEntries={adaptedEntries}
               isLoading={entriesQuery.isLoading}
             />
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <FocusBreakdownCard 
-                view={view} 
-                groupBy="goal" 
+              <FocusBreakdownCard
+                view={view}
+                groupBy="goal"
                 filters={filters}
                 explicitEntries={adaptedEntries}
                 isLoading={entriesQuery.isLoading}
               />
-              <FocusBreakdownCard 
-                view={view} 
-                groupBy="task" 
-                filters={filters}
-                explicitEntries={adaptedEntries}
-                 isLoading={entriesQuery.isLoading}
-              />
-            </div>
-
-            <div className="grid gap-6 lg:grid-cols-2">
-               <FocusHourlyCard 
-                 view={view} 
-                 filters={filters}
-                 explicitEntries={adaptedEntries}
-                 isLoading={entriesQuery.isLoading}
-               />
-               <FocusCategoryPieCard 
-                 view={view} 
-                 filters={filters}
-                 explicitEntries={adaptedEntries}
-                 isLoading={entriesQuery.isLoading}
-               />
-            </div>
-
-            <div className="grid gap-6 lg:grid-cols-2">
-              <FocusTaskTotalCard 
-                view={view} 
+              <FocusBreakdownCard
+                view={view}
+                groupBy="task"
                 filters={filters}
                 explicitEntries={adaptedEntries}
                 isLoading={entriesQuery.isLoading}
               />
-              <FocusTimeGridCard 
-                view={view} 
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-2">
+              <FocusHourlyCard
+                view={view}
+                filters={filters}
+                explicitEntries={adaptedEntries}
+                isLoading={entriesQuery.isLoading}
+              />
+              <FocusCategoryPieCard
+                view={view}
+                filters={filters}
+                explicitEntries={adaptedEntries}
+                isLoading={entriesQuery.isLoading}
+              />
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-2">
+              <FocusTaskTotalCard
+                view={view}
+                filters={filters}
+                explicitEntries={adaptedEntries}
+                isLoading={entriesQuery.isLoading}
+              />
+              <FocusTimeGridCard
+                view={view}
                 filters={filters}
                 explicitEntries={adaptedEntries}
                 isLoading={entriesQuery.isLoading}

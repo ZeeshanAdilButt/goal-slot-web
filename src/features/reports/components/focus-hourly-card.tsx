@@ -16,6 +16,7 @@ import type { FocusPeriod, FocusTimeEntry } from '@/features/reports/utils/types
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { cn, formatDuration } from '@/lib/utils'
+import { Loading } from '@/components/ui/loading'
 import AnimateChangeInHeight from '@/components/animate-change-in-height'
 
 const EMPTY_ENTRIES: FocusTimeEntry[] = []
@@ -83,7 +84,7 @@ export function FocusHourlyCard({ view, filters, explicitEntries, isLoading: exp
       <AnimateChangeInHeight>
         {showLoading ? (
           <div className="flex h-72 items-center justify-center">
-            <div className="h-10 w-10 animate-spin border-4 border-secondary border-t-primary" />
+            <Loading size="md" />
           </div>
         ) : entries.length === 0 ? (
           <div className="py-10 text-center text-gray-500">

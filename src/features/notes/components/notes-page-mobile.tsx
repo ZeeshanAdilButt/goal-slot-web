@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 import { FileText, Menu, Plus, X } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
+import { Loading } from '@/components/ui/loading'
 
 import { useCreateNoteMutation, useNotesQuery } from '../hooks/use-notes'
 import { Note } from '../utils/types'
@@ -60,12 +61,12 @@ export function NotesPageMobile({ initialNoteId }: NotesPageMobileProps = {}) {
       if (noteToSelect && noteToSelect.id !== selectedNote?.id) {
         setSelectedNote(noteToSelect)
         localStorage.setItem('dw-last-note-id', noteToSelect.id)
-        
+
         // Update URL if missing
         if (!paramNoteId) {
-            const params = new URLSearchParams(searchParams.toString())
-            params.set('noteId', noteToSelect.id)
-            router.replace(`${pathname}?${params.toString()}`)
+          const params = new URLSearchParams(searchParams.toString())
+          params.set('noteId', noteToSelect.id)
+          router.replace(`${pathname}?${params.toString()}`)
         }
       }
 
@@ -143,7 +144,7 @@ export function NotesPageMobile({ initialNoteId }: NotesPageMobileProps = {}) {
           className="flex h-8 items-center gap-1.5 rounded-md px-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
         >
           {createMutation.isPending ? (
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            <Loading size="sm" />
           ) : (
             <>
               <Plus className="h-4 w-4" />
@@ -185,7 +186,7 @@ export function NotesPageMobile({ initialNoteId }: NotesPageMobileProps = {}) {
               >
                 {createMutation.isPending ? (
                   <>
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    <Loading size="sm" />
                     Creating...
                   </>
                 ) : (

@@ -1,16 +1,17 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { format, parseISO } from 'date-fns'
-import { Clock, Layers, ChevronDown, ChevronRight } from 'lucide-react'
 
 import { useFilteredEntries, type ReportFilterState } from '@/features/reports/components/focus-filters'
 import { FocusUpdatingOverlay } from '@/features/reports/components/focus-updating-overlay'
 import { useFocusTimeEntriesRangeQuery } from '@/features/reports/hooks/use-focus-time-entries'
 import { getRollingRange } from '@/features/reports/utils/dates'
 import type { FocusGranularity, FocusTimeEntry } from '@/features/reports/utils/types'
+import { format, parseISO } from 'date-fns'
+import { ChevronDown, ChevronRight, Clock, Layers } from 'lucide-react'
 
 import { cn, formatDuration } from '@/lib/utils'
+import { Loading } from '@/components/ui/loading'
 
 interface TaskTotal {
   taskKey: string
@@ -33,11 +34,11 @@ function aggregateByTaskPerDay(entries: FocusTimeEntry[]): DayTotal[] {
 
   for (const entry of entries) {
     const dateKey = entry.date.split('T')[0]
-    
+
     if (!dayMap.has(dateKey)) {
       dayMap.set(dateKey, { tasks: new Map(), totalMinutes: 0 })
     }
-    
+
     const day = dayMap.get(dateKey)!
     day.totalMinutes += entry.duration
 
@@ -103,14 +104,14 @@ export function FocusTaskTotalCard({ view, filters, explicitEntries, isLoading: 
   // Auto-expand all days when data loads
   useEffect(() => {
     if (dailyTotals.length > 0) {
-      setExpandedDays(new Set(dailyTotals.map(d => d.date)))
+      setExpandedDays(new Set(dailyTotals.map((d) => d.date)))
     }
   }, [dailyTotals])
 
   const grandTotal = useMemo(() => dailyTotals.reduce((sum, d) => sum + d.totalMinutes, 0), [dailyTotals])
   const uniqueTaskCount = useMemo(() => {
     const allTasks = new Set<string>()
-    dailyTotals.forEach(d => d.tasks.forEach(t => allTasks.add(t.taskKey)))
+    dailyTotals.forEach((d) => d.tasks.forEach((t) => allTasks.add(t.taskKey)))
     return allTasks.size
   }, [dailyTotals])
 
@@ -126,7 +127,7 @@ export function FocusTaskTotalCard({ view, filters, explicitEntries, isLoading: 
     })
   }
 
-  const expandAll = () => setExpandedDays(new Set(dailyTotals.map(d => d.date)))
+  const expandAll = () => setExpandedDays(new Set(dailyTotals.map((d) => d.date)))
   const collapseAll = () => setExpandedDays(new Set())
 
   return (
@@ -163,7 +164,7 @@ export function FocusTaskTotalCard({ view, filters, explicitEntries, isLoading: 
 
       {showLoading ? (
         <div className="flex h-64 items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-secondary border-t-transparent" />
+          <Loading size="sm" />
         </div>
       ) : dailyTotals.length === 0 ? (
         <div className="flex h-64 flex-col items-center justify-center text-center">
@@ -214,9 +215,7 @@ export function FocusTaskTotalCard({ view, filters, explicitEntries, isLoading: 
                   ) : (
                     <ChevronRight className="h-4 w-4" />
                   )}
-                  <span className="font-semibold">
-                    {format(parseISO(day.date), 'EEEE, MMM d')}
-                  </span>
+                  <span className="font-semibold">{format(parseISO(day.date), 'EEEE, MMM d')}</span>
                   <span className="ml-auto font-mono text-sm">
                     {day.tasks.length} {day.tasks.length === 1 ? 'task' : 'tasks'} •{' '}
                     <span className="font-semibold text-secondary">{formatDuration(day.totalMinutes)}</span>
@@ -232,10 +231,7 @@ export function FocusTaskTotalCard({ view, filters, explicitEntries, isLoading: 
                         className="flex items-center gap-3 px-4 py-2 pl-10 transition-colors hover:bg-gray-50"
                       >
                         {task.goalColor && (
-                          <span
-                            className="h-3 w-3 shrink-0 rounded-full"
-                            style={{ backgroundColor: task.goalColor }}
-                          />
+                          <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: task.goalColor }} />
                         )}
                         <div className="flex-1 truncate">
                           <span className="font-medium">{task.taskName}</span>

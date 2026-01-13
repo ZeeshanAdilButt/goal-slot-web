@@ -1,15 +1,16 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Bell } from 'lucide-react'
-import clsx from 'clsx'
 
-import { useNotificationsQuery, useMarkNotificationRead } from '@/features/notifications/hooks/use-notifications'
 import { Button1 } from '@/features/feedback/components/ui/button-1'
 import { Material } from '@/features/feedback/components/ui/material-1'
-import { useClickOutside } from '@/hooks/use-click-outside'
-import { useAuthStore } from '@/lib/store'
 import { useFeedbackWidgetStore } from '@/features/feedback/store/use-feedback-widget-store'
+import { useMarkNotificationRead, useNotificationsQuery } from '@/features/notifications/hooks/use-notifications'
+import clsx from 'clsx'
+import { Bell } from 'lucide-react'
+
+import { useAuthStore } from '@/lib/store'
+import { useClickOutside } from '@/hooks/use-click-outside'
 
 export const NotificationsButton = () => {
   const { isAuthenticated, isLoading } = useAuthStore()
@@ -76,13 +77,13 @@ export const NotificationsButton = () => {
         size="small"
         ref={buttonRef}
         onClick={handleOpen}
-        className="!h-10 !w-10 !p-0 font-medium md:!h-auto md:!w-auto md:!px-4 md:!py-2"
+        className="!h-8 !w-8 !p-0 font-medium"
         title="Notifications"
       >
         <div className="relative flex items-center">
-          <Bell className="h-5 w-5" />
+          <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
-            <span className="absolute -right-1 -top-1 inline-flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+            <span className="absolute -right-1 -top-1 inline-flex min-h-[16px] min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
@@ -97,7 +98,10 @@ export const NotificationsButton = () => {
         style={{ ...position }}
         ref={menuRef}
       >
-        <div className="flex items-center justify-between border-b px-3 py-2 text-sm font-semibold" style={{ borderColor: 'var(--accents-2)' }}>
+        <div
+          className="flex items-center justify-between border-b px-3 py-2 text-sm font-semibold"
+          style={{ borderColor: 'var(--accents-2)' }}
+        >
           <span>Notifications</span>
           <span className="text-xs font-normal text-gray-600">{unreadCount} unread</span>
         </div>

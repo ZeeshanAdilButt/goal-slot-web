@@ -2,12 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 
 import { useCategoriesQuery } from '@/features/categories'
 import { useCreateGoalMutation, useUpdateGoalMutation } from '@/features/goals/hooks/use-goals-mutations'
-import { TiptapEditor } from '@/components/tiptap-editor/tiptap-editor'
 import {
   CreateGoalForm,
   Goal,
   GOAL_STATUS_OPTIONS,
-
   GoalFormState,
   GoalStatus,
   LABEL_COLORS,
@@ -20,6 +18,7 @@ import { COLOR_OPTIONS } from '@/lib/utils'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ConfirmDialog } from '@/components/confirm-dialog'
+import { TiptapEditor } from '@/components/tiptap-editor/tiptap-editor'
 
 interface GoalModalProps {
   isOpen: boolean
@@ -202,367 +201,370 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="modal-brutal max-w-2xl">
-        <DialogHeader className="mb-3">
+      <DialogContent className="modal-brutal flex max-h-[90vh] w-[95vw] max-w-2xl flex-col overflow-hidden p-0 sm:w-full">
+        <DialogHeader className="mb-3 flex-shrink-0 px-6 pt-6">
           <DialogTitle className="text-xl font-bold uppercase">{goal ? 'Edit Goal' : 'New Goal'}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
-          {/* Two column layout */}
-          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-            {/* Left column */}
-            <div className="space-y-4">
-              {/* Title */}
-              <div>
-                <label className="mb-1.5 block text-xs font-bold uppercase">Title</label>
-                <input
-                  type="text"
-                  value={form.title}
-                  onChange={(e) => updateField('title', e.target.value)}
-                  className="input-brutal w-full py-2"
-                  placeholder="e.g., Learn Rust"
-                  required
-                />
-              </div>
-
-              {/* Category */}
-              <div>
-                <label className="mb-1.5 block text-xs font-bold uppercase">Category</label>
-                <Select value={form.category} onValueChange={(value) => updateField('category', value)}>
-                  <SelectTrigger className="input-brutal w-full py-2">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.value} value={cat.value}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Target Hours & Deadline row */}
-              <div className="grid grid-cols-2 gap-3">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          {/* Scrollable content area */}
+          <div className="flex-1 overflow-y-auto px-6">
+            {/* Two column layout - responsive: single column on mobile, two columns on md+ */}
+            <div className="grid grid-cols-1 gap-x-4 gap-y-4 md:grid-cols-2 md:gap-x-6">
+              {/* Left column */}
+              <div className="space-y-4">
+                {/* Title */}
                 <div>
-                  <label className="mb-1.5 block text-xs font-bold uppercase">Target Hours</label>
-                  <div className="relative">
-                    <Clock className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-                    <input
-                      type="number"
-                      value={form.targetHours}
-                      onChange={(e) => updateField('targetHours', e.target.value)}
-                      className="input-brutal w-full py-2 pl-8"
-                      placeholder="100"
-                      min="1"
-                      required
-                    />
-                  </div>
+                  <label className="mb-1.5 block text-xs font-bold uppercase">Title</label>
+                  <input
+                    type="text"
+                    value={form.title}
+                    onChange={(e) => updateField('title', e.target.value)}
+                    className="input-brutal w-full py-2"
+                    placeholder="e.g., Learn Rust"
+                    required
+                  />
                 </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-bold uppercase">Deadline</label>
-                  <div className="relative">
-                    <Calendar className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-                    <input
-                      type="date"
-                      value={form.deadline}
-                      onChange={(e) => updateField('deadline', e.target.value)}
-                      className="input-brutal w-full py-2 pl-8 text-sm"
-                    />
-                  </div>
-                </div>
-              </div>
 
-              {/* Status - Only show when editing */}
-              {goal && (
+                {/* Category */}
                 <div>
-                  <label className="mb-1.5 block text-xs font-bold uppercase">Status</label>
-                  <Select value={form.status} onValueChange={(value) => updateField('status', value as GoalStatus)}>
+                  <label className="mb-1.5 block text-xs font-bold uppercase">Category</label>
+                  <Select value={form.category} onValueChange={(value) => updateField('category', value)}>
                     <SelectTrigger className="input-brutal w-full py-2">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {GOAL_STATUS_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.value} value={cat.value}>
+                          {cat.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-              )}
-            </div>
 
-            {/* Right column */}
-            <div className="space-y-4">
-              {/* Description */}
-              <div className="flex flex-col h-full">
-                <label className="mb-1.5 block text-xs font-bold uppercase">Description</label>
-                <div className="flex-1 rounded-none border-3 border-secondary bg-white">
-                  <TiptapEditor
-                    content={form.description}
-                    onChange={(html) => updateField('description', html)}
-                    placeholder="What do you want to achieve?"
-                    className="h-full min-h-[180px] border-none shadow-none"
-                  />
-                </div>
-              </div>
-
-              {/* Labels */}
-              <div>
-                <label className="mb-1.5 block text-xs font-bold uppercase">Labels</label>
-
-                {/* Label input with color picker */}
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <input
-                      ref={labelInputRef}
-                      type="text"
-                      value={labelInput}
-                      onChange={(e) => {
-                        setLabelInput(e.target.value)
-                        setShowLabelSuggestions(true)
-                      }}
-                      onFocus={() => setShowLabelSuggestions(true)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && labelInput.trim()) {
-                          e.preventDefault()
-                          addLabel(labelInput.trim())
-                          setLabelInput('')
-                          setShowLabelSuggestions(false)
-                        }
-                      }}
-                      placeholder="Type or click to browse..."
-                      className="input-brutal w-full py-2"
-                    />
-
-                    {/* Suggestions dropdown - show when focused */}
-                    {showLabelSuggestions && (labelSuggestions.length > 0 || labelInput.trim()) && (
-                      <div
-                        ref={suggestionsRef}
-                        className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto border-3 border-black bg-white shadow-brutal"
-                      >
-                        {/* Existing labels */}
-                        {labelSuggestions.map((suggestion) => (
-                          <div key={suggestion.id} className="group">
-                            {editingLabelId === suggestion.id ? (
-                              // Edit mode
-                              <div className="border-b border-gray-200 p-2">
-                                <input
-                                  type="text"
-                                  value={editingLabelName}
-                                  onChange={(e) => setEditingLabelName(e.target.value)}
-                                  className="mb-2 w-full rounded border border-gray-300 px-2 py-1 text-sm"
-                                  autoFocus
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      e.preventDefault()
-                                      saveEditingLabel()
-                                    } else if (e.key === 'Escape') {
-                                      setEditingLabelId(null)
-                                    }
-                                  }}
-                                />
-                                <div className="mb-2 flex items-center gap-1">
-                                  {LABEL_COLORS.map((c) => (
-                                    <button
-                                      key={c.value}
-                                      type="button"
-                                      onClick={() => setEditingLabelColor(c.value)}
-                                      className={`h-5 w-5 rounded border transition-transform hover:scale-110 ${
-                                        editingLabelColor === c.value
-                                          ? 'ring-2 ring-black ring-offset-1'
-                                          : 'border-gray-300'
-                                      }`}
-                                      style={{ backgroundColor: c.value }}
-                                      title={c.name}
-                                    />
-                                  ))}
-                                </div>
-                                <div className="flex gap-2">
-                                  <button
-                                    type="button"
-                                    onClick={saveEditingLabel}
-                                    disabled={updateLabelMutation.isPending}
-                                    className="flex-1 rounded bg-black px-2 py-1 text-xs text-white hover:bg-gray-800"
-                                  >
-                                    {updateLabelMutation.isPending ? 'Saving...' : 'Save'}
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setEditingLabelId(null)}
-                                    className="rounded border border-gray-300 px-2 py-1 text-xs hover:bg-gray-100"
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              // Normal display mode
-                              <div className="flex items-center justify-between px-3 py-1.5 hover:bg-gray-50">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    addLabel(suggestion.name, suggestion.color)
-                                    setLabelInput('')
-                                    setShowLabelSuggestions(false)
-                                  }}
-                                  className="flex flex-1 items-center gap-2 text-left text-sm"
-                                >
-                                  <span
-                                    className="rounded px-2 py-0.5 text-xs font-medium"
-                                    style={{
-                                      backgroundColor: suggestion.color,
-                                      color: getLabelTextColor(suggestion.color),
-                                    }}
-                                  >
-                                    {suggestion.name}
-                                  </span>
-                                </button>
-                                <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      startEditingLabel(suggestion)
-                                    }}
-                                    className="rounded p-1 text-gray-500 hover:bg-gray-200 hover:text-gray-700"
-                                    title="Edit label"
-                                  >
-                                    <Pencil className="h-3.5 w-3.5" />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      deleteLabel(suggestion.id)
-                                    }}
-                                    className="rounded p-1 text-gray-500 hover:bg-red-100 hover:text-red-600"
-                                    title="Delete label"
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-
-                        {/* Create new label option */}
-                        {labelInput.trim() &&
-                          !existingLabels.some((l) => l.name.toLowerCase() === labelInput.toLowerCase()) && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                addLabel(labelInput.trim())
-                                setLabelInput('')
-                                setShowLabelSuggestions(false)
-                              }}
-                              className="flex w-full items-center gap-2 border-t border-gray-200 px-3 py-2 text-left text-sm hover:bg-gray-100"
-                            >
-                              <span className="text-gray-500">Create</span>
-                              <span
-                                className="rounded px-2 py-0.5 text-xs font-medium"
-                                style={{
-                                  backgroundColor: selectedLabelColor,
-                                  color: getLabelTextColor(selectedLabelColor),
-                                }}
-                              >
-                                {labelInput.trim()}
-                              </span>
-                            </button>
-                          )}
-                      </div>
-                    )}
+                {/* Target Hours & Deadline row */}
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1.5 block text-xs font-bold uppercase">Target Hours</label>
+                    <div className="relative">
+                      <Clock className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                      <input
+                        type="number"
+                        value={form.targetHours}
+                        onChange={(e) => updateField('targetHours', e.target.value)}
+                        className="input-brutal w-full py-2 pl-8"
+                        placeholder="100"
+                        min="1"
+                        required
+                      />
+                    </div>
                   </div>
-
-                  {/* Add button */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (labelInput.trim()) {
-                        addLabel(labelInput.trim())
-                        setLabelInput('')
-                      }
-                    }}
-                    disabled={!labelInput.trim()}
-                    className="btn-brutal-secondary px-3 py-2 text-xs disabled:opacity-50"
-                  >
-                    Add
-                  </button>
+                  <div>
+                    <label className="mb-1.5 block text-xs font-bold uppercase">Deadline</label>
+                    <div className="relative">
+                      <Calendar className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                      <input
+                        type="date"
+                        value={form.deadline}
+                        onChange={(e) => updateField('deadline', e.target.value)}
+                        className="input-brutal w-full py-2 pl-8 text-sm"
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                {/* Color picker for new labels */}
-                <div className="mt-2 flex items-center gap-1.5">
-                  <span className="text-[10px] text-gray-500">Color:</span>
-                  {LABEL_COLORS.map((c) => (
-                    <button
-                      key={c.value}
-                      type="button"
-                      onClick={() => setSelectedLabelColor(c.value)}
-                      className={`h-5 w-5 rounded border transition-transform hover:scale-110 ${
-                        selectedLabelColor === c.value ? 'ring-2 ring-black ring-offset-1' : 'border-gray-300'
-                      }`}
-                      style={{ backgroundColor: c.value }}
-                      title={c.name}
-                    />
-                  ))}
-                </div>
-
-                {/* Current labels */}
-                {form.labels.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {form.labels.map((label) => (
-                      <span
-                        key={label.name}
-                        className="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium"
-                        style={{
-                          backgroundColor: label.color || '#E5E7EB',
-                          color: getLabelTextColor(label.color || '#E5E7EB'),
-                          borderColor: label.color || '#E5E7EB',
-                        }}
-                      >
-                        {label.name}
-                        <button
-                          type="button"
-                          onClick={() => removeLabel(label.name)}
-                          className="ml-0.5 opacity-60 hover:opacity-100"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </span>
-                    ))}
+                {/* Status - Only show when editing */}
+                {goal && (
+                  <div>
+                    <label className="mb-1.5 block text-xs font-bold uppercase">Status</label>
+                    <Select value={form.status} onValueChange={(value) => updateField('status', value as GoalStatus)}>
+                      <SelectTrigger className="input-brutal w-full py-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GOAL_STATUS_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 )}
               </div>
 
-              {/* Goal Color */}
-              <div>
-                <label className="mb-1.5 block text-xs font-bold uppercase">Goal Color</label>
-                <div className="flex gap-2">
-                  {COLOR_OPTIONS.map((c) => (
+              {/* Right column */}
+              <div className="space-y-4">
+                {/* Labels */}
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold uppercase">Labels</label>
+
+                  {/* Label input with color picker */}
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <div className="relative flex-1">
+                      <input
+                        ref={labelInputRef}
+                        type="text"
+                        value={labelInput}
+                        onChange={(e) => {
+                          setLabelInput(e.target.value)
+                          setShowLabelSuggestions(true)
+                        }}
+                        onFocus={() => setShowLabelSuggestions(true)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && labelInput.trim()) {
+                            e.preventDefault()
+                            addLabel(labelInput.trim())
+                            setLabelInput('')
+                            setShowLabelSuggestions(false)
+                          }
+                        }}
+                        placeholder="Type or click to browse..."
+                        className="input-brutal w-full py-2"
+                      />
+
+                      {/* Suggestions dropdown - show when focused */}
+                      {showLabelSuggestions && (labelSuggestions.length > 0 || labelInput.trim()) && (
+                        <div
+                          ref={suggestionsRef}
+                          className="absolute z-50 mt-1 max-h-64 w-full overflow-y-auto border-3 border-black bg-white shadow-brutal"
+                        >
+                          {/* Existing labels */}
+                          {labelSuggestions.map((suggestion) => (
+                            <div key={suggestion.id} className="group">
+                              {editingLabelId === suggestion.id ? (
+                                // Edit mode
+                                <div className="border-b border-gray-200 p-2">
+                                  <input
+                                    type="text"
+                                    value={editingLabelName}
+                                    onChange={(e) => setEditingLabelName(e.target.value)}
+                                    className="mb-2 w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                                    autoFocus
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') {
+                                        e.preventDefault()
+                                        saveEditingLabel()
+                                      } else if (e.key === 'Escape') {
+                                        setEditingLabelId(null)
+                                      }
+                                    }}
+                                  />
+                                  <div className="mb-2 flex items-center gap-1">
+                                    {LABEL_COLORS.map((c) => (
+                                      <button
+                                        key={c.value}
+                                        type="button"
+                                        onClick={() => setEditingLabelColor(c.value)}
+                                        className={`h-5 w-5 rounded border transition-transform hover:scale-110 ${
+                                          editingLabelColor === c.value
+                                            ? 'ring-2 ring-black ring-offset-1'
+                                            : 'border-gray-300'
+                                        }`}
+                                        style={{ backgroundColor: c.value }}
+                                        title={c.name}
+                                      />
+                                    ))}
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={saveEditingLabel}
+                                      disabled={updateLabelMutation.isPending}
+                                      className="flex-1 rounded bg-black px-2 py-1 text-xs text-white hover:bg-gray-800"
+                                    >
+                                      {updateLabelMutation.isPending ? 'Saving...' : 'Save'}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditingLabelId(null)}
+                                      className="rounded border border-gray-300 px-2 py-1 text-xs hover:bg-gray-100"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                // Normal display mode
+                                <div className="flex items-center justify-between px-3 py-1.5 hover:bg-gray-50">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      addLabel(suggestion.name, suggestion.color)
+                                      setLabelInput('')
+                                      setShowLabelSuggestions(false)
+                                    }}
+                                    className="flex flex-1 items-center gap-2 text-left text-sm"
+                                  >
+                                    <span
+                                      className="rounded px-2 py-0.5 text-xs font-medium"
+                                      style={{
+                                        backgroundColor: suggestion.color,
+                                        color: getLabelTextColor(suggestion.color),
+                                      }}
+                                    >
+                                      {suggestion.name}
+                                    </span>
+                                  </button>
+                                  <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        startEditingLabel(suggestion)
+                                      }}
+                                      className="rounded p-1 text-gray-500 hover:bg-gray-200 hover:text-gray-700"
+                                      title="Edit label"
+                                    >
+                                      <Pencil className="h-3.5 w-3.5" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        deleteLabel(suggestion.id)
+                                      }}
+                                      className="rounded p-1 text-gray-500 hover:bg-red-100 hover:text-red-600"
+                                      title="Delete label"
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+
+                          {/* Create new label option */}
+                          {labelInput.trim() &&
+                            !existingLabels.some((l) => l.name.toLowerCase() === labelInput.toLowerCase()) && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  addLabel(labelInput.trim())
+                                  setLabelInput('')
+                                  setShowLabelSuggestions(false)
+                                }}
+                                className="flex w-full items-center gap-2 border-t border-gray-200 px-3 py-2 text-left text-sm hover:bg-gray-100"
+                              >
+                                <span className="text-gray-500">Create</span>
+                                <span
+                                  className="rounded px-2 py-0.5 text-xs font-medium"
+                                  style={{
+                                    backgroundColor: selectedLabelColor,
+                                    color: getLabelTextColor(selectedLabelColor),
+                                  }}
+                                >
+                                  {labelInput.trim()}
+                                </span>
+                              </button>
+                            )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Add button */}
                     <button
-                      key={c}
                       type="button"
-                      onClick={() => updateField('color', c)}
-                      className={`h-7 w-7 rounded-full border-2 border-black transition-transform hover:scale-110 ${
-                        form.color === c ? 'ring-2 ring-black ring-offset-1' : ''
-                      }`}
-                      style={{ backgroundColor: c }}
-                    />
-                  ))}
+                      onClick={() => {
+                        if (labelInput.trim()) {
+                          addLabel(labelInput.trim())
+                          setLabelInput('')
+                        }
+                      }}
+                      disabled={!labelInput.trim()}
+                      className="btn-brutal-secondary px-3 py-2 text-xs disabled:opacity-50"
+                    >
+                      Add
+                    </button>
+                  </div>
+
+                  {/* Color picker for new labels */}
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    <span className="text-[10px] text-gray-500">Label Color:</span>
+                    {LABEL_COLORS.map((c) => (
+                      <button
+                        key={c.value}
+                        type="button"
+                        onClick={() => setSelectedLabelColor(c.value)}
+                        className={`h-5 w-5 rounded border transition-transform hover:scale-110 ${
+                          selectedLabelColor === c.value ? 'ring-2 ring-black ring-offset-1' : 'border-gray-300'
+                        }`}
+                        style={{ backgroundColor: c.value }}
+                        title={c.name}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Current labels */}
+                  {form.labels.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {form.labels.map((label) => (
+                        <span
+                          key={label.name}
+                          className="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium"
+                          style={{
+                            backgroundColor: label.color || '#E5E7EB',
+                            color: getLabelTextColor(label.color || '#E5E7EB'),
+                            borderColor: label.color || '#E5E7EB',
+                          }}
+                        >
+                          {label.name}
+                          <button
+                            type="button"
+                            onClick={() => removeLabel(label.name)}
+                            className="ml-0.5 opacity-60 hover:opacity-100"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
+
+                {/* Goal Color */}
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold uppercase">Goal Color</label>
+                  <div className="flex flex-wrap gap-2">
+                    {COLOR_OPTIONS.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => updateField('color', c)}
+                        className={`h-5 w-5 rounded border transition-transform hover:scale-110 ${
+                          form.color === c ? 'ring-2 ring-black ring-offset-1' : 'border-gray-300'
+                        }`}
+                        style={{ backgroundColor: c }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Description - Full width below two-column layout */}
+            <div className="mt-4">
+              <label className="mb-1.5 block text-xs font-bold uppercase">Description</label>
+              <div className="bg-white">
+                <TiptapEditor
+                  content={form.description}
+                  onChange={(html) => updateField('description', html)}
+                  placeholder="What do you want to achieve?"
+                  className="min-h-[280px] border-none shadow-none"
+                />
               </div>
             </div>
           </div>
 
-          {/* Footer buttons - full width */}
-          <div className="mt-5 flex gap-3">
-            <button type="button" onClick={onClose} className="btn-brutal-secondary flex-1 py-2.5">
-              Cancel
-            </button>
+          {/* Footer buttons - fixed at bottom */}
+          <div className="mt-5 flex flex-shrink-0 flex-col gap-3 border-t-3 border-secondary px-6 pb-6 pt-4 sm:flex-row">
             <button type="submit" disabled={isSubmitting} className="btn-brutal-dark flex-1 py-2.5">
               {isSubmitting ? 'Saving...' : goal ? 'Update Goal' : 'Create Goal'}
+            </button>
+            <button type="button" onClick={onClose} className="btn-brutal-secondary flex-1 py-2.5">
+              Cancel
             </button>
           </div>
         </form>

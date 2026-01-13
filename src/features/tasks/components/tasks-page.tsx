@@ -73,7 +73,7 @@ export function TasksPage() {
   }
 
   return (
-    <div className="flex h-full flex-col gap-0 md:flex-row">
+    <div className="flex h-full flex-col gap-0 md:grid md:grid-cols-[16rem_minmax(0,1fr)]">
       {/* Desktop Sidebar */}
       <div className="hidden md:block">
         <GoalsSidebar
@@ -86,7 +86,7 @@ export function TasksPage() {
         />
       </div>
 
-      <main className="flex-1 overflow-y-auto">
+      <main className="h-full min-w-0">
         <div className="h-full">
           <TasksView
             tasks={tasksForGoal}

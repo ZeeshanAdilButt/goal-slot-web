@@ -1,34 +1,55 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths } from 'date-fns'
-import { Download, FileSpreadsheet, FileText, FileJson, Filter, Calendar, Target, Layers, DollarSign, X, ChevronDown } from 'lucide-react'
 
 import { DetailedReportView } from '@/features/reports/components/detailed-report-view'
 import { SummaryReportView } from '@/features/reports/components/summary-report-view'
 import {
-  useDetailedReportQuery,
-  useSummaryReportQuery,
   useDayByTaskReportQuery,
   useDayTotalReportQuery,
+  useDetailedReportQuery,
+  useExportReportMutation,
   useFilterableGoalsQuery,
   useFilterableTasksQuery,
-  useExportReportMutation,
+  useSummaryReportQuery,
 } from '@/features/reports/hooks/use-detailed-summary-reports'
-import type { ReportFilters, ReportViewType, ReportGroupBy, ExportFormat } from '@/features/reports/utils/types'
+import type { ExportFormat, ReportFilters, ReportGroupBy, ReportViewType } from '@/features/reports/utils/types'
+import { endOfMonth, endOfWeek, format, startOfMonth, startOfWeek, subDays, subMonths } from 'date-fns'
+import {
+  Calendar,
+  ChevronDown,
+  DollarSign,
+  Download,
+  FileJson,
+  FileSpreadsheet,
+  FileText,
+  Filter,
+  Layers,
+  Target,
+  X,
+} from 'lucide-react'
 
 import { cn, formatDuration } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Loading } from '@/components/ui/loading'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
 
-type DatePreset = 'today' | 'yesterday' | 'this-week' | 'last-week' | 'this-month' | 'last-month' | 'last-30-days' | 'custom'
+type DatePreset =
+  | 'today'
+  | 'yesterday'
+  | 'this-week'
+  | 'last-week'
+  | 'this-month'
+  | 'last-month'
+  | 'last-30-days'
+  | 'custom'
 
 const DATE_PRESETS: Array<{ value: DatePreset; label: string }> = [
   { value: 'today', label: 'Today' },
@@ -169,7 +190,7 @@ export function ExportReportsPage() {
       hourlyRate: includeBillable ? hourlyRate : undefined,
       showScheduleContext,
     }),
-    [dateRange, viewType, groupBy, selectedGoalIds, selectedTaskIds, includeBillable, hourlyRate, showScheduleContext]
+    [dateRange, viewType, groupBy, selectedGoalIds, selectedTaskIds, includeBillable, hourlyRate, showScheduleContext],
   )
 
   // Queries
@@ -192,16 +213,12 @@ export function ExportReportsPage() {
 
   // Handle goal filter toggle
   const toggleGoalFilter = useCallback((goalId: string) => {
-    setSelectedGoalIds((prev) =>
-      prev.includes(goalId) ? prev.filter((id) => id !== goalId) : [...prev, goalId]
-    )
+    setSelectedGoalIds((prev) => (prev.includes(goalId) ? prev.filter((id) => id !== goalId) : [...prev, goalId]))
   }, [])
 
   // Handle task filter toggle
   const toggleTaskFilter = useCallback((taskId: string) => {
-    setSelectedTaskIds((prev) =>
-      prev.includes(taskId) ? prev.filter((id) => id !== taskId) : [...prev, taskId]
-    )
+    setSelectedTaskIds((prev) => (prev.includes(taskId) ? prev.filter((id) => id !== taskId) : [...prev, taskId]))
   }, [])
 
   // Handle export
@@ -239,69 +256,93 @@ export function ExportReportsPage() {
           window.URL.revokeObjectURL(url)
           document.body.removeChild(a)
         } else if (exportFormat === 'pdf' && result?.pdfReady && result.data) {
-           // Client-side PDF generation via Print
-           const data = result.data;
-           
-           // Calculate HTML content BEFORE opening the window. 
-           // This prevents opening a blank window if there's an error during generation.
-           try {
-             let itemsHtml = '';
-             
-             if (viewType === 'detailed') {
-                itemsHtml = `
+          // Client-side PDF generation via Print
+          const data = result.data
+
+          // Calculate HTML content BEFORE opening the window.
+          // This prevents opening a blank window if there's an error during generation.
+          try {
+            let itemsHtml = ''
+
+            if (viewType === 'detailed') {
+              itemsHtml = `
                   <table class="table">
                     <thead><tr><th>Date</th><th>Task</th><th>Goal</th><th>Duration</th></tr></thead>
-                    <tbody>${(data.dailyBreakdown || []).map((d: any) => (d.entries || []).map((e: any) => `
+                    <tbody>${(data.dailyBreakdown || [])
+                      .map((d: any) =>
+                        (d.entries || [])
+                          .map(
+                            (e: any) => `
                       <tr>
                         <td>${d.date}</td>
                         <td>${e.task?.title || e.taskName || '-'}</td>
                         <td>${e.goal?.title || '-'}</td>
                         <td>${formatDuration(e.duration)}</td>
-                      </tr>`).join('')).join('')}
+                      </tr>`,
+                          )
+                          .join(''),
+                      )
+                      .join('')}
                     </tbody>
-                  </table>`;
-             } else if (viewType === 'day_by_task') {
-                itemsHtml = `
+                  </table>`
+            } else if (viewType === 'day_by_task') {
+              itemsHtml = `
                    <table class="table">
                     <thead><tr><th>Date</th><th>Task</th><th>Total</th></tr></thead>
-                    <tbody>${(data.dailyBreakdown || []).map((d: any) => (d.tasks || []).map((t: any) => `
+                    <tbody>${(data.dailyBreakdown || [])
+                      .map((d: any) =>
+                        (d.tasks || [])
+                          .map(
+                            (t: any) => `
                       <tr>
                          <td>${d.date}</td>
                          <td>${t.taskName}</td>
                          <td>${t.totalFormatted}</td>
                       </tr>
-                    `).join('')).join('')}</tbody>
+                    `,
+                          )
+                          .join(''),
+                      )
+                      .join('')}</tbody>
                    </table>
-                `;
-             } else if (viewType === 'day_total') {
-                itemsHtml = `
+                `
+            } else if (viewType === 'day_total') {
+              itemsHtml = `
                    <table class="table">
                     <thead><tr><th>Date</th><th>Tasks Include</th><th>Total</th></tr></thead>
-                    <tbody>${(data.dailyBreakdown || []).map((d: any) => `
+                    <tbody>${(data.dailyBreakdown || [])
+                      .map(
+                        (d: any) => `
                       <tr>
                          <td>${d.date}</td>
                          <td>${d.taskNames}</td>
                          <td>${d.totalFormatted}</td>
                       </tr>
-                    `).join('')}</tbody>
+                    `,
+                      )
+                      .join('')}</tbody>
                    </table>
-                `;
-             } else {
-                 // Summary
-                 itemsHtml = `
+                `
+            } else {
+              // Summary
+              itemsHtml = `
                   <table class="table">
                     <thead><tr><th>Name</th><th>Entries</th><th>Total</th></tr></thead>
-                    <tbody>${(data.items || []).map((i: any) => `
+                    <tbody>${(data.items || [])
+                      .map(
+                        (i: any) => `
                       <tr>
                         <td>${i.name}</td>
                         <td>${i.entriesCount}</td>
                         <td>${i.totalFormatted}</td>
-                      </tr>`).join('')}
+                      </tr>`,
+                      )
+                      .join('')}
                     </tbody>
-                  </table>`;
-             }
+                  </table>`
+            }
 
-             const html = `
+            const html = `
                <!DOCTYPE html>
                <html>
                  <head>
@@ -329,12 +370,16 @@ export function ExportReportsPage() {
                      Generated on ${format(new Date(), 'MMM d, yyyy HH:mm')}
                    </div>
                    
-                   ${exportClientName || exportProjectName ? `
+                   ${
+                     exportClientName || exportProjectName
+                       ? `
                      <div class="meta" style="margin-top: -1rem; margin-bottom: 2rem;">
                        ${exportClientName ? `<div><strong>Client:</strong> ${exportClientName}</div>` : ''}
                        ${exportProjectName ? `<div><strong>Project:</strong> ${exportProjectName}</div>` : ''}
                      </div>
-                   ` : ''}
+                   `
+                       : ''
+                   }
                    
                    ${exportNotes ? `<div class="notes"><strong>Notes:</strong><br/>${exportNotes}</div>` : ''}
                    
@@ -347,12 +392,16 @@ export function ExportReportsPage() {
                         <strong>Total Entries</strong><br/>
                         ${data.summary?.totalEntries || 0}
                       </div>
-                      ${data.billable ? `
+                      ${
+                        data.billable
+                          ? `
                         <div>
                            <strong>Billable Amount</strong><br/>
                            $${data.billable.totalAmount}
                         </div>
-                      ` : ''}
+                      `
+                          : ''
+                      }
                    </div>
 
                    ${itemsHtml}
@@ -367,18 +416,18 @@ export function ExportReportsPage() {
                    </script>
                  </body>
                </html>
-             `;
-             
-             const printWindow = window.open('', '_blank');
-             if (printWindow) {
-               printWindow.document.open();
-               printWindow.document.write(html);
-               printWindow.document.close();
-             }
-           } catch (err) {
-             console.error('Error generating PDF content:', err);
-             // Could show toast error here
-           }
+             `
+
+            const printWindow = window.open('', '_blank')
+            if (printWindow) {
+              printWindow.document.open()
+              printWindow.document.write(html)
+              printWindow.document.close()
+            }
+          } catch (err) {
+            console.error('Error generating PDF content:', err)
+            // Could show toast error here
+          }
         }
 
         setExportDialogOpen(false)
@@ -386,7 +435,7 @@ export function ExportReportsPage() {
         console.error('Export failed:', error)
       }
     },
-    [exportMutation, filters, dateRange, exportTitle, exportClientName, exportProjectName, exportNotes]
+    [exportMutation, filters, dateRange, exportTitle, exportClientName, exportProjectName, exportNotes],
   )
 
   const clearFilters = () => {
@@ -606,7 +655,7 @@ export function ExportReportsPage() {
                     title="Clear goal selection"
                     className="shrink-0"
                   >
-                   <X className="h-4 w-4 text-gray-500 hover:text-red-500" />
+                    <X className="h-4 w-4 text-gray-500 hover:text-red-500" />
                   </Button>
                 )}
               </div>
@@ -621,10 +670,7 @@ export function ExportReportsPage() {
                         checked={selectedGoalIds.includes(goal.id)}
                         onCheckedChange={() => toggleGoalFilter(goal.id)}
                       />
-                      <span
-                        className="h-3 w-3 rounded-full"
-                        style={{ backgroundColor: goal.color }}
-                      />
+                      <span className="h-3 w-3 rounded-full" style={{ backgroundColor: goal.color }} />
                       <span className="truncate text-sm">{goal.title}</span>
                     </label>
                   ))}
@@ -642,10 +688,10 @@ export function ExportReportsPage() {
             <Popover>
               <div className="flex w-full items-center gap-1">
                 <PopoverTrigger asChild>
-                   <Button variant="outline" className="w-full justify-between border-2 border-secondary">
+                  <Button variant="outline" className="w-full justify-between border-2 border-secondary">
                     {selectedTaskIds.length > 0 ? `${selectedTaskIds.length} selected` : 'All tasks'}
                     <ChevronDown className="h-4 w-4" />
-                   </Button>
+                  </Button>
                 </PopoverTrigger>
                 {selectedTaskIds.length > 0 && (
                   <Button
@@ -655,7 +701,7 @@ export function ExportReportsPage() {
                     title="Clear task selection"
                     className="shrink-0"
                   >
-                   <X className="h-4 w-4 text-gray-500 hover:text-red-500" />
+                    <X className="h-4 w-4 text-gray-500 hover:text-red-500" />
                   </Button>
                 )}
               </div>
@@ -685,10 +731,7 @@ export function ExportReportsPage() {
               Billable Hours
             </Label>
             <div className="flex items-center gap-4 rounded-lg border-2 border-secondary p-3">
-              <Switch
-                checked={includeBillable}
-                onCheckedChange={setIncludeBillable}
-              />
+              <Switch checked={includeBillable} onCheckedChange={setIncludeBillable} />
               <span className="text-sm">Include billing</span>
             </div>
             {includeBillable && (
@@ -728,16 +771,11 @@ export function ExportReportsPage() {
               Schedule Blocks
             </Label>
             <div className="flex items-center gap-4 rounded-lg border-2 border-secondary p-3">
-              <Switch
-                checked={showScheduleContext}
-                onCheckedChange={setShowScheduleContext}
-              />
+              <Switch checked={showScheduleContext} onCheckedChange={setShowScheduleContext} />
               <span className="text-sm">Show schedule context</span>
             </div>
             {showScheduleContext && (
-              <p className="text-xs text-gray-500">
-                Entries will display which schedule block they were logged from
-              </p>
+              <p className="text-xs text-gray-500">Entries will display which schedule block they were logged from</p>
             )}
           </div>
         </div>
@@ -755,7 +793,7 @@ export function ExportReportsPage() {
       <div className="card-brutal min-h-[400px]">
         {isLoading ? (
           <div className="flex h-64 items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-secondary border-t-transparent" />
+            <Loading size="sm" />
           </div>
         ) : viewType === 'detailed' && detailedQuery.data ? (
           <DetailedReportView
@@ -777,102 +815,98 @@ export function ExportReportsPage() {
         ) : viewType === 'day_by_task' && dayByTaskQuery.data ? (
           <div className="p-6">
             <h3 className="mb-4 text-lg font-bold">Day by Task Report</h3>
-             <div className="overflow-x-auto">
-               <table className="w-full text-sm">
-                 <thead className="bg-gray-50">
-                   <tr>
-                     <th className="w-32 px-4 py-2 text-left font-bold">Date</th>
-                     <th className="px-4 py-2 text-left font-bold">Tasks</th>
-                     <th className="w-24 px-4 py-2 text-right font-bold">Total</th>
-                   </tr>
-                 </thead>
-                 <tbody className="divide-y divide-gray-100">
-                   {dayByTaskQuery.data.dailyBreakdown.map((day, i) => (
-                      <tr key={i}>
-                        <td className="px-4 py-2 align-top font-medium text-gray-900">
-                          {format(new Date(day.date), 'MMM d')}
-                          <div className="text-xs text-gray-500">{day.dayOfWeek}</div>
-                        </td>
-                        <td className="px-4 py-2">
-                          <div className="space-y-1">
-                            {day.tasks.map((task, j) => (
-                              <div key={j} className="flex justify-between gap-4 text-gray-700">
-                                <span className={task.goalColor ? `text-[${task.goalColor}]` : ''}>
-                                  {task.taskName}
-                                </span>
-                                <span className="font-mono text-xs text-gray-500">{task.totalFormatted}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </td>
-                        <td className="px-4 py-2 text-right align-top font-bold text-gray-900">
-                          {day.totalFormatted}
-                        </td>
-                      </tr>
-                   ))}
-                   {dayByTaskQuery.data.dailyBreakdown.length === 0 && (
-                     <tr>
-                       <td colSpan={3} className="px-4 py-8 text-center text-gray-500">
-                         No activity found for this period.
-                       </td>
-                     </tr>
-                   )}
-                 </tbody>
-               </table>
-             </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="w-32 px-4 py-2 text-left font-bold">Date</th>
+                    <th className="px-4 py-2 text-left font-bold">Tasks</th>
+                    <th className="w-24 px-4 py-2 text-right font-bold">Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {dayByTaskQuery.data.dailyBreakdown.map((day, i) => (
+                    <tr key={i}>
+                      <td className="px-4 py-2 align-top font-medium text-gray-900">
+                        {format(new Date(day.date), 'MMM d')}
+                        <div className="text-xs text-gray-500">{day.dayOfWeek}</div>
+                      </td>
+                      <td className="px-4 py-2">
+                        <div className="space-y-1">
+                          {day.tasks.map((task, j) => (
+                            <div key={j} className="flex justify-between gap-4 text-gray-700">
+                              <span className={task.goalColor ? `text-[${task.goalColor}]` : ''}>{task.taskName}</span>
+                              <span className="font-mono text-xs text-gray-500">{task.totalFormatted}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="px-4 py-2 text-right align-top font-bold text-gray-900">{day.totalFormatted}</td>
+                    </tr>
+                  ))}
+                  {dayByTaskQuery.data.dailyBreakdown.length === 0 && (
+                    <tr>
+                      <td colSpan={3} className="px-4 py-8 text-center text-gray-500">
+                        No activity found for this period.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         ) : viewType === 'day_total' && dayTotalQuery.data ? (
           <div className="p-6">
-             <h3 className="mb-4 text-lg font-bold">Day Total Report</h3>
-             <div className="space-y-4">
-               {dayTotalQuery.data.dailyBreakdown.map((day, i) => (
-                 <div key={i} className="border-2 border-gray-200 bg-white shadow-brutal">
-                   {/* Day Header */}
-                   <div className="flex items-center justify-between border-b-2 border-gray-200 bg-gray-50 px-4 py-3">
-                     <div className="flex items-center gap-3">
-                       <span className="text-lg font-bold text-gray-900">
-                         {format(new Date(day.date), 'EEEE, MMMM d')}
-                       </span>
-                     </div>
-                     <div className="text-right">
-                       <span className="font-mono text-lg font-bold text-gray-900">{day.totalFormatted}</span>
-                     </div>
-                   </div>
-                   
-                   {/* Goal Groups */}
-                   <div className="divide-y divide-gray-100">
-                     {day.goalGroups && day.goalGroups.length > 0 ? (
-                       day.goalGroups.map((group, gi) => (
-                         <div key={gi} className="flex items-start gap-3 px-4 py-3">
-                           {/* Goal Color Indicator */}
-                           <div 
-                             className="mt-1 h-4 w-4 flex-shrink-0 border-2 border-gray-800"
-                             style={{ backgroundColor: group.goalColor || '#94a3b8' }}
-                           />
-                           {/* Goal Info */}
-                           <div className="flex-1 min-w-0">
-                             <div className="font-bold text-gray-900">{group.goalTitle}</div>
-                             <div className="text-sm text-gray-600 font-mono">{group.taskNames}</div>
-                           </div>
-                           {/* Goal Time */}
-                           <div className="flex-shrink-0 text-right">
-                             <span className="font-mono font-bold text-gray-700">{group.totalFormatted}</span>
-                           </div>
-                         </div>
-                       ))
-                     ) : (
-                       <div className="px-4 py-3 text-gray-600 font-mono text-sm">{day.taskNames}</div>
-                     )}
-                   </div>
-                 </div>
-               ))}
-               {dayTotalQuery.data.dailyBreakdown.length === 0 && (
-                 <div className="border-2 border-gray-200 bg-white px-4 py-8 text-center text-gray-500 shadow-brutal">
-                   No activity found for this period.
-                 </div>
-               )}
-             </div>
-           </div>
+            <h3 className="mb-4 text-lg font-bold">Day Total Report</h3>
+            <div className="space-y-4">
+              {dayTotalQuery.data.dailyBreakdown.map((day, i) => (
+                <div key={i} className="border-2 border-gray-200 bg-white shadow-brutal">
+                  {/* Day Header */}
+                  <div className="flex items-center justify-between border-b-2 border-gray-200 bg-gray-50 px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg font-bold text-gray-900">
+                        {format(new Date(day.date), 'EEEE, MMMM d')}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-mono text-lg font-bold text-gray-900">{day.totalFormatted}</span>
+                    </div>
+                  </div>
+
+                  {/* Goal Groups */}
+                  <div className="divide-y divide-gray-100">
+                    {day.goalGroups && day.goalGroups.length > 0 ? (
+                      day.goalGroups.map((group, gi) => (
+                        <div key={gi} className="flex items-start gap-3 px-4 py-3">
+                          {/* Goal Color Indicator */}
+                          <div
+                            className="mt-1 h-4 w-4 flex-shrink-0 border-2 border-gray-800"
+                            style={{ backgroundColor: group.goalColor || '#94a3b8' }}
+                          />
+                          {/* Goal Info */}
+                          <div className="min-w-0 flex-1">
+                            <div className="font-bold text-gray-900">{group.goalTitle}</div>
+                            <div className="font-mono text-sm text-gray-600">{group.taskNames}</div>
+                          </div>
+                          {/* Goal Time */}
+                          <div className="flex-shrink-0 text-right">
+                            <span className="font-mono font-bold text-gray-700">{group.totalFormatted}</span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-4 py-3 font-mono text-sm text-gray-600">{day.taskNames}</div>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {dayTotalQuery.data.dailyBreakdown.length === 0 && (
+                <div className="border-2 border-gray-200 bg-white px-4 py-8 text-center text-gray-500 shadow-brutal">
+                  No activity found for this period.
+                </div>
+              )}
+            </div>
+          </div>
         ) : (
           <div className="flex h-64 items-center justify-center text-gray-500">
             Select a date range to view your report
@@ -885,19 +919,22 @@ export function ExportReportsPage() {
         <div className="rounded-lg border-2 border-blue-200 bg-blue-50 p-4">
           <h3 className="mb-2 font-bold text-blue-800">📝 For Invoicing</h3>
           <p className="text-sm text-blue-700">
-            Use the Detailed View with billable hours enabled. Export as CSV for spreadsheet compatibility or PDF for professional invoices.
+            Use the Detailed View with billable hours enabled. Export as CSV for spreadsheet compatibility or PDF for
+            professional invoices.
           </p>
         </div>
         <div className="rounded-lg border-2 border-green-200 bg-green-50 p-4">
           <h3 className="mb-2 font-bold text-green-800">👨‍🏫 For Mentors/Teachers</h3>
           <p className="text-sm text-green-700">
-            Summary View grouped by Goal shows progress at a glance. Detailed View provides complete activity logs for thorough review.
+            Summary View grouped by Goal shows progress at a glance. Detailed View provides complete activity logs for
+            thorough review.
           </p>
         </div>
         <div className="rounded-lg border-2 border-purple-200 bg-purple-50 p-4">
           <h3 className="mb-2 font-bold text-purple-800">🎓 For Students</h3>
           <p className="text-sm text-purple-700">
-            Use Detailed View to show daily study sessions. Filter by specific courses or goals to generate assignment progress reports.
+            Use Detailed View to show daily study sessions. Filter by specific courses or goals to generate assignment
+            progress reports.
           </p>
         </div>
       </div>

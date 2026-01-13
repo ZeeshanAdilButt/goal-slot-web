@@ -12,9 +12,9 @@ import type { FocusGranularity, FocusGroupBy, FocusTimeEntry } from '@/features/
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { cn, formatDuration } from '@/lib/utils'
+import { Loading } from '@/components/ui/loading'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import AnimateChangeInHeight from '@/components/animate-change-in-height'
-
 
 interface FocusBreakdownCardProps {
   view: FocusGranularity
@@ -86,7 +86,7 @@ export function FocusBreakdownCard({ view, groupBy, filters, explicitEntries, is
       <AnimateChangeInHeight>
         {showLoading ? (
           <div className="flex h-72 items-center justify-center">
-            <div className="h-10 w-10 animate-spin border-4 border-secondary border-t-primary" />
+            <Loading size="md" />
           </div>
         ) : series.totalMinutes === 0 ? (
           <div className="py-10 text-center text-gray-500">
