@@ -1,18 +1,19 @@
 'use client'
 
-import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query'
-import { reportsApi } from '@/lib/api'
 import type {
-  DetailedReportResponse,
-  SummaryReportResponse,
   DayByTaskReportResponse,
   DayTotalReportResponse,
-  ScheduleReportResponse,
+  DetailedReportResponse,
+  ExportReportParams,
   FilterableGoal,
   FilterableTask,
   ReportFilters,
-  ExportReportParams,
+  ScheduleReportResponse,
+  SummaryReportResponse,
 } from '@/features/reports/utils/types'
+import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query'
+
+import { reportsApi } from '@/lib/api'
 
 export const reportQueries = {
   all: ['reports'] as const,
@@ -42,7 +43,7 @@ function getQueryKeyFilters(filters: ReportFilters) {
 
 export function useDetailedReportQuery(
   filters: ReportFilters,
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean },
 ): UseQueryResult<DetailedReportResponse> {
   return useQuery<DetailedReportResponse>({
     queryKey: reportQueries.detailed(getQueryKeyFilters(filters)),
@@ -57,7 +58,7 @@ export function useDetailedReportQuery(
 
 export function useSummaryReportQuery(
   filters: ReportFilters,
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean },
 ): UseQueryResult<SummaryReportResponse> {
   return useQuery<SummaryReportResponse>({
     queryKey: reportQueries.summary(getQueryKeyFilters(filters)),
@@ -72,7 +73,7 @@ export function useSummaryReportQuery(
 
 export function useDayByTaskReportQuery(
   filters: ReportFilters,
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean },
 ): UseQueryResult<DayByTaskReportResponse> {
   return useQuery<DayByTaskReportResponse>({
     queryKey: reportQueries.dayByTask(getQueryKeyFilters(filters)),
@@ -87,7 +88,7 @@ export function useDayByTaskReportQuery(
 
 export function useDayTotalReportQuery(
   filters: ReportFilters,
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean },
 ): UseQueryResult<DayTotalReportResponse> {
   return useQuery<DayTotalReportResponse>({
     queryKey: reportQueries.dayTotal(getQueryKeyFilters(filters)),
@@ -102,7 +103,7 @@ export function useDayTotalReportQuery(
 
 export function useScheduleReportQuery(
   filters: ReportFilters,
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean },
 ): UseQueryResult<ScheduleReportResponse> {
   return useQuery<ScheduleReportResponse>({
     queryKey: reportQueries.schedule(getQueryKeyFilters(filters)),
