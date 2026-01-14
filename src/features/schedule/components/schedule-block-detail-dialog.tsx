@@ -1,21 +1,32 @@
 'use client'
 
+import { useState } from 'react'
+
 import { useCategoriesQuery } from '@/features/categories'
 import { ScheduleBlock } from '@/features/schedule/utils/types'
-import { Pencil } from 'lucide-react'
+import { Pencil, Trash2 } from 'lucide-react'
 
 import { DAYS_OF_WEEK_FULL } from '@/lib/utils'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 
 type ScheduleBlockDetailDialogProps = {
   isOpen: boolean
   onClose: () => void
   block: ScheduleBlock | null
   onEdit: () => void
+  onDelete?: () => void
 }
 
-export function ScheduleBlockDetailDialog({ isOpen, onClose, block, onEdit }: ScheduleBlockDetailDialogProps) {
+export function ScheduleBlockDetailDialog({
+  isOpen,
+  onClose,
+  block,
+  onEdit,
+  onDelete,
+}: ScheduleBlockDetailDialogProps) {
   const { data: categories = [] } = useCategoriesQuery()
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   if (!block) return null
 
@@ -29,19 +40,42 @@ export function ScheduleBlockDetailDialog({ isOpen, onClose, block, onEdit }: Sc
     onEdit()
   }
 
+  const handleDeleteClick = () => {
+    setShowDeleteConfirm(true)
+  }
+
+  const handleConfirmDelete = () => {
+    if (onDelete) {
+      onDelete()
+      setShowDeleteConfirm(false)
+      onClose()
+    }
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="modal-brutal max-w-md">
         <DialogHeader className="mb-4">
           <div className="flex items-start justify-between gap-4">
             <DialogTitle className="text-2xl font-bold uppercase">{block.title}</DialogTitle>
-            <button
-              onClick={handleEdit}
-              className="flex h-8 w-8 shrink-0 items-center justify-center border-2 border-secondary bg-white transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal-sm"
-              title="Edit block"
-            >
-              <Pencil className="h-4 w-4" />
-            </button>
+            <div className="flex gap-2 pr-12 sm:pr-14">
+              <button
+                onClick={handleEdit}
+                className="flex h-8 w-8 shrink-0 items-center justify-center border-2 border-secondary bg-white transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal-sm"
+                title="Edit block"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
+              {onDelete && (
+                <button
+                  onClick={handleDeleteClick}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center border-2 border-secondary bg-white text-red-500 transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-red-50 hover:shadow-brutal-sm"
+                  title="Delete block"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </div>
         </DialogHeader>
 
@@ -102,6 +136,18 @@ export function ScheduleBlockDetailDialog({ isOpen, onClose, block, onEdit }: Sc
           )}
         </div>
       </DialogContent>
+
+      {onDelete && (
+        <ConfirmDialog
+          open={showDeleteConfirm}
+          onOpenChange={setShowDeleteConfirm}
+          title="Delete Schedule Block"
+          description="Are you sure you want to delete this schedule block? This action cannot be undone."
+          onConfirm={handleConfirmDelete}
+          confirmButtonText="Delete"
+          variant="destructive"
+        />
+      )}
     </Dialog>
   )
 }

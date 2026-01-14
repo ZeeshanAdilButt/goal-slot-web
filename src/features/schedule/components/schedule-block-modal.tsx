@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 
 import { useCategoriesQuery } from '@/features/categories'
+import { useGoalsQuery } from '@/features/goals/hooks/use-goals-queries'
 import { useCreateScheduleBlocks, useUpdateScheduleBlock } from '@/features/schedule/hooks/use-schedule-mutations'
-import { useActiveGoals } from '@/features/schedule/hooks/use-schedule-queries'
 import {
   ScheduleBlock,
   SchedulePayload,
@@ -49,7 +49,7 @@ export function ScheduleBlockModal({
   const [updateScope, setUpdateScope] = useState<ScheduleUpdateScope>('single')
   const { mutateAsync: createBlocks, isPending: isCreating } = useCreateScheduleBlocks()
   const { mutateAsync: updateBlock, isPending: isUpdating } = useUpdateScheduleBlock()
-  const { data: goals = [], isPending: isGoalsPending } = useActiveGoals()
+  const { data: goals = [], isPending: isGoalsPending } = useGoalsQuery({ status: 'ACTIVE' })
   const { data: categories = [] } = useCategoriesQuery()
 
   const isSaving = isCreating || isUpdating
@@ -236,13 +236,15 @@ export function ScheduleBlockModal({
             <div>
               <label className="mb-2 block text-sm font-bold uppercase">Apply changes to</label>
               <div className="flex flex-col gap-2 sm:flex-row">
-                {([
-                  { label: 'This block only', value: 'single' as ScheduleUpdateScope },
-                  {
-                    label: `All ${seriesBlockCount} linked block${seriesBlockCount > 1 ? 's' : ''}`,
-                    value: 'series' as ScheduleUpdateScope,
-                  },
-                ] as const).map((option) => (
+                {(
+                  [
+                    { label: 'This block only', value: 'single' as ScheduleUpdateScope },
+                    {
+                      label: `All ${seriesBlockCount} linked block${seriesBlockCount > 1 ? 's' : ''}`,
+                      value: 'series' as ScheduleUpdateScope,
+                    },
+                  ] as const
+                ).map((option) => (
                   <button
                     key={option.value}
                     type="button"
