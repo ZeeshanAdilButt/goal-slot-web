@@ -30,6 +30,7 @@ export interface Task {
   goalTitle?: string
   goal?: { id: string; title: string; color: string }
   status: TaskStatus
+  scheduleBlockId?: string
 }
 
 export interface CreateTimeEntryPayload {

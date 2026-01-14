@@ -1,4 +1,5 @@
 import { focusQueries } from '@/features/reports/hooks/use-focus-time-entries'
+import { goalQueries } from '@/features/goals/utils/queries'
 import { taskQueries } from '@/features/tasks/utils/queries'
 import { timeTrackerQueries } from '@/features/time-tracker/utils/queries'
 import { CreateTimeEntryPayload, TimeEntry } from '@/features/time-tracker/utils/types'
@@ -62,9 +63,8 @@ export function useCreateTimeEntry() {
       // Invalidate tasks cache because trackedMinutes changes
       queryClient.invalidateQueries({ queryKey: taskQueries.all })
       // Invalidate goals cache because loggedHours changes
-      queryClient.invalidateQueries({ queryKey: ['goals', 'active'] })
+      queryClient.invalidateQueries({ queryKey: goalQueries.all })
       queryClient.invalidateQueries({ queryKey: ['schedule', 'goals', 'active'] })
-      queryClient.invalidateQueries({ queryKey: ['time-tracker', 'goals'] })
       // Invalidate reports queries to refresh reports when time is logged
       queryClient.invalidateQueries({ queryKey: focusQueries.all })
     },
@@ -105,9 +105,8 @@ export function useDeleteTimeEntry() {
       queryClient.invalidateQueries({ queryKey: timeTrackerQueries.recentEntries() })
       queryClient.invalidateQueries({ queryKey: ['time-tracker', 'recent-entries', 'paged'] })
       queryClient.invalidateQueries({ queryKey: taskQueries.all })
-      queryClient.invalidateQueries({ queryKey: ['goals', 'active'] })
+      queryClient.invalidateQueries({ queryKey: goalQueries.all })
       queryClient.invalidateQueries({ queryKey: ['schedule', 'goals', 'active'] })
-      queryClient.invalidateQueries({ queryKey: ['time-tracker', 'goals'] })
       queryClient.invalidateQueries({ queryKey: focusQueries.all })
     },
   })

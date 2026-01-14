@@ -14,12 +14,11 @@ import { useTimeTrackerData } from '@/features/time-tracker/hooks/use-time-track
 import { useTimer } from '@/features/time-tracker/hooks/use-timer'
 import { findScheduleBlockForDateTime } from '@/features/time-tracker/utils/schedule'
 import {
-  filterTasks,
   getCategoryFromGoal,
-  getGoalIdFromCategory,
-  getTaskByGoalOrCategory,
+  sortTasksBySelection,
 } from '@/features/time-tracker/utils/selection-helpers'
 import { Goal, Task } from '@/features/time-tracker/utils/types'
+import { useUpdateTaskMutation } from '@/features/tasks/hooks/use-tasks-mutations'
 import { useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
@@ -52,10 +51,12 @@ export function TimeTrackerPage() {
 
   const { goals, tasks, recentEntries, weeklySchedule } = useTimeTrackerData()
   const createEntry = useCreateTimeEntry()
+  const updateTask = useUpdateTaskMutation()
   const queryClient = useQueryClient()
   const [showManualEntry, setShowManualEntry] = useState(false)
   const [manualCategory, setManualCategory] = useState(false)
   const [manualGoal, setManualGoal] = useState(false)
+  const [manualSchedule, setManualSchedule] = useState(false)
 
   useEffect(() => {
     if (!weeklySchedule) return
@@ -70,34 +71,42 @@ export function TimeTrackerPage() {
       return
     }
 
-    if (!currentScheduleBlockId || timerState === 'STOPPED') {
+    if (!manualSchedule && (!currentScheduleBlockId || timerState === 'STOPPED')) {
       setScheduleBlockId(activeBlock.id)
     }
 
-    if (!manualGoal && (timerState === 'STOPPED' || !currentGoalId) && activeBlock.goalId && currentGoalId !== activeBlock.goalId) {
+    if (
+      !manualGoal &&
+      (timerState === 'STOPPED' || !currentGoalId) &&
+      activeBlock.goalId &&
+      currentGoalId !== activeBlock.goalId
+    ) {
       setGoalId(activeBlock.goalId)
       setManualGoal(false)
     }
 
-    if (!manualCategory && (timerState === 'STOPPED' || !currentCategory) && activeBlock.category && currentCategory !== activeBlock.category) {
+    if (
+      !manualCategory &&
+      (timerState === 'STOPPED' || !currentCategory) &&
+      activeBlock.category &&
+      currentCategory !== activeBlock.category
+    ) {
       setCategory(activeBlock.category)
       setManualCategory(false)
     }
 
-    if (timerState === 'STOPPED' && !currentTask) {
-      setTask(activeBlock.title)
-    }
   }, [
     weeklySchedule,
     timerState,
     currentScheduleBlockId,
     currentGoalId,
     currentCategory,
-    currentTask,
+    manualSchedule,
+    manualGoal,
+    manualCategory,
     setScheduleBlockId,
     setGoalId,
     setCategory,
-    setTask,
   ])
 
   const handleCreateTask = async (title: string): Promise<Task | null> => {
@@ -133,8 +142,16 @@ export function TimeTrackerPage() {
       const task = tasks.find((t: Task) => t.id === taskId)
       if (task) {
         setTask(task.title)
-        if (task.category) setCategory(task.category)
-        if (task.goalId) setGoalId(task.goalId)
+        setManualCategory(true)
+        setManualGoal(true)
+        setCategory(task.category || '')
+        setGoalId(task.goalId || '')
+        if (task.scheduleBlockId) {
+          setScheduleBlockId(task.scheduleBlockId)
+          setManualSchedule(true)
+        } else {
+          setManualSchedule(false)
+        }
       }
     } else {
       setTask('')
@@ -142,34 +159,9 @@ export function TimeTrackerPage() {
     }
   }
 
-  const applyLinkedSelection = (options?: { goalId?: string; category?: string }) => {
-    const nextGoalId = options?.goalId ?? currentGoalId
-    const nextCategory = options?.category ?? currentCategory
-    const linkedTask = getTaskByGoalOrCategory(tasks, nextGoalId || undefined, nextCategory || undefined)
-    if (linkedTask) {
-      setTaskId(linkedTask.id)
-      setTask(linkedTask.title)
-      if (linkedTask.category) setCategory(linkedTask.category)
-      if (linkedTask.goalId) setGoalId(linkedTask.goalId)
-    }
-  }
-
   const handleCategoryChange = (category: string) => {
     setCategory(category)
     setManualCategory(true)
-    if (!category) {
-      setGoalId('')
-      setTaskId('')
-      setTask('')
-      return
-    }
-    const linkedGoalId = getGoalIdFromCategory(category, goals)
-    if (linkedGoalId) {
-      setGoalId(linkedGoalId)
-    } else {
-      setGoalId('')
-    }
-    applyLinkedSelection({ category, goalId: linkedGoalId })
   }
 
   const handleGoalChange = (goalId: string) => {
@@ -180,7 +172,6 @@ export function TimeTrackerPage() {
       if (goalCategory) {
         setCategory(goalCategory)
         setManualCategory(true)
-        applyLinkedSelection({ goalId, category: goalCategory })
         return
       }
     }
@@ -190,10 +181,9 @@ export function TimeTrackerPage() {
       setTaskId('')
       setTask('')
     }
-    applyLinkedSelection({ goalId, category: currentCategory })
   }
 
-  const filteredTasks = filterTasks(tasks, currentCategory || undefined, currentGoalId || undefined)
+  const orderedTasks = sortTasksBySelection(tasks, currentGoalId || undefined, currentCategory || undefined)
   const filteredGoals = goals.filter((goal: Goal) => {
     if (currentCategory) {
       return goal.category === currentCategory
@@ -202,13 +192,16 @@ export function TimeTrackerPage() {
   })
 
   const startTimer = () => {
-    const selectedTaskTitle = currentTaskId
-      ? tasks.find((t: Task) => t.id === currentTaskId)?.title
-      : currentTask.trim()
+    const selectedTask = currentTaskId ? tasks.find((t: Task) => t.id === currentTaskId) : undefined
+    const selectedTaskTitle = currentTaskId ? selectedTask?.title : currentTask.trim()
 
     if (!selectedTaskTitle) {
       toast.error('Please select a task or enter a title')
       return
+    }
+
+    if (selectedTask && selectedTask.status === 'BACKLOG') {
+      updateTask.mutate({ taskId: selectedTask.id, data: { status: 'DOING' } })
     }
 
     setTask(selectedTaskTitle)
@@ -291,7 +284,7 @@ export function TimeTrackerPage() {
         transition={{ duration: 1, repeat: timerState === 'RUNNING' ? Infinity : 0 }}
       >
         <TaskSelector
-          tasks={filteredTasks}
+          tasks={orderedTasks}
           currentTaskId={currentTaskId}
           currentTask={currentTask}
           timerState={timerState}

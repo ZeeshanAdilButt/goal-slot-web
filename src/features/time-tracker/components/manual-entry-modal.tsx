@@ -2,14 +2,18 @@ import { useEffect, useState } from 'react'
 
 import { useCategoriesQuery } from '@/features/categories'
 import { useCreateTimeEntry } from '@/features/time-tracker/hooks/use-time-tracker-mutations'
+import { TaskSelector } from '@/features/time-tracker/components/task-selector'
 import { buildLocalDateFromParts, findScheduleBlockForDateTime } from '@/features/time-tracker/utils/schedule'
 import { filterTasks, getCategoryFromGoal, getGoalIdFromCategory, getTaskByGoalOrCategory } from '@/features/time-tracker/utils/selection-helpers'
 import { Goal, Task } from '@/features/time-tracker/utils/types'
 import { WeekSchedule } from '@/features/schedule/utils/types'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'react-hot-toast'
 
 import { cn, getLocalDateString, getLocalTimeString } from '@/lib/utils'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { tasksApi } from '@/lib/api'
 
 interface ManualEntryModalProps {
   isOpen: boolean
@@ -30,6 +34,7 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
   const [scheduleBlockId, setScheduleBlockId] = useState('')
 
   const createEntry = useCreateTimeEntry()
+  const queryClient = useQueryClient()
   const { data: categories = [] } = useCategoriesQuery()
   const visibleTasks = filterTasks(tasks, category || undefined, goalId || undefined)
 
@@ -104,6 +109,37 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
     setStartTime(getLocalTimeString())
   }
 
+  const handleCreateTask = async (taskTitle: string): Promise<Task | null> => {
+    try {
+      const response = await tasksApi.create({
+        title: taskTitle,
+        goalId: goalId || undefined,
+        category: category || undefined,
+      })
+
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['time-tracker'] })
+
+      toast.success(`Task "${taskTitle}" created!`)
+      return response.data as Task
+    } catch (error) {
+      toast.error('Failed to create task')
+      return null
+    }
+  }
+
+  const handleTaskIdChange = (id: string) => {
+    setTaskId(id)
+    if (!id) return
+
+    const selected = tasks.find((task) => task.id === id)
+    if (selected) {
+      setTitle(selected.title)
+      if (selected.category) setCategory(selected.category)
+      if (selected.goalId) setGoalId(selected.goalId)
+    }
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="modal-brutal max-w-md">
@@ -112,34 +148,16 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
         </DialogHeader>
 
         <form id="manual-entry-form" onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="mb-2 block text-sm font-bold uppercase">Select Task</label>
-            <Select
-              value={taskId || 'no_task'}
-              onValueChange={(value) => {
-                const id = value === 'no_task' ? '' : value
-                setTaskId(id)
-                const t = tasks.find((task) => task.id === id)
-                if (t) {
-                  setTitle(t.title)
-                  if (t.category) setCategory(t.category)
-                  if (t.goalId) setGoalId(t.goalId)
-                }
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a task" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="no_task">Choose a task</SelectItem>
-                {visibleTasks.map((task) => (
-                  <SelectItem key={task.id} value={task.id}>
-                    {task.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <TaskSelector
+            tasks={visibleTasks}
+            currentTaskId={taskId}
+            currentTask={title}
+            timerState="STOPPED"
+            onTaskIdChange={handleTaskIdChange}
+            onTaskTitleChange={setTitle}
+            onCreateTask={handleCreateTask}
+            variant="light"
+          />
 
           <div>
             <label className="mb-2 block text-sm font-bold uppercase">Task Title</label>
