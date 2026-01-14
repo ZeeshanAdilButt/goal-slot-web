@@ -29,6 +29,7 @@ export interface Task {
   trackedMinutes?: number
   dueDate?: string
   completedAt?: string
+  createdAt?: string
   goalId?: string
   goal?: Goal
   scheduleBlockId?: string
