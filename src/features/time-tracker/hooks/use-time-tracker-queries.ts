@@ -1,20 +1,13 @@
-import { Goal } from '@/features/goals/utils/types'
+import { useGoalsQuery } from '@/features/goals/hooks/use-goals-queries'
 import { useWeeklySchedule } from '@/features/schedule/hooks/use-schedule-queries'
 import { useTasksQuery } from '@/features/tasks'
-import { fetchGoals, fetchRecentEntries, timeTrackerQueries } from '@/features/time-tracker/utils/queries'
-import { Task } from '@/features/time-tracker/utils/types'
+import { fetchRecentEntries, timeTrackerQueries } from '@/features/time-tracker/utils/queries'
 import { useQuery } from '@tanstack/react-query'
 
 export function useTimeTrackerData() {
-  const goalsQuery = useQuery<Goal[]>({
-    queryKey: timeTrackerQueries.goals(),
-    queryFn: async () => {
-      const data = await fetchGoals()
-      return data as Goal[]
-    },
-  })
+  const goalsQuery = useGoalsQuery({ status: 'ACTIVE' })
 
-  const tasksQuery = useTasksQuery()
+  const tasksQuery = useTasksQuery({ statuses: ['BACKLOG', 'TODO', 'DOING'] })
 
   const recentEntriesQuery = useQuery({
     queryKey: timeTrackerQueries.recentEntries(),
@@ -23,8 +16,7 @@ export function useTimeTrackerData() {
 
   const weeklyScheduleQuery = useWeeklySchedule()
 
-  // Filter out completed/backlog tasks for time tracker
-  const tasks = (tasksQuery.data || []).filter((task: Task) => task.status !== 'DONE' && task.status !== 'BACKLOG')
+  const tasks = tasksQuery.data || []
 
   return {
     goals: goalsQuery.data || [],

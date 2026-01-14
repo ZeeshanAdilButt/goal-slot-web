@@ -37,3 +37,29 @@ export const filterTasks = (tasks: Task[], category?: string, goalId?: string) =
     return true
   })
 }
+
+export const sortTasksBySelection = (tasks: Task[], goalId?: string, category?: string) => {
+  if (!goalId && !category) return tasks
+
+  return tasks
+    .map((task, index) => {
+      let rank = 2
+      if (goalId) {
+        if (task.goalId === goalId) {
+          rank = 0
+        } else if (category && task.category === category) {
+          rank = 1
+        }
+      } else if (category) {
+        if (task.category === category) {
+          rank = 0
+        } else {
+          rank = 1
+        }
+      }
+
+      return { task, index, rank }
+    })
+    .sort((a, b) => (a.rank !== b.rank ? a.rank - b.rank : a.index - b.index))
+    .map(({ task }) => task)
+}

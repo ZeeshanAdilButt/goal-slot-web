@@ -7,7 +7,7 @@ import { tasksApi } from '@/lib/api'
 
 // --- 1. TYPES & HELPERS ---
 
-type TaskListFilters = { status?: TaskStatus; goalId?: string }
+type TaskListFilters = { status?: TaskStatus; statuses?: TaskStatus[]; goalId?: string }
 
 const normalizeTaskInput = (data: Partial<CreateTaskForm>) => ({
   ...data,
@@ -26,6 +26,7 @@ const getListFilters = (queryKey: readonly unknown[]): TaskListFilters | undefin
  */
 const matchesFilters = (task: Task, filters?: TaskListFilters) => {
   if (!filters) return true
+  if (filters.statuses && filters.statuses.length > 0 && !filters.statuses.includes(task.status)) return false
   if (filters.status && task.status !== filters.status) return false
   if (filters.goalId && task.goalId !== filters.goalId) return false
   return true

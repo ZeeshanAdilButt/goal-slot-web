@@ -1,14 +1,8 @@
-import { goalsApi, timeEntriesApi } from '@/lib/api'
+import { timeEntriesApi } from '@/lib/api'
 
 export const timeTrackerQueries = {
   all: ['time-tracker'] as const,
-  goals: () => [...timeTrackerQueries.all, 'goals'] as const,
   recentEntries: () => [...timeTrackerQueries.all, 'recent-entries'] as const,
-}
-
-export const fetchGoals = async () => {
-  const res = await goalsApi.getAll({ status: 'ACTIVE' })
-  return res.data
 }
 
 export const fetchRecentEntries = async () => {

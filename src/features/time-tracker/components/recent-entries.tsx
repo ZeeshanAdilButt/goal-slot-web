@@ -4,12 +4,12 @@ import { useDeleteTimeEntry } from '@/features/time-tracker/hooks/use-time-track
 import { TimeEntry } from '@/features/time-tracker/utils/types'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { CalendarRange, Clock, History, Trash2 } from 'lucide-react'
+import { CalendarRange, Clock, History, Target, Trash2 } from 'lucide-react'
 
-import { GoalSlotSpinner } from '@/components/goalslot-logo'
-import { ConfirmDialog } from '@/components/confirm-dialog'
 import { timeEntriesApi } from '@/lib/api'
 import { formatDate, formatDuration } from '@/lib/utils'
+import { ConfirmDialog } from '@/components/confirm-dialog'
+import { GoalSlotSpinner } from '@/components/goalslot-logo'
 
 export function RecentEntries() {
   const deleteEntry = useDeleteTimeEntry()
@@ -116,8 +116,12 @@ export function RecentEntries() {
       ) : entries.length === 0 ? (
         <div className="py-6 text-center text-gray-500 sm:py-8">
           <Clock className="mx-auto mb-3 h-10 w-10 opacity-50 sm:mb-4 sm:h-12 sm:w-12" />
-          <p className="font-mono text-sm uppercase sm:text-base">{hasFilters ? 'No entries found' : 'No entries yet'}</p>
-          <p className="text-xs sm:text-sm">{hasFilters ? 'Try adjusting your filters' : 'Start tracking your time!'}</p>
+          <p className="font-mono text-sm uppercase sm:text-base">
+            {hasFilters ? 'No entries found' : 'No entries yet'}
+          </p>
+          <p className="text-xs sm:text-sm">
+            {hasFilters ? 'Try adjusting your filters' : 'Start tracking your time!'}
+          </p>
           {hasFilters && (
             <button
               type="button"
@@ -135,7 +139,7 @@ export function RecentEntries() {
       ) : (
         <div className="space-y-2 sm:space-y-3">
           <div className="flex flex-col gap-2 rounded-md border-2 border-secondary bg-brutalist-bg p-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-wrap items-center gap-2 text-xs font-mono uppercase text-gray-700">
+            <div className="flex flex-wrap items-center gap-2 font-mono text-xs uppercase text-gray-700">
               <CalendarRange className="h-4 w-4" />
               <span>
                 Showing {showingFrom}-{showingTo} of {total}
@@ -185,31 +189,42 @@ export function RecentEntries() {
               key={entry.id}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="flex flex-col gap-2 border-2 border-secondary bg-white p-3 transition-all hover:shadow-brutal sm:flex-row sm:items-center sm:justify-between sm:p-4"
+              className="flex items-center gap-3 border-2 border-secondary bg-white p-3 transition-all hover:shadow-brutal sm:gap-4 sm:p-4"
             >
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="h-2 w-2 shrink-0 rounded-full bg-primary sm:h-3 sm:w-3" />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-bold sm:text-base">{entry.taskName}</div>
-                  <div className="truncate font-mono text-xs text-gray-500">
-                    {entry.goal && `${entry.goal.title}`}
-                    {entry.notes && ` • ${entry.notes}`}
-                  </div>
+              <div className="h-2 w-2 shrink-0 rounded-full bg-primary sm:h-3 sm:w-3" />
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-bold sm:text-base">{entry.taskName}</div>
+                <div className="flex items-center gap-1.5 truncate font-mono text-xs text-gray-500">
+                  {entry.goal && (
+                    <>
+                      <Target className="h-3 w-3 shrink-0" />
+                      <span>{entry.goal.title}</span>
+                    </>
+                  )}
+                  {entry.notes && (
+                    <>
+                      {entry.goal && <span>•</span>}
+                      <span>{entry.notes}</span>
+                    </>
+                  )}
                 </div>
               </div>
-              <div className="ml-5 text-left sm:ml-0 sm:text-right">
-                <div className="font-mono text-sm font-bold sm:text-base">{formatDuration(entry.duration)}</div>
-                <div className="font-mono text-xs text-gray-500">{formatDate(entry.date)}</div>
+              <div className="flex shrink-0 items-center gap-3 sm:gap-4">
+                <div className="text-right">
+                  <div className="font-mono text-sm font-bold sm:text-base">{formatDuration(entry.duration)}</div>
+                  <div className="font-mono text-xs text-gray-500">{formatDate(entry.date)}</div>
+                </div>
+                <button
+                  type="button"
+                  className="rounded-sm border-2 border-red-300 bg-white p-1.5 shadow-brutal-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal"
+                  onClick={() => setEntryToDelete(entry)}
+                  disabled={deleteEntry.isPending}
+                  title="Delete entry"
+                  aria-label="Delete entry"
+                >
+                  <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                </button>
               </div>
-              <button
-                type="button"
-                className="btn-brutal-secondary flex items-center gap-1 px-3 py-2 text-xs uppercase sm:self-start"
-                onClick={() => setEntryToDelete(entry)}
-                disabled={deleteEntry.isPending}
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete
-              </button>
             </motion.div>
           ))}
         </div>
