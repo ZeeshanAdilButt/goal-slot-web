@@ -113,8 +113,8 @@ export function ScheduleGrid({
   return (
     <div className="overflow-x-auto">
       <div className="min-w-[960px]">
-        <div className="grid grid-cols-[5rem_repeat(7,minmax(0,1fr))] border-b-3 border-secondary">
-          <div className="w-20 bg-secondary p-4 text-center font-bold uppercase text-white">Time</div>
+        <div className="grid grid-cols-[4rem_repeat(7,minmax(0,1fr))] border-b-3 border-secondary">
+          <div className="w-16 bg-secondary p-2 text-center font-bold uppercase text-white">Time</div>
           {DAYS_OF_WEEK_FULL.map((day, index) => (
             <div
               key={day}
@@ -132,15 +132,15 @@ export function ScheduleGrid({
         </div>
 
         <ScheduleGridDragLayer onDragStart={handleDragStart} onDragMove={handleDragMove} onDragEnd={handleDragEnd}>
-          <div className="flex border-t border-gray-200">
-            <div className="relative w-20 border-r-3 border-secondary" style={{ height: COLUMN_HEIGHT }}>
+          <div className="flex overflow-y-hidden border-t border-gray-200">
+            <div className="relative w-16 border-r-3 border-secondary" style={{ height: COLUMN_HEIGHT }}>
               {Array.from({ length: 17 }, (_, hourIndex) => {
                 const hour = hourIndex + 6
                 const top = (hour * 60 - DAY_START_MIN) * PX_PER_MIN
                 return (
                   <div
                     key={hour}
-                    className="absolute left-0 right-0 pr-2 text-right font-mono text-xs text-gray-600"
+                    className="absolute left-0 right-0 pr-1 text-right font-mono text-xs text-gray-600"
                     style={{ top }}
                   >
                     {hour.toString().padStart(2, '0')}:00
