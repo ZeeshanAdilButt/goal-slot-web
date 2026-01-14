@@ -2,6 +2,7 @@ import { taskStatusStyles } from '@/features/tasks/utils/task-status-styles'
 import { Task } from '@/features/tasks/utils/types'
 
 import { cn } from '@/lib/utils'
+import { HtmlContent } from '@/components/html-content'
 
 interface TaskHeaderProps {
   task: Task
@@ -28,7 +29,11 @@ export function TaskHeader({ task }: TaskHeaderProps) {
           {task.title}
         </h4>
         {task.description && (
-          <p className="max-w-full break-words text-xs text-gray-700 sm:max-w-[62ch] sm:text-sm">{task.description}</p>
+          <HtmlContent
+            html={task.description}
+            truncate={2}
+            className="max-w-full break-words text-xs text-gray-700 sm:max-w-[62ch] sm:text-sm"
+          />
         )}
       </div>
     </div>
