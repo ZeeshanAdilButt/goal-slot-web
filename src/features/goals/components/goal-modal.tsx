@@ -559,7 +559,7 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
           </div>
 
           {/* Footer buttons - fixed at bottom */}
-          <div className="mt-5 flex flex-shrink-0 flex-col gap-3 border-t-3 border-secondary px-6 pb-6 pt-4 sm:flex-row">
+          <div className="mt-5 flex flex-shrink-0 flex-col gap-3 border-t-3 border-secondary px-6 pb-6 pt-4 sm:flex-row-reverse">
             <button type="submit" disabled={isSubmitting} className="btn-brutal-dark flex-1 py-2.5">
               {isSubmitting ? 'Saving...' : goal ? 'Update Goal' : 'Create Goal'}
             </button>

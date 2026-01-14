@@ -6,7 +6,3 @@ export function useWeeklySchedule() {
     ...scheduleQueries.weekly(),
   })
 }
-
-export function useActiveGoals() {
-  return useQuery(scheduleQueries.goalsActive())
-}
