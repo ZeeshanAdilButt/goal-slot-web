@@ -6,9 +6,11 @@ import { useCategoriesQuery } from '@/features/categories'
 import { ScheduleBlockDetailDialog } from '@/features/schedule/components/schedule-block-detail-dialog'
 import { ScheduleBlockModal } from '@/features/schedule/components/schedule-block-modal'
 import { ScheduleGrid } from '@/features/schedule/components/schedule-grid/schedule-grid'
+import { useDeleteScheduleBlock } from '@/features/schedule/hooks/use-schedule-mutations'
 import { useWeeklySchedule } from '@/features/schedule/hooks/use-schedule-queries'
 import { ScheduleBlock, WeekSchedule } from '@/features/schedule/utils/types'
 import { Plus } from 'lucide-react'
+import { toast } from 'react-hot-toast'
 
 import { useHasProAccess } from '@/lib/store'
 
@@ -23,6 +25,7 @@ export function SchedulePage() {
   const hasProAccess = useHasProAccess()
   const { data: weekSchedule = {} as WeekSchedule, isPending: isSchedulePending } = useWeeklySchedule()
   const { data: categories = [] } = useCategoriesQuery()
+  const { mutateAsync: deleteBlock } = useDeleteScheduleBlock()
   const seriesBlockCount = useMemo(() => {
     if (!editingBlock) return 0
     const allBlocks = Object.values(weekSchedule || {}).flat()
@@ -44,6 +47,17 @@ export function SchedulePage() {
   const handleEditFromDetail = () => {
     if (detailBlock) {
       handleEdit(detailBlock)
+    }
+  }
+
+  const handleDeleteFromDetail = async () => {
+    if (detailBlock) {
+      try {
+        await deleteBlock(detailBlock.id)
+        toast.success('Block deleted')
+      } catch (error) {
+        toast.error('Failed to delete')
+      }
     }
   }
 
@@ -131,6 +145,7 @@ export function SchedulePage() {
         }}
         block={detailBlock}
         onEdit={handleEditFromDetail}
+        onDelete={handleDeleteFromDetail}
       />
     </div>
   )

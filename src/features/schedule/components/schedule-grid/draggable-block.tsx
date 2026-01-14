@@ -97,24 +97,27 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onVie
       {...listeners}
     >
       <div className="flex h-full min-h-0 flex-col overflow-clip">
-        <div ref={headerRef} className="flex shrink-0 flex-col">
+        <div ref={headerRef} className="relative flex shrink-0 flex-col">
           <div className="flex items-start justify-between">
-            <div className="truncate pr-12 text-xs font-bold uppercase">{block.title}</div>
-            <div className="absolute right-1 top-1 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-              <button
-                onClick={handleEditClick}
-                onPointerDown={(event) => event.stopPropagation()}
-                className="flex h-5 w-5 items-center justify-center border border-secondary bg-white hover:bg-gray-100"
-              >
-                <Pencil className="h-3 w-3" />
-              </button>
-              <button
-                onClick={handleDeleteClick}
-                onPointerDown={(event) => event.stopPropagation()}
-                className="flex h-5 w-5 items-center justify-center border border-secondary bg-white hover:bg-red-50"
-              >
-                <X className="h-3 w-3" />
-              </button>
+            <div className="text-xs font-bold uppercase">{block.title}</div>
+            {/* Desktop: Actions overlay on hover */}
+            <div className="absolute right-0 top-0 hidden opacity-0 transition-opacity group-hover:opacity-100 md:flex">
+              <div className="flex gap-0.5 border border-secondary bg-white shadow-brutal-sm">
+                <button
+                  onClick={handleEditClick}
+                  onPointerDown={(event) => event.stopPropagation()}
+                  className="flex h-5 w-5 items-center justify-center border-r border-secondary bg-white hover:bg-gray-100"
+                >
+                  <Pencil className="h-3 w-3" />
+                </button>
+                <button
+                  onClick={handleDeleteClick}
+                  onPointerDown={(event) => event.stopPropagation()}
+                  className="flex h-5 w-5 items-center justify-center bg-white text-red-500 hover:bg-red-50"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
             </div>
           </div>
 
