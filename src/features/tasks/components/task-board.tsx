@@ -175,7 +175,7 @@ export function TaskBoard({ tasks, onEdit, onComplete }: TaskBoardProps) {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="scrollbar-hide flex min-h-0 w-full flex-1 snap-x snap-mandatory gap-1.5 overflow-x-auto px-2">
+        <div className="scrollbar-hide flex min-h-0 w-full flex-1 snap-x snap-mandatory gap-1 overflow-x-auto px-2">
           {BOARD_COLUMNS.map((colDef) => (
             <BoardColumn
               key={colDef.id}

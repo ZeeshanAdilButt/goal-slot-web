@@ -85,10 +85,7 @@ export function SchedulePage() {
           <p className="font-mono uppercase text-gray-600">Plan your weekly time blocks</p>
         </div>
 
-        <button
-          onClick={() => handleAddBlock(1)}
-          className="btn-brutal flex items-center gap-2 px-2 py-2 sm:px-6 sm:py-3"
-        >
+        <button onClick={() => handleAddBlock(1)} className="btn-brutal flex items-center">
           <Plus className="h-5 w-5" />
           Add Block
         </button>

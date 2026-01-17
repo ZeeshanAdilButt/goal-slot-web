@@ -36,14 +36,14 @@ export function CompactTaskList({ tasks, groupBy, onEdit, onComplete }: CompactT
 
   if (tasks.length === 0) {
     return (
-      <div className="px-2 md:-ml-[3px] md:px-0">
-        <div className="card-brutal p-4 text-center font-mono text-sm text-gray-600">No tasks found</div>
+      <div className="px-1 md:-ml-[3px] md:px-0">
+        <div className="card-brutal p-3 text-center font-mono text-sm text-gray-600">No tasks found</div>
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col px-2 md:-ml-[3px] md:px-0">
+    <div className="flex min-h-0 flex-1 flex-col px-1 md:-ml-[3px] md:px-0">
       <VirtualizedList
         items={rows}
         getItemKey={(row) => (row.type === 'header' ? `header-${row.group}` : `row-${row.task.id}`)}
@@ -52,7 +52,7 @@ export function CompactTaskList({ tasks, groupBy, onEdit, onComplete }: CompactT
         height="100%"
         renderItem={({ item }) =>
           item.type === 'header' ? (
-            <div className="px-2 pb-2 pt-1 md:px-4">
+            <div className="px-1 pb-1 pt-1 md:px-3">
               <div className="flex items-center justify-between">
                 <h3
                   className={cn(
@@ -73,7 +73,7 @@ export function CompactTaskList({ tasks, groupBy, onEdit, onComplete }: CompactT
               </div>
             </div>
           ) : (
-            <div className="pb-2">
+            <div className="pb-1">
               <CompactTaskListItem
                 task={item.task}
                 isExpanded={expandedTaskId === item.task.id}
