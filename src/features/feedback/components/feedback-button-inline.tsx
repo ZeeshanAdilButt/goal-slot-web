@@ -6,8 +6,8 @@ import { FeedbackEmojiSelector } from '@/features/feedback/components/feedback-e
 import { FeedbackForm } from '@/features/feedback/components/feedback-form'
 import clsx from 'clsx'
 
-import { useClickOutside } from '@/hooks/use-click-outside'
 import { useAuthStore } from '@/lib/store'
+import { useClickOutside } from '@/hooks/use-click-outside'
 
 interface FeedbackButtonInlineProps {
   label: string
@@ -19,8 +19,6 @@ export const FeedbackButtonInline = ({ label }: FeedbackButtonInlineProps) => {
   const [selectedEmoji, setSelectedEmoji] = useState<number | null>(null)
   const ref = useRef<HTMLDivElement | null>(null)
   const [showContent, setShowContent] = useState(false)
-
-  if (!isLoading && !isAuthenticated) return null
 
   useEffect(() => {
     if (expanded) {
@@ -45,6 +43,8 @@ export const FeedbackButtonInline = ({ label }: FeedbackButtonInlineProps) => {
     setExpanded(false)
     setSelectedEmoji(null)
   }
+
+  if (!isLoading && !isAuthenticated) return null
 
   return (
     <div

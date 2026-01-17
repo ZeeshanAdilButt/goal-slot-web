@@ -52,7 +52,7 @@ export default async function GuidePage(props: Props) {
 
       <div className="mb-8 space-y-4">
         <div className="flex items-center gap-2">
-           <span className="rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary uppercase">
+           <span className="rounded-md bg-primary/10 px-2 py-1 text-xs font-medium uppercase text-primary">
               {guide.category}
            </span>
            <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -70,7 +70,7 @@ export default async function GuidePage(props: Props) {
         {guide.tags && guide.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
              {guide.tags.map(tag => (
-                <div key={tag} className="flex items-center gap-1 bg-gray-100 px-2.5 py-0.5 rounded-full text-xs">
+                <div key={tag} className="flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs">
                    <Tag className="h-3 w-3" />
                    {tag}
                 </div>
@@ -86,7 +86,7 @@ export default async function GuidePage(props: Props) {
       <div className="flex justify-center">
         <Link 
             href="/signup" 
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8"
+            className="inline-flex h-11 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
         >
             Start Your Journey with GoalSlot
         </Link>

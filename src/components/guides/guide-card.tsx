@@ -10,31 +10,31 @@ type Props = {
 export function GuideCard({ guide }: Props) {
   return (
     <Link href={`/guides/${guide.slug}`} className="group block h-full">
-      <article className="flex flex-col h-full bg-white border rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 hover:border-primary/50">
-        <div className="p-6 flex flex-col flex-1">
-          <div className="flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wider mb-3">
-            <span className="bg-primary/10 px-2 py-1 rounded">
+      <article className="flex h-full flex-col overflow-hidden rounded-2xl border bg-white transition-all duration-300 hover:border-primary/50 hover:shadow-lg">
+        <div className="flex flex-1 flex-col p-6">
+          <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+            <span className="rounded bg-primary/10 px-2 py-1">
               {guide.category}
             </span>
           </div>
           
-          <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors">
+          <h3 className="mb-2 text-xl font-bold text-gray-900 transition-colors group-hover:text-primary">
             {guide.title}
           </h3>
           
-          <p className="text-gray-600 mb-4 line-clamp-3 flex-1">
+          <p className="mb-4 line-clamp-3 flex-1 text-gray-600">
             {guide.description}
           </p>
           
-          <div className="flex items-center justify-between pt-4 border-t mt-auto">
-            <div className="flex items-center text-sm text-gray-500 gap-1">
+          <div className="mt-auto flex items-center justify-between border-t pt-4">
+            <div className="flex items-center gap-1 text-sm text-gray-500">
               <Calendar className="h-4 w-4" />
               <time dateTime={guide.date}>
                 {format(new Date(guide.date), 'MMM d, yyyy')}
               </time>
             </div>
             
-            <span className="flex items-center text-sm font-medium text-primary bg-transparent group-hover:translate-x-1 transition-transform">
+            <span className="flex items-center bg-transparent text-sm font-medium text-primary transition-transform group-hover:translate-x-1">
               Read Guide <ArrowRight className="ml-1 h-4 w-4" />
             </span>
           </div>

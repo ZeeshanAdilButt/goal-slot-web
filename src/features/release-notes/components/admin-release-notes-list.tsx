@@ -16,11 +16,11 @@ export const AdminReleaseNotesList = ({ onEdit }: AdminReleaseNotesListProps) =>
   const deleteMutation = useDeleteReleaseNote()
 
   if (isLoading) {
-    return <div className="text-center py-4">Loading release notes...</div>
+    return <div className="py-4 text-center">Loading release notes...</div>
   }
 
   if (!notes?.length) {
-    return <div className="text-center py-4 text-gray-500">No release notes found.</div>
+    return <div className="py-4 text-center text-gray-500">No release notes found.</div>
   }
 
   const handleDelete = (id: string, version: string) => {
@@ -30,7 +30,7 @@ export const AdminReleaseNotesList = ({ onEdit }: AdminReleaseNotesListProps) =>
   }
 
   return (
-    <div className="space-y-4 rounded-md border-3 border-secondary bg-white p-4 shadow-brutal mt-8">
+    <div className="mt-8 space-y-4 rounded-md border-3 border-secondary bg-white p-4 shadow-brutal">
       <h2 className="text-lg font-bold">Release History</h2>
       <div className="space-y-4">
         {notes.map((note) => (
@@ -38,17 +38,17 @@ export const AdminReleaseNotesList = ({ onEdit }: AdminReleaseNotesListProps) =>
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-lg">{note.version}</span>
+                  <span className="text-lg font-bold">{note.version}</span>
                   <span className="text-sm text-gray-500">
                     {format(new Date(note.publishedAt), 'PPP')}
                   </span>
                 </div>
                 <h3 className="font-semibold">{note.title}</h3>
-                <p className="whitespace-pre-wrap text-sm text-gray-600 mt-1 line-clamp-3">
+                <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-sm text-gray-600">
                   {note.content}
                 </p>
               </div>
-              <div className="flex gap-2 shrink-0">
+              <div className="flex shrink-0 gap-2">
                 {onEdit && (
                   <Button
                     variant="outline"
