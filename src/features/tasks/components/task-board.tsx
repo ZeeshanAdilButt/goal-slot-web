@@ -31,6 +31,7 @@ import { cn, formatDate } from '@/lib/utils'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { HtmlContent } from '@/components/html-content'
+import VirtualizedList from '@/components/virtualized-list'
 
 const BOARD_COLUMNS: Array<{ id: TaskStatus; title: string; helper: string; accent: string; text: string }> = [
   { id: 'BACKLOG', title: 'Backlog', helper: 'Capture ideas', accent: 'bg-gray-50', text: 'text-gray-700' },
@@ -167,45 +168,49 @@ export function TaskBoard({ tasks, onEdit, onComplete }: TaskBoardProps) {
   }
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={rectIntersection}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="scrollbar-hide flex h-full w-full snap-x snap-mandatory gap-1.5 overflow-x-auto px-4 pb-6">
-        {BOARD_COLUMNS.map((colDef) => (
-          <BoardColumn key={colDef.id} column={{ ...colDef, tasks: columns[colDef.id] }}>
-            {columns[colDef.id].map((task) => (
-              <SortableTaskCard
-                key={task.id}
-                task={task}
-                columnId={colDef.id}
-                onEdit={onEdit}
-                onComplete={onComplete}
-                onView={setDetailTask}
-                onDelete={handleDelete}
-              />
-            ))}
-          </BoardColumn>
-        ))}
-      </div>
+    <div className="flex min-h-0 flex-1 flex-col">
+      <DndContext
+        sensors={sensors}
+        collisionDetection={rectIntersection}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="scrollbar-hide flex min-h-0 w-full flex-1 snap-x snap-mandatory gap-1.5 overflow-x-auto px-2">
+          {BOARD_COLUMNS.map((colDef) => (
+            <BoardColumn
+              key={colDef.id}
+              column={{ ...colDef, tasks: columns[colDef.id] }}
+              renderTask={(task) => (
+                <SortableTaskCard
+                  key={task.id}
+                  task={task}
+                  columnId={colDef.id}
+                  onEdit={onEdit}
+                  onComplete={onComplete}
+                  onView={setDetailTask}
+                  onDelete={handleDelete}
+                />
+              )}
+            />
+          ))}
+        </div>
 
-      <DragOverlay>
-        {activeTaskId ? (
-          // Find the task in columns to render overlay
-          <TaskCard
-            task={
-              Object.values(columns)
-                .flat()
-                .find((t) => t.id === activeTaskId) as Task
-            }
-            dragging
-          />
-        ) : null}
-      </DragOverlay>
-      <TaskDetailDialog task={detailTask} onClose={() => setDetailTask(null)} />
-    </DndContext>
+        <DragOverlay>
+          {activeTaskId ? (
+            // Find the task in columns to render overlay
+            <TaskCard
+              task={
+                Object.values(columns)
+                  .flat()
+                  .find((t) => t.id === activeTaskId) as Task
+              }
+              dragging
+            />
+          ) : null}
+        </DragOverlay>
+        <TaskDetailDialog task={detailTask} onClose={() => setDetailTask(null)} />
+      </DndContext>
+    </div>
   )
 }
 
@@ -218,10 +223,10 @@ interface BoardColumnProps {
     text: string
     tasks: Task[]
   }
-  children: ReactNode
+  renderTask: (task: Task) => ReactNode
 }
 
-function BoardColumn({ column, children }: BoardColumnProps) {
+function BoardColumn({ column, renderTask }: BoardColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id, data: { type: 'column' } })
   const taskIds = useMemo(() => column.tasks.map((t) => t.id), [column.tasks])
 
@@ -229,7 +234,7 @@ function BoardColumn({ column, children }: BoardColumnProps) {
     <div
       ref={setNodeRef}
       className={cn(
-        'flex min-h-[260px] min-w-[280px] snap-center flex-col gap-3 p-0 sm:min-w-[320px] md:min-w-[350px]',
+        'flex min-h-[260px] min-w-[280px] snap-center flex-col gap-3 p-0 sm:min-w-[320px] md:min-w-[350px] h-full',
         column.accent,
         isOver ? 'ring-2 ring-secondary' : 'ring-0',
       )}
@@ -245,9 +250,16 @@ function BoardColumn({ column, children }: BoardColumnProps) {
       </div>
 
       <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
-        <div className="flex flex-1 flex-col gap-2">
+        <div className="flex min-h-0 flex-1 flex-col gap-2">
           {column.tasks.length ? (
-            children
+            <VirtualizedList
+              items={column.tasks}
+              getItemKey={(task) => task.id}
+              estimateSize={140}
+              className="min-h-0 flex-1 overflow-auto"
+              height="100%"
+              renderItem={({ item }) => <div className="pb-2">{renderTask(item)}</div>}
+            />
           ) : (
             <div className="flex flex-1 items-center justify-center rounded-md border-2 border-dashed border-secondary/30 px-2 py-6 text-center text-[11px] font-semibold uppercase tracking-wide text-secondary/60 sm:text-xs">
               Drop tasks here

@@ -4,8 +4,8 @@ import { GoalModal } from '@/features/goals/components/goal-modal'
 import { ChevronDown, ChevronUp, Plus } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
-import { GoalSlotSpinner } from '@/components/goalslot-logo'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { GoalSlotSpinner } from '@/components/goalslot-logo'
 
 import { GOAL_STATUS_OPTIONS, GoalsSidebarProps, WITHOUT_GOALS_ID } from './types'
 
@@ -36,7 +36,7 @@ export function GoalsSidebarMobile({
               setIsExpanded(!isExpanded)
             }
           }}
-          className="flex w-full cursor-pointer items-center justify-between gap-3 border-b-3 border-secondary bg-white p-4 transition-all hover:bg-gray-50"
+          className="flex w-full cursor-pointer items-center justify-between gap-1 border-b-3 border-secondary bg-white p-1 transition-all hover:bg-gray-50"
         >
           <div className="flex min-w-0 flex-1 items-center gap-3">
             {isWithoutGoals ? (
