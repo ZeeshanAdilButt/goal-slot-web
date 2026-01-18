@@ -1,0 +1,90 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 
+    THEME: Neo-Brutalist Vibrant
+    VIRAL CONCEPT: Relatable Developer Pain (Tutorial Hell)
+  -->
+  
+  <defs>
+    <pattern id="dotGrid" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#000000" opacity="0.1"/>
+    </pattern>
+    <pattern id="stripes" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="20" stroke="#000000" stroke-width="1" opacity="0.1"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="1200" fill="#FEF3C7"/>
+  <rect width="1200" height="1200" fill="url(#dotGrid)"/>
+  
+  <!-- Decor -->
+  <g opacity="0.3">
+    <text x="50" y="150" font-family="'JetBrains Mono'" font-size="60" fill="#EC4899">ERROR</text>
+    <text x="1000" y="1100" font-family="'JetBrains Mono'" font-size="60" fill="#22C55E">TODO</text>
+  </g>
+
+  <!-- Title -->
+  <text x="600" y="150" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-weight="700" font-size="80" fill="#000000" letter-spacing="-1">THE "LEARNING" TRAP</text>
+
+  <!-- Subtitle -->
+  <text x="600" y="220" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="24" fill="#666">"I had a very productive day."</text>
+
+  <!-- The Chart Container -->
+  <g transform="translate(100, 300)">
+    
+    <!-- Pie Chart centered at 500, 350 -->
+    <!-- Slices -->
+    
+    <!-- Slice 1: Watching Tutorials (75%) - Pink -->
+    <!-- Large arc path -->
+    <path d="M500 350 L500 50 A300 300 0 1 1 200 350 Z" fill="#EC4899" stroke="#000000" stroke-width="4"/>
+    
+    <!-- Slice 2: Configuring Setup (20%) - Blue -->
+    <path d="M500 350 L200 350 A300 300 0 0 1 450 60 Z" fill="#3B82F6" stroke="#000000" stroke-width="4"/>
+    
+    <!-- Slice 3: Building (5%) - Gold -->
+    <!-- Small sliver -->
+    <path d="M500 350 L450 60 L500 50 Z" fill="#FFD700" stroke="#000000" stroke-width="4"/>
+    
+    <!-- Labels -->
+    
+    <!-- Label 1 -->
+    <g transform="translate(850, 450)">
+        <text x="0" y="0" font-family="'JetBrains Mono', monospace" font-weight="bold" font-size="32" fill="#000000">WATCHING</text>
+        <text x="0" y="40" font-family="'JetBrains Mono', monospace" font-weight="bold" font-size="32" fill="#000000">TUTORIALS</text>
+        <text x="0" y="80" font-family="'JetBrains Mono', monospace" font-size="24" fill="#666">(Passive)</text>
+        <!-- Connector -->
+        <path d="M-50 -50 L-100 -100" stroke="#000000" stroke-width="4"/>
+        <circle cx="-100" cy="-100" r="6" fill="#000000"/>
+    </g>
+
+    <!-- Label 2 -->
+    <g transform="translate(150, 200)">
+        <text x="0" y="0" text-anchor="end" font-family="'JetBrains Mono', monospace" font-weight="bold" font-size="28" fill="#000000">CONFIGURING</text>
+        <text x="0" y="40" text-anchor="end" font-family="'JetBrains Mono', monospace" font-weight="bold" font-size="28" fill="#000000">VS CODE</text>
+        <!-- Connector -->
+        <path d="M50 50 L100 100" stroke="#000000" stroke-width="4"/>
+        <circle cx="100" cy="100" r="6" fill="#000000"/>
+    </g>
+
+    <!-- Label 3 (The Punchline) -->
+    <g transform="translate(500, -50)">
+        <rect x="-120" y="-40" width="240" height="100" fill="#FFD700" stroke="#000000" stroke-width="4"/>
+        <text x="0" y="0" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-weight="800" font-size="36" fill="#000000">BUILDING</text>
+        <text x="0" y="35" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="20" fill="#000000">(The Goal)</text>
+        <!-- Connector Arrow -->
+        <path d="M0 60 L0 100" stroke="#000000" stroke-width="4"/>
+        <path d="M-10 90 L0 110 L10 90" fill="#000000"/>
+    </g>
+    
+  </g>
+
+  <!-- Footer -->
+  <g transform="translate(0, 950)">
+        <text x="600" y="60" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-size="32" fill="#000000" font-weight="600">Stop consuming. Start shipping.</text>
+        <!-- Highlight Box -->
+        <rect x="420" y="80" width="360" height="60" fill="#FFD700"/>
+        <text x="600" y="125" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-weight="800" font-size="36" fill="#000000">goalslot.io</text>
+    </g>
+
+</svg>

@@ -1,0 +1,107 @@
+<svg width="1584" height="396" viewBox="0 0 1584 396" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&amp;display=swap');
+      .display { font-family: 'Space Grotesk', sans-serif; }
+      .body { font-family: 'Inter', sans-serif; }
+      .mono { font-family: 'JetBrains Mono', monospace; }
+    </style>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE44D" />
+      <stop offset="100%" stop-color="#FFD700" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="4" dy="4" stdDeviation="0" flood-color="#000000" flood-opacity="1"/>
+    </filter>
+    <filter id="shadowSm" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="2" stdDeviation="0" flood-color="#000000" flood-opacity="1"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1584" height="396" fill="#FEF3C7" />
+  
+  <!-- Decorative Elements -->
+  <circle cx="1450" cy="50" r="180" fill="#FFD700" opacity="0.15" />
+  <circle cx="100" cy="350" r="120" fill="#EC4899" opacity="0.1" />
+  <circle cx="1300" cy="320" r="80" fill="#3B82F6" opacity="0.1" />
+  
+  <!-- Grid pattern subtle -->
+  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#000" stroke-width="0.5" opacity="0.05"/>
+  </pattern>
+  <rect width="1584" height="396" fill="url(#grid)" />
+
+  <!-- Left Content Area -->
+  <g transform="translate(80, 80)">
+    <!-- Small Badge -->
+    <rect x="0" y="0" width="180" height="32" fill="#000000" rx="0" filter="url(#shadowSm)"/>
+    <text x="90" y="22" class="mono" font-size="12" fill="#FFD700" text-anchor="middle" font-weight="500">🎯 TIME TRACKING</text>
+    
+    <!-- Main Headline -->
+    <text x="0" y="90" class="display" font-size="52" fill="#000000" font-weight="700">YOUR GROWTH,</text>
+    <text x="0" y="150" class="display" font-size="52" fill="#000000" font-weight="700">
+      <tspan fill="url(#goldGradient)" stroke="#000" stroke-width="2">MEASURED.</tspan>
+    </text>
+    
+    <!-- Subtext -->
+    <text x="0" y="195" class="body" font-size="18" fill="#374151" font-weight="500">Track hours toward mastery. Proof over feeling.</text>
+    
+    <!-- CTA Button -->
+    <rect x="0" y="220" width="200" height="50" fill="#FFD700" stroke="#000000" stroke-width="3" filter="url(#shadow)"/>
+    <text x="100" y="252" class="display" font-size="16" fill="#000000" text-anchor="middle" font-weight="700">START FREE TODAY →</text>
+  </g>
+
+  <!-- Right Side - Stats Cards -->
+  <g transform="translate(900, 60)">
+    <!-- Card 1 - Hours Tracked -->
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="180" height="100" fill="#FFFFFF" stroke="#000000" stroke-width="3" filter="url(#shadow)"/>
+      <text x="20" y="40" class="mono" font-size="36" fill="#000000" font-weight="700">2,847h</text>
+      <text x="20" y="70" class="body" font-size="14" fill="#6B7280" font-weight="500">Hours Tracked</text>
+      <rect x="20" y="80" width="140" height="6" fill="#E5E7EB" rx="3"/>
+      <rect x="20" y="80" width="120" height="6" fill="#22C55E" rx="3"/>
+    </g>
+    
+    <!-- Card 2 - Goals Hit -->
+    <g transform="translate(200, 30)">
+      <rect x="0" y="0" width="160" height="90" fill="#FFFFFF" stroke="#000000" stroke-width="3" filter="url(#shadow)"/>
+      <text x="20" y="38" class="mono" font-size="32" fill="#000000" font-weight="700">94%</text>
+      <text x="20" y="62" class="body" font-size="13" fill="#6B7280" font-weight="500">Goals Achieved</text>
+      <circle cx="130" cy="45" r="20" fill="#FFD700" stroke="#000" stroke-width="2"/>
+      <text x="130" y="51" class="body" font-size="16" text-anchor="middle">🎯</text>
+    </g>
+    
+    <!-- Card 3 - Streak -->
+    <g transform="translate(380, 0)">
+      <rect x="0" y="0" width="150" height="85" fill="#FFD700" stroke="#000000" stroke-width="3" filter="url(#shadow)"/>
+      <text x="20" y="38" class="mono" font-size="30" fill="#000000" font-weight="700">127</text>
+      <text x="20" y="60" class="body" font-size="12" fill="#000000" font-weight="600">Day Streak 🔥</text>
+    </g>
+  </g>
+
+  <!-- Floating Elements -->
+  <g transform="translate(1100, 200)">
+    <rect x="0" y="0" width="140" height="50" fill="#EC4899" stroke="#000000" stroke-width="2" filter="url(#shadowSm)"/>
+    <text x="70" y="32" class="mono" font-size="11" fill="#FFFFFF" text-anchor="middle" font-weight="500">+2.5h today ✨</text>
+  </g>
+  
+  <g transform="translate(950, 260)">
+    <rect x="0" y="0" width="120" height="45" fill="#3B82F6" stroke="#000000" stroke-width="2" filter="url(#shadowSm)"/>
+    <text x="60" y="28" class="mono" font-size="10" fill="#FFFFFF" text-anchor="middle" font-weight="500">Deep Work: 4h</text>
+  </g>
+
+  <!-- Brand Mark Bottom Right -->
+  <g transform="translate(1400, 320)">
+    <rect x="0" y="0" width="140" height="40" fill="#000000"/>
+    <text x="70" y="27" class="display" font-size="16" fill="#FFD700" text-anchor="middle" font-weight="700">GOALSLOT</text>
+  </g>
+
+  <!-- Decorative corner accents -->
+  <rect x="0" y="0" width="8" height="60" fill="#FFD700"/>
+  <rect x="0" y="0" width="60" height="8" fill="#FFD700"/>
+  <rect x="1576" y="336" width="8" height="60" fill="#000000"/>
+  <rect x="1524" y="388" width="60" height="8" fill="#000000"/>
+</svg>

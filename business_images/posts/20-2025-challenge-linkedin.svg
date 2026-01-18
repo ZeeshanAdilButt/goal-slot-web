@@ -1,0 +1,120 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&amp;display=swap');
+      .display { font-family: 'Space Grotesk', sans-serif; }
+      .body { font-family: 'Inter', sans-serif; }
+      .mono { font-family: 'JetBrains Mono', monospace; }
+    </style>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE44D" />
+      <stop offset="100%" stop-color="#F59E0B" />
+    </linearGradient>
+    <filter id="brutalShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="6" dy="6" stdDeviation="0" flood-color="#000000" flood-opacity="1"/>
+    </filter>
+    <filter id="brutalShadowSm" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="4" dy="4" stdDeviation="0" flood-color="#000000" flood-opacity="1"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="1200" fill="#FEF3C7" />
+  
+  <!-- Background Decorative Shapes -->
+  <circle cx="1050" cy="180" r="220" fill="#FFD700" opacity="0.12" />
+  <circle cx="120" cy="1000" r="280" fill="#EC4899" opacity="0.08" />
+  <circle cx="1000" cy="1050" r="180" fill="#3B82F6" opacity="0.08" />
+  
+  <!-- Dotted pattern -->
+  <pattern id="dots" width="30" height="30" patternUnits="userSpaceOnUse">
+    <circle cx="15" cy="15" r="1.5" fill="#000" opacity="0.08"/>
+  </pattern>
+  <rect width="1200" height="1200" fill="url(#dots)" />
+
+  <!-- Top Badge -->
+  <g transform="translate(80, 80)">
+    <rect x="0" y="0" width="360" height="65" fill="#000000" filter="url(#brutalShadowSm)"/>
+    <text x="180" y="45" class="mono" font-size="24" fill="#FFD700" text-anchor="middle" font-weight="600">THE 2025 CHALLENGE</text>
+  </g>
+
+  <!-- Main Quote Card -->
+  <g transform="translate(80, 185)">
+    <rect x="0" y="0" width="1040" height="560" fill="#FFFFFF" stroke="#000000" stroke-width="4" filter="url(#brutalShadow)"/>
+    
+    <!-- Quote marks -->
+    <text x="50" y="110" class="display" font-size="140" fill="#FFD700" opacity="0.4">"</text>
+    
+    <!-- Main Quote Text -->
+    <text x="90" y="130" class="display" font-size="40" fill="#000000" font-weight="700">In 12 months, you'll either have:</text>
+    
+    <!-- Bad option -->
+    <rect x="70" y="165" width="900" height="80" fill="#F3F4F6" stroke="#E5E7EB" stroke-width="2"/>
+    <text x="520" y="220" class="body" font-size="28" fill="#6B7280" text-anchor="middle">"Another year went by... I think I improved?"</text>
+    
+    <!-- Good option -->
+    <rect x="70" y="265" width="900" height="100" fill="#22C55E" stroke="#000" stroke-width="3"/>
+    <text x="520" y="310" class="display" font-size="28" fill="#000" text-anchor="middle" font-weight="700">"1,247 hours tracked. Skills leveled up.</text>
+    <text x="520" y="350" class="display" font-size="28" fill="#000" text-anchor="middle" font-weight="700">Portfolio built. Goals crushed. Receipts ready."</text>
+    
+    <!-- Highlighted text -->
+    <rect x="70" y="390" width="900" height="80" fill="url(#goldGrad)" stroke="#000" stroke-width="3"/>
+    <text x="520" y="445" class="display" font-size="36" fill="#000000" text-anchor="middle" font-weight="700">YOUR CHOICE. YOUR YEAR. START TODAY.</text>
+    
+    <!-- Subtext -->
+    <text x="520" y="530" class="body" font-size="26" fill="#4B5563" text-anchor="middle" font-weight="500">Track every hour. Build the evidence. Own the narrative.</text>
+  </g>
+
+  <!-- Stats Row -->
+  <g transform="translate(80, 810)">
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="230" height="140" fill="#22C55E" stroke="#000000" stroke-width="3" filter="url(#brutalShadowSm)"/>
+      <text x="115" y="65" class="mono" font-size="28" fill="#000000" text-anchor="middle" font-weight="700">1,247h</text>
+      <text x="115" y="105" class="body" font-size="18" fill="#000000" text-anchor="middle" font-weight="600">Goal</text>
+    </g>
+    
+    <g transform="translate(270, 0)">
+      <rect x="0" y="0" width="230" height="140" fill="#FFD700" stroke="#000000" stroke-width="3" filter="url(#brutalShadowSm)"/>
+      <text x="115" y="65" class="mono" font-size="32" fill="#000000" text-anchor="middle" font-weight="700">24h</text>
+      <text x="115" y="105" class="body" font-size="18" fill="#000000" text-anchor="middle" font-weight="600">Per Week</text>
+    </g>
+    
+    <g transform="translate(540, 0)">
+      <rect x="0" y="0" width="230" height="140" fill="#3B82F6" stroke="#000000" stroke-width="3" filter="url(#brutalShadowSm)"/>
+      <text x="115" y="65" class="mono" font-size="32" fill="#FFFFFF" text-anchor="middle" font-weight="700">52</text>
+      <text x="115" y="105" class="body" font-size="18" fill="#FFFFFF" text-anchor="middle" font-weight="600">Weeks</text>
+    </g>
+    
+    <g transform="translate(810, 0)">
+      <rect x="0" y="0" width="230" height="140" fill="#EC4899" stroke="#000000" stroke-width="3" filter="url(#brutalShadowSm)"/>
+      <text x="115" y="65" class="mono" font-size="28" fill="#FFFFFF" text-anchor="middle" font-weight="700">2025</text>
+      <text x="115" y="105" class="body" font-size="18" fill="#FFFFFF" text-anchor="middle" font-weight="600">Your Year</text>
+    </g>
+  </g>
+
+  <!-- Bottom CTA -->
+  <g transform="translate(80, 1010)">
+    <rect x="0" y="0" width="560" height="80" fill="#000000" stroke="#000000" stroke-width="3" filter="url(#brutalShadow)"/>
+    <text x="280" y="52" class="display" font-size="26" fill="#FFD700" text-anchor="middle" font-weight="700">START YOUR JOURNEY TODAY</text>
+  </g>
+
+  <!-- Brand Logo -->
+  <g transform="translate(900, 1030)">
+    <rect x="0" y="0" width="220" height="70" fill="#FFD700" stroke="#000" stroke-width="3"/>
+    <text x="110" y="48" class="display" font-size="28" fill="#000000" text-anchor="middle" font-weight="700">goalslot.io</text>
+  </g>
+
+  <!-- Corner Accents -->
+  <rect x="0" y="0" width="14" height="120" fill="#FFD700"/>
+  <rect x="0" y="0" width="120" height="14" fill="#FFD700"/>
+  <rect x="1186" y="1080" width="14" height="120" fill="#000000"/>
+  <rect x="1080" y="1186" width="120" height="14" fill="#000000"/>
+
+  <!-- Floating element -->
+  <g transform="translate(850, 80) rotate(12)">
+    <rect x="0" y="0" width="220" height="80" fill="#8B5CF6" stroke="#000" stroke-width="3" filter="url(#brutalShadowSm)"/>
+    <text x="110" y="52" class="mono" font-size="28" fill="#FFF" text-anchor="middle" font-weight="700">LET'S GO</text>
+  </g>
+</svg>

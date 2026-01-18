@@ -1,0 +1,121 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 
+    THEME: Neo-Brutalist Soft
+    COLORS: 
+    - Bg: #FFFDF5
+    - Primary: #E5C045 (Gold)
+    - Secondary: #A8EFA8 (Green)
+    - Accent: #EFA8A8 (Red/Pink)
+    - Text: #1a1a1a
+  -->
+  
+  <defs>
+    <!-- Dot Grid Pattern -->
+    <pattern id="dotGrid" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.5" fill="#1a1a1a" opacity="0.1"/>
+    </pattern>
+    <!-- Diagonal Stripes Pattern -->
+    <pattern id="stripes" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="20" stroke="#E5C045" stroke-width="2" opacity="0.2"/>
+    </pattern>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="1200" height="1200" fill="#FFFDF5"/>
+  <rect width="1200" height="1200" fill="url(#dotGrid)"/>
+  
+  <!-- Background Decorations (Busy & Attractive) -->
+  <g>
+    <!-- Top Left Decor -->
+    <circle cx="100" cy="100" r="150" fill="#EFA8A8" opacity="0.2"/>
+    <path d="M-50 200 Q150 100 250 300" stroke="#1a1a1a" stroke-width="3" fill="none" opacity="0.1"/>
+    <text x="50" y="250" font-family="monospace" font-size="60" fill="#1a1a1a" opacity="0.1">+</text>
+
+    <!-- Top Right Decor -->
+    <rect x="900" y="-50" width="400" height="300" fill="url(#stripes)" transform="rotate(15)"/>
+    
+    <!-- Bottom Left Decor -->
+    <rect x="-50" y="1000" width="300" height="300" fill="#E5C045" opacity="0.1" transform="rotate(-15)"/>
+    <path d="M50 1100 L150 1050 L250 1150" fill="none" stroke="#1a1a1a" stroke-width="4" opacity="0.1"/>
+
+    <!-- Bottom Right Decor -->
+    <circle cx="1100" cy="1100" r="180" stroke="#A8EFA8" stroke-width="40" opacity="0.2"/>
+  </g>
+
+  <!-- Main Container -->
+  <g transform="translate(100, 100)">
+    
+    <!-- Title -->
+    <text x="500" y="80" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="88" fill="#1a1a1a" letter-spacing="-2">THE SYSTEM IS THE WAY</text>
+
+    <!-- Flow System Diagram (Center) -->
+    <g transform="translate(50, 200)">
+        
+        <!-- Connection Pipes -->
+        <!-- Pipe from Gear to Target -->
+        <path d="M350 350 L550 350" stroke="#1a1a1a" stroke-width="24" stroke-linecap="round"/>
+        <!-- Arrowhead -->
+        <path d="M540 330 L590 350 L540 370" fill="#1a1a1a"/>
+
+        <!-- Pipe to Gauge -->
+        <path d="M300 200 L300 150 L500 150" stroke="#1a1a1a" stroke-width="12" fill="none" stroke-linecap="round"/>
+
+        <!-- 1. THE GEAR (Action) -->
+        <g transform="translate(150, 200)">
+            <!-- Gear Body -->
+            <circle cx="150" cy="150" r="140" fill="#E5C045" stroke="#1a1a1a" stroke-width="6"/>
+            <!-- Gear Teeth -->
+            <g stroke="#1a1a1a" stroke-width="6" fill="#E5C045">
+                <rect x="120" y="-10" width="60" height="40"/>
+                <rect x="120" y="270" width="60" height="40"/>
+                <rect x="-10" y="120" width="40" height="60"/>
+                <rect x="270" y="120" width="40" height="60"/>
+                <!-- Diagonals -->
+                <rect x="35" y="35" width="40" height="60" transform="rotate(45 55 65)"/>
+                <rect x="225" y="225" width="40" height="60" transform="rotate(45 245 255)"/>
+                <rect x="35" y="225" width="60" height="40" transform="rotate(45 65 245)"/>
+                <rect x="225" y="35" width="60" height="40" transform="rotate(45 255 65)"/>
+            </g>
+            <!-- Inner Circle -->
+            <circle cx="150" cy="150" r="100" fill="#FFF8E1" stroke="#1a1a1a" stroke-width="6"/>
+            <!-- Text -->
+            <text x="150" y="140" text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" font-size="28" fill="#1a1a1a">FOCUSED</text>
+            <text x="150" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" font-size="28" fill="#1a1a1a">ACTION</text>
+        </g>
+
+        <!-- 2. THE GAUGE (Growth) -->
+        <g transform="translate(500, 50)">
+            <!-- Gauge Body -->
+            <circle cx="100" cy="100" r="80" fill="#A8EFA8" stroke="#1a1a1a" stroke-width="6"/>
+            <!-- Ticks -->
+            <path d="M100 30 L100 40 M140 40 L130 50 M170 100 L160 100" stroke="#1a1a1a" stroke-width="3"/>
+            <!-- Needle -->
+            <path d="M100 100 L150 60" stroke="#1a1a1a" stroke-width="6" stroke-linecap="round"/>
+            <circle cx="100" cy="100" r="10" fill="#1a1a1a"/>
+            
+            <text x="200" y="90" font-family="Arial, sans-serif" font-weight="bold" font-size="24" fill="#1a1a1a">CONSISTENT</text>
+            <text x="200" y="120" font-family="Arial, sans-serif" font-weight="bold" font-size="24" fill="#1a1a1a">GROWTH</text>
+        </g>
+
+        <!-- 3. THE TARGET (Goal) -->
+        <g transform="translate(600, 200)">
+            <circle cx="150" cy="150" r="140" fill="#E5C045" stroke="#1a1a1a" stroke-width="6"/>
+            <circle cx="150" cy="150" r="100" fill="#FFF8E1" stroke="#1a1a1a" stroke-width="6"/>
+            <circle cx="150" cy="150" r="60" fill="#A8EFA8" stroke="#1a1a1a" stroke-width="6"/>
+            <circle cx="150" cy="150" r="20" fill="#1a1a1a"/>
+            
+            <text x="150" y="340" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="32" fill="#1a1a1a">GOAL: MASTERY</text>
+        </g>
+
+    </g>
+
+    <!-- Bottom Footer -->
+    <g transform="translate(200, 900)">
+        <text x="300" y="50" text-anchor="middle" font-family="Courier New, monospace" font-size="28" fill="#1a1a1a">Stop guessing. Start tracking.</text>
+        <rect x="150" y="70" width="300" height="80" fill="#E5C045"/>
+        <rect x="150" y="70" width="300" height="80" fill="url(#dotGrid)"/>
+        <text x="300" y="120" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="32" fill="#1a1a1a">goalslot.io</text>
+    </g>
+
+  </g>
+</svg>

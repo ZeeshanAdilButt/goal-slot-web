@@ -1,0 +1,105 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 
+    THEME: Neo-Brutalist Vibrant
+    CONCEPT: Consistency vs Intensity
+  -->
+  
+  <defs>
+    <!-- Patterns -->
+    <pattern id="dotGrid" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#000000" opacity="0.1"/>
+    </pattern>
+    <pattern id="stripes" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="20" stroke="#FFD700" stroke-width="4" opacity="0.4"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="1200" fill="#FEF3C7"/>
+  <rect width="1200" height="1200" fill="url(#dotGrid)"/>
+  
+  <!-- Background Decorations -->
+  <g opacity="0.4">
+    <rect x="-50" y="100" width="300" height="300" rx="150" fill="#EC4899" opacity="0.3"/>
+    <rect x="950" y="800" width="300" height="300" fill="#3B82F6" opacity="0.2" transform="rotate(15)"/>
+    <path d="M100 1000 L200 1000 L150 900 Z" stroke="#000000" stroke-width="4" fill="none" opacity="0.2"/>
+    <circle cx="1000" cy="200" r="50" stroke="#22C55E" stroke-width="10" fill="none" opacity="0.4"/>
+  </g>
+
+  <!-- Headline -->
+  <text x="600" y="150" text-anchor="middle" font-family="'Space Grotesk', 'Segoe UI', Arial, sans-serif" font-weight="700" font-size="80" fill="#000000" letter-spacing="-1">CONSISTENCY > INTENSITY</text>
+
+  <!-- Main Content Areas -->
+  <g transform="translate(100, 250)">
+    
+    <!-- LEFT: INTENSITY (The Burnout Cycle) -->
+    <g transform="translate(0, 0)">
+        <rect width="450" height="550" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+        <text x="225" y="60" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-weight="700" font-size="28" fill="#EC4899">INTENSITY</text>
+        
+        <!-- Legend/Subtext -->
+        <text x="225" y="520" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="20" fill="#666666">Result: Burnout & Reset</text>
+
+        <!-- The Graph -->
+        <g transform="translate(50, 150)">
+            <!-- Axes -->
+            <line x1="0" y1="0" x2="0" y2="300" stroke="#000000" stroke-width="4"/>
+            <line x1="0" y1="300" x2="350" y2="300" stroke="#000000" stroke-width="4"/>
+            
+            <!-- Spiky Path -->
+            <path d="M0 250 L50 50 L80 280 L140 80 L170 290 L220 100 L250 280 L350 280" 
+                  fill="none" stroke="#EC4899" stroke-width="8" stroke-linejoin="round"/>
+            
+            <!-- Peak Markers -->
+            <circle cx="50" cy="50" r="8" fill="#000000"/>
+            <circle cx="140" cy="80" r="8" fill="#000000"/>
+            <text x="50" y="30" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="16" fill="#000000">HYPE</text>
+            <text x="80" y="330" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="16" fill="#000000">CRASH</text>
+        </g>
+    </g>
+
+    <!-- RIGHT: CONSISTENCY (The Compound Effect) -->
+    <g transform="translate(550, 0)">
+        <rect width="450" height="550" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+        <text x="225" y="60" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-weight="700" font-size="28" fill="#22C55E">CONSISTENCY</text>
+
+        <!-- Legend/Subtext -->
+        <text x="225" y="520" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="20" fill="#666666">Result: Compound Growth</text>
+
+        <!-- The Graph -->
+        <g transform="translate(50, 150)">
+            <!-- Axes -->
+            <line x1="0" y1="0" x2="0" y2="300" stroke="#000000" stroke-width="4"/>
+            <line x1="0" y1="300" x2="350" y2="300" stroke="#000000" stroke-width="4"/>
+            
+            <!-- Growth Area -->
+            <path d="M0 300 Q100 300 150 250 T350 20" 
+                  fill="url(#stripes)" opacity="0.5"/>
+            
+            <!-- Growth Path -->
+            <!-- Quadratic curve -->
+            <path d="M0 300 Q100 300 150 250 T350 20" 
+                  fill="none" stroke="#22C55E" stroke-width="8" stroke-linecap="round"/>
+                  
+            <!-- End Marker -->
+            <circle cx="350" cy="20" r="10" fill="#FFD700" stroke="#000000" stroke-width="3"/>
+            <text x="280" y="40" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="16" fill="#000000">MASTERY</text>
+        </g>
+    </g>
+  </g>
+
+  <!-- VS Badge -->
+  <g transform="translate(600, 525)">
+     <circle cx="0" cy="0" r="40" fill="#000000"/>
+     <text x="0" y="10" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-weight="bold" font-size="24" fill="#FFFFFF">VS</text>
+  </g>
+
+  <!-- Footer -->
+  <g transform="translate(0, 950)">
+        <text x="600" y="60" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-size="32" fill="#000000" font-weight="600">Don't sprint. Show up.</text>
+        <!-- Highlight Box -->
+        <rect x="420" y="80" width="360" height="60" fill="#FFD700"/>
+        <text x="600" y="125" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-weight="800" font-size="36" fill="#000000">goalslot.io</text>
+    </g>
+
+</svg>

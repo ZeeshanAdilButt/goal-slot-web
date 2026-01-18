@@ -1,0 +1,114 @@
+<svg width="1080" height="1080" viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&amp;display=swap');
+      .display { font-family: 'Space Grotesk', sans-serif; }
+      .body { font-family: 'Inter', sans-serif; }
+      .mono { font-family: 'JetBrains Mono', monospace; }
+    </style>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE44D" />
+      <stop offset="100%" stop-color="#F59E0B" />
+    </linearGradient>
+    <filter id="brutalShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="6" dy="6" stdDeviation="0" flood-color="#000000" flood-opacity="1"/>
+    </filter>
+    <filter id="brutalShadowSm" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="4" dy="4" stdDeviation="0" flood-color="#000000" flood-opacity="1"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1080" height="1080" fill="#FEF3C7" />
+  
+  <!-- Background Decorative Shapes -->
+  <circle cx="950" cy="150" r="200" fill="#FFD700" opacity="0.12" />
+  <circle cx="100" cy="900" r="250" fill="#EC4899" opacity="0.08" />
+  <circle cx="900" cy="950" r="150" fill="#3B82F6" opacity="0.08" />
+  
+  <!-- Dotted pattern -->
+  <pattern id="dots" width="30" height="30" patternUnits="userSpaceOnUse">
+    <circle cx="15" cy="15" r="1.5" fill="#000" opacity="0.08"/>
+  </pattern>
+  <rect width="1080" height="1080" fill="url(#dots)" />
+
+  <!-- Top Badge -->
+  <g transform="translate(80, 80)">
+    <rect x="0" y="0" width="340" height="60" fill="#000000" filter="url(#brutalShadowSm)"/>
+    <text x="170" y="42" class="mono" font-size="22" fill="#FFD700" text-anchor="middle" font-weight="600">ACCOUNTABILITY FLEX</text>
+  </g>
+
+  <!-- Main Quote Card -->
+  <g transform="translate(80, 180)">
+    <rect x="0" y="0" width="920" height="480" fill="#FFFFFF" stroke="#000000" stroke-width="4" filter="url(#brutalShadow)"/>
+    
+    <!-- Quote marks -->
+    <text x="50" y="100" class="display" font-size="120" fill="#FFD700" opacity="0.4">"</text>
+    
+    <!-- Main Quote Text -->
+    <text x="80" y="140" class="display" font-size="40" fill="#000000" font-weight="700">Screenshot of your</text>
+    <text x="80" y="200" class="display" font-size="40" fill="#000000" font-weight="700">dashboard is the new flex.</text>
+    
+    <!-- Highlighted text -->
+    <rect x="60" y="230" width="800" height="70" fill="url(#goldGrad)" stroke="#000" stroke-width="3"/>
+    <text x="460" y="278" class="display" font-size="32" fill="#000000" text-anchor="middle" font-weight="700">"532 HOURS THIS YEAR ON CODING"</text>
+    
+    <!-- Subtext -->
+    <text x="460" y="360" class="body" font-size="26" fill="#4B5563" text-anchor="middle" font-weight="500">More impressive than any course certificate.</text>
+    <text x="460" y="405" class="body" font-size="26" fill="#4B5563" text-anchor="middle" font-weight="500">More credible than any resume bullet.</text>
+    <text x="460" y="455" class="body" font-size="24" fill="#22C55E" text-anchor="middle" font-weight="600">Receipts over claims.</text>
+  </g>
+
+  <!-- Stats Row -->
+  <g transform="translate(80, 720)">
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="200" height="120" fill="#22C55E" stroke="#000000" stroke-width="3" filter="url(#brutalShadowSm)"/>
+      <text x="100" y="55" class="mono" font-size="32" fill="#000000" text-anchor="middle" font-weight="700">532h</text>
+      <text x="100" y="90" class="body" font-size="16" fill="#000000" text-anchor="middle" font-weight="600">Logged</text>
+    </g>
+    
+    <g transform="translate(240, 0)">
+      <rect x="0" y="0" width="200" height="120" fill="#FFD700" stroke="#000000" stroke-width="3" filter="url(#brutalShadowSm)"/>
+      <text x="100" y="55" class="mono" font-size="32" fill="#000000" text-anchor="middle" font-weight="700">47</text>
+      <text x="100" y="90" class="body" font-size="16" fill="#000000" text-anchor="middle" font-weight="600">Weeks</text>
+    </g>
+    
+    <g transform="translate(480, 0)">
+      <rect x="0" y="0" width="200" height="120" fill="#3B82F6" stroke="#000000" stroke-width="3" filter="url(#brutalShadowSm)"/>
+      <text x="100" y="55" class="mono" font-size="32" fill="#FFFFFF" text-anchor="middle" font-weight="700">11h</text>
+      <text x="100" y="90" class="body" font-size="16" fill="#FFFFFF" text-anchor="middle" font-weight="600">Weekly Avg</text>
+    </g>
+    
+    <g transform="translate(720, 0)">
+      <rect x="0" y="0" width="200" height="120" fill="#EC4899" stroke="#000000" stroke-width="3" filter="url(#brutalShadowSm)"/>
+      <text x="100" y="55" class="mono" font-size="28" fill="#FFFFFF" text-anchor="middle" font-weight="700">PROOF</text>
+      <text x="100" y="90" class="body" font-size="16" fill="#FFFFFF" text-anchor="middle" font-weight="600">Of Work</text>
+    </g>
+  </g>
+
+  <!-- Bottom CTA -->
+  <g transform="translate(80, 900)">
+    <rect x="0" y="0" width="460" height="70" fill="#000000" stroke="#000000" stroke-width="3" filter="url(#brutalShadow)"/>
+    <text x="230" y="45" class="display" font-size="22" fill="#FFD700" text-anchor="middle" font-weight="700">BUILD YOUR RECEIPT STACK</text>
+  </g>
+
+  <!-- Brand Logo -->
+  <g transform="translate(800, 920)">
+    <rect x="0" y="0" width="200" height="60" fill="#FFD700" stroke="#000" stroke-width="3"/>
+    <text x="100" y="40" class="display" font-size="24" fill="#000000" text-anchor="middle" font-weight="700">goalslot.io</text>
+  </g>
+
+  <!-- Corner Accents -->
+  <rect x="0" y="0" width="12" height="100" fill="#FFD700"/>
+  <rect x="0" y="0" width="100" height="12" fill="#FFD700"/>
+  <rect x="1068" y="980" width="12" height="100" fill="#000000"/>
+  <rect x="980" y="1068" width="100" height="12" fill="#000000"/>
+
+  <!-- Floating element -->
+  <g transform="translate(750, 80) rotate(12)">
+    <rect x="0" y="0" width="200" height="70" fill="#8B5CF6" stroke="#000" stroke-width="3" filter="url(#brutalShadowSm)"/>
+    <text x="100" y="48" class="mono" font-size="26" fill="#FFF" text-anchor="middle" font-weight="700">FLEX</text>
+  </g>
+</svg>

@@ -1,0 +1,35 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="1200" fill="#FFFDF5"/>
+
+  <!-- Main Container -->
+  <g transform="translate(150, 150)">
+    <!-- Shadow -->
+    <rect x="20" y="20" width="900" height="900" fill="black"/>
+    <!-- Terminal Window -->
+    <rect width="900" height="900" fill="#FFF8E1" stroke="black" stroke-width="8"/>
+    
+    <!-- Header -->
+    <rect width="900" height="60" fill="black"/>
+    <circle cx="40" cy="30" r="8" fill="#FF5F56"/>
+    <circle cx="70" cy="30" r="8" fill="#FFBD2E"/>
+    <circle cx="100" cy="30" r="8" fill="#27C93F"/>
+    <text x="450" y="40" text-anchor="middle" font-family="monospace" fill="white" font-size="24">goals.js</text>
+
+    <!-- Code Content -->
+    <g transform="translate(50, 150)" font-family="monospace" font-size="32" fill="#333">
+        <text y="0"><tspan fill="#0000FF">const</tspan> success = {</text>
+        <text y="60" x="40">strategy: <tspan fill="#A31515">"Hope"</tspan>, <tspan fill="#888" font-size="28">// Error: undefined</tspan></text>
+        <text y="120" x="40">system: <tspan fill="#A31515">"Tracking"</tspan>, <tspan fill="#888" font-size="28">// Returns: Growth 🚀</tspan></text>
+        <text y="180">};</text>
+        <text y="280">console.log(success.system);</text>
+    </g>
+
+    <!-- Install Button -->
+    <g transform="translate(100, 700)">
+        <rect x="10" y="10" width="700" height="120" fill="black"/> <!-- Shadow -->
+        <rect width="700" height="120" fill="#E5C045" stroke="black" stroke-width="4"/>
+        <text x="350" y="75" text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" font-size="36">INSTALL THE SYSTEM</text>
+    </g>
+  </g>
+</svg>

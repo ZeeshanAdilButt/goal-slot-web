@@ -1,0 +1,186 @@
+<svg width="1080" height="1920" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&amp;display=swap');
+      .display { font-family: 'Space Grotesk', sans-serif; }
+      .body { font-family: 'Inter', sans-serif; }
+      .mono { font-family: 'JetBrains Mono', monospace; }
+    </style>
+    <linearGradient id="storyGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE44D" />
+      <stop offset="100%" stop-color="#F59E0B" />
+    </linearGradient>
+    <linearGradient id="storyPink" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EC4899" />
+      <stop offset="100%" stop-color="#8B5CF6" />
+    </linearGradient>
+    <linearGradient id="storyGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22C55E" />
+      <stop offset="100%" stop-color="#16A34A" />
+    </linearGradient>
+    <filter id="storyShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="6" dy="6" stdDeviation="0" flood-color="#000000" flood-opacity="1"/>
+    </filter>
+    <filter id="storyShadowSm" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="4" dy="4" stdDeviation="0" flood-color="#000000" flood-opacity="1"/>
+    </filter>
+    <filter id="storyShadowLg" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="8" dy="8" stdDeviation="0" flood-color="#000000" flood-opacity="1"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1080" height="1920" fill="#FEF3C7" />
+  
+  <!-- Large Background Shapes -->
+  <circle cx="900" cy="300" r="300" fill="#FFD700" opacity="0.1" />
+  <circle cx="150" cy="1600" r="400" fill="#EC4899" opacity="0.06" />
+  <circle cx="1000" cy="1400" r="250" fill="#3B82F6" opacity="0.06" />
+  <circle cx="200" cy="800" r="200" fill="#22C55E" opacity="0.05" />
+
+  <!-- Subtle grid -->
+  <pattern id="storyGrid" width="50" height="50" patternUnits="userSpaceOnUse">
+    <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#000" stroke-width="0.5" opacity="0.04"/>
+  </pattern>
+  <rect width="1080" height="1920" fill="url(#storyGrid)" />
+
+  <!-- Top Section - Brand & Hook -->
+  <g transform="translate(60, 100)">
+    <!-- Brand Badge -->
+    <rect x="0" y="0" width="200" height="55" fill="#000000" filter="url(#storyShadowSm)"/>
+    <text x="100" y="37" class="display" font-size="22" fill="#FFD700" text-anchor="middle" font-weight="700">GOALSLOT</text>
+    
+    <!-- Feature Tag -->
+    <rect x="680" y="0" width="280" height="55" fill="url(#storyPink)" stroke="#000" stroke-width="3" filter="url(#storyShadowSm)"/>
+    <text x="820" y="38" class="mono" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">🎯 NEW FEATURE</text>
+  </g>
+
+  <!-- Main Hero Section -->
+  <g transform="translate(60, 220)">
+    <text x="0" y="80" class="display" font-size="90" fill="#000000" font-weight="700">TRACK</text>
+    <text x="0" y="180" class="display" font-size="90" fill="#000000" font-weight="700">YOUR</text>
+    
+    <!-- Highlighted word -->
+    <rect x="-10" y="195" width="540" height="110" fill="url(#storyGold)" stroke="#000" stroke-width="4"/>
+    <text x="0" y="280" class="display" font-size="90" fill="#000000" font-weight="700">GROWTH.</text>
+  </g>
+
+  <!-- Phone Mockup / App Preview Card -->
+  <g transform="translate(80, 560)">
+    <rect x="0" y="0" width="920" height="600" fill="#FFFFFF" stroke="#000000" stroke-width="4" filter="url(#storyShadowLg)"/>
+    
+    <!-- Browser dots -->
+    <circle cx="40" cy="35" r="12" fill="#EC4899" stroke="#000" stroke-width="2"/>
+    <circle cx="80" cy="35" r="12" fill="#FFD700" stroke="#000" stroke-width="2"/>
+    <circle cx="120" cy="35" r="12" fill="#22C55E" stroke="#000" stroke-width="2"/>
+    
+    <line x1="0" y1="70" x2="920" y2="70" stroke="#000" stroke-width="2"/>
+    
+    <!-- App Content Preview -->
+    <g transform="translate(40, 100)">
+      <!-- Goal Progress Card -->
+      <rect x="0" y="0" width="400" height="180" fill="#F9FAFB" stroke="#E5E7EB" stroke-width="2" rx="8"/>
+      <text x="20" y="40" class="body" font-size="18" fill="#6B7280" font-weight="600">Today's Progress</text>
+      <text x="20" y="90" class="mono" font-size="48" fill="#000000" font-weight="700">6.5h</text>
+      <text x="160" y="90" class="body" font-size="20" fill="#6B7280" font-weight="500">/ 8h goal</text>
+      
+      <!-- Progress bar -->
+      <rect x="20" y="120" width="360" height="16" fill="#E5E7EB" rx="8"/>
+      <rect x="20" y="120" width="290" height="16" fill="url(#storyGreen)" rx="8"/>
+      <text x="20" y="160" class="mono" font-size="14" fill="#22C55E" font-weight="600">81% Complete ✓</text>
+      
+      <!-- Side Stats -->
+      <g transform="translate(440, 0)">
+        <rect x="0" y="0" width="200" height="80" fill="#FFD700" stroke="#000" stroke-width="2"/>
+        <text x="100" y="35" class="mono" font-size="28" fill="#000" text-anchor="middle" font-weight="700">127</text>
+        <text x="100" y="60" class="body" font-size="14" fill="#000" text-anchor="middle" font-weight="600">Day Streak 🔥</text>
+        
+        <rect x="0" y="100" width="200" height="80" fill="#3B82F6" stroke="#000" stroke-width="2"/>
+        <text x="100" y="135" class="mono" font-size="28" fill="#FFF" text-anchor="middle" font-weight="700">94%</text>
+        <text x="100" y="160" class="body" font-size="14" fill="#FFF" text-anchor="middle" font-weight="600">Goals Hit</text>
+      </g>
+      
+      <!-- Task List Preview -->
+      <g transform="translate(0, 200)">
+        <rect x="0" y="0" width="840" height="55" fill="#F0FDF4" stroke="#22C55E" stroke-width="2" rx="4"/>
+        <rect x="20" y="17" width="22" height="22" fill="#22C55E" stroke="#000" stroke-width="2"/>
+        <text x="25" y="33" class="body" font-size="14" fill="#FFF" font-weight="700">✓</text>
+        <text x="60" y="35" class="body" font-size="18" fill="#000" font-weight="500">Deep work session - React Project</text>
+        <text x="700" y="35" class="mono" font-size="16" fill="#22C55E" font-weight="600">2.5h</text>
+        
+        <rect x="0" y="65" width="840" height="55" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2" rx="4"/>
+        <rect x="20" y="82" width="22" height="22" fill="#FFFFFF" stroke="#000" stroke-width="2"/>
+        <text x="60" y="100" class="body" font-size="18" fill="#000" font-weight="500">Code review & documentation</text>
+        <text x="700" y="100" class="mono" font-size="16" fill="#F59E0B" font-weight="600">1.5h</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Value Props -->
+  <g transform="translate(80, 1220)">
+    <!-- Prop 1 -->
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="280" height="100" fill="#FFFFFF" stroke="#000000" stroke-width="3" filter="url(#storyShadowSm)"/>
+      <text x="20" y="40" class="display" font-size="32" fill="#000" font-weight="700">🎯</text>
+      <text x="70" y="40" class="display" font-size="22" fill="#000" font-weight="700">Set Goals</text>
+      <text x="20" y="75" class="body" font-size="16" fill="#6B7280" font-weight="500">Define what matters</text>
+    </g>
+    
+    <!-- Prop 2 -->
+    <g transform="translate(310, 0)">
+      <rect x="0" y="0" width="280" height="100" fill="#FFD700" stroke="#000000" stroke-width="3" filter="url(#storyShadowSm)"/>
+      <text x="20" y="40" class="display" font-size="32" fill="#000" font-weight="700">⏱️</text>
+      <text x="70" y="40" class="display" font-size="22" fill="#000" font-weight="700">Track Time</text>
+      <text x="20" y="75" class="body" font-size="16" fill="#000" font-weight="500">Every hour counts</text>
+    </g>
+    
+    <!-- Prop 3 -->
+    <g transform="translate(620, 0)">
+      <rect x="0" y="0" width="280" height="100" fill="#22C55E" stroke="#000000" stroke-width="3" filter="url(#storyShadowSm)"/>
+      <text x="20" y="40" class="display" font-size="32" fill="#FFF" font-weight="700">📈</text>
+      <text x="70" y="40" class="display" font-size="22" fill="#FFF" font-weight="700">See Growth</text>
+      <text x="20" y="75" class="body" font-size="16" fill="#FFF" font-weight="500">Proof of progress</text>
+    </g>
+  </g>
+
+  <!-- Testimonial Snippet -->
+  <g transform="translate(80, 1380)">
+    <rect x="0" y="0" width="920" height="160" fill="#000000" filter="url(#storyShadow)"/>
+    <text x="40" y="50" class="display" font-size="28" fill="#FFD700" font-weight="700">"Finally, I can see where my time goes.</text>
+    <text x="40" y="90" class="display" font-size="28" fill="#FFD700" font-weight="700">Game changer for my productivity."</text>
+    <text x="40" y="135" class="body" font-size="18" fill="#9CA3AF" font-weight="500">— Sarah K., Software Engineer</text>
+    <text x="870" y="50" class="display" font-size="40" fill="#FFD700">⭐</text>
+  </g>
+
+  <!-- CTA Section -->
+  <g transform="translate(80, 1600)">
+    <rect x="0" y="0" width="920" height="120" fill="url(#storyGold)" stroke="#000000" stroke-width="4" filter="url(#storyShadowLg)"/>
+    <text x="460" y="50" class="display" font-size="36" fill="#000000" text-anchor="middle" font-weight="700">START YOUR FREE TRIAL</text>
+    <text x="460" y="90" class="mono" font-size="20" fill="#000000" text-anchor="middle" font-weight="500">goalslot.com → 60 days Pro free</text>
+  </g>
+
+  <!-- Swipe Up Indicator -->
+  <g transform="translate(480, 1780)">
+    <text x="60" y="30" class="body" font-size="18" fill="#6B7280" text-anchor="middle" font-weight="600">Swipe up to learn more</text>
+    <path d="M60 50 L60 80 M45 65 L60 50 L75 65" stroke="#6B7280" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Corner Accents -->
+  <rect x="0" y="0" width="15" height="150" fill="#FFD700"/>
+  <rect x="0" y="0" width="150" height="15" fill="#FFD700"/>
+  <rect x="1065" y="1770" width="15" height="150" fill="#000000"/>
+  <rect x="930" y="1905" width="150" height="15" fill="#000000"/>
+
+  <!-- Floating badges -->
+  <g transform="translate(820, 450) rotate(-8)">
+    <rect x="0" y="0" width="180" height="70" fill="#EC4899" stroke="#000" stroke-width="3" filter="url(#storyShadowSm)"/>
+    <text x="90" y="46" class="mono" font-size="24" fill="#FFF" text-anchor="middle" font-weight="700">+3h 🚀</text>
+  </g>
+  
+  <g transform="translate(60, 480) rotate(5)">
+    <rect x="0" y="0" width="160" height="65" fill="#8B5CF6" stroke="#000" stroke-width="3" filter="url(#storyShadowSm)"/>
+    <text x="80" y="42" class="mono" font-size="22" fill="#FFF" text-anchor="middle" font-weight="700">Focus! 🎯</text>
+  </g>
+</svg>

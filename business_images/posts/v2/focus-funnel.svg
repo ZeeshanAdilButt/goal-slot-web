@@ -1,0 +1,83 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 
+    THEME: Neo-Brutalist Vibrant
+    CONCEPT: Focus Funnel / Filter The Noise
+  -->
+  
+  <defs>
+    <!-- Patterns -->
+    <pattern id="dotGrid" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#000000" opacity="0.1"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="1200" fill="#FEF3C7"/>
+  <rect width="1200" height="1200" fill="url(#dotGrid)"/>
+  
+  <!-- Background Decorations -->
+  <g opacity="0.3">
+      <!-- Chaos cloud -->
+      <path d="M100 100 Q200 50 300 100 T500 100 T700 50" stroke="#000000" stroke-width="4" fill="none"/>
+      <!-- Random math symbols -->
+      <text x="1000" y="400" font-family="monospace" font-size="60" fill="#EC4899">%</text>
+      <text x="100" y="600" font-family="monospace" font-size="60" fill="#3B82F6">#</text>
+  </g>
+
+  <!-- Headline -->
+  <text x="600" y="150" text-anchor="middle" font-family="'Space Grotesk', 'Segoe UI', Arial, sans-serif" font-weight="700" font-size="80" fill="#000000" letter-spacing="-1">FILTER THE NOISE</text>
+
+  <!-- The Funnel Mechanics -->
+  <g transform="translate(300, 250)">
+    
+    <!-- 1. The Input (Chaos) -->
+    <g transform="translate(0, -50)">
+        <!-- Distraction Elements falling in -->
+        <g transform="rotate(-15, 100, 50)">
+            <rect x="80" y="30" width="80" height="60" fill="#EC4899" stroke="#000000" stroke-width="4"/>
+            <text x="120" y="70" text-anchor="middle" font-family="monospace" font-size="16" fill="white">ADs</text>
+        </g>
+        
+        <g transform="rotate(20, 400, 60)">
+            <circle cx="400" cy="50" r="45" fill="#3B82F6" stroke="#000000" stroke-width="4"/>
+            <text x="400" y="55" text-anchor="middle" font-family="monospace" font-size="16" fill="white">NEWS</text>
+        </g>
+
+        <g transform="rotate(-5, 250, 20)">
+            <polygon points="250,10 200,80 300,80" fill="#F97316" stroke="#000000" stroke-width="4"/>
+            <text x="250" y="65" text-anchor="middle" font-family="monospace" font-size="16" fill="white">DMs</text>
+        </g>
+    </g>
+
+    <!-- 2. The Funnel Body -->
+    <path d="M50 100 L550 100 L380 400 L380 550 L220 550 L220 400 L50 100" 
+          fill="#FFFFFF" stroke="#000000" stroke-width="6"/>
+    
+    <!-- Funnel Grating / Filter -->
+    <g transform="translate(220, 250)">
+        <rect width="160" height="20" fill="#FFD700" stroke="#000000" stroke-width="2"/>
+        <line x1="0" y1="10" x2="160" y2="10" stroke="#000000" stroke-width="2"/>
+    </g>
+    
+    <text x="300" y="160" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-weight="bold" font-size="20" fill="#666">DISTRACTION</text>
+
+    <!-- 3. The Output (Order) -->
+    <g transform="translate(230, 450)">
+        <!-- Perfectly aligned output -->
+        <rect x="25" y="120" width="90" height="90" fill="#FFD700" stroke="#000000" stroke-width="4"/>
+        <text x="70" y="170" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-weight="800" font-size="40" fill="#000000">1h</text>
+        
+        <text x="70" y="240" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-weight="700" font-size="20" fill="#000000">DEEP WORK</text>
+    </g>
+
+  </g>
+
+  <!-- Footer -->
+  <g transform="translate(0, 950)">
+        <text x="600" y="60" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-size="32" fill="#000000" font-weight="600">Protect your attention.</text>
+        <!-- Highlight Box -->
+        <rect x="420" y="80" width="360" height="60" fill="#FFD700"/>
+        <text x="600" y="125" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-weight="800" font-size="36" fill="#000000">goalslot.io</text>
+    </g>
+
+</svg>

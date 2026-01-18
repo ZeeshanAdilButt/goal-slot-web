@@ -1,0 +1,139 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 
+    THEME: Neo-Brutalist Vibrant (Project Colors)
+    COLORS: 
+    - Bg: #FEF3C7 (hsl(48, 96%, 89%))
+    - Primary: #FFD700 (hsl(51, 100%, 50%)) - Vibrant Gold
+    - Accent Green: #22C55E
+    - Accent Pink: #EC4899
+    - Accent Blue: #3B82F6
+    - Accent Orange: #F97316
+    - Text/Border: #000000
+    - Card: #FFFFFF
+  -->
+  
+  <defs>
+    <!-- Dot Grid Pattern -->
+    <pattern id="dotGrid" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#000000" opacity="0.1"/>
+    </pattern>
+    <!-- Diagonal Stripes Pattern -->
+    <pattern id="stripes" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="20" stroke="#FFD700" stroke-width="4" opacity="0.4"/>
+    </pattern>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="1200" height="1200" fill="#FEF3C7"/>
+  <rect width="1200" height="1200" fill="url(#dotGrid)"/>
+  
+  <!-- Background Decorations (Vibrant) -->
+  <g>
+    <!-- Top Left Decor: Pink Blob -->
+    <circle cx="100" cy="100" r="180" fill="#EC4899" opacity="0.3"/>
+    <path d="M-50 200 Q150 100 250 300" stroke="#000000" stroke-width="4" fill="none" opacity="0.2"/>
+    <text x="50" y="250" font-family="'JetBrains Mono', monospace" font-size="80" fill="#000000" opacity="0.2">+</text>
+
+    <!-- Top Right Decor: Orange Stripes -->
+    <rect x="850" y="-50" width="450" height="350" fill="url(#stripes)" transform="rotate(15)"/>
+    
+    <!-- Bottom Left Decor: Blue Square -->
+    <rect x="-50" y="1000" width="300" height="300" fill="#3B82F6" opacity="0.2" transform="rotate(-15)"/>
+    <path d="M50 1100 L150 1050 L250 1150" fill="none" stroke="#000000" stroke-width="5" opacity="0.2"/>
+
+    <!-- Bottom Right Decor: Green Circle -->
+    <circle cx="1100" cy="1100" r="180" stroke="#22C55E" stroke-width="50" opacity="0.3"/>
+  </g>
+
+  <!-- Main Container -->
+  <g transform="translate(100, 100)">
+    
+    <!-- Title -->
+    <!-- Centered at 600 (center of 1200) relative to SVG, so x=500 relative to g translate(100)? No. 
+         SVG width 1200. Center is 600.
+         Group translated 100, 100. So center inside group is 500.
+         Wait, 1200 - 100 padding left = 1100? No.
+         Coordinate system inside G: 0,0 is 100,100 of SVG.
+         Center of SVG is x=600.
+         So x inside G = 600 - 100 = 500. 
+         My previous calculation x=500 was effectively correct relative to the group IF the content was meant to be centered in the group.
+         But visually it looked off. Let's maximize width.
+         I'll put the title absolute at x=600 relative to SVG for perfect centering.
+    -->
+  </g>
+
+  <!-- Title (Outside main group for absolute centering) -->
+  <text x="600" y="150" text-anchor="middle" font-family="'Space Grotesk', 'Segoe UI', Arial, sans-serif" font-weight="700" font-size="80" fill="#000000" letter-spacing="-1">THE SYSTEM IS THE WAY</text>
+
+  <!-- Content Group -->
+  <g transform="translate(100, 200)">
+       <!-- 
+            Adjusted flow diagram.
+            Center of this area (1000px wide) is x=500.
+       -->
+       
+       <!-- 1. THE GEAR (Focused Action) - Left Side x=200 -->
+       <g transform="translate(150, 200)">
+            <!-- Gear Shadow -->
+            <path d="M10 10 L10 10" transform="translate(10, 10)"/> <!-- Placeholder for shadow logic usually, but simplified here -->
+            
+            <!-- Connection Pipe Background -->
+            <path d="M150 100 L150 50 L650 50 L650 100" stroke="#000000" stroke-width="20" fill="none" stroke-linecap="round"/>
+            <path d="M200 150 L600 150" stroke="#000000" stroke-width="30" stroke-linecap="round" fill="none"/>
+            <path d="M580 130 L640 150 L580 170" fill="#000000"/> <!-- Arrowhead -->
+
+            <!-- Gear Body -->
+            <circle cx="150" cy="150" r="130" fill="#FFD700" stroke="#000000" stroke-width="6"/>
+            <!-- Teeth -->
+            <g stroke="#000000" stroke-width="6" fill="#FFD700">
+                <rect x="120" y="-10" width="60" height="40"/>
+                <rect x="120" y="270" width="60" height="40"/>
+                <rect x="-10" y="120" width="40" height="60"/>
+                <rect x="270" y="120" width="40" height="60"/>
+                <rect x="35" y="35" width="40" height="60" transform="rotate(45 55 65)"/>
+                <rect x="225" y="225" width="40" height="60" transform="rotate(45 245 255)"/>
+                <rect x="35" y="225" width="60" height="40" transform="rotate(45 65 245)"/>
+                <rect x="225" y="35" width="60" height="40" transform="rotate(45 255 65)"/>
+            </g>
+            <!-- Inner Hub -->
+            <circle cx="150" cy="150" r="90" fill="#FFFFFF" stroke="#000000" stroke-width="6"/>
+            <circle cx="150" cy="150" r="20" fill="#000000"/>
+            
+            <text x="150" y="380" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-weight="700" font-size="28" fill="#000000">FOCUSED ACTION</text>
+       </g>
+
+       <!-- 2. THE GAUGE (Growth) - Top Right x=650 -->
+       <g transform="translate(650, 50)">
+            <circle cx="100" cy="100" r="90" fill="#22C55E" stroke="#000000" stroke-width="6"/>
+            <!-- Gauge Markings -->
+            <path d="M100 20 L100 40 M180 100 L160 100" stroke="#000000" stroke-width="4"/>
+            <!-- Needle -->
+            <path d="M100 100 L160 50" stroke="#000000" stroke-width="8" stroke-linecap="round"/>
+            <circle cx="100" cy="100" r="12" fill="#000000"/>
+            
+            <text x="220" y="95" font-family="'JetBrains Mono', monospace" font-weight="700" font-size="24" fill="#000000">CONSISTENT</text>
+            <text x="220" y="125" font-family="'JetBrains Mono', monospace" font-weight="700" font-size="24" fill="#000000">GROWTH</text>
+       </g>
+
+       <!-- 3. THE TARGET (Mastery) - Right Side x=650 -->
+       <g transform="translate(650, 200)">
+            <!-- Target Rings -->
+            <circle cx="150" cy="150" r="130" fill="#FFD700" stroke="#000000" stroke-width="6"/>
+            <circle cx="150" cy="150" r="90" fill="#FFFFFF" stroke="#000000" stroke-width="6"/>
+            <circle cx="150" cy="150" r="50" fill="#22C55E" stroke="#000000" stroke-width="6"/>
+            <circle cx="150" cy="150" r="20" fill="#EC4899" stroke="#000000" stroke-width="3"/> <!-- Pink Bullseye -->
+            
+            <text x="150" y="380" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-weight="700" font-size="28" fill="#000000">MASTERY</text>
+       </g>
+
+  </g>
+
+  <!-- Bottom Interactive CTA -->
+    <g transform="translate(100, 950)">
+        <rect width="1000" height="150" rx="0" fill="#000000"/>
+        <text x="500" y="60" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-size="32" fill="#FFFFFF">Stop guessing. Start tracking.</text>
+        <rect x="350" y="90" width="300" height="2" fill="#FFD700"/>
+        <text x="500" y="120" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-weight="bold" font-size="36" fill="#FFD700">goalslot.io</text>
+    </g>
+
+</svg>

@@ -1,0 +1,124 @@
+<svg width="1080" height="1080" viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&amp;display=swap');
+      .display { font-family: 'Space Grotesk', sans-serif; }
+      .body { font-family: 'Inter', sans-serif; }
+      .mono { font-family: 'JetBrains Mono', monospace; }
+    </style>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE44D" />
+      <stop offset="100%" stop-color="#F59E0B" />
+    </linearGradient>
+    <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8B5CF6" />
+      <stop offset="100%" stop-color="#EC4899" />
+    </linearGradient>
+    <filter id="brutalShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="6" dy="6" stdDeviation="0" flood-color="#000000" flood-opacity="1"/>
+    </filter>
+    <filter id="brutalShadowSm" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="4" dy="4" stdDeviation="0" flood-color="#000000" flood-opacity="1"/>
+    </filter>
+  </defs>
+
+  <!-- Background - Dark -->
+  <rect width="1080" height="1080" fill="#0f0f0f" />
+  
+  <!-- Gradient mesh background -->
+  <circle cx="200" cy="200" r="400" fill="#8B5CF6" opacity="0.08" />
+  <circle cx="880" cy="880" r="400" fill="#EC4899" opacity="0.08" />
+  <circle cx="900" cy="200" r="300" fill="#FFD700" opacity="0.06" />
+  
+  <!-- Grid overlay -->
+  <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+    <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#FFF" stroke-width="0.3" opacity="0.08"/>
+  </pattern>
+  <rect width="1080" height="1080" fill="url(#grid)" />
+
+  <!-- Top Logo Badge -->
+  <g transform="translate(60, 50)">
+    <rect x="0" y="0" width="280" height="70" fill="#FFD700" filter="url(#brutalShadowSm)"/>
+    <text x="140" y="48" class="display" font-size="28" fill="#000000" text-anchor="middle" font-weight="700">goalslot.io</text>
+  </g>
+
+  <!-- Main Content Card -->
+  <g transform="translate(60, 160)">
+    <rect x="0" y="0" width="960" height="520" fill="#FFFFFF" stroke="#000000" stroke-width="4" filter="url(#brutalShadow)"/>
+    
+    <!-- Header stripe -->
+    <rect x="0" y="0" width="960" height="8" fill="url(#goldGrad)"/>
+    
+    <!-- Quote marks -->
+    <text x="40" y="100" class="display" font-size="140" fill="#FFD700" opacity="0.3">"</text>
+    
+    <!-- Main testimonial text -->
+    <text x="70" y="130" class="display" font-size="36" fill="#000000" font-weight="700">I used to think I was putting in</text>
+    <text x="70" y="185" class="display" font-size="36" fill="#000000" font-weight="700">serious hours learning to code.</text>
+    
+    <!-- Highlight box -->
+    <rect x="50" y="210" width="860" height="100" fill="url(#goldGrad)" stroke="#000" stroke-width="3"/>
+    <text x="480" y="255" class="display" font-size="32" fill="#000000" text-anchor="middle" font-weight="700">Then I tracked it: 47 minutes/day.</text>
+    <text x="480" y="295" class="display" font-size="28" fill="#000000" text-anchor="middle" font-weight="600">Not 4 hours. 47 minutes.</text>
+    
+    <!-- After text -->
+    <text x="480" y="370" class="body" font-size="26" fill="#4B5563" text-anchor="middle">6 months later with goalslot.io tracking:</text>
+    
+    <!-- Result box -->
+    <rect x="50" y="400" width="860" height="90" fill="#22C55E" stroke="#000" stroke-width="3"/>
+    <text x="480" y="455" class="display" font-size="32" fill="#000" text-anchor="middle" font-weight="700">3.2 hours/day average. Got my first dev job.</text>
+  </g>
+
+  <!-- Stats Row -->
+  <g transform="translate(60, 730)">
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="220" height="130" fill="#8B5CF6" stroke="#000000" stroke-width="3" filter="url(#brutalShadowSm)"/>
+      <text x="110" y="55" class="mono" font-size="36" fill="#FFFFFF" text-anchor="middle" font-weight="700">47min</text>
+      <text x="110" y="100" class="body" font-size="16" fill="#FFFFFF" text-anchor="middle" font-weight="600">Before</text>
+    </g>
+    
+    <g transform="translate(250, 0)">
+      <rect x="0" y="0" width="220" height="130" fill="#22C55E" stroke="#000000" stroke-width="3" filter="url(#brutalShadowSm)"/>
+      <text x="110" y="55" class="mono" font-size="36" fill="#000000" text-anchor="middle" font-weight="700">3.2h</text>
+      <text x="110" y="100" class="body" font-size="16" fill="#000000" text-anchor="middle" font-weight="600">After</text>
+    </g>
+    
+    <g transform="translate(500, 0)">
+      <rect x="0" y="0" width="220" height="130" fill="#FFD700" stroke="#000000" stroke-width="3" filter="url(#brutalShadowSm)"/>
+      <text x="110" y="55" class="mono" font-size="36" fill="#000000" text-anchor="middle" font-weight="700">4x</text>
+      <text x="110" y="100" class="body" font-size="16" fill="#000000" text-anchor="middle" font-weight="600">Improvement</text>
+    </g>
+    
+    <g transform="translate(750, 0)">
+      <rect x="0" y="0" width="220" height="130" fill="#EC4899" stroke="#000000" stroke-width="3" filter="url(#brutalShadowSm)"/>
+      <text x="110" y="55" class="mono" font-size="28" fill="#FFFFFF" text-anchor="middle" font-weight="700">HIRED</text>
+      <text x="110" y="100" class="body" font-size="16" fill="#FFFFFF" text-anchor="middle" font-weight="600">Result</text>
+    </g>
+  </g>
+
+  <!-- Bottom CTA -->
+  <g transform="translate(60, 910)">
+    <rect x="0" y="0" width="560" height="80" fill="#FFD700" stroke="#000" stroke-width="3" filter="url(#brutalShadow)"/>
+    <text x="280" y="52" class="display" font-size="26" fill="#000000" text-anchor="middle" font-weight="700">AWARENESS CREATES CHANGE</text>
+  </g>
+
+  <!-- Brand Badge -->
+  <g transform="translate(800, 920)">
+    <rect x="0" y="0" width="220" height="70" fill="#000" stroke="#FFD700" stroke-width="3"/>
+    <text x="110" y="45" class="display" font-size="22" fill="#FFD700" text-anchor="middle" font-weight="700">goalslot.io</text>
+  </g>
+
+  <!-- Corner Accents -->
+  <rect x="0" y="0" width="14" height="120" fill="#FFD700"/>
+  <rect x="0" y="0" width="120" height="14" fill="#FFD700"/>
+  <rect x="1066" y="960" width="14" height="120" fill="#FFD700"/>
+  <rect x="960" y="1066" width="120" height="14" fill="#FFD700"/>
+
+  <!-- Floating tag -->
+  <g transform="translate(750, 50) rotate(8)">
+    <rect x="0" y="0" width="240" height="70" fill="#22C55E" stroke="#000" stroke-width="3" filter="url(#brutalShadowSm)"/>
+    <text x="120" y="48" class="mono" font-size="24" fill="#000" text-anchor="middle" font-weight="700">REAL STORY</text>
+  </g>
+</svg>

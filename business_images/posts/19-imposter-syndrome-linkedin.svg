@@ -1,0 +1,118 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&amp;display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&amp;display=swap');
+      .display { font-family: 'Space Grotesk', sans-serif; }
+      .body { font-family: 'Inter', sans-serif; }
+      .mono { font-family: 'JetBrains Mono', monospace; }
+    </style>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE44D" />
+      <stop offset="100%" stop-color="#F59E0B" />
+    </linearGradient>
+    <filter id="brutalShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="6" dy="6" stdDeviation="0" flood-color="#000000" flood-opacity="1"/>
+    </filter>
+    <filter id="brutalShadowSm" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="4" dy="4" stdDeviation="0" flood-color="#000000" flood-opacity="1"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="1200" fill="#FEF3C7" />
+  
+  <!-- Background Decorative Shapes -->
+  <circle cx="1050" cy="180" r="220" fill="#FFD700" opacity="0.12" />
+  <circle cx="120" cy="1000" r="280" fill="#EC4899" opacity="0.08" />
+  <circle cx="1000" cy="1050" r="180" fill="#3B82F6" opacity="0.08" />
+  
+  <!-- Dotted pattern -->
+  <pattern id="dots" width="30" height="30" patternUnits="userSpaceOnUse">
+    <circle cx="15" cy="15" r="1.5" fill="#000" opacity="0.08"/>
+  </pattern>
+  <rect width="1200" height="1200" fill="url(#dots)" />
+
+  <!-- Top Badge -->
+  <g transform="translate(80, 80)">
+    <rect x="0" y="0" width="380" height="65" fill="#000000" filter="url(#brutalShadowSm)"/>
+    <text x="190" y="45" class="mono" font-size="24" fill="#FFD700" text-anchor="middle" font-weight="600">IMPOSTER SYNDROME</text>
+  </g>
+
+  <!-- Main Quote Card -->
+  <g transform="translate(80, 185)">
+    <rect x="0" y="0" width="1040" height="560" fill="#FFFFFF" stroke="#000000" stroke-width="4" filter="url(#brutalShadow)"/>
+    
+    <!-- Quote marks -->
+    <text x="50" y="110" class="display" font-size="140" fill="#FFD700" opacity="0.4">"</text>
+    
+    <!-- Imposter thoughts -->
+    <text x="90" y="120" class="body" font-size="26" fill="#6B7280">Brain says:</text>
+    <text x="90" y="180" class="display" font-size="36" fill="#EF4444" font-weight="700">"You're not a real developer."</text>
+    <text x="90" y="230" class="display" font-size="36" fill="#EF4444" font-weight="700">"Everyone else knows more."</text>
+    
+    <!-- Highlighted text -->
+    <rect x="70" y="270" width="900" height="80" fill="url(#goldGrad)" stroke="#000" stroke-width="3"/>
+    <text x="520" y="325" class="display" font-size="34" fill="#000000" text-anchor="middle" font-weight="700">FACTS DON'T LIE. BRAINS DO.</text>
+    
+    <!-- Dashboard proof -->
+    <rect x="70" y="375" width="900" height="100" fill="#22C55E" stroke="#000" stroke-width="3"/>
+    <text x="520" y="420" class="display" font-size="28" fill="#000" text-anchor="middle" font-weight="700">Your dashboard: 847 hours coded this year</text>
+    <text x="520" y="460" class="body" font-size="22" fill="#000" text-anchor="middle">React: 312h | Python: 245h | System Design: 189h | DevOps: 101h</text>
+    
+    <!-- Subtext -->
+    <text x="520" y="530" class="display" font-size="26" fill="#000" text-anchor="middle" font-weight="700">That's not an imposter. That's proof of work.</text>
+  </g>
+
+  <!-- Stats Row -->
+  <g transform="translate(80, 810)">
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="230" height="140" fill="#22C55E" stroke="#000000" stroke-width="3" filter="url(#brutalShadowSm)"/>
+      <text x="115" y="65" class="mono" font-size="32" fill="#000000" text-anchor="middle" font-weight="700">847h</text>
+      <text x="115" y="105" class="body" font-size="18" fill="#000000" text-anchor="middle" font-weight="600">Real Work</text>
+    </g>
+    
+    <g transform="translate(270, 0)">
+      <rect x="0" y="0" width="230" height="140" fill="#FFD700" stroke="#000000" stroke-width="3" filter="url(#brutalShadowSm)"/>
+      <text x="115" y="65" class="mono" font-size="32" fill="#000000" text-anchor="middle" font-weight="700">4</text>
+      <text x="115" y="105" class="body" font-size="18" fill="#000000" text-anchor="middle" font-weight="600">Tech Stacks</text>
+    </g>
+    
+    <g transform="translate(540, 0)">
+      <rect x="0" y="0" width="230" height="140" fill="#3B82F6" stroke="#000000" stroke-width="3" filter="url(#brutalShadowSm)"/>
+      <text x="115" y="65" class="mono" font-size="28" fill="#FFFFFF" text-anchor="middle" font-weight="700">PROOF</text>
+      <text x="115" y="105" class="body" font-size="18" fill="#FFFFFF" text-anchor="middle" font-weight="600">Not Feelings</text>
+    </g>
+    
+    <g transform="translate(810, 0)">
+      <rect x="0" y="0" width="230" height="140" fill="#EC4899" stroke="#000000" stroke-width="3" filter="url(#brutalShadowSm)"/>
+      <text x="115" y="65" class="mono" font-size="28" fill="#FFFFFF" text-anchor="middle" font-weight="700">REAL</text>
+      <text x="115" y="105" class="body" font-size="18" fill="#FFFFFF" text-anchor="middle" font-weight="600">Developer</text>
+    </g>
+  </g>
+
+  <!-- Bottom CTA -->
+  <g transform="translate(80, 1010)">
+    <rect x="0" y="0" width="540" height="80" fill="#000000" stroke="#000000" stroke-width="3" filter="url(#brutalShadow)"/>
+    <text x="270" y="52" class="display" font-size="26" fill="#FFD700" text-anchor="middle" font-weight="700">FIGHT DOUBT WITH DATA</text>
+  </g>
+
+  <!-- Brand Logo -->
+  <g transform="translate(900, 1030)">
+    <rect x="0" y="0" width="220" height="70" fill="#FFD700" stroke="#000" stroke-width="3"/>
+    <text x="110" y="48" class="display" font-size="28" fill="#000000" text-anchor="middle" font-weight="700">goalslot.io</text>
+  </g>
+
+  <!-- Corner Accents -->
+  <rect x="0" y="0" width="14" height="120" fill="#FFD700"/>
+  <rect x="0" y="0" width="120" height="14" fill="#FFD700"/>
+  <rect x="1186" y="1080" width="14" height="120" fill="#000000"/>
+  <rect x="1080" y="1186" width="120" height="14" fill="#000000"/>
+
+  <!-- Floating element -->
+  <g transform="translate(850, 80) rotate(12)">
+    <rect x="0" y="0" width="220" height="80" fill="#22C55E" stroke="#000" stroke-width="3" filter="url(#brutalShadowSm)"/>
+    <text x="110" y="52" class="mono" font-size="28" fill="#000" text-anchor="middle" font-weight="700">YOU GOT THIS</text>
+  </g>
+</svg>
