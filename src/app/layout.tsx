@@ -7,6 +7,7 @@ import { NotificationsButton } from '@/features/notifications/components/notific
 import { Toaster } from 'react-hot-toast'
 
 import { ReactQueryProvider } from '@/lib/react-query-provider'
+import PostHogAuth from '@/components/posthog-auth'
 
 export const viewport: Viewport = {
   themeColor: '#000000',
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <ReactQueryProvider>
+          <PostHogAuth />
           {children}
           <div className="fixed bottom-6 right-6 z-50 flex flex-row items-end gap-2">
             <NotificationsButton />
