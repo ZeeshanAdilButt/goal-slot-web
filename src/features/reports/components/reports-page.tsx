@@ -334,7 +334,7 @@ export function FocusPage() {
                     onChange={(e) => setExportNotes(e.target.value)}
                     placeholder="Additional notes..."
                     rows={3}
-                    className="border-2 border-secondary resize-none"
+                    className="resize-none border-2 border-secondary"
                   />
                 </div>
 

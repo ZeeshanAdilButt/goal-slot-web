@@ -368,7 +368,7 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
   }
 
   // DnD Logic
-  const activeNote = useRef<NoteTreeItem | null>(null)
+  const [activeNote, setActiveNote] = useState<NoteTreeItem | null>(null)
 
   const dragStateRef = useRef<{ id: string; position: DropPosition }>({ id: '', position: null })
 
@@ -390,12 +390,12 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
       return null
     }
     const note = findNote(noteTree, active.id as string)
-    activeNote.current = note
+    setActiveNote(note)
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
-    activeNote.current = null
+    setActiveNote(null)
 
     if (!over || active.id === over.id) return
 
@@ -655,10 +655,10 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
         </div>
 
         <DragOverlay>
-          {activeNote.current ? (
+          {activeNote ? (
             <div className="flex cursor-grabbing items-center gap-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm opacity-90 shadow-xl">
-              <span className="shrink-0 text-base">{activeNote.current.icon || '📄'}</span>
-              <span className="flex-1 truncate">{activeNote.current.title || 'Untitled'}</span>
+              <span className="shrink-0 text-base">{activeNote.icon || '📄'}</span>
+              <span className="flex-1 truncate">{activeNote.title || 'Untitled'}</span>
             </div>
           ) : null}
         </DragOverlay>

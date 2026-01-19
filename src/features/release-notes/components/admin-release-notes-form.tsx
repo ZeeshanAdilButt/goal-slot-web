@@ -87,7 +87,7 @@ export const AdminReleaseNotesForm = ({ editingNote, onCancelEdit }: AdminReleas
         </div>
         {editingNote && (
           <Button variant="ghost" size="sm" onClick={onCancelEdit}>
-            <X className="h-4 w-4 mr-1" /> Cancel Edit
+            <X className="mr-1 h-4 w-4" /> Cancel Edit
           </Button>
         )}
       </div>
@@ -142,7 +142,7 @@ export const AdminReleaseNotesForm = ({ editingNote, onCancelEdit }: AdminReleas
             />
             <label
               htmlFor="republish"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-yellow-800"
+              className="text-sm font-medium leading-none text-yellow-800 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
               Republish as new (reset seen status for all users)
             </label>

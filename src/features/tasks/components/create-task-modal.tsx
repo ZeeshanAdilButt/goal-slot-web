@@ -130,7 +130,7 @@ export function CreateTaskModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="modal-brutal w-[90vw] max-w-5xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="modal-brutal max-h-[90vh] w-[90vw] max-w-5xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold uppercase">{task ? 'Edit Task' : 'New Task'}</DialogTitle>
         </DialogHeader>
@@ -211,7 +211,7 @@ export function CreateTaskModal({
                 content={form.description}
                 onChange={(html) => setForm({ ...form, description: html })}
                 placeholder="Details of the task..."
-                className="min-h-[350px] max-h-[600px] overflow-y-auto resize-y border-none shadow-none"
+                className="max-h-[600px] min-h-[350px] resize-y overflow-y-auto border-none shadow-none"
               />
             </div>
             <p className="mt-1 text-[10px] uppercase text-gray-500">Drag bottom-right corner to resize</p>

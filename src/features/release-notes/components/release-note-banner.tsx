@@ -55,7 +55,7 @@ export const ReleaseNoteBanner = () => {
                <span className="text-xs font-bold text-primary">+{unseenNotes.length - 1} more</span>
             )}
           </div>
-          <p className="text-[17px] leading-relaxed text-gray-800 whitespace-pre-wrap">{note.content}</p>
+          <p className="whitespace-pre-wrap text-[17px] leading-relaxed text-gray-800">{note.content}</p>
         </div>
         <button onClick={handleDismiss} className="text-gray-500 hover:text-gray-800" aria-label="Dismiss release note">
           <X className="h-4 w-4" />

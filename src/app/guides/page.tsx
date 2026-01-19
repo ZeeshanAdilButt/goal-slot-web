@@ -45,7 +45,7 @@ export default async function GuidesPage(props: Props) {
 
         {/* E-Books Section */}
         <div className="space-y-6">
-          <h2 className="text-2xl font-bold border-b pb-2 border-gray-200">E-Books</h2>
+          <h2 className="border-b border-gray-200 pb-2 text-2xl font-bold">E-Books</h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
              {ebooks.map((guide) => (
                 <GuideCard key={guide.slug} guide={guide} />
@@ -55,7 +55,7 @@ export default async function GuidesPage(props: Props) {
 
         {/* Guides/Courses Section */}
         <div className="space-y-6">
-            <h2 className="text-2xl font-bold border-b pb-2 border-gray-200">Courses & Guides</h2>
+            <h2 className="border-b border-gray-200 pb-2 text-2xl font-bold">Courses & Guides</h2>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {courses.map((guide) => (
                   <GuideCard key={guide.slug} guide={guide} />

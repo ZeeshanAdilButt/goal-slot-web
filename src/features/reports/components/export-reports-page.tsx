@@ -435,7 +435,7 @@ export function ExportReportsPage() {
         console.error('Export failed:', error)
       }
     },
-    [exportMutation, filters, dateRange, exportTitle, exportClientName, exportProjectName, exportNotes],
+    [exportMutation, filters, dateRange, exportTitle, exportClientName, exportProjectName, exportNotes, viewType],
   )
 
   const clearFilters = () => {
