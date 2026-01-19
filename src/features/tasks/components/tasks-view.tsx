@@ -6,6 +6,7 @@ import { CompactTaskList } from '@/features/tasks/components/compact-task-list'
 import { GoalsSidebarMobile } from '@/features/tasks/components/goals-sidebar/goals-sidebar-mobile'
 import { TaskBoard } from '@/features/tasks/components/task-board'
 import { TaskList } from '@/features/tasks/components/task-list'
+import { TasksAdvancedFilters } from '@/features/tasks/components/tasks-advanced-filters'
 import { TasksFilters } from '@/features/tasks/components/tasks-filters'
 import { Goal, GroupBy, Task } from '@/features/tasks/utils/types'
 import {
@@ -20,13 +21,12 @@ import {
   startOfDay,
   startOfWeek,
 } from 'date-fns'
-import { Calendar, ChevronDown, Clock, Plus, X } from 'lucide-react'
+import { Plus, SlidersHorizontal } from 'lucide-react'
 
+import { cn } from '@/lib/utils'
 import { useLocalStorage } from '@/hooks/use-local-storage'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { GoalSlotSpinner } from '@/components/goalslot-logo'
 
 interface TasksViewProps {
@@ -42,6 +42,7 @@ interface TasksViewProps {
   selectedStatus?: string
   onSelectStatus?: (status: string) => void
   goalsLoading?: boolean
+  className?: string
 }
 
 export function TasksView({
@@ -57,6 +58,7 @@ export function TasksView({
   selectedStatus = 'ACTIVE',
   onSelectStatus,
   goalsLoading = false,
+  className,
 }: TasksViewProps) {
   const [viewMode, setViewMode] = useState<'board' | 'list'>('board')
   const [compactView, setCompactView] = useState(true)
@@ -73,6 +75,16 @@ export function TasksView({
   // Custom duration filter state (in minutes)
   const [customDurationMin, setCustomDurationMin] = useLocalStorage<number | ''>('tasks-custom-duration-min', '')
   const [customDurationMax, setCustomDurationMax] = useLocalStorage<number | ''>('tasks-custom-duration-max', '')
+  const hasActiveFilters = dueDateFilter !== 'all' || durationFilter !== 'all' || searchQuery.length > 0
+  const resetFilters = () => {
+    setDueDateFilter('all')
+    setDurationFilter('all')
+    setSearchQuery('')
+    setCustomDateStart('')
+    setCustomDateEnd('')
+    setCustomDurationMin('')
+    setCustomDurationMax('')
+  }
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
@@ -186,7 +198,7 @@ export function TasksView({
   if (!hasSelectedGoal) {
     return (
       <div className="p-4 sm:p-6">
-        <div className="px-0 sm:px-4 md:-ml-[3px] md:px-0">
+        <div className="px-0 sm:px-2 md:-ml-[3px] md:px-0">
           <div className="card-brutal p-4 text-center font-mono text-sm text-gray-600 sm:p-6 sm:text-base">
             Select a goal to view tasks.
           </div>
@@ -196,7 +208,7 @@ export function TasksView({
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className={cn('flex h-full min-h-0 flex-col', className)}>
       <div className="p-4 sm:p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h1 className="font-display text-2xl font-bold uppercase sm:text-3xl md:text-4xl">Tasks</h1>
@@ -230,8 +242,8 @@ export function TasksView({
           </div>
         </div>
 
-        {onSelectGoal && onSelectStatus && (
-          <div className="mb-4 md:hidden">
+        {onSelectGoal && onSelectStatus ? (
+          <div className="mb-2 md:hidden">
             <GoalsSidebarMobile
               goals={goals}
               selectedGoalId={selectedGoalId}
@@ -241,211 +253,90 @@ export function TasksView({
               isLoading={goalsLoading}
             />
           </div>
-        )}
+        ) : null}
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
             {/* Search */}
-            <input
-              type="text"
-              placeholder="Search tasks..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 w-full rounded-sm border-2 border-secondary bg-white px-3 text-xs font-bold uppercase placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black/20 sm:w-48"
-            />
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Search tasks..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-8 w-full flex-1 rounded-sm border-2 border-secondary bg-white px-3 text-xs font-bold uppercase placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black/20 sm:w-48"
+              />
+              <Sheet>
+                <SheetTrigger asChild>
+                  <button className="flex h-8 items-center gap-2 rounded-sm border-2 border-secondary bg-white px-2 text-[10px] font-bold uppercase shadow-brutal-sm md:hidden">
+                    <SlidersHorizontal className="h-3 w-3" />
+                    Filters
+                    {hasActiveFilters ? <span className="ml-1 h-1.5 w-1.5 rounded-full bg-red-500" /> : null}
+                  </button>
+                </SheetTrigger>
+                <SheetContent
+                  side="bottom"
+                  className="max-h-[85svh] overflow-y-auto border-t-3 border-secondary bg-brutalist-bg"
+                >
+                  <SheetHeader className="text-left">
+                    <SheetTitle className="font-display text-sm font-bold uppercase text-secondary">Filters</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-4">
+                    <TasksAdvancedFilters
+                      dueDateFilter={dueDateFilter}
+                      setDueDateFilter={setDueDateFilter}
+                      durationFilter={durationFilter}
+                      setDurationFilter={setDurationFilter}
+                      customDateStart={customDateStart}
+                      setCustomDateStart={setCustomDateStart}
+                      customDateEnd={customDateEnd}
+                      setCustomDateEnd={setCustomDateEnd}
+                      customDurationMin={customDurationMin}
+                      setCustomDurationMin={setCustomDurationMin}
+                      customDurationMax={customDurationMax}
+                      setCustomDurationMax={setCustomDurationMax}
+                      showReset={hasActiveFilters}
+                      onReset={resetFilters}
+                      variant="stacked"
+                    />
+                  </div>
+
+                  {viewMode === 'list' ? (
+                    <div className="mt-6">
+                      <div className="mb-2 text-xs font-bold uppercase text-secondary">List options</div>
+                      <TasksFilters
+                        compactView={compactView}
+                        onCompactViewChange={setCompactView}
+                        showCompleted={showCompleted}
+                        onShowCompletedChange={setShowCompleted}
+                        groupBy={groupBy}
+                        onGroupByChange={setGroupBy}
+                      />
+                    </div>
+                  ) : null}
+                </SheetContent>
+              </Sheet>
+            </div>
 
             {/* Filters Row */}
-            <div className="flex flex-wrap items-center gap-2 pb-1 sm:pb-0">
-              {/* Date Filter with Custom Option */}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button className="flex h-8 w-[130px] items-center justify-between rounded-sm border-2 border-secondary bg-white px-3 text-[10px] font-bold uppercase shadow-brutal-sm outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                    <div className="flex items-center gap-2 overflow-hidden">
-                      <Calendar className="h-3 w-3 flex-shrink-0" />
-                      <span className="truncate">
-                        {dueDateFilter === 'all'
-                          ? 'Any Date'
-                          : dueDateFilter === 'custom'
-                            ? 'Custom'
-                            : dueDateFilter === 'week'
-                              ? 'This Week'
-                              : dueDateFilter === 'next_week'
-                                ? 'Next Week'
-                                : dueDateFilter.replace('_', ' ')}
-                      </span>
-                    </div>
-                    <ChevronDown className="h-3 w-3 flex-shrink-0 opacity-50" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-64 border-2 border-secondary p-3" align="start">
-                  <div className="space-y-3">
-                    <div className="space-y-1">
-                      {[
-                        { value: 'all', label: 'Any Date' },
-                        { value: 'overdue', label: 'Overdue' },
-                        { value: 'today', label: 'Today' },
-                        { value: 'tomorrow', label: 'Tomorrow' },
-                        { value: 'week', label: 'This Week' },
-                        { value: 'next_week', label: 'Next Week' },
-                        { value: 'no_date', label: 'No Date' },
-                      ].map((option) => (
-                        <button
-                          key={option.value}
-                          onClick={() => {
-                            setDueDateFilter(option.value)
-                            if (option.value !== 'custom') {
-                              setCustomDateStart('')
-                              setCustomDateEnd('')
-                            }
-                          }}
-                          className={`w-full rounded-sm px-2 py-1.5 text-left text-xs font-medium transition-colors ${
-                            dueDateFilter === option.value ? 'bg-secondary text-white' : 'hover:bg-gray-100'
-                          }`}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="border-t border-gray-200 pt-3">
-                      <Label className="text-xs font-semibold uppercase text-gray-600">Custom Range</Label>
-                      <div className="mt-2 space-y-2">
-                        <div>
-                          <Label className="text-[10px] text-gray-500">From</Label>
-                          <Input
-                            type="date"
-                            value={customDateStart}
-                            onChange={(e) => {
-                              setCustomDateStart(e.target.value)
-                              if (e.target.value) setDueDateFilter('custom')
-                            }}
-                            className="h-8 border-2 border-secondary text-xs"
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-[10px] text-gray-500">To</Label>
-                          <Input
-                            type="date"
-                            value={customDateEnd}
-                            onChange={(e) => {
-                              setCustomDateEnd(e.target.value)
-                              if (e.target.value) setDueDateFilter('custom')
-                            }}
-                            className="h-8 border-2 border-secondary text-xs"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-
-              {/* Duration Filter with Custom Option */}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button className="flex h-8 w-[140px] items-center justify-between rounded-sm border-2 border-secondary bg-white px-3 text-[10px] font-bold uppercase shadow-brutal-sm outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                    <div className="flex items-center gap-2 overflow-hidden">
-                      <Clock className="h-3 w-3 flex-shrink-0" />
-                      <span className="truncate">
-                        {durationFilter === 'all'
-                          ? 'Any Duration'
-                          : durationFilter === 'custom'
-                            ? customDurationMin !== '' || customDurationMax !== ''
-                              ? `${customDurationMin || 0}-${customDurationMax || '∞'}m`
-                              : 'Custom'
-                            : durationFilter.replace('_', ' ')}
-                      </span>
-                    </div>
-                    <ChevronDown className="h-3 w-3 flex-shrink-0 opacity-50" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-64 border-2 border-secondary p-3" align="start">
-                  <div className="space-y-3">
-                    <div className="space-y-1">
-                      {[
-                        { value: 'all', label: 'Any Duration' },
-                        { value: 'short', label: 'Short (<30m)' },
-                        { value: 'medium', label: 'Medium (30m-2h)' },
-                        { value: 'long', label: 'Long (>2h)' },
-                        { value: 'no_estimate', label: 'No Estimate' },
-                      ].map((option) => (
-                        <button
-                          key={option.value}
-                          onClick={() => {
-                            setDurationFilter(option.value)
-                            if (option.value !== 'custom') {
-                              setCustomDurationMin('')
-                              setCustomDurationMax('')
-                            }
-                          }}
-                          className={`w-full rounded-sm px-2 py-1.5 text-left text-xs font-medium transition-colors ${
-                            durationFilter === option.value ? 'bg-secondary text-white' : 'hover:bg-gray-100'
-                          }`}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="border-t border-gray-200 pt-3">
-                      <Label className="text-xs font-semibold uppercase text-gray-600">Custom Range (minutes)</Label>
-                      <div className="mt-2 flex items-center gap-2">
-                        <div className="flex-1">
-                          <Label className="text-[10px] text-gray-500">Min</Label>
-                          <Input
-                            type="number"
-                            min={0}
-                            placeholder="0"
-                            value={customDurationMin}
-                            onChange={(e) => {
-                              const val = e.target.value === '' ? '' : parseInt(e.target.value)
-                              setCustomDurationMin(val)
-                              if (val !== '') setDurationFilter('custom')
-                            }}
-                            className="h-8 border-2 border-secondary text-xs"
-                          />
-                        </div>
-                        <span className="mt-4 text-gray-400">–</span>
-                        <div className="flex-1">
-                          <Label className="text-[10px] text-gray-500">Max</Label>
-                          <Input
-                            type="number"
-                            min={0}
-                            placeholder="∞"
-                            value={customDurationMax}
-                            onChange={(e) => {
-                              const val = e.target.value === '' ? '' : parseInt(e.target.value)
-                              setCustomDurationMax(val)
-                              if (val !== '') setDurationFilter('custom')
-                            }}
-                            className="h-8 border-2 border-secondary text-xs"
-                          />
-                        </div>
-                      </div>
-                      <p className="mt-1 text-[10px] text-gray-400">Common: 15, 30, 60, 90, 120 minutes</p>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-
-              {(dueDateFilter !== 'all' || durationFilter !== 'all' || searchQuery) && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setDueDateFilter('all')
-                    setDurationFilter('all')
-                    setSearchQuery('')
-                    setCustomDateStart('')
-                    setCustomDateEnd('')
-                    setCustomDurationMin('')
-                    setCustomDurationMax('')
-                  }}
-                  className="h-8 px-2 text-red-500 hover:bg-red-50 hover:text-red-600"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
+            <div className="hidden md:flex">
+              <TasksAdvancedFilters
+                dueDateFilter={dueDateFilter}
+                setDueDateFilter={setDueDateFilter}
+                durationFilter={durationFilter}
+                setDurationFilter={setDurationFilter}
+                customDateStart={customDateStart}
+                setCustomDateStart={setCustomDateStart}
+                customDateEnd={customDateEnd}
+                setCustomDateEnd={setCustomDateEnd}
+                customDurationMin={customDurationMin}
+                setCustomDurationMin={setCustomDurationMin}
+                customDurationMax={customDurationMax}
+                setCustomDurationMax={setCustomDurationMax}
+                showReset={hasActiveFilters}
+                onReset={resetFilters}
+                variant="inline"
+              />
             </div>
           </div>
 
@@ -469,12 +360,12 @@ export function TasksView({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 pb-4 sm:pb-6">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         {viewMode === 'board' ? (
           <TaskBoard tasks={visibleTasks} onEdit={onEdit} onComplete={onComplete} />
         ) : (
-          <div className="space-y-4">
-            <div className="px-4 md:-ml-[3px] md:px-0">
+          <div className="flex min-h-0 flex-1 flex-col gap-4">
+            <div className="hidden px-2 md:-ml-[3px] md:block md:px-0">
               <TasksFilters
                 compactView={compactView}
                 onCompactViewChange={setCompactView}

@@ -54,7 +54,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         </div>
         <TimeEntryBanner />
         <ReleaseNoteBanner />
-        <div className="flex-1 overflow-hidden">{children}</div>
+        <div className="min-h-0 flex-1 overflow-hidden">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   )
