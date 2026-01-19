@@ -1,0 +1,96 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 
+    THEME: Neo-Brutalist Soft
+    COLORS: 
+    - Bg: #FFFDF5 (Cream)
+    - Card: #FFF8E1 (Light Yellow)
+    - Dark: #1a1a1a (Off Black)
+    - Accent Red: #EFA8A8
+    - Accent Green: #A8EFA8
+    - Highlight: #E5C045 (Gold)
+  -->
+  
+  <!-- Background -->
+  <rect width="1200" height="1200" fill="#FFFDF5"/>
+  
+  <!-- Main Card Shadow -->
+  <rect x="120" y="120" width="960" height="960" rx="0" fill="#1a1a1a"/>
+  
+  <!-- Main Card Surface -->
+  <rect x="100" y="100" width="960" height="960" rx="0" fill="#FFF8E1" stroke="#1a1a1a" stroke-width="8"/>
+  
+  <!-- Header Section -->
+  <text x="580" y="200" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="80" fill="#1a1a1a" letter-spacing="-2">THE PERCEPTION GAP</text>
+  
+  <!-- Divider -->
+  <line x1="140" y1="240" x2="1020" y2="240" stroke="#1a1a1a" stroke-width="6"/>
+
+  <!-- LEFT COLUMN: FEELING (Subjective) -->
+  <g transform="translate(140, 280)">
+    <!-- Container -->
+    <rect width="420" height="580" fill="#EFA8A8" stroke="#1a1a1a" stroke-width="6"/>
+    
+    <!-- Header -->
+    <rect width="420" height="80" fill="#1a1a1a"/>
+    <text x="210" y="55" text-anchor="middle" font-family="Courier New, monospace" font-weight="bold" font-size="32" fill="white">FEELING</text>
+    
+    <!-- Icon/Illustration: The Fog -->
+    <g transform="translate(110, 130)">
+       <!-- Cloud shape for confusion -->
+       <path d="M50 80 Q20 80 20 50 Q20 20 60 20 Q80 0 120 10 Q160 0 180 30 Q220 40 200 80 Q220 120 170 130 Q140 160 90 140 Q40 150 50 80" fill="#FFFDF5" stroke="#1a1a1a" stroke-width="4"/>
+       <text x="80" y="90" font-family="Arial" font-size="60" font-weight="bold">?</text>
+       <text x="130" y="90" font-family="Arial" font-size="60" font-weight="bold">!</text>
+    </g>
+
+    <!-- Bullets -->
+    <g transform="translate(40, 320)">
+        <text y="0" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#1a1a1a">"I worked all day..."</text>
+        <text y="50" font-family="Arial, sans-serif" font-size="24" fill="#1a1a1a">• High Stress</text>
+        <text y="90" font-family="Arial, sans-serif" font-size="24" fill="#1a1a1a">• Subjective Memory</text>
+        <text y="130" font-family="Arial, sans-serif" font-size="24" fill="#1a1a1a">• "Did I finish it?"</text>
+    </g>
+    
+    <!-- Code/Error Style Footer -->
+    <rect x="20" y="500" width="380" height="60" fill="#FFFDF5" stroke="#1a1a1a" stroke-width="3"/>
+    <text x="40" y="540" font-family="Courier New, monospace" font-size="20" fill="#D32F2F">> Error: No Evidence</text>
+  </g>
+
+  <!-- RIGHT COLUMN: KNOWING (Objective) -->
+  <g transform="translate(600, 280)">
+    <!-- Container -->
+    <rect width="420" height="580" fill="#A8EFA8" stroke="#1a1a1a" stroke-width="6"/>
+    
+    <!-- Header -->
+    <rect width="420" height="80" fill="#1a1a1a"/>
+    <text x="210" y="55" text-anchor="middle" font-family="Courier New, monospace" font-weight="bold" font-size="32" fill="white">KNOWING</text>
+    
+    <!-- Icon/Illustration: The Data -->
+    <g transform="translate(110, 130)">
+       <rect x="20" y="20" width="160" height="120" fill="#FFFDF5" stroke="#1a1a1a" stroke-width="4"/>
+       <!-- Bar Chart -->
+       <rect x="40" y="80" width="30" height="40" fill="#1a1a1a"/>
+       <rect x="85" y="60" width="30" height="60" fill="#1a1a1a"/>
+       <rect x="130" y="40" width="30" height="80" fill="#E5C045" stroke="#1a1a1a" stroke-width="2"/>
+    </g>
+
+    <!-- Bullets -->
+    <g transform="translate(40, 320)">
+        <text y="0" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#1a1a1a">"4.5h Deep Work"</text>
+        <text y="50" font-family="Arial, sans-serif" font-size="24" fill="#1a1a1a">• Exact Timestamps</text>
+        <text y="90" font-family="Arial, sans-serif" font-size="24" fill="#1a1a1a">• Objective Truth</text>
+        <text y="130" font-family="Arial, sans-serif" font-size="24" fill="#1a1a1a">• 3 Tasks Completed</text>
+    </g>
+    
+    <!-- Code/Success Footer -->
+    <rect x="20" y="500" width="380" height="60" fill="#FFFDF5" stroke="#1a1a1a" stroke-width="3"/>
+    <text x="40" y="540" font-family="Courier New, monospace" font-size="20" fill="#2E7D32">> Status: VALIDATED</text>
+  </g>
+
+  <!-- Bottom CTA/Brand -->
+  <g transform="translate(140, 900)">
+    <rect width="880" height="120" fill="#E5C045" stroke="#1a1a1a" stroke-width="6"/>
+    <text x="440" y="75" text-anchor="middle" font-family="Courier New, monospace" font-weight="900" font-size="40" letter-spacing="-1">SEE THE DATA @ GOALSLOT.IO</text>
+    <path d="M780 60 L820 60 M810 50 L820 60 L810 70" stroke="#1a1a1a" stroke-width="4"/>
+  </g>
+
+</svg>
