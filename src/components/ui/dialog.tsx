@@ -38,7 +38,7 @@ type DialogContentProps = React.ComponentPropsWithoutRef<typeof DialogPrimitive.
 const DialogContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Content>, DialogContentProps>(
   ({ className, children, showCloseButton = true, closeButtonClassName, ...props }, ref) => (
     <DialogPortal>
-      <DialogOverlay className="flex items-center justify-center p-4" />
+      <DialogOverlay className="flex items-center justify-center p-2" />
       <DialogPrimitive.Content
         ref={ref}
         className={cn(

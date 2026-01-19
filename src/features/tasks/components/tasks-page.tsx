@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { CompleteTaskModal } from '@/features/tasks/components/complete-task-modal'
 import { CreateTaskModal } from '@/features/tasks/components/create-task-modal'
@@ -14,6 +14,18 @@ import {
   useUpdateTaskMutation,
 } from '@/features/tasks/hooks/use-tasks-mutations'
 import { CreateTaskForm, Task, TaskStatus } from '@/features/tasks/utils/types'
+import {
+  addDays,
+  addWeeks,
+  endOfWeek,
+  getWeek,
+  isAfter,
+  isBefore,
+  isSameDay,
+  isWithinInterval,
+  startOfDay,
+  startOfWeek,
+} from 'date-fns'
 
 import { useLocalStorage } from '@/hooks/use-local-storage'
 
@@ -27,11 +39,19 @@ export function TasksPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [completingTask, setCompletingTask] = useState<Task | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showCompleted, setShowCompleted] = useState(true)
 
   const [selectedGoalId, setSelectedGoalId, isGoalIdInitialized] = useLocalStorage<string | null>(
     'tasks-selected-goal-id',
     null,
   )
+  const [dueDateFilter, setDueDateFilter] = useLocalStorage<string>('tasks-due-date-filter', 'all')
+  const [durationFilter, setDurationFilter] = useLocalStorage<string>('tasks-duration-filter', 'all')
+  const [customDateStart, setCustomDateStart] = useLocalStorage('tasks-custom-date-start', '')
+  const [customDateEnd, setCustomDateEnd] = useLocalStorage('tasks-custom-date-end', '')
+  const [customDurationMin, setCustomDurationMin] = useLocalStorage<number | ''>('tasks-custom-duration-min', '')
+  const [customDurationMax, setCustomDurationMax] = useLocalStorage<number | ''>('tasks-custom-duration-max', '')
 
   // Auto-select first goal when goals change
   useEffect(() => {
@@ -57,6 +77,107 @@ export function TasksPage() {
       : selectedGoalId
         ? tasks.filter((t) => t.goalId === selectedGoalId)
         : []
+
+  const hasActiveFilters = dueDateFilter !== 'all' || durationFilter !== 'all' || searchQuery.length > 0
+  const resetFilters = () => {
+    setDueDateFilter('all')
+    setDurationFilter('all')
+    setSearchQuery('')
+    setCustomDateStart('')
+    setCustomDateEnd('')
+    setCustomDurationMin('')
+    setCustomDurationMax('')
+  }
+
+  const filteredTasks = useMemo(() => {
+    return tasksForGoal.filter((task) => {
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase()
+        const matchesTitle = task.title.toLowerCase().includes(query)
+        const matchesDesc = task.description?.toLowerCase().includes(query)
+        if (!matchesTitle && !matchesDesc) return false
+      }
+
+      if (dueDateFilter !== 'all') {
+        if (dueDateFilter === 'no_date') {
+          if (task.dueDate) return false
+        } else if (dueDateFilter === 'custom') {
+          if (!task.dueDate) return false
+          const taskDate = startOfDay(new Date(task.dueDate))
+
+          if (customDateStart && customDateEnd) {
+            const start = startOfDay(new Date(customDateStart))
+            const end = startOfDay(new Date(customDateEnd))
+            if (!isWithinInterval(taskDate, { start, end })) return false
+          } else if (customDateStart) {
+            const start = startOfDay(new Date(customDateStart))
+            if (isBefore(taskDate, start)) return false
+          } else if (customDateEnd) {
+            const end = startOfDay(new Date(customDateEnd))
+            if (isAfter(taskDate, end)) return false
+          }
+        } else if (dueDateFilter === 'next_week') {
+          if (!task.dueDate) return false
+          const date = new Date(task.dueDate)
+          const today = startOfDay(new Date())
+          const nextWeekStart = startOfWeek(addWeeks(today, 1), { weekStartsOn: 1 })
+          const nextWeekEnd = endOfWeek(addWeeks(today, 1), { weekStartsOn: 1 })
+          if (!isWithinInterval(date, { start: nextWeekStart, end: nextWeekEnd })) return false
+        } else if (task.dueDate) {
+          const date = new Date(task.dueDate)
+          const today = startOfDay(new Date())
+
+          if (dueDateFilter === 'overdue') {
+            if (!isBefore(date, today)) return false
+          } else if (dueDateFilter === 'today') {
+            if (!isSameDay(date, today)) return false
+          } else if (dueDateFilter === 'tomorrow') {
+            if (!isSameDay(date, addDays(today, 1))) return false
+          } else if (dueDateFilter === 'week') {
+            const taskWeek = getWeek(date)
+            const currentWeek = getWeek(today)
+            if (taskWeek !== currentWeek) return false
+          }
+        } else {
+          return false
+        }
+      }
+
+      if (durationFilter !== 'all') {
+        const minutes = task.estimatedMinutes || 0
+
+        if (durationFilter === 'custom') {
+          if (customDurationMin !== '' && minutes < customDurationMin) return false
+          if (customDurationMax !== '' && minutes > customDurationMax) return false
+          if (customDurationMin !== '' && !task.estimatedMinutes) return false
+        } else if (durationFilter === 'short') {
+          if (minutes === 0 || minutes >= 30) return false
+        } else if (durationFilter === 'medium') {
+          if (minutes < 30 || minutes > 120) return false
+        } else if (durationFilter === 'long') {
+          if (minutes <= 120) return false
+        } else if (durationFilter === 'no_estimate') {
+          if (task.estimatedMinutes) return false
+        }
+      }
+
+      return true
+    })
+  }, [
+    tasksForGoal,
+    searchQuery,
+    dueDateFilter,
+    durationFilter,
+    customDateStart,
+    customDateEnd,
+    customDurationMin,
+    customDurationMax,
+  ])
+
+  const visibleTasks = useMemo(() => {
+    if (showCompleted) return filteredTasks
+    return filteredTasks.filter((task) => task.status !== 'DONE')
+  }, [filteredTasks, showCompleted])
 
   const createTask = async (form: CreateTaskForm) => {
     try {
@@ -103,7 +224,7 @@ export function TasksPage() {
         <div className="flex min-h-0 flex-1 flex-col">
           <TasksView
             className="min-h-0 flex-1"
-            tasks={tasksForGoal}
+            tasks={visibleTasks}
             onComplete={setCompletingTask}
             onEdit={setEditingTask}
             onCreate={() => setShowCreate(true)}
@@ -115,6 +236,24 @@ export function TasksPage() {
             selectedStatus={goalStatus}
             onSelectStatus={setGoalStatus}
             goalsLoading={isLoading}
+            showCompleted={showCompleted}
+            onShowCompletedChange={setShowCompleted}
+            dueDateFilter={dueDateFilter}
+            setDueDateFilter={setDueDateFilter}
+            durationFilter={durationFilter}
+            setDurationFilter={setDurationFilter}
+            customDateStart={customDateStart}
+            setCustomDateStart={setCustomDateStart}
+            customDateEnd={customDateEnd}
+            setCustomDateEnd={setCustomDateEnd}
+            customDurationMin={customDurationMin}
+            setCustomDurationMin={setCustomDurationMin}
+            customDurationMax={customDurationMax}
+            setCustomDurationMax={setCustomDurationMax}
+            searchQuery={searchQuery}
+            onSearchQueryChange={setSearchQuery}
+            hasActiveFilters={hasActiveFilters}
+            onResetFilters={resetFilters}
           />
 
           <CreateTaskModal

@@ -95,7 +95,7 @@
            shadow-brutal transition-all duration-150
            hover:shadow-brutal-hover hover:-translate-x-0.5 hover:-translate-y-0.5
            active:shadow-none active:translate-x-1 active:translate-y-1
-           sm:px-6 sm:py-3 sm:text-sm sm:tracking-wider;
+           sm:px-4 sm:py-2 sm:text-xs sm:tracking-wide;
   }
 
   .btn-brutal-secondary {
@@ -252,8 +252,8 @@
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
