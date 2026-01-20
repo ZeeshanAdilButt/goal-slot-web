@@ -242,6 +242,9 @@ export function TimeTrackerPage() {
           toast.success(`Logged ${formatDuration(duration)}!`)
           setElapsedTime(0)
           reset()
+          // Clear task selection so user knows they need to select a new task
+          setTask('')
+          setTaskId('')
         },
       },
     )
