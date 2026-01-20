@@ -28,9 +28,11 @@ import { Calendar, Check, GripVertical, PencilLine, Play, Trash2 } from 'lucide-
 
 import { useTimerStore } from '@/lib/use-timer-store'
 import { cn, formatDate } from '@/lib/utils'
+import { useStartTimerWithConfirmation } from '@/features/time-tracker/hooks/use-start-timer-with-confirmation'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { HtmlContent } from '@/components/html-content'
+import { TimerSwitchDialog } from '@/features/time-tracker/components/timer-switch-dialog'
 import VirtualizedList from '@/components/virtualized-list'
 
 const BOARD_COLUMNS: Array<{ id: TaskStatus; title: string; helper: string; accent: string; text: string }> = [
@@ -297,20 +299,37 @@ function TaskCard({
   dragging = false,
 }: TaskCardProps) {
   const statusStyle = taskStatusStyles[task.status]
-  const { start } = useTimerStore()
   const updateTaskMutation = useUpdateTaskMutation()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const deleteTaskMutation = useDeleteTaskMutation()
+  const {
+    startTimer,
+    showConfirmDialog,
+    setShowConfirmDialog,
+    currentTask,
+    elapsedTime,
+    handleSaveAndSwitch,
+    handleDiscardAndContinue,
+    isLoading,
+  } = useStartTimerWithConfirmation()
 
   const handleStartTimer = (): void => {
-    if (task.status === 'BACKLOG' || task.status === 'TODO') {
-      updateTaskMutation.mutate({
-        taskId: task.id,
-        data: { status: 'DOING' },
-      })
-    }
-
-    start(task.title, task.id, task.category || 'DEEP_WORK', task.goalId || '')
+    startTimer({
+      task: task.title,
+      taskId: task.id,
+      category: task.category || 'DEEP_WORK',
+      goalId: task.goalId || '',
+      taskTitle: task.title,
+      onStartTimer: () => {
+        // Update task status to DOING if it's in BACKLOG or TODO
+        if (task.status === 'BACKLOG' || task.status === 'TODO') {
+          updateTaskMutation.mutate({
+            taskId: task.id,
+            data: { status: 'DOING' },
+          })
+        }
+      },
+    })
   }
 
   const handleDelete = async (): Promise<void> => {
@@ -418,6 +437,16 @@ function TaskCard({
             aria-label="Delete task"
           >
             <Trash2 className="h-3 w-3 text-red-600" />
+
+            <TimerSwitchDialog
+              open={showConfirmDialog}
+              onOpenChange={setShowConfirmDialog}
+              currentTask={currentTask}
+              elapsedTime={elapsedTime}
+              onSaveAndSwitch={handleSaveAndSwitch}
+              onDiscardAndContinue={handleDiscardAndContinue}
+              isLoading={isLoading}
+            />
           </button>
         </div>
       </div>
