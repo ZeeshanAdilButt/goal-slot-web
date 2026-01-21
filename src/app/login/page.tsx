@@ -42,7 +42,7 @@ function LoginForm() {
 
   const handleSSOLogin = () => {
     // Redirect to SSO platform
-    const dwPlatformUrl = process.env.NEXT_PUBLIC_DW_PLATFORM_URL || 'https://example.com'
+    const dwPlatformUrl = process.env.NEXT_PUBLIC_DW_PLATFORM_URL
     const returnUrl = `${window.location.origin}/auth/callback`
     window.location.href = `${dwPlatformUrl}/auth/sso?redirect=${encodeURIComponent(returnUrl)}`
   }
