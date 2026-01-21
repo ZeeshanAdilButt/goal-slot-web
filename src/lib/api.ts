@@ -9,6 +9,25 @@ export const api = axios.create({
   },
 })
 
+// Token refresh queue management
+let isRefreshing = false
+let failedQueue: Array<{
+  resolve: (value?: any) => void
+  reject: (error?: any) => void
+}> = []
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error)
+    } else {
+      prom.resolve(token)
+    }
+  })
+
+  failedQueue = []
+}
+
 // Add auth token to requests
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
@@ -20,25 +39,124 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// Handle auth errors
+// Handle auth errors with automatic token refresh
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
-      if (typeof window !== 'undefined') {
-        // Don't redirect if we're already on the login page or making auth requests
-        const isAuthRequest = error.config?.url?.includes('/auth/')
-        const isLoginPage = window.location.pathname === '/login'
+    const originalRequest = error.config
+
+    // If error is 401 and we haven't already retried
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (typeof window === 'undefined') {
+        return Promise.reject(error)
+      }
+
+      // Don't attempt refresh for specific auth endpoints or if already on login page
+      const requestUrl = originalRequest?.url || ''
+      const isRefreshEndpoint = requestUrl.includes('/auth/refresh')
+      const isLoginEndpoint = requestUrl.includes('/auth/login')
+      const isRegisterEndpoint = requestUrl.includes('/auth/register')
+      const isSSOEndpoint = requestUrl.includes('/auth/sso')
+      const isLoginPage = window.location.pathname === '/login'
+
+      // Skip refresh for login/register/refresh endpoints or if already on login page
+      if (isRefreshEndpoint || isLoginEndpoint || isRegisterEndpoint || isSSOEndpoint || isLoginPage) {
+        return Promise.reject(error)
+      }
+
+      // If already refreshing, queue this request
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject })
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`
+            return api(originalRequest)
+          })
+          .catch((err) => {
+            return Promise.reject(err)
+          })
+      }
+
+      originalRequest._retry = true
+      isRefreshing = true
+
+      const refreshToken = localStorage.getItem('refreshToken')
+
+      if (!refreshToken) {
+        // No refresh token, logout user
+        processQueue(error, null)
+        isRefreshing = false
+        localStorage.removeItem('accessToken')
+        localStorage.removeItem('refreshToken')
+        
+        // Update auth store if available
+        try {
+          const { useAuthStore } = await import('@/lib/store')
+          useAuthStore.getState().logout()
+        } catch {
+          // Store might not be available, that's okay
+        }
+
         const returnUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`
         const redirectUrl = `/login?redirect=${encodeURIComponent(returnUrl || '/dashboard')}`
+        window.location.href = redirectUrl
+        return Promise.reject(error)
+      }
 
-        if (!isAuthRequest && !isLoginPage) {
-          localStorage.removeItem('accessToken')
-          localStorage.removeItem('refreshToken')
-          window.location.href = redirectUrl
+      try {
+        // Attempt to refresh token (use axios directly to avoid interceptor)
+        const response = await axios.post(`${API_URL}/api/auth/refresh`, { refreshToken }, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+        const { accessToken, refreshToken: newRefreshToken } = response.data
+
+        // Update tokens in localStorage
+        localStorage.setItem('accessToken', accessToken)
+        localStorage.setItem('refreshToken', newRefreshToken)
+
+        // Update auth store if available
+        try {
+          const { useAuthStore } = await import('@/lib/store')
+          useAuthStore.getState().setTokens(accessToken, newRefreshToken)
+        } catch {
+          // Store might not be available, that's okay
         }
+
+        // Update the original request with new token
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`
+
+        // Process queued requests
+        processQueue(null, accessToken)
+        isRefreshing = false
+
+        // Retry the original request
+        return api(originalRequest)
+      } catch (refreshError) {
+        // Refresh failed, logout user
+        processQueue(refreshError, null)
+        isRefreshing = false
+
+        localStorage.removeItem('accessToken')
+        localStorage.removeItem('refreshToken')
+
+        // Update auth store if available
+        try {
+          const { useAuthStore } = await import('@/lib/store')
+          useAuthStore.getState().logout()
+        } catch {
+          // Store might not be available, that's okay
+        }
+
+        const returnUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`
+        const redirectUrl = `/login?redirect=${encodeURIComponent(returnUrl || '/dashboard')}`
+        window.location.href = redirectUrl
+        return Promise.reject(refreshError)
       }
     }
+
     return Promise.reject(error)
   },
 )
@@ -66,7 +184,7 @@ export const authApi = {
   login: (data: { email: string; password: string }) => api.post('/auth/login', data),
   ssoLogin: (data: { token: string; email: string; name?: string }) => api.post('/auth/sso', data),
   getProfile: () => api.get('/auth/me'),
-  refresh: () => api.post('/auth/refresh'),
+  refresh: (data: { refreshToken: string }) => api.post('/auth/refresh', data),
   sendChangePasswordOTP: (data: { currentPassword: string }) => api.post('/auth/send-change-password-otp', data),
   changePassword: (data: { currentPassword: string; otp: string; newPassword: string }) =>
     api.post('/auth/change-password', data),
