@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 
@@ -12,15 +12,13 @@ import {
   Download,
   FileText,
   LayoutDashboard,
+  Megaphone,
   MessageSquare,
   Share2,
   Shield,
   Target,
   Users,
-  Megaphone,
 } from 'lucide-react'
-
-import { GoalSlotBrand, GoalSlotLogo } from '@/components/goalslot-logo'
 
 import { useAuthStore, useIsAdmin } from '@/lib/store'
 import { cn } from '@/lib/utils'
@@ -39,6 +37,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar'
+import { GoalSlotBrand } from '@/components/goalslot-logo'
 import { SidebarFooterContent } from '@/components/sidebar-footer-content'
 
 const navItems = [
@@ -79,9 +78,10 @@ export function AppSidebar() {
   const handleLogout = () => {
     logout()
     setPopoverOpen(false)
-    const returnUrl = typeof window !== 'undefined'
-      ? `${window.location.pathname}${window.location.search}${window.location.hash}`
-      : '/dashboard'
+    const returnUrl =
+      typeof window !== 'undefined'
+        ? `${window.location.pathname}${window.location.search}${window.location.hash}`
+        : '/dashboard'
     window.location.href = `/login?redirect=${encodeURIComponent(returnUrl)}`
   }
 
@@ -92,10 +92,7 @@ export function AppSidebar() {
           <Link href="/dashboard" className="group-data-[collapsible=icon]:hidden">
             <GoalSlotBrand size="md" tagline="Your growth, measured." />
           </Link>
-          <Link href="/dashboard" className="hidden group-data-[collapsible=icon]:block">
-            <GoalSlotLogo size="md" />
-          </Link>
-          <SidebarTrigger className="ml-auto h-9 w-9 border-3 border-secondary !bg-primary !text-secondary shadow-brutal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:!bg-primary hover:shadow-brutal-hover active:translate-x-1 active:translate-y-1 active:shadow-none" />
+          <SidebarTrigger className="ml-auto h-9 w-9 border-3 border-secondary !bg-primary !text-secondary shadow-brutal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:!bg-primary hover:shadow-brutal-hover active:translate-x-1 active:translate-y-1 active:shadow-none group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:ml-0" />
         </div>
       </SidebarHeader>
 

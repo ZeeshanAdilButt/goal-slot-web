@@ -27,6 +27,7 @@ import {
   startOfWeek,
 } from 'date-fns'
 
+import { cn } from '@/lib/utils'
 import { useLocalStorage } from '@/hooks/use-local-storage'
 
 export function TasksPage() {
@@ -52,6 +53,10 @@ export function TasksPage() {
   const [customDateEnd, setCustomDateEnd] = useLocalStorage('tasks-custom-date-end', '')
   const [customDurationMin, setCustomDurationMin] = useLocalStorage<number | ''>('tasks-custom-duration-min', '')
   const [customDurationMax, setCustomDurationMax] = useLocalStorage<number | ''>('tasks-custom-duration-max', '')
+  const [isGoalsSidebarCollapsed, setIsGoalsSidebarCollapsed, isGoalsSidebarInitialized] = useLocalStorage(
+    'tasks-goals-sidebar-collapsed',
+    false,
+  )
 
   // Auto-select first goal when goals change
   useEffect(() => {
@@ -206,10 +211,27 @@ export function TasksPage() {
     }
   }
 
+  const goalsSidebarCollapsed = isGoalsSidebarInitialized ? isGoalsSidebarCollapsed : true
+  const shouldAnimateLayout = isGoalsSidebarInitialized
+
   return (
-    <div className="flex h-full min-h-0 flex-col gap-0 md:grid md:grid-cols-[16rem_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)]">
+    <div
+      className={cn(
+        'flex h-full min-h-0 flex-col gap-0 md:grid md:grid-rows-[minmax(0,1fr)]',
+        shouldAnimateLayout && 'transition-[grid-template-columns] duration-200 ease-linear',
+      )}
+      style={{
+        gridTemplateColumns: goalsSidebarCollapsed ? '0px minmax(0,1fr)' : '16rem minmax(0,1fr)',
+      }}
+    >
       {/* Desktop Sidebar */}
-      <div className="hidden md:block">
+      <div
+        className={cn(
+          'hidden overflow-hidden md:block transition-[opacity] duration-200 ease-linear',
+          goalsSidebarCollapsed ? 'pointer-events-none opacity-0' : 'opacity-100',
+        )}
+        aria-hidden={goalsSidebarCollapsed}
+      >
         <GoalsSidebar
           goals={goals}
           selectedGoalId={selectedGoalId}
@@ -217,6 +239,8 @@ export function TasksPage() {
           selectedStatus={goalStatus}
           onSelectStatus={setGoalStatus}
           isLoading={isLoading}
+          isCollapsed={goalsSidebarCollapsed}
+          onToggleCollapse={() => setIsGoalsSidebarCollapsed((prev) => !prev)}
         />
       </div>
 
@@ -254,6 +278,8 @@ export function TasksPage() {
             onSearchQueryChange={setSearchQuery}
             hasActiveFilters={hasActiveFilters}
             onResetFilters={resetFilters}
+            goalsSidebarCollapsed={goalsSidebarCollapsed}
+            onToggleGoalsSidebar={() => setIsGoalsSidebarCollapsed((prev) => !prev)}
           />
 
           <CreateTaskModal

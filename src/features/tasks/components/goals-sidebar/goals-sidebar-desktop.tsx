@@ -23,7 +23,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Pencil, Plus, Target } from 'lucide-react'
+import { GripVertical, PanelLeft, Pencil, Plus, Target } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Loading } from '@/components/ui/loading'
@@ -93,6 +93,7 @@ export function GoalsSidebarDesktop({
   selectedStatus,
   onSelectStatus,
   isLoading,
+  onToggleCollapse,
 }: GoalsSidebarProps) {
   const [showModal, setShowModal] = useState(false)
   const [editingGoal, setEditingGoal] = useState<FullGoal | null>(null)
@@ -152,25 +153,38 @@ export function GoalsSidebarDesktop({
 
   return (
     <>
-      <aside className="hidden h-full w-64 flex-shrink-0 flex-col border-r-3 border-secondary bg-brutalist-bg md:flex">
+      <aside className="hidden h-full w-full min-w-0 flex-shrink-0 flex-col border-r-3 border-secondary bg-brutalist-bg md:flex">
         <div className="flex-shrink-0 border-b-3 border-secondary px-2 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <Target className="h-4 w-4" />
               <span className="text-lg font-bold uppercase">Goals</span>
             </div>
-            <Select value={selectedStatus} onValueChange={onSelectStatus}>
-              <SelectTrigger className="h-8 w-28 text-xs ">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {GOAL_STATUS_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2">
+              <Select value={selectedStatus} onValueChange={onSelectStatus}>
+                <SelectTrigger className="h-8 w-28 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {GOAL_STATUS_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {onToggleCollapse ? (
+                <button
+                  type="button"
+                  onClick={onToggleCollapse}
+                  className="flex h-8 w-8 items-center justify-center border-3 border-secondary bg-primary text-secondary shadow-brutal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal-hover active:translate-x-1 active:translate-y-1 active:shadow-none"
+                  aria-label="Collapse goals sidebar"
+                  title="Collapse goals sidebar"
+                >
+                  <PanelLeft className="h-4 w-4" />
+                </button>
+              ) : null}
+            </div>
           </div>
         </div>
 
