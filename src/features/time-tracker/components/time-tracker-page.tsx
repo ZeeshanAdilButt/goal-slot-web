@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
+import { useUpdateTaskMutation } from '@/features/tasks/hooks/use-tasks-mutations'
 import { ManualEntryModal } from '@/features/time-tracker/components/manual-entry-modal'
 import { RecentEntries } from '@/features/time-tracker/components/recent-entries'
 import { StatsCards } from '@/features/time-tracker/components/stats-cards'
@@ -13,12 +14,8 @@ import { useCreateTimeEntry } from '@/features/time-tracker/hooks/use-time-track
 import { useTimeTrackerData } from '@/features/time-tracker/hooks/use-time-tracker-queries'
 import { useTimer } from '@/features/time-tracker/hooks/use-timer'
 import { findScheduleBlockForDateTime } from '@/features/time-tracker/utils/schedule'
-import {
-  getCategoryFromGoal,
-  sortTasksBySelection,
-} from '@/features/time-tracker/utils/selection-helpers'
+import { getCategoryFromGoal, sortTasksBySelection } from '@/features/time-tracker/utils/selection-helpers'
 import { Goal, Task } from '@/features/time-tracker/utils/types'
-import { useUpdateTaskMutation } from '@/features/tasks/hooks/use-tasks-mutations'
 import { useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
@@ -26,6 +23,8 @@ import { toast } from 'react-hot-toast'
 
 import { tasksApi } from '@/lib/api'
 import { formatDuration, getLocalDateString } from '@/lib/utils'
+import { useStartTimerWithConfirmation } from '@/features/time-tracker/hooks/use-start-timer-with-confirmation'
+import { TimerSwitchDialog } from '@/features/time-tracker/components/timer-switch-dialog'
 
 export function TimeTrackerPage() {
   const {
@@ -57,6 +56,17 @@ export function TimeTrackerPage() {
   const [manualCategory, setManualCategory] = useState(false)
   const [manualGoal, setManualGoal] = useState(false)
   const [manualSchedule, setManualSchedule] = useState(false)
+
+  const {
+    startTimer: startTimerWithConfirmation,
+    showConfirmDialog,
+    setShowConfirmDialog,
+    currentTask: confirmCurrentTask,
+    elapsedTime: confirmElapsedTime,
+    handleSaveAndSwitch,
+    handleDiscardAndContinue,
+    isLoading: isConfirmLoading,
+  } = useStartTimerWithConfirmation()
 
   useEffect(() => {
     if (!weeklySchedule) return
@@ -94,7 +104,6 @@ export function TimeTrackerPage() {
       setCategory(activeBlock.category)
       setManualCategory(false)
     }
-
   }, [
     weeklySchedule,
     timerState,
@@ -200,15 +209,24 @@ export function TimeTrackerPage() {
       return
     }
 
-    if (selectedTask && selectedTask.status === 'BACKLOG') {
-      updateTask.mutate({ taskId: selectedTask.id, data: { status: 'DOING' } })
-    }
-
     setTask(selectedTaskTitle)
     setElapsedTime(0)
     const blockForStart = currentScheduleBlockId || findScheduleBlockForDateTime(weeklySchedule, new Date())?.id || ''
     setScheduleBlockId(blockForStart)
-    start(selectedTaskTitle, currentTaskId, currentCategory, currentGoalId, blockForStart)
+    startTimerWithConfirmation({
+      task: selectedTaskTitle,
+      taskId: currentTaskId,
+      category: currentCategory,
+      goalId: currentGoalId,
+      scheduleBlockId: blockForStart,
+      taskTitle: selectedTaskTitle,
+      onStartTimer: () => {
+        // Update task status to DOING if it's in BACKLOG
+        if (selectedTask && selectedTask.status === 'BACKLOG') {
+          updateTask.mutate({ taskId: selectedTask.id, data: { status: 'DOING' } })
+        }
+      },
+    })
   }
 
   const pauseTimer = () => {
@@ -326,6 +344,16 @@ export function TimeTrackerPage() {
         goals={goals}
         tasks={tasks}
         weeklySchedule={weeklySchedule}
+      />
+
+      <TimerSwitchDialog
+        open={showConfirmDialog}
+        onOpenChange={setShowConfirmDialog}
+        currentTask={confirmCurrentTask}
+        elapsedTime={confirmElapsedTime}
+        onSaveAndSwitch={handleSaveAndSwitch}
+        onDiscardAndContinue={handleDiscardAndContinue}
+        isLoading={isConfirmLoading}
       />
     </div>
   )
