@@ -61,15 +61,26 @@ export function TaskSelector({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Update search value when currentTask changes externally
+  // Only sync searchValue when a task is explicitly selected (currentTaskId changes)
   useEffect(() => {
-    if (currentTaskId) {
-      const task = tasks.find((t) => t.id === currentTaskId)
-      if (task) setSearchValue(task.title)
-    } else if (currentTask) {
-      setSearchValue(currentTask)
+    // Don't sync if input is currently focused (user is typing)
+    if (inputRef.current === document.activeElement) {
+      return
     }
-  }, [currentTaskId, currentTask, tasks])
+
+    if (currentTaskId) {
+      // Sync when task is explicitly selected
+      const task = tasks.find((t) => t.id === currentTaskId)
+      if (task && task.title !== searchValue) {
+        setSearchValue(task.title)
+      }
+    } else if (!currentTaskId && !currentTask && searchValue) {
+      // Only clear if both are empty and input is not focused
+      if (inputRef.current !== document.activeElement) {
+        setSearchValue('')
+      }
+    }
+  }, [currentTaskId, tasks]) // Only depend on currentTaskId, not currentTask
 
   const handleSelectTask = (task: Task) => {
     onTaskIdChange(task.id)
@@ -125,7 +136,11 @@ export function TaskSelector({
           type="text"
           value={searchValue}
           onChange={(e) => handleInputChange(e.target.value)}
-          onFocus={() => !isDisabled && setIsOpen(true)}
+          onFocus={() => {
+            if (!isDisabled) {
+              setIsOpen(true)
+            }
+          }}
           placeholder="Type to search or create a task..."
           disabled={isDisabled}
           className={`w-full border-3 py-3 pl-10 pr-4 text-lg font-bold focus:border-primary focus:outline-none disabled:opacity-50 ${

@@ -45,11 +45,16 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
     }
   }, [categories, category])
 
-  // Reset date/time defaults whenever the modal opens so schedule detection uses the current local context
+  // Reset all fields whenever the modal opens so it starts fresh
   useEffect(() => {
     if (isOpen) {
       setDate(getLocalDateString())
       setStartTime(getLocalTimeString())
+      setTitle('')
+      setTaskId('')
+      setCategory('')
+      setGoalId('')
+      setScheduleBlockId('')
     }
   }, [isOpen])
 
