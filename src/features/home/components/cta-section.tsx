@@ -6,67 +6,53 @@ import { AnimatedSection } from '@/components/animated-section'
 
 export function CTASection() {
   return (
-    <section className="bg-secondary px-4 py-12 text-white sm:px-6 sm:py-20 md:py-24">
+    <section className="bg-primary px-4 py-16 text-secondary sm:px-6 sm:py-24">
       <div className="mx-auto max-w-4xl text-center">
         <AnimatedSection
           initial={{ opacity: 0, scale: 0.9 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
         >
-          {/* Emotional Hook */}
-          <p className="mb-4 text-lg font-medium text-gray-300">Feeling doesn't equal doing. Proof does.</p>
+          <h2 className="mb-6 font-display text-5xl font-black uppercase md:text-6xl">
+            Join the next generation
+            <br />
+            of builders.
+          </h2>
 
-          <h2 className="mb-6 font-display text-4xl font-bold uppercase md:text-6xl">Your Growth, Measured.</h2>
-
-          <p className="mx-auto mb-4 max-w-2xl text-xl text-gray-300">
-            365 days. 2,000+ hours to invest. Where will yours go?
+          <p className="mx-auto mb-8 max-w-2xl text-xl">
+            Start tracking every hour. Build your proof. Ship your ambitions.
           </p>
 
-          {/* The Stakes */}
-          <div className="mx-auto mb-8 max-w-2xl rounded-xl border border-primary/30 bg-primary/10 p-5">
-            <p className="text-lg text-gray-200">
-              <span className="font-semibold text-primary">The 10,000-hour rule is real.</span> But you can't count what you don't track.
-            </p>
-            <p className="mt-3 text-gray-300">
-              Every hour logged is a brick in your foundation. Start stacking.
-            </p>
-          </div>
-
-          {/* CTA Buttons */}
-          <div className="flex flex-wrap justify-center gap-4">
+          {/* CTA Form */}
+          <div className="mx-auto mb-6 flex max-w-md flex-col gap-3 sm:flex-row">
+            <input
+              type="email"
+              placeholder="Enter your email here"
+              className="flex-1 rounded-sm border-2 border-secondary px-4 py-3 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
+            />
             <Link
               href="/signup"
-              className="btn-brutal flex items-center gap-2 px-8 py-4 text-xl transition-transform hover:scale-105"
+              className="flex items-center justify-center gap-2 rounded-sm border-2 border-secondary bg-secondary px-6 py-3 font-bold uppercase tracking-wide text-white shadow-brutal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal-hover active:translate-x-1 active:translate-y-1 active:shadow-none"
             >
-              Start 60-Day Free Trial <ArrowRight className="h-6 w-6" />
+              Get Started
             </Link>
           </div>
 
           {/* Trust Signals */}
-          <div className="mt-8 flex flex-wrap justify-center gap-6 text-gray-400">
-            <div className="flex items-center gap-2 text-sm">
-              <CheckCircle className="h-4 w-4 text-accent-green" />
-              60-day Pro trial included
+          <div className="flex flex-wrap justify-center gap-6 text-sm font-medium">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              60-day Pro trial
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <CheckCircle className="h-4 w-4 text-accent-green" />
-              No credit card required
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              No credit card
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <CheckCircle className="h-4 w-4 text-accent-green" />
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
               Cancel anytime
             </div>
           </div>
-
-          {/* Social Proof Reminder */}
-          <p className="mt-8 text-sm text-gray-500">
-            Trusted by 500+ developers tracking their growth.
-          </p>
-
-          {/* Final Micro-Copy */}
-          <p className="mt-4 font-display text-2xl font-bold text-primary">
-            Stack your hours. Prove your progress.
-          </p>
         </AnimatedSection>
       </div>
     </section>

@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
 
+import { EditTimeEntryModal } from '@/features/time-tracker/components/edit-time-entry-modal'
 import { useDeleteTimeEntry } from '@/features/time-tracker/hooks/use-time-tracker-mutations'
 import { TimeEntry } from '@/features/time-tracker/utils/types'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { CalendarRange, Clock, History, Target, Trash2 } from 'lucide-react'
+import { CalendarRange, Clock, History, Pencil, Target, Trash2 } from 'lucide-react'
 
 import { timeEntriesApi } from '@/lib/api'
 import { formatDate, formatDuration } from '@/lib/utils'
@@ -14,6 +15,7 @@ import { GoalSlotSpinner } from '@/components/goalslot-logo'
 export function RecentEntries() {
   const deleteEntry = useDeleteTimeEntry()
   const [entryToDelete, setEntryToDelete] = useState<TimeEntry | null>(null)
+  const [entryToEdit, setEntryToEdit] = useState<TimeEntry | null>(null)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [startDate, setStartDate] = useState('')
@@ -189,41 +191,55 @@ export function RecentEntries() {
               key={entry.id}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-3 border-2 border-secondary bg-white p-3 transition-all hover:shadow-brutal sm:gap-4 sm:p-4"
+              className="group flex items-center gap-3 border-2 border-secondary bg-white p-3 transition-all hover:bg-gray-50 hover:shadow-brutal sm:gap-4 sm:p-4"
             >
-              <div className="h-2 w-2 shrink-0 rounded-full bg-primary sm:h-3 sm:w-3" />
+              <div
+                className="h-2 w-2 shrink-0 rounded-full sm:h-3 sm:w-3"
+                style={{ backgroundColor: entry.goal?.color || '#f2cc0d' }}
+              />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-bold sm:text-base">{entry.taskName}</div>
-                <div className="flex items-center gap-1.5 truncate font-mono text-xs text-gray-500">
+                <div className="flex flex-wrap items-center gap-1.5 font-mono text-xs text-gray-500">
                   {entry.goal && (
                     <>
                       <Target className="h-3 w-3 shrink-0" />
-                      <span>{entry.goal.title}</span>
+                      <span className="truncate">{entry.goal.title}</span>
                     </>
                   )}
-                  {entry.notes && (
+                  {entry.notes && entry.notes !== 'Timer session' && entry.notes !== 'Manual entry' && (
                     <>
-                      {entry.goal && <span>•</span>}
-                      <span>{entry.notes}</span>
+                      {entry.goal && <span className="text-gray-300">•</span>}
+                      <span className="truncate italic text-gray-400">{entry.notes}</span>
                     </>
                   )}
                 </div>
               </div>
-              <div className="flex shrink-0 items-center gap-3 sm:gap-4">
+              <div className="flex shrink-0 items-center gap-2 sm:gap-3">
                 <div className="text-right">
                   <div className="font-mono text-sm font-bold sm:text-base">{formatDuration(entry.duration)}</div>
                   <div className="font-mono text-xs text-gray-500">{formatDate(entry.date)}</div>
                 </div>
-                <button
-                  type="button"
-                  className="rounded-sm border-2 border-red-300 bg-white p-1.5 shadow-brutal-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal"
-                  onClick={() => setEntryToDelete(entry)}
-                  disabled={deleteEntry.isPending}
-                  title="Delete entry"
-                  aria-label="Delete entry"
-                >
-                  <Trash2 className="h-3.5 w-3.5 text-red-600" />
-                </button>
+                <div className="flex gap-1 opacity-60 transition-opacity group-hover:opacity-100">
+                  <button
+                    type="button"
+                    className="rounded-sm border-2 border-gray-300 bg-white p-1.5 transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal"
+                    onClick={() => setEntryToEdit(entry)}
+                    title="Edit entry"
+                    aria-label="Edit entry"
+                  >
+                    <Pencil className="h-3.5 w-3.5 text-gray-600" />
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-sm border-2 border-red-300 bg-white p-1.5 transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal"
+                    onClick={() => setEntryToDelete(entry)}
+                    disabled={deleteEntry.isPending}
+                    title="Delete entry"
+                    aria-label="Delete entry"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                  </button>
+                </div>
               </div>
             </motion.div>
           ))}
@@ -243,6 +259,12 @@ export function RecentEntries() {
         cancelButtonText="Keep entry"
         variant="destructive"
         isLoading={deleteEntry.isPending}
+      />
+
+      <EditTimeEntryModal
+        isOpen={!!entryToEdit}
+        onClose={() => setEntryToEdit(null)}
+        entry={entryToEdit}
       />
     </div>
   )

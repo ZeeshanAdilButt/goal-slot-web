@@ -1,110 +1,129 @@
 import Link from 'next/link'
 
-import { ArrowRight, ChevronRight, Star } from 'lucide-react'
+import { ArrowRight, Calendar, Code } from 'lucide-react'
 
 import { AnimatedSection } from '@/components/animated-section'
 
-import { GoalAchievementSVG } from './svg-illustrations'
-
 export function HeroSection() {
   return (
-    <section className="px-4 pb-12 pt-24 sm:px-6 sm:pb-20 sm:pt-28 md:pt-32">
-      <div className="mx-auto max-w-7xl">
-        <div className="grid items-center gap-12 lg:grid-cols-2">
+    <section className="relative w-full border-b-2 border-secondary bg-grid">
+      <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-8">
+          {/* Left Column - Copy */}
           <AnimatedSection
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
+            className="flex flex-col gap-6"
           >
-            <h1 className="mb-6 font-display text-5xl font-bold uppercase leading-tight md:text-6xl lg:text-7xl">
-              Your Growth,<span className="block text-primary drop-shadow-[4px_4px_0px_#000]">Measured.</span>
+            {/* Headline */}
+            <h1 className="font-display text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+              Track your goals.
+              <br />
+              <span className="text-gray-500">See where your time goes.</span>
             </h1>
 
-            <p className="mb-8 max-w-lg font-mono text-xl text-gray-700">
-              Track hours toward mastery. <strong>Proof over feeling.</strong> See exactly where your time goes — and watch your skills stack up.
+            {/* Subheadline */}
+            <p className="max-w-lg text-lg leading-relaxed text-gray-600">
+              GoalSlot connects your goals to your calendar and tracks every hour you work on them. 
+              Finally know if you're actually making progress.
             </p>
 
-            <div className="flex flex-col gap-3">
-              <div className="flex flex-wrap gap-4">
-                <Link href="/signup" className="btn-brutal flex items-center gap-2 text-lg">
-                  Start Free Today <ArrowRight className="h-5 w-5" />
-                </Link>
-                <Link href="#problem" className="btn-brutal-secondary flex items-center gap-2">
-                  See How It Works <ChevronRight className="h-5 w-5" />
-                </Link>
-              </div>
-              <p className="flex items-center gap-2 text-sm font-bold text-gray-600">
-                <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
-                60-day Pro trial free for all new users
-              </p>
+            {/* CTA Buttons */}
+            <div className="flex flex-col gap-4 sm:flex-row">
+              <Link
+                href="/signup"
+                className="group flex h-12 items-center justify-center gap-2 rounded-sm border-2 border-secondary bg-primary px-6 text-sm font-bold uppercase tracking-wide shadow-brutal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal-hover active:translate-x-1 active:translate-y-1 active:shadow-none"
+              >
+                Get Started Free
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+              <Link
+                href="#features"
+                className="flex h-12 items-center justify-center gap-2 rounded-sm border-2 border-secondary bg-white px-6 text-sm font-bold uppercase tracking-wide shadow-brutal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-brutal-hover active:translate-x-1 active:translate-y-1 active:shadow-none"
+              >
+                See Features
+              </Link>
             </div>
 
-            {/* Social Proof */}
-            <div className="mt-8 flex items-center gap-4 rounded-lg border-2 border-gray-200 bg-white/60 px-4 py-3 backdrop-blur-sm">
-              <div className="flex -space-x-2">
-                {[
-                  'bg-gradient-to-br from-blue-400 to-blue-600',
-                  'bg-gradient-to-br from-green-400 to-green-600',
-                  'bg-gradient-to-br from-purple-400 to-purple-600',
-                  'bg-gradient-to-br from-orange-400 to-orange-600',
-                ].map((gradient, i) => (
-                  <div
-                    key={i}
-                    className={`h-8 w-8 rounded-full border-2 border-white ${gradient}`}
-                  />
-                ))}
-              </div>
-              <div className="h-8 w-px bg-gray-200" />
-              <div>
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star key={i} className="h-3.5 w-3.5 fill-primary text-primary" />
-                  ))}
-                  <span className="ml-1 text-sm font-semibold text-gray-700">4.9</span>
-                </div>
-                <span className="text-xs text-gray-600">Trusted by 500+ developers</span>
-              </div>
-            </div>
+            {/* Simple note */}
+            <p className="text-sm text-gray-500">
+              Free plan available. Join 100+ users tracking their goals.
+            </p>
           </AnimatedSection>
 
+          {/* Right Column - Visual */}
           <AnimatedSection
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="relative"
+            className="relative w-full"
           >
-            {/* Goal Achievement Illustration */}
-            <div className="card-brutal overflow-hidden bg-white">
-              <GoalAchievementSVG />
-              <div className="mt-4 text-center">
-                <p className="text-lg font-semibold text-gray-800">Your Goals. Tracked. Achieved.</p>
+            <div className="relative flex min-h-[380px] w-full items-center justify-center">
+              {/* Background accent box */}
+              <div className="absolute inset-0 translate-x-3 translate-y-3 rounded-sm border-2 border-secondary bg-primary/20"></div>
+
+              {/* Main content card */}
+              <div className="relative flex w-full flex-col overflow-hidden rounded-sm border-2 border-secondary bg-white shadow-brutal">
+                {/* Mock Window Header */}
+                <div className="flex h-8 items-center gap-2 border-b-2 border-secondary bg-gray-100 px-3">
+                  <div className="h-3 w-3 rounded-full border border-secondary bg-red-400"></div>
+                  <div className="h-3 w-3 rounded-full border border-secondary bg-yellow-400"></div>
+                  <div className="h-3 w-3 rounded-full border border-secondary bg-green-400"></div>
+                </div>
+
+                {/* Mock Dashboard Content */}
+                <div className="flex flex-1 flex-col gap-4 bg-white p-5">
+                  {/* Header */}
+                  <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                        Today
+                      </p>
+                      <h3 className="font-display text-base font-bold">Monday, Jan 27</h3>
+                    </div>
+                    <span className="rounded-sm border-2 border-secondary bg-secondary px-3 py-1 font-mono text-xs font-bold text-white">
+                      4h 20m
+                    </span>
+                  </div>
+
+                  {/* Grid Layout */}
+                  <div className="grid h-full grid-cols-12 gap-3">
+                    {/* Left: Goals */}
+                    <div className="col-span-5 flex flex-col gap-2 border-r border-gray-100 pr-3">
+                      <p className="text-xs font-bold uppercase text-gray-400">Goals</p>
+                      <div className="rounded-sm border-2 border-secondary bg-primary p-2.5">
+                        <p className="text-xs font-bold">Launch MVP</p>
+                        <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-secondary/20">
+                          <div className="h-full w-2/3 bg-secondary"></div>
+                        </div>
+                      </div>
+                      <div className="rounded-sm border border-gray-200 bg-gray-50 p-2.5 opacity-60">
+                        <p className="text-xs font-bold text-gray-600">Learn React</p>
+                      </div>
+                    </div>
+
+                    {/* Right: Time Blocks */}
+                    <div className="col-span-7 flex flex-col gap-2">
+                      <p className="text-xs font-bold uppercase text-gray-400">Schedule</p>
+                      <div className="flex items-center rounded-sm border-2 border-secondary bg-white p-2.5 shadow-brutal-sm">
+                        <Code className="mr-2 h-4 w-4" />
+                        <div className="flex-1">
+                          <p className="text-xs font-bold">Frontend Work</p>
+                          <p className="text-[10px] text-gray-500">10:00 - 12:00</p>
+                        </div>
+                        <div className="h-2 w-2 animate-pulse rounded-full bg-green-500"></div>
+                      </div>
+
+                      <div className="flex items-center rounded-sm border border-dashed border-gray-300 bg-gray-50 p-2.5">
+                        <Calendar className="mr-2 h-4 w-4 text-gray-400" />
+                        <p className="text-xs text-gray-400">Available slot</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-            
-            <div className="mt-3 text-center">
-              <p className="text-sm text-gray-600">
-                Every hour logged is proof of progress.
-              </p>
-            </div>
-
-            {/* Floating Stats */}
-            <AnimatedSection
-              animate={{ y: [0, -6, 0] }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-              className="absolute -right-2 top-8 rounded-lg border-2 border-gray-200 bg-white px-4 py-3 shadow-lg sm:-right-4"
-            >
-              <div className="font-mono text-xl font-bold text-gray-900">87%</div>
-              <div className="text-xs font-medium text-gray-500">Goals Achieved</div>
-            </AnimatedSection>
-
-            <AnimatedSection
-              animate={{ y: [0, 6, 0] }}
-              transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
-              className="absolute -left-2 bottom-12 rounded-lg border-2 border-gray-200 bg-white px-4 py-3 shadow-lg sm:-left-4"
-            >
-              <div className="font-mono text-xl font-bold text-gray-900">142h</div>
-              <div className="text-xs font-medium text-gray-500">Time Tracked</div>
-            </AnimatedSection>
           </AnimatedSection>
         </div>
       </div>

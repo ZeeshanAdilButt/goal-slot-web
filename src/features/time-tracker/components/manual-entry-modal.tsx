@@ -45,16 +45,18 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
     }
   }, [categories, category])
 
-  // Reset all fields whenever the modal opens so it starts fresh
+  // Auto-select goal if only one exists
+  useEffect(() => {
+    if (goals.length === 1 && !goalId && !taskId) {
+      setGoalId(goals[0].id)
+    }
+  }, [goals, goalId, taskId])
+
+  // Reset date/time defaults whenever the modal opens so schedule detection uses the current local context
   useEffect(() => {
     if (isOpen) {
       setDate(getLocalDateString())
       setStartTime(getLocalTimeString())
-      setTitle('')
-      setTaskId('')
-      setCategory('')
-      setGoalId('')
-      setScheduleBlockId('')
     }
   }, [isOpen])
 

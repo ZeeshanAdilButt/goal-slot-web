@@ -2,7 +2,7 @@ import { focusQueries } from '@/features/reports/hooks/use-focus-time-entries'
 import { goalQueries } from '@/features/goals/utils/queries'
 import { taskQueries } from '@/features/tasks/utils/queries'
 import { timeTrackerQueries } from '@/features/time-tracker/utils/queries'
-import { CreateTimeEntryPayload, TimeEntry } from '@/features/time-tracker/utils/types'
+import { CreateTimeEntryPayload, TimeEntry, UpdateTimeEntryPayload } from '@/features/time-tracker/utils/types'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 
@@ -100,6 +100,31 @@ export function useDeleteTimeEntry() {
     },
     onSuccess: () => {
       toast.success('Time entry deleted')
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: timeTrackerQueries.recentEntries() })
+      queryClient.invalidateQueries({ queryKey: ['time-tracker', 'recent-entries', 'paged'] })
+      queryClient.invalidateQueries({ queryKey: taskQueries.all })
+      queryClient.invalidateQueries({ queryKey: goalQueries.all })
+      queryClient.invalidateQueries({ queryKey: ['schedule', 'goals', 'active'] })
+      queryClient.invalidateQueries({ queryKey: focusQueries.all })
+    },
+  })
+}
+
+export function useUpdateTimeEntry() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ entryId, data }: { entryId: string; data: UpdateTimeEntryPayload }) => {
+      const res = await timeEntriesApi.update(entryId, data)
+      return res.data
+    },
+    onSuccess: () => {
+      toast.success('Time entry updated!')
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Failed to update entry')
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: timeTrackerQueries.recentEntries() })

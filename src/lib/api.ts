@@ -262,6 +262,8 @@ export interface ReportFilters {
   sortBy?: 'date_asc' | 'date_desc' | 'duration_asc' | 'duration_desc' | 'goal' | 'task'
   includeBillable?: boolean
   hourlyRate?: number
+  showScheduleContext?: boolean
+  includeTaskNotes?: boolean
 }
 
 export interface ExportReportParams extends ReportFilters {

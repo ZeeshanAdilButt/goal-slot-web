@@ -69,7 +69,8 @@ const config: Config = {
       fontFamily: {
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Space Grotesk', 'sans-serif'],
+        display: ['Plus Jakarta Sans', 'Space Grotesk', 'sans-serif'],
+        body: ['Inter', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
         brutal: '4px 4px 0px 0px #000000',

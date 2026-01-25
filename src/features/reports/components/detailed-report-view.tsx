@@ -25,6 +25,7 @@ interface DetailedReportViewProps {
   } | null
   showBillable?: boolean
   showScheduleContext?: boolean
+  includeTaskNotes?: boolean
 }
 
 export function DetailedReportView({
@@ -33,6 +34,7 @@ export function DetailedReportView({
   billable,
   showBillable = false,
   showScheduleContext = false,
+  includeTaskNotes = false,
 }: DetailedReportViewProps) {
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set(dailyBreakdown.map((d) => d.date)))
 
@@ -118,10 +120,11 @@ export function DetailedReportView({
         {/* Table Header */}
         <div className="hidden border-b-2 border-secondary bg-gray-50 px-4 py-2 font-mono text-xs font-semibold uppercase sm:grid sm:grid-cols-12">
           <div className="col-span-2">Time</div>
-          <div className="col-span-4">Task</div>
-          <div className="col-span-3">Goal</div>
+          <div className="col-span-3">Task</div>
+          <div className="col-span-2">Goal</div>
           <div className="col-span-2">Duration</div>
           <div className="col-span-1">Notes</div>
+          {includeTaskNotes && <div className="col-span-2">Task Notes</div>}
         </div>
 
         {dailyBreakdown.map((day) => (
@@ -150,7 +153,7 @@ export function DetailedReportView({
             {expandedDays.has(day.date) && (
               <div className="divide-y divide-gray-100">
                 {day.entries.map((entry) => (
-                  <EntryRow key={entry.id} entry={entry} showScheduleContext={showScheduleContext} />
+                  <EntryRow key={entry.id} entry={entry} showScheduleContext={showScheduleContext} includeTaskNotes={includeTaskNotes} />
                 ))}
                 {/* Daily Subtotal */}
                 <div className="flex items-center justify-end gap-4 bg-gray-50 px-4 py-2 font-mono text-sm">
@@ -177,7 +180,7 @@ export function DetailedReportView({
   )
 }
 
-function EntryRow({ entry, showScheduleContext }: { entry: DetailedTimeEntry; showScheduleContext: boolean }) {
+function EntryRow({ entry, showScheduleContext, includeTaskNotes }: { entry: DetailedTimeEntry; showScheduleContext: boolean; includeTaskNotes?: boolean }) {
   const startTime = entry.startedAt ? format(parseISO(entry.startedAt), 'h:mm a') : '—'
   const endTime = entry.endedAt ? format(parseISO(entry.endedAt), 'h:mm a') : '—'
   const hasScheduleBlock = showScheduleContext && entry.scheduleBlock && entry.scheduleBlock.title
@@ -193,7 +196,7 @@ function EntryRow({ entry, showScheduleContext }: { entry: DetailedTimeEntry; sh
       </div>
 
       {/* Task */}
-      <div className="col-span-4">
+      <div className="col-span-3">
         <div className="font-medium">{entry.taskName}</div>
         {entry.task && entry.task.title !== entry.taskName && (
           <div className="text-xs text-gray-500">{entry.task.title}</div>
@@ -218,7 +221,7 @@ function EntryRow({ entry, showScheduleContext }: { entry: DetailedTimeEntry; sh
       </div>
 
       {/* Goal */}
-      <div className="col-span-3 flex items-center gap-2">
+      <div className="col-span-2 flex items-center gap-2">
         {entry.goal ? (
           <>
             <span
@@ -248,6 +251,17 @@ function EntryRow({ entry, showScheduleContext }: { entry: DetailedTimeEntry; sh
           </div>
         )}
       </div>
+
+      {includeTaskNotes && entry.taskNotes && (
+        <div className="col-span-2">
+          <div className="group relative">
+            <FileText className="h-4 w-4 cursor-help text-gray-400" />
+            <div className="absolute bottom-full right-0 z-10 mb-2 hidden w-48 rounded-lg border-2 border-secondary bg-white p-2 text-xs shadow-lg group-hover:block">
+              {entry.taskNotes}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

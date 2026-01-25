@@ -144,6 +144,9 @@ export function ExportReportsPage() {
   // Schedule context (beautification option)
   const [showScheduleContext, setShowScheduleContext] = useState(false)
 
+  // Task notes toggle
+  const [includeTaskNotes, setIncludeTaskNotes] = useState(false)
+
   // Restore persisted hourly rate on mount
   useEffect(() => {
     try {
@@ -189,8 +192,9 @@ export function ExportReportsPage() {
       includeBillable,
       hourlyRate: includeBillable ? hourlyRate : undefined,
       showScheduleContext,
+      includeTaskNotes,
     }),
-    [dateRange, viewType, groupBy, selectedGoalIds, selectedTaskIds, includeBillable, hourlyRate, showScheduleContext],
+    [dateRange, viewType, groupBy, selectedGoalIds, selectedTaskIds, includeBillable, hourlyRate, showScheduleContext, includeTaskNotes],
   )
 
   // Queries
@@ -267,7 +271,7 @@ export function ExportReportsPage() {
             if (viewType === 'detailed') {
               itemsHtml = `
                   <table class="table">
-                    <thead><tr><th>Date</th><th>Task</th><th>Goal</th><th>Duration</th></tr></thead>
+                    <thead><tr><th>Date</th><th>Task</th><th>Goal</th><th>Duration</th><th>Notes</th><th>Task Notes</th></tr></thead>
                     <tbody>${(data.dailyBreakdown || [])
                       .map((d: any) =>
                         (d.entries || [])
@@ -278,6 +282,8 @@ export function ExportReportsPage() {
                         <td>${e.task?.title || e.taskName || '-'}</td>
                         <td>${e.goal?.title || '-'}</td>
                         <td>${formatDuration(e.duration)}</td>
+                        <td>${e.notes || ''}</td>
+                        <td>${e.taskNotes || ''}</td>
                       </tr>`,
                           )
                           .join(''),
@@ -778,6 +784,21 @@ export function ExportReportsPage() {
               <p className="text-xs text-gray-500">Entries will display which schedule block they were logged from</p>
             )}
           </div>
+
+          {/* Task Notes Toggle */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Task Notes
+            </Label>
+            <div className="flex items-center gap-4 rounded-lg border-2 border-secondary p-3">
+              <Switch checked={includeTaskNotes} onCheckedChange={setIncludeTaskNotes} />
+              <span className="text-sm">Include task notes</span>
+            </div>
+            {includeTaskNotes && (
+              <p className="text-xs text-gray-500">Show notes from individual tasks in the report</p>
+            )}
+          </div>
         </div>
 
         {/* Active Date Range Display */}
@@ -802,6 +823,7 @@ export function ExportReportsPage() {
             billable={detailedQuery.data.billable}
             showBillable={includeBillable}
             showScheduleContext={showScheduleContext}
+            includeTaskNotes={includeTaskNotes}
           />
         ) : viewType === 'summary' && summaryQuery.data ? (
           <SummaryReportView

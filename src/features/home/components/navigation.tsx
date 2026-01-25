@@ -22,23 +22,23 @@ export function Navigation() {
     window.location.href = '/'
   }
   return (
-    <nav className="fixed inset-x-0 top-0 z-50 border-b-3 border-secondary bg-brutalist-bg will-change-transform">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
+    <nav className="fixed inset-x-0 top-0 z-50 border-b-2 border-secondary bg-background/95 will-change-transform backdrop-blur-sm">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/">
           <GoalSlotBrand size="md" tagline="Your growth, measured." />
         </Link>
 
-        <div className="hidden items-center gap-6 md:flex">
-          <a href="#problem" className="text-sm font-bold uppercase transition-colors hover:text-primary">
-            Why
+        <div className="hidden items-center gap-8 md:flex">
+          <a href="#philosophy" className="text-sm font-semibold transition-colors hover:text-primary">
+            Why GoalSlot
           </a>
-          <a href="#features" className="text-sm font-bold uppercase transition-colors hover:text-primary">
+          <a href="#features" className="text-sm font-semibold transition-colors hover:text-primary">
             Features
           </a>
-          <a href="#pricing" className="text-sm font-bold uppercase transition-colors hover:text-primary">
+          <a href="#pricing" className="text-sm font-semibold transition-colors hover:text-primary">
             Pricing
           </a>
-          <Link href="/guides" className="text-sm font-bold uppercase transition-colors hover:text-primary">
+          <Link href="/guides" className="text-sm font-semibold transition-colors hover:text-primary">
             Guides
           </Link>
         </div>
@@ -125,11 +125,14 @@ export function Navigation() {
             </Popover>
           ) : (
             <>
-              <Link href="/login?redirect=/dashboard" className="btn-brutal-secondary px-4 py-2 text-sm">
+              <Link href="/login?redirect=/dashboard" className="btn-brutal-secondary px-6 py-3 text-sm">
                 Login
               </Link>
-              <Link href="/signup" className="btn-brutal px-4 py-2 text-sm">
-                Start Free
+              <Link
+                href="/signup"
+                className="flex items-center justify-center gap-2 rounded-sm border-2 border-secondary bg-primary px-6 py-3 text-sm font-bold uppercase tracking-wide shadow-brutal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal-hover active:translate-x-1 active:translate-y-1 active:shadow-none"
+              >
+                Start Building
               </Link>
             </>
           )}

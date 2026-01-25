@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react'
 
-import { useUpdateTaskMutation } from '@/features/tasks/hooks/use-tasks-mutations'
 import { ManualEntryModal } from '@/features/time-tracker/components/manual-entry-modal'
 import { RecentEntries } from '@/features/time-tracker/components/recent-entries'
 import { StatsCards } from '@/features/time-tracker/components/stats-cards'
+import { StopTimerModal } from '@/features/time-tracker/components/stop-timer-modal'
 import { TaskSelector } from '@/features/time-tracker/components/task-selector'
 import { TimerControls } from '@/features/time-tracker/components/timer-controls'
 import { TimerDisplay } from '@/features/time-tracker/components/timer-display'
@@ -14,8 +14,12 @@ import { useCreateTimeEntry } from '@/features/time-tracker/hooks/use-time-track
 import { useTimeTrackerData } from '@/features/time-tracker/hooks/use-time-tracker-queries'
 import { useTimer } from '@/features/time-tracker/hooks/use-timer'
 import { findScheduleBlockForDateTime } from '@/features/time-tracker/utils/schedule'
-import { getCategoryFromGoal, sortTasksBySelection } from '@/features/time-tracker/utils/selection-helpers'
+import {
+  getCategoryFromGoal,
+  sortTasksBySelection,
+} from '@/features/time-tracker/utils/selection-helpers'
 import { Goal, Task } from '@/features/time-tracker/utils/types'
+import { useUpdateTaskMutation } from '@/features/tasks/hooks/use-tasks-mutations'
 import { useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
@@ -23,8 +27,6 @@ import { toast } from 'react-hot-toast'
 
 import { tasksApi } from '@/lib/api'
 import { formatDuration, getLocalDateString } from '@/lib/utils'
-import { useStartTimerWithConfirmation } from '@/features/time-tracker/hooks/use-start-timer-with-confirmation'
-import { TimerSwitchDialog } from '@/features/time-tracker/components/timer-switch-dialog'
 
 export function TimeTrackerPage() {
   const {
@@ -53,20 +55,10 @@ export function TimeTrackerPage() {
   const updateTask = useUpdateTaskMutation()
   const queryClient = useQueryClient()
   const [showManualEntry, setShowManualEntry] = useState(false)
+  const [showStopModal, setShowStopModal] = useState(false)
   const [manualCategory, setManualCategory] = useState(false)
   const [manualGoal, setManualGoal] = useState(false)
   const [manualSchedule, setManualSchedule] = useState(false)
-
-  const {
-    startTimer: startTimerWithConfirmation,
-    showConfirmDialog,
-    setShowConfirmDialog,
-    currentTask: confirmCurrentTask,
-    elapsedTime: confirmElapsedTime,
-    handleSaveAndSwitch,
-    handleDiscardAndContinue,
-    isLoading: isConfirmLoading,
-  } = useStartTimerWithConfirmation()
 
   useEffect(() => {
     if (!weeklySchedule) return
@@ -104,6 +96,7 @@ export function TimeTrackerPage() {
       setCategory(activeBlock.category)
       setManualCategory(false)
     }
+
   }, [
     weeklySchedule,
     timerState,
@@ -181,10 +174,8 @@ export function TimeTrackerPage() {
       if (goalCategory) {
         setCategory(goalCategory)
         setManualCategory(true)
-        return
       }
-    }
-    if (!goalId) {
+    } else {
       setCategory('')
       setManualCategory(true)
       setTaskId('')
@@ -192,7 +183,9 @@ export function TimeTrackerPage() {
     }
   }
 
+  // Sort tasks - prioritize tasks matching current goal/category but show all tasks
   const orderedTasks = sortTasksBySelection(tasks, currentGoalId || undefined, currentCategory || undefined)
+  
   const filteredGoals = goals.filter((goal: Goal) => {
     if (currentCategory) {
       return goal.category === currentCategory
@@ -209,24 +202,26 @@ export function TimeTrackerPage() {
       return
     }
 
+    // Start the timer immediately
     setTask(selectedTaskTitle)
     setElapsedTime(0)
     const blockForStart = currentScheduleBlockId || findScheduleBlockForDateTime(weeklySchedule, new Date())?.id || ''
     setScheduleBlockId(blockForStart)
-    startTimerWithConfirmation({
-      task: selectedTaskTitle,
-      taskId: currentTaskId,
-      category: currentCategory,
-      goalId: currentGoalId,
-      scheduleBlockId: blockForStart,
-      taskTitle: selectedTaskTitle,
-      onStartTimer: () => {
-        // Update task status to DOING if it's in BACKLOG
-        if (selectedTask && selectedTask.status === 'BACKLOG') {
-          updateTask.mutate({ taskId: selectedTask.id, data: { status: 'DOING' } })
+    start(selectedTaskTitle, currentTaskId, currentCategory, currentGoalId, blockForStart)
+
+    // Optionally update task status if it's a backlog task
+    if (selectedTask && selectedTask.status === 'BACKLOG') {
+      updateTask.mutate(
+        { taskId: selectedTask.id, data: { status: 'DOING' } },
+        {
+          onError: (error) => {
+            console.error('Failed to update task status:', error)
+            // Show user-friendly error but don't interrupt timer functionality
+            toast.error('Could not update task status, but timer started successfully')
+          }
         }
-      },
-    })
+      )
+    }
   }
 
   const pauseTimer = () => {
@@ -238,6 +233,10 @@ export function TimeTrackerPage() {
   }
 
   const stopTimer = async () => {
+    setShowStopModal(true)
+  }
+
+  const handleStopConfirm = (notes: string) => {
     const duration = Math.max(1, Math.floor(elapsedTime / 60)) // At least 1 minute for the entry
     const taskTitle = currentTaskId
       ? tasks.find((t: Task) => t.id === currentTaskId)?.title || currentTask
@@ -250,7 +249,7 @@ export function TimeTrackerPage() {
         taskTitle,
         duration,
         date: getLocalDateString(),
-        notes: `Timer session`,
+        notes: notes || undefined,
         goalId: currentGoalId || undefined,
         startedAt: startTimestamp ? new Date(startTimestamp).toISOString() : undefined,
         scheduleBlockId: currentScheduleBlockId || undefined,
@@ -260,9 +259,7 @@ export function TimeTrackerPage() {
           toast.success(`Logged ${formatDuration(duration)}!`)
           setElapsedTime(0)
           reset()
-          // Clear task selection so user knows they need to select a new task
-          setTask('')
-          setTaskId('')
+          setShowStopModal(false)
         },
       },
     )
@@ -346,14 +343,13 @@ export function TimeTrackerPage() {
         weeklySchedule={weeklySchedule}
       />
 
-      <TimerSwitchDialog
-        open={showConfirmDialog}
-        onOpenChange={setShowConfirmDialog}
-        currentTask={confirmCurrentTask}
-        elapsedTime={confirmElapsedTime}
-        onSaveAndSwitch={handleSaveAndSwitch}
-        onDiscardAndContinue={handleDiscardAndContinue}
-        isLoading={isConfirmLoading}
+      <StopTimerModal
+        isOpen={showStopModal}
+        onClose={() => setShowStopModal(false)}
+        onConfirm={handleStopConfirm}
+        taskName={currentTask || 'Untitled'}
+        duration={Math.max(1, Math.floor(elapsedTime / 60))}
+        isLoading={createEntry.isPending}
       />
     </div>
   )

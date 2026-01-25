@@ -44,3 +44,15 @@ export interface CreateTimeEntryPayload {
   startedAt?: string
   scheduleBlockId?: string
 }
+
+export interface UpdateTimeEntryPayload {
+  taskName?: string
+  taskId?: string
+  taskTitle?: string
+  duration?: number
+  date?: string
+  notes?: string
+  goalId?: string
+  startedAt?: string
+  scheduleBlockId?: string
+}
