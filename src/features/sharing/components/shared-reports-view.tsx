@@ -81,6 +81,17 @@ const adaptSharedEntry = (entry: SharedTimeEntry): FocusTimeEntry => ({
   scheduleBlock: null,
 })
 
+/**
+ * Render a shared reports UI for viewing and exporting another user's focus data.
+ *
+ * Renders a selector to pick a shared user, controls to change view granularity (day/week/month)
+ * and filters, multiple report cards populated from the selected user's shared time entries and goals,
+ * and an export action that downloads the current entries as CSV. When no shared reports are available,
+ * renders a placeholder message.
+ *
+ * @param sharedWithMe - List of shared user objects used to populate the selector; each item contains the `owner` info and shared metadata.
+ * @returns The rendered React element for the shared reports view.
+ */
 export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(
     sharedWithMe.length > 0 ? sharedWithMe[0].owner.id : null,
