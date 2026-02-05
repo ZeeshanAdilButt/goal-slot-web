@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { useFilteredEntries, type ReportFilterState } from '@/features/reports/components/focus-filters'
 import { FocusUpdatingOverlay } from '@/features/reports/components/focus-updating-overlay'
-import { useFocusTimeEntriesRangeQuery } from '@/features/reports/hooks/use-focus-time-entries'
+import { useReportTimeEntries } from '@/features/reports/hooks/use-report-time-entries'
 import { getPeriodRange } from '@/features/reports/utils/dates'
 import type { FocusGranularity, FocusTimeEntry } from '@/features/reports/utils/types'
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
@@ -18,11 +18,10 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'
 interface FocusCategoryPieCardProps {
   view: FocusGranularity
   filters?: ReportFilterState
-  explicitEntries?: FocusTimeEntry[]
-  isLoading?: boolean
+  reportUserId?: string
 }
 
-export function FocusCategoryPieCard({ view, filters, explicitEntries, isLoading: explicitLoading }: FocusCategoryPieCardProps) {
+export function FocusCategoryPieCard({ view, filters, reportUserId }: FocusCategoryPieCardProps) {
   const [offset, setOffset] = useState(0)
 
   useEffect(() => {
@@ -32,13 +31,20 @@ export function FocusCategoryPieCard({ view, filters, explicitEntries, isLoading
   const granularity = view
 
   const range = useMemo(() => getPeriodRange({ period: granularity, offset }), [granularity, offset])
-  const entriesQuery = useFocusTimeEntriesRangeQuery({ startDate: range.startDate, endDate: range.endDate })
-  
-  const rawEntries = explicitEntries ?? entriesQuery.data ?? []
+  const {
+    data: rawEntries,
+    isLoading,
+    isFetching,
+  } = useReportTimeEntries({
+    startDate: range.startDate,
+    endDate: range.endDate,
+    reportUserId,
+  })
+
   const entries = useFilteredEntries(rawEntries, filters ?? { goalIds: [], categoryIds: [] })
 
-  const showLoading = (explicitLoading ?? entriesQuery.isLoading) && rawEntries.length === 0
-  const showUpdating = (explicitLoading ?? entriesQuery.isFetching) && !showLoading
+  const showLoading = isLoading && rawEntries.length === 0
+  const showUpdating = isFetching && !showLoading
 
   const data = useMemo(() => {
     const categoryMap = new Map<string, number>()

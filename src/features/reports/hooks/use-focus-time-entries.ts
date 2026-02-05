@@ -14,9 +14,11 @@ export const focusQueries = {
 export function useFocusTimeEntriesRangeQuery({
   startDate,
   endDate,
+  enabled = true,
 }: {
   startDate: string
   endDate: string
+  enabled?: boolean
 }): UseQueryResult<FocusTimeEntry[]> {
   return useQuery<FocusTimeEntry[]>({
     queryKey: focusQueries.entriesRange(startDate, endDate),
@@ -24,6 +26,7 @@ export function useFocusTimeEntriesRangeQuery({
       const res = await timeEntriesApi.getByRange(startDate, endDate)
       return Array.isArray(res.data) ? res.data : []
     },
+    enabled,
     placeholderData: (previousData) => previousData,
   })
 }

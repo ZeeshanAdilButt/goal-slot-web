@@ -4,10 +4,9 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { useFilteredEntries, type ReportFilterState } from '@/features/reports/components/focus-filters'
 import { FocusUpdatingOverlay } from '@/features/reports/components/focus-updating-overlay'
-import { useFocusTimeEntriesRangeQuery } from '@/features/reports/hooks/use-focus-time-entries'
+import { useReportTimeEntries } from '@/features/reports/hooks/use-report-time-entries'
 import { buildStackedSeries, formatMinutesAsHoursTick } from '@/features/reports/utils/aggregation'
-import { getRollingRange } from '@/features/reports/utils/dates'
-import { getDateOnlyFromIsoString } from '@/features/reports/utils/dates'
+import { getDateOnlyFromIsoString, getRollingRange } from '@/features/reports/utils/dates'
 import type { FocusGranularity, FocusGroupBy, FocusTimeEntry } from '@/features/reports/utils/types'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
@@ -20,11 +19,10 @@ interface FocusBreakdownCardProps {
   view: FocusGranularity
   groupBy: FocusGroupBy
   filters?: ReportFilterState
-  explicitEntries?: FocusTimeEntry[]
-  isLoading?: boolean
+  reportUserId?: string
 }
 
-export function FocusBreakdownCard({ view, groupBy, filters, explicitEntries, isLoading: explicitLoading }: FocusBreakdownCardProps) {
+export function FocusBreakdownCard({ view, groupBy, filters, reportUserId }: FocusBreakdownCardProps) {
   const [offset, setOffset] = useState(0)
 
   useEffect(() => {
@@ -34,13 +32,20 @@ export function FocusBreakdownCard({ view, groupBy, filters, explicitEntries, is
   const granularity = view
 
   const range = useMemo(() => getRollingRange({ granularity, offset }), [granularity, offset])
-  const entriesQuery = useFocusTimeEntriesRangeQuery({ startDate: range.startDate, endDate: range.endDate })
-  
-  const rawEntries = explicitEntries ?? entriesQuery.data ?? []
+  const {
+    data: rawEntries,
+    isLoading,
+    isFetching,
+  } = useReportTimeEntries({
+    startDate: range.startDate,
+    endDate: range.endDate,
+    reportUserId,
+  })
+
   const entries = useFilteredEntries(rawEntries, filters ?? { goalIds: [], categoryIds: [] })
-  
-  const showLoading = (explicitLoading ?? entriesQuery.isLoading) && rawEntries.length === 0
-  const showUpdating = (explicitLoading ?? entriesQuery.isFetching) && !showLoading
+
+  const showLoading = isLoading && rawEntries.length === 0
+  const showUpdating = isFetching && !showLoading
 
   const series = useMemo(() => {
     const topN = groupBy === 'task' ? 8 : 6
