@@ -8,7 +8,7 @@ import { TaskBoard } from '@/features/tasks/components/task-board'
 import { TasksAdvancedFilters } from '@/features/tasks/components/tasks-advanced-filters'
 import { TasksFilters } from '@/features/tasks/components/tasks-filters'
 import { Goal, Task } from '@/features/tasks/utils/types'
-import { Plus, SlidersHorizontal } from 'lucide-react'
+import { PanelLeft, Plus, SlidersHorizontal } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
@@ -45,6 +45,8 @@ interface TasksViewProps {
   onSearchQueryChange: (value: string) => void
   hasActiveFilters: boolean
   onResetFilters: () => void
+  goalsSidebarCollapsed?: boolean
+  onToggleGoalsSidebar?: () => void
   className?: string
 }
 
@@ -79,6 +81,8 @@ export function TasksView({
   onSearchQueryChange,
   hasActiveFilters,
   onResetFilters,
+  goalsSidebarCollapsed = false,
+  onToggleGoalsSidebar,
   className,
 }: TasksViewProps) {
   const [viewMode, setViewMode] = useState<'board' | 'list'>('board')
@@ -107,7 +111,21 @@ export function TasksView({
     <div className={cn('flex h-full min-h-0 flex-col', className)}>
       <div className="p-4 sm:p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h1 className="font-display text-2xl font-bold uppercase sm:text-3xl md:text-4xl">Tasks</h1>
+          <div className="flex items-center gap-2">
+            {goalsSidebarCollapsed && onToggleGoalsSidebar ? (
+              <button
+                type="button"
+                onClick={onToggleGoalsSidebar}
+                className="hidden h-9 items-center gap-2 border-3 border-secondary bg-primary px-3 text-[10px] font-bold uppercase text-secondary shadow-brutal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal-hover active:translate-x-1 active:translate-y-1 active:shadow-none md:inline-flex"
+                aria-label="Expand goals sidebar"
+                title="Show goals sidebar"
+              >
+                <PanelLeft className="h-4 w-4" />
+                <span>Goals</span>
+              </button>
+            ) : null}
+            <h1 className="font-display text-2xl font-bold uppercase sm:text-3xl md:text-4xl">Tasks</h1>
+          </div>
           <div className="flex items-center gap-2">
             <div className="flex border-3 border-secondary bg-white shadow-brutal-sm">
               <button

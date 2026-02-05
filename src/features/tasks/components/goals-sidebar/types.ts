@@ -9,6 +9,8 @@ export interface GoalsSidebarProps {
   selectedStatus: string
   onSelectStatus: (status: string) => void
   isLoading: boolean
+  isCollapsed?: boolean
+  onToggleCollapse?: () => void
 }
 
 export const GOAL_STATUS_OPTIONS = [
