@@ -30,51 +30,57 @@ export default async function GuidesPage(props: Props) {
 
   if (!category && !search) {
     return (
-      <div className="space-y-12 px-4 md:px-0">
-        <div className="space-y-4">
-          <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <h1 className="font-display text-3xl font-black tracking-tight sm:text-4xl">
             Guides & Resources
           </h1>
-          <p className="max-w-[800px] text-xl text-gray-600">
-            Master the art of productivity with our comprehensive list of resources.
+          <p className="mt-2 text-gray-600">
+            Learn productivity strategies and goal-setting frameworks.
           </p>
-          <div className="pt-4">
-             <GuideSearch />
-          </div>
+        </div>
+
+        <div className="mb-8">
+          <GuideSearch />
         </div>
 
         {/* E-Books Section */}
-        <div className="space-y-6">
-          <h2 className="border-b border-gray-200 pb-2 text-2xl font-bold">E-Books</h2>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-             {ebooks.map((guide) => (
+        {ebooks.length > 0 && (
+          <div className="mb-10">
+            <h2 className="mb-4 font-display text-xl font-bold">E-Books</h2>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {ebooks.map((guide) => (
                 <GuideCard key={guide.slug} guide={guide} />
-             ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Guides/Courses Section */}
-        <div className="space-y-6">
-            <h2 className="border-b border-gray-200 pb-2 text-2xl font-bold">Courses & Guides</h2>
+        {courses.length > 0 && (
+          <div>
+            <h2 className="mb-4 font-display text-xl font-bold">Courses & Guides</h2>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {courses.map((guide) => (
-                  <GuideCard key={guide.slug} guide={guide} />
-                ))}
+              {courses.map((guide) => (
+                <GuideCard key={guide.slug} guide={guide} />
+              ))}
             </div>
-        </div>
+          </div>
+        )}
       </div>
     )
   }
 
   return (
-    <div className="space-y-8 px-4 md:px-0">
-      <div className="space-y-4">
-        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mb-8">
+        <h1 className="font-display text-3xl font-black tracking-tight sm:text-4xl">
           Search Results
         </h1>
-         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <GuideSearch />
-        </div>
+      </div>
+
+      <div className="mb-8">
+        <GuideSearch />
       </div>
 
       {filteredGuides.length > 0 ? (

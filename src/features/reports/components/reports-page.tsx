@@ -68,6 +68,7 @@ export function FocusPage() {
   const [exportViewType, setExportViewType] = useState<'detailed' | 'summary' | 'day_by_task' | 'day_total'>('summary')
   const [exportTitle, setExportTitle] = useState('Time Report')
   const [exportNotes, setExportNotes] = useState('')
+  const [includeTaskNotes, setIncludeTaskNotes] = useState(false)
   
   const exportMutation = useExportReportMutation()
   
@@ -84,6 +85,7 @@ export function FocusPage() {
           format: exportFormat,
           title: exportTitle,
           notes: exportNotes || undefined,
+          includeTaskNotes,
         })
 
         if (exportFormat === 'csv' && result instanceof Blob) {
@@ -336,6 +338,21 @@ export function FocusPage() {
                     rows={3}
                     className="resize-none border-2 border-secondary"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-medium">
+                    <input
+                      type="checkbox"
+                      checked={includeTaskNotes}
+                      onChange={(e) => setIncludeTaskNotes(e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span>Include task notes in report</span>
+                  </label>
+                  {includeTaskNotes && (
+                    <p className="text-xs text-gray-500">Task-specific notes will be shown in the exported report</p>
+                  )}
                 </div>
 
                 <div className="text-center text-xs text-gray-500">

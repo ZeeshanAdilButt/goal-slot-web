@@ -152,7 +152,7 @@ export function TaskSelector({
       </div>
 
       {/* Dropdown */}
-      {isOpen && !isDisabled && (filteredTasks.length > 0 || showCreateOption) && (
+      {isOpen && !isDisabled && (
         <AnimateChangeInHeight className="absolute z-50 mt-1 w-full">
           <div className="border-3 border-black bg-white shadow-brutal">
             {/* Existing tasks */}
@@ -183,7 +183,9 @@ export function TaskSelector({
 
               {/* No results message */}
               {filteredTasks.length === 0 && !showCreateOption && (
-                <div className="px-4 py-3 text-center text-gray-500">No tasks found</div>
+                <div className="px-4 py-3 text-center text-gray-500">
+                  {tasks.length === 0 ? 'No tasks yet - type to create one' : 'No tasks found'}
+                </div>
               )}
             </div>
 

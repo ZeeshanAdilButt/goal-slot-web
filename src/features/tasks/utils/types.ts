@@ -35,6 +35,7 @@ export interface Task {
   scheduleBlockId?: string
   scheduleBlock?: ScheduleBlock
   order?: number
+  notes?: string
 }
 
 export interface CreateTaskForm {
@@ -45,6 +46,7 @@ export interface CreateTaskForm {
   goalId: string
   scheduleBlockId: string
   dueDate: string
+  notes?: string
 }
 
 export type GroupBy = 'status' | 'day' | 'schedule'

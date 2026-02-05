@@ -46,6 +46,7 @@ export function CreateTaskModal({
     goalId: '',
     scheduleBlockId: '',
     dueDate: '',
+    notes: '',
   })
 
   useEffect(() => {
@@ -58,6 +59,7 @@ export function CreateTaskModal({
         goalId: task.goalId || '',
         scheduleBlockId: task.scheduleBlockId || '',
         dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
+        notes: task.notes || '',
       })
       setStatus(task.status || 'BACKLOG')
 
@@ -76,6 +78,7 @@ export function CreateTaskModal({
         goalId: defaultGoalId || '',
         scheduleBlockId: '',
         dueDate: '',
+        notes: '',
       }
 
       setEstimatedHours('')
@@ -92,6 +95,11 @@ export function CreateTaskModal({
           const todayDate = getLocalDateString()
           initialForm.dueDate = todayDate
         }
+      }
+
+      // Auto-select goal if only one exists and no default goal provided
+      if (!defaultGoalId && goals.length === 1) {
+        initialForm.goalId = goals[0].id
       }
 
       setForm(initialForm)
@@ -121,6 +129,7 @@ export function CreateTaskModal({
         goalId: '',
         scheduleBlockId: '',
         dueDate: '',
+        notes: '',
       })
       setEstimatedHours('')
       setStatus('BACKLOG')
@@ -219,6 +228,18 @@ export function CreateTaskModal({
                 className="max-h-[450px] min-h-[250px] resize-y overflow-y-auto border-none shadow-none"
               />
             </div>
+          </div>
+
+          {/* Notes field */}
+          <div>
+            <label className="font-mono text-sm uppercase">Notes</label>
+            <textarea
+              className="input-brutal mt-1 w-full resize-none"
+              value={form.notes}
+              onChange={(e) => setForm({ ...form, notes: e.target.value })}
+              placeholder="Additional notes about this task..."
+              rows={3}
+            />
           </div>
         </div>
         <DialogFooter className="mt-4 flex-row gap-3 border-t-3 border-secondary pt-3">

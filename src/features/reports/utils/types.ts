@@ -54,6 +54,7 @@ export interface ReportFilters {
   includeBillable?: boolean
   hourlyRate?: number
   showScheduleContext?: boolean
+  includeTaskNotes?: boolean
 }
 
 export interface ExportReportParams extends ReportFilters {
@@ -75,6 +76,7 @@ export interface DetailedTimeEntry {
   duration: number
   durationFormatted: string
   notes: string | null
+  taskNotes: string | null
   goal: { id: string; title: string; color: string } | null
   task: { id: string; title: string } | null
   category: string | null

@@ -15,6 +15,7 @@ const normalizeTaskInput = (data: Partial<CreateTaskForm>) => ({
   scheduleBlockId: data.scheduleBlockId || undefined,
   dueDate: data.dueDate || undefined,
   estimatedMinutes: data.estimatedMinutes ? parseInt(data.estimatedMinutes) : undefined,
+  notes: data.notes || undefined,
 })
 
 const getListFilters = (queryKey: readonly unknown[]): TaskListFilters | undefined => {
@@ -115,6 +116,7 @@ export function useCreateTaskMutation() {
         goalId: normalized.goalId,
         scheduleBlockId: normalized.scheduleBlockId,
         dueDate: normalized.dueDate,
+        notes: normalized.notes || undefined,
       } as Task
 
       syncTaskInCache(queryClient, optimisticTask)

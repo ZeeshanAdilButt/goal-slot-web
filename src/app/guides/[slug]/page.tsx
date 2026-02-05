@@ -41,7 +41,7 @@ export default async function GuidePage(props: Props) {
   }
 
   return (
-    <div className="container relative max-w-3xl py-6 lg:py-10">
+    <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
       <Link
         href="/guides"
         className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
