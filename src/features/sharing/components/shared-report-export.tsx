@@ -1,15 +1,16 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 
-import { getPeriodRange } from '@/features/reports/utils/dates'
-import type { FocusGranularity } from '@/features/reports/utils/types'
 import { fetchSharedUserTimeEntries } from '@/features/sharing/utils/queries'
 import type { SharedTimeEntry } from '@/features/sharing/utils/types'
 import { Download } from 'lucide-react'
 
-import { cn, formatDuration } from '@/lib/utils'
+import { dateRangeValueToRange, getDefaultDateRangeValue } from '@/lib/date-range-utils'
+import { formatDuration } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import DateRangePicker from '@/components/DateRangePicker'
+import type { DateRangeValue } from '@/components/DateRangePicker/types'
 
 function buildAndDownloadCSV(entries: SharedTimeEntry[], fileName: string): void {
   const headers = ['Date', 'Duration', 'Goal', 'Task']
@@ -20,7 +21,9 @@ function buildAndDownloadCSV(entries: SharedTimeEntry[], fileName: string): void
     entry.taskName || '',
   ])
 
-  const csvContent = [headers, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(',')).join('\n')
+  const csvContent = [headers, ...rows]
+    .map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(','))
+    .join('\n')
   const blob = new Blob([csvContent], { type: 'text/csv' })
   const url = window.URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -35,21 +38,13 @@ function buildAndDownloadCSV(entries: SharedTimeEntry[], fileName: string): void
 interface SharedReportExportProps {
   userId: string
   userName: string
-  view: FocusGranularity
 }
 
-export function SharedReportExport({ userId, userName, view }: SharedReportExportProps) {
-  const [exportOffset, setExportOffset] = useState(0)
+export function SharedReportExport({ userId, userName }: SharedReportExportProps) {
+  const [dateRangeValue, setDateRangeValue] = useState<DateRangeValue>(getDefaultDateRangeValue)
   const [isExporting, setIsExporting] = useState(false)
 
-  const exportDateRange = useMemo(
-    () => getPeriodRange({ period: view, offset: exportOffset }),
-    [view, exportOffset],
-  )
-
-  useEffect(() => {
-    setExportOffset(0)
-  }, [view])
+  const exportDateRange = dateRangeValueToRange(dateRangeValue, { withLabel: true })
 
   const handleExport = async () => {
     setIsExporting(true)
@@ -68,32 +63,7 @@ export function SharedReportExport({ userId, userName, view }: SharedReportExpor
 
   return (
     <div className="flex flex-row flex-wrap items-center justify-between gap-3 lg:justify-end">
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
-        <span className="font-mono text-xs text-gray-600 sm:text-sm">Export:</span>
-        <div className="flex items-center gap-1 rounded-lg border-2 border-secondary bg-background px-2 py-1">
-          <button
-            type="button"
-            onClick={() => setExportOffset((o) => o - 1)}
-            className="btn-brutal-secondary px-2 py-1 text-xs font-bold"
-          >
-            Prev
-          </button>
-          <span className="min-w-[120px] font-mono text-xs font-bold text-gray-900 sm:text-sm">
-            {exportDateRange.label}
-          </span>
-          <button
-            type="button"
-            onClick={() => setExportOffset((o) => Math.min(o + 1, 0))}
-            disabled={exportOffset >= 0}
-            className={cn(
-              'btn-brutal-secondary px-2 py-1 text-xs font-bold',
-              exportOffset >= 0 && 'cursor-not-allowed opacity-50',
-            )}
-          >
-            Next
-          </button>
-        </div>
-      </div>
+      <DateRangePicker value={dateRangeValue} onChange={setDateRangeValue} allowClearing={false} align="start" />
 
       <div className="hidden h-8 w-0.5 bg-gray-200 sm:block" />
 

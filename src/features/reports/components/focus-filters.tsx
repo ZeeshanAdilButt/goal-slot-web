@@ -1,15 +1,15 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Filter, X } from 'lucide-react'
 
 import { useCategoriesQuery } from '@/features/categories/hooks/use-categories-queries'
 import { useTimeTrackerData } from '@/features/time-tracker/hooks/use-time-tracker-queries'
 import type { Goal } from '@/features/time-tracker/utils/types'
+import { Filter, X } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -35,10 +35,18 @@ interface FocusFiltersProps {
   onChange: (filters: ReportFilterState) => void
   explicitGoals?: Goal[]
   explicitCategories?: Category[]
+  triggerClassName?: string
 }
 
-export function FocusFilters({ filters, onChange, explicitGoals, explicitCategories }: FocusFiltersProps) {
+export function FocusFilters({
+  filters,
+  onChange,
+  explicitGoals,
+  explicitCategories,
+  triggerClassName,
+}: FocusFiltersProps) {
   const [open, setOpen] = useState(false)
+  const [draftFilters, setDraftFilters] = useState<ReportFilterState>(filters)
   const { goals: myGoals } = useTimeTrackerData()
   const { data: myCategories = [] } = useCategoriesQuery() as { data: Category[] }
 
@@ -49,46 +57,59 @@ export function FocusFilters({ filters, onChange, explicitGoals, explicitCategor
     return filters.goalIds.length + filters.categoryIds.length
   }, [filters])
 
-  const handleGoalToggle = (goalId: string) => {
-    const newGoalIds = filters.goalIds.includes(goalId)
-      ? filters.goalIds.filter((id) => id !== goalId)
-      : [...filters.goalIds, goalId]
-    onChange({ ...filters, goalIds: newGoalIds })
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen)
+    setDraftFilters(filters)
   }
 
-  const handleCategoryToggle = (categoryId: string) => {
-    const newCategoryIds = filters.categoryIds.includes(categoryId)
-      ? filters.categoryIds.filter((id) => id !== categoryId)
-      : [...filters.categoryIds, categoryId]
-    onChange({ ...filters, categoryIds: newCategoryIds })
+  const handleDraftGoalToggle = (goalId: string) => {
+    setDraftFilters((prev) => ({
+      ...prev,
+      goalIds: prev.goalIds.includes(goalId) ? prev.goalIds.filter((id) => id !== goalId) : [...prev.goalIds, goalId],
+    }))
+  }
+
+  const handleDraftCategoryToggle = (categoryId: string) => {
+    setDraftFilters((prev) => ({
+      ...prev,
+      categoryIds: prev.categoryIds.includes(categoryId)
+        ? prev.categoryIds.filter((id) => id !== categoryId)
+        : [...prev.categoryIds, categoryId],
+    }))
   }
 
   const clearFilters = () => {
     onChange({ goalIds: [], categoryIds: [] })
   }
 
-  const selectedGoalNames = useMemo((): string[] => {
-    return (goals as Goal[])
-      .filter((g: Goal) => filters.goalIds.includes(g.id))
-      .map((g: Goal) => g.title)
+  const clearDraftFilters = () => {
+    setDraftFilters({ goalIds: [], categoryIds: [] })
+  }
+
+  const applyDraftFilters = () => {
+    onChange(draftFilters)
+    setOpen(false)
+  }
+
+  const selectedGoals = useMemo((): Goal[] => {
+    return (goals as Goal[]).filter((g: Goal) => filters.goalIds.includes(g.id))
   }, [goals, filters.goalIds])
 
   const selectedCategoryNames = useMemo((): string[] => {
-    return categories
-      .filter((c: Category) => filters.categoryIds.includes(c.id))
-      .map((c: Category) => c.name)
+    return categories.filter((c: Category) => filters.categoryIds.includes(c.id)).map((c: Category) => c.name)
   }, [categories, filters.categoryIds])
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <DropdownMenu open={open} onOpenChange={setOpen}>
-        <div className="flex items-center rounded-md border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground">
+      <DropdownMenu open={open} onOpenChange={handleOpenChange}>
+        <div className="flex items-center rounded-md border-3 border-secondary bg-white shadow-brutal">
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
               className={cn(
-                'btn-brutal-secondary gap-2 border-none shadow-none hover:bg-transparent',
+                'btn-brutal-secondary h-10 gap-2 border-none bg-transparent shadow-none hover:bg-primary/20',
                 activeFilterCount > 0 && 'rounded-r-none pr-2',
+                triggerClassName,
               )}
             >
               <Filter className="h-4 w-4" />
@@ -103,42 +124,41 @@ export function FocusFilters({ filters, onChange, explicitGoals, explicitCategor
                 e.stopPropagation()
                 clearFilters()
               }}
-              className="h-9 w-8 rounded-l-none border-l hover:bg-transparent hover:text-destructive"
+              className="h-9 w-8 rounded-l-none border-l-2 border-secondary hover:bg-primary/20 hover:text-destructive"
             >
               <X className="h-4 w-4" />
               <span className="sr-only">Clear filters</span>
             </Button>
           )}
         </div>
-        <DropdownMenuContent className="w-64 border-3 border-secondary" align="end">
+        <DropdownMenuContent className="w-64 border-3 border-secondary bg-white p-1.5 shadow-brutal" align="end">
           <DropdownMenuLabel className="flex items-center justify-between">
             <span className="font-bold uppercase">Filter By</span>
-            {activeFilterCount > 0 && (
+            {(open ? draftFilters.goalIds.length + draftFilters.categoryIds.length : activeFilterCount) > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={clearFilters}
-                className="h-auto p-1 text-xs text-gray-500 hover:text-gray-700"
+                onClick={open ? clearDraftFilters : clearFilters}
+                className="h-auto p-1 text-xs text-gray-500 hover:bg-primary/20 hover:text-gray-700"
               >
                 Clear all
               </Button>
             )}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          
+
           {/* Goals Section */}
-          <DropdownMenuLabel className="text-xs font-semibold uppercase text-gray-500">
-            Goals
-          </DropdownMenuLabel>
+          <DropdownMenuLabel className="text-xs font-semibold uppercase text-gray-500">Goals</DropdownMenuLabel>
           {goals.length === 0 ? (
             <div className="px-2 py-1 text-sm text-gray-400">No goals available</div>
           ) : (
             (goals as Goal[]).map((goal: Goal) => (
               <DropdownMenuCheckboxItem
                 key={goal.id}
-                checked={filters.goalIds.includes(goal.id)}
-                onCheckedChange={() => handleGoalToggle(goal.id)}
-                className="cursor-pointer"
+                checked={draftFilters.goalIds.includes(goal.id)}
+                onCheckedChange={() => handleDraftGoalToggle(goal.id)}
+                onSelect={(e) => e.preventDefault()}
+                className="cursor-pointer hover:bg-primary/20 data-[highlighted]:bg-primary/20 data-[highlighted]:text-foreground"
               >
                 <div className="flex items-center gap-2">
                   {goal.color && (
@@ -152,22 +172,21 @@ export function FocusFilters({ filters, onChange, explicitGoals, explicitCategor
               </DropdownMenuCheckboxItem>
             ))
           )}
-          
+
           <DropdownMenuSeparator />
-          
+
           {/* Categories Section */}
-          <DropdownMenuLabel className="text-xs font-semibold uppercase text-gray-500">
-            Categories
-          </DropdownMenuLabel>
+          <DropdownMenuLabel className="text-xs font-semibold uppercase text-gray-500">Categories</DropdownMenuLabel>
           {categories.length === 0 ? (
             <div className="px-2 py-1 text-sm text-gray-400">No categories available</div>
           ) : (
             categories.map((category) => (
               <DropdownMenuCheckboxItem
                 key={category.id}
-                checked={filters.categoryIds.includes(category.id)}
-                onCheckedChange={() => handleCategoryToggle(category.id)}
-                className="cursor-pointer"
+                checked={draftFilters.categoryIds.includes(category.id)}
+                onCheckedChange={() => handleDraftCategoryToggle(category.id)}
+                onSelect={(e) => e.preventDefault()}
+                className="cursor-pointer hover:bg-primary/20 data-[highlighted]:bg-primary/20 data-[highlighted]:text-foreground"
               >
                 <div className="flex items-center gap-2">
                   {category.color && (
@@ -181,28 +200,42 @@ export function FocusFilters({ filters, onChange, explicitGoals, explicitCategor
               </DropdownMenuCheckboxItem>
             ))
           )}
+          <DropdownMenuSeparator />
+          <div className="p-1">
+            <Button className="h-9 w-full" size="sm" onClick={applyDraftFilters}>
+              Apply filters
+            </Button>
+          </div>
         </DropdownMenuContent>
       </DropdownMenu>
 
       {/* Active Filter Tags */}
       {activeFilterCount > 0 && (
         <div className="flex flex-wrap items-center gap-1">
-          {selectedGoalNames.map((name: string) => (
+          {selectedGoals.map((goal: Goal) => (
             <Badge
-              key={name}
-              variant="secondary"
-              className="gap-1 border-2 border-secondary bg-white px-2 py-1 text-xs"
+              key={goal.id}
+              variant="outline"
+              className="gap-1.5 border-2 border-secondary bg-white px-2 py-1 text-xs text-foreground"
             >
-              {name}
+              {goal.color != null && (
+                <span
+                  className="h-2.5 w-2.5 shrink-0 rounded-full border border-black/20"
+                  style={{ backgroundColor: goal.color }}
+                />
+              )}
+              <span className="truncate">{goal.title}</span>
               <button
                 type="button"
                 onClick={() => {
-                  const goal = (goals as Goal[]).find((g: Goal) => g.title === name)
-                  if (goal) handleGoalToggle(goal.id)
+                  onChange({
+                    ...filters,
+                    goalIds: filters.goalIds.filter((id) => id !== goal.id),
+                  })
                 }}
-                className="hover:text-destructive"
+                className="shrink-0 text-foreground hover:text-destructive"
               >
-                <X className="h-3 w-3" />
+                <X className="h-4 w-4" />
               </button>
             </Badge>
           ))}
@@ -210,18 +243,22 @@ export function FocusFilters({ filters, onChange, explicitGoals, explicitCategor
             <Badge
               key={name}
               variant="outline"
-              className="gap-1 border-2 border-secondary bg-gray-100 px-2 py-1 text-xs"
+              className="gap-1 border-2 border-secondary bg-gray-100 px-2 py-1 text-xs text-foreground"
             >
               {name}
               <button
                 type="button"
                 onClick={() => {
                   const category = categories.find((c: Category) => c.name === name)
-                  if (category) handleCategoryToggle(category.id)
+                  if (!category) return
+                  onChange({
+                    ...filters,
+                    categoryIds: filters.categoryIds.filter((id) => id !== category.id),
+                  })
                 }}
-                className="hover:text-destructive"
+                className="text-foreground hover:text-destructive"
               >
-                <X className="h-3 w-3" />
+                <X className="h-4 w-4" />
               </button>
             </Badge>
           ))}
@@ -231,10 +268,9 @@ export function FocusFilters({ filters, onChange, explicitGoals, explicitCategor
   )
 }
 
-export function useFilteredEntries<T extends { goalId?: string | null; goal?: { id: string } | null; task?: { category: string | null } | null }>(
-  entries: T[],
-  filters: ReportFilterState
-): T[] {
+export function useFilteredEntries<
+  T extends { goalId?: string | null; goal?: { id: string } | null; task?: { category: string | null } | null },
+>(entries: T[], filters: ReportFilterState): T[] {
   return useMemo(() => {
     let filtered = entries
 

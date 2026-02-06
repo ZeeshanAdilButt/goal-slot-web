@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
@@ -22,6 +22,19 @@ export default function AnimateChangeInHeight(
 ) {
   const { children, className, ...restProps } = props
   const [height, setHeight] = useState<number | 'auto'>('auto')
+  const contentRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = contentRef.current
+    if (!el) return
+
+    const resizeObserver = new ResizeObserver(([entry]) => {
+      const observedHeight = entry.contentRect.height
+      setHeight(observedHeight)
+    })
+    resizeObserver.observe(el)
+    return () => resizeObserver.disconnect()
+  }, [])
 
   return (
     <motion.div
@@ -31,24 +44,7 @@ export default function AnimateChangeInHeight(
       transition={{ duration: 0.2 }}
       {...restProps}
     >
-      <div
-        ref={(ref) => {
-          const resizeObserver = new ResizeObserver(([entry]) => {
-            const observedHeight = entry.contentRect.height
-            setHeight(observedHeight)
-          })
-
-          if (ref) {
-            resizeObserver.observe(ref)
-          }
-
-          return () => {
-            resizeObserver.disconnect()
-          }
-        }}
-      >
-        {children}
-      </div>
+      <div ref={contentRef}>{children}</div>
     </motion.div>
   )
 }
