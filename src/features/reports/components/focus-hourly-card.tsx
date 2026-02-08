@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { useFilteredEntries, type ReportFilterState } from '@/features/reports/components/focus-filters'
 import { FocusUpdatingOverlay } from '@/features/reports/components/focus-updating-overlay'
-import { useFocusTimeEntriesRangeQuery } from '@/features/reports/hooks/use-focus-time-entries'
+import { useReportTimeEntries } from '@/features/reports/hooks/use-report-time-entries'
 import {
   buildHourlyHistogram,
   formatExcludedNote,
@@ -19,16 +19,13 @@ import { cn, formatDuration } from '@/lib/utils'
 import { Loading } from '@/components/ui/loading'
 import AnimateChangeInHeight from '@/components/animate-change-in-height'
 
-const EMPTY_ENTRIES: FocusTimeEntry[] = []
-
 interface FocusHourlyCardProps {
   view: FocusPeriod
   filters?: ReportFilterState
-  explicitEntries?: FocusTimeEntry[]
-  isLoading?: boolean
+  reportUserId?: string
 }
 
-export function FocusHourlyCard({ view, filters, explicitEntries, isLoading: explicitLoading }: FocusHourlyCardProps) {
+export function FocusHourlyCard({ view, filters, reportUserId }: FocusHourlyCardProps) {
   const [offset, setOffset] = useState(0)
 
   useEffect(() => {
@@ -38,13 +35,20 @@ export function FocusHourlyCard({ view, filters, explicitEntries, isLoading: exp
   const period = view
 
   const range = useMemo(() => getPeriodRange({ period, offset }), [period, offset])
-  const entriesQuery = useFocusTimeEntriesRangeQuery({ startDate: range.startDate, endDate: range.endDate })
-  
-  const rawEntries = explicitEntries ?? entriesQuery.data ?? EMPTY_ENTRIES
+  const {
+    data: rawEntries,
+    isLoading,
+    isFetching,
+  } = useReportTimeEntries({
+    startDate: range.startDate,
+    endDate: range.endDate,
+    reportUserId,
+  })
+
   const entries = useFilteredEntries(rawEntries, filters ?? { goalIds: [], categoryIds: [] })
-  
-  const showLoading = (explicitLoading ?? entriesQuery.isLoading) && rawEntries.length === 0
-  const showUpdating = (explicitLoading ?? entriesQuery.isFetching) && !showLoading
+
+  const showLoading = isLoading && rawEntries.length === 0
+  const showUpdating = isFetching && !showLoading
 
   const histogram = useMemo(() => buildHourlyHistogram(entries, range.days), [entries, range.days])
   const excludedNote = useMemo(

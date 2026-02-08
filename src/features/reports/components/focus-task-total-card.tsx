@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { useFilteredEntries, type ReportFilterState } from '@/features/reports/components/focus-filters'
 import { FocusUpdatingOverlay } from '@/features/reports/components/focus-updating-overlay'
-import { useFocusTimeEntriesRangeQuery } from '@/features/reports/hooks/use-focus-time-entries'
+import { useReportTimeEntries } from '@/features/reports/hooks/use-report-time-entries'
 import { getRollingRange } from '@/features/reports/utils/dates'
 import type { FocusGranularity, FocusTimeEntry } from '@/features/reports/utils/types'
 import { format, parseISO } from 'date-fns'
@@ -78,11 +78,10 @@ function aggregateByTaskPerDay(entries: FocusTimeEntry[]): DayTotal[] {
 interface FocusTaskTotalCardProps {
   view: FocusGranularity
   filters?: ReportFilterState
-  explicitEntries?: FocusTimeEntry[]
-  isLoading?: boolean
+  reportUserId?: string
 }
 
-export function FocusTaskTotalCard({ view, filters, explicitEntries, isLoading: explicitLoading }: FocusTaskTotalCardProps) {
+export function FocusTaskTotalCard({ view, filters, reportUserId }: FocusTaskTotalCardProps) {
   const [offset, setOffset] = useState(0)
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set())
 
@@ -91,13 +90,20 @@ export function FocusTaskTotalCard({ view, filters, explicitEntries, isLoading: 
   }, [view])
 
   const range = useMemo(() => getRollingRange({ granularity: view, offset }), [view, offset])
-  const entriesQuery = useFocusTimeEntriesRangeQuery({ startDate: range.startDate, endDate: range.endDate })
-  
-  const rawEntries = useMemo(() => explicitEntries ?? entriesQuery.data ?? [], [entriesQuery.data, explicitEntries])
+  const {
+    data: rawEntries,
+    isLoading,
+    isFetching,
+  } = useReportTimeEntries({
+    startDate: range.startDate,
+    endDate: range.endDate,
+    reportUserId,
+  })
+
   const entries = useFilteredEntries(rawEntries, filters ?? { goalIds: [], categoryIds: [] })
-  
-  const showLoading = (explicitLoading ?? entriesQuery.isLoading) && rawEntries.length === 0
-  const showUpdating = (explicitLoading ?? entriesQuery.isFetching) && !showLoading
+
+  const showLoading = isLoading && rawEntries.length === 0
+  const showUpdating = isFetching && !showLoading
 
   const dailyTotals = useMemo(() => aggregateByTaskPerDay(entries), [entries])
 

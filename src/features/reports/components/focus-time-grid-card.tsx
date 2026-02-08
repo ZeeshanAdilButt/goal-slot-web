@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { useFilteredEntries, type ReportFilterState } from '@/features/reports/components/focus-filters'
 import { FocusUpdatingOverlay } from '@/features/reports/components/focus-updating-overlay'
-import { useFocusTimeEntriesRangeQuery } from '@/features/reports/hooks/use-focus-time-entries'
+import { useReportTimeEntries } from '@/features/reports/hooks/use-report-time-entries'
 import { buildTimeGrid, formatExcludedNote, formatHourLabel } from '@/features/reports/utils/aggregation'
 import { getPeriodRange } from '@/features/reports/utils/dates'
 import type { FocusPeriod, FocusTimeEntry } from '@/features/reports/utils/types'
@@ -13,8 +13,6 @@ import { format, parseISO } from 'date-fns'
 import { cn, formatDuration } from '@/lib/utils'
 import { Loading } from '@/components/ui/loading'
 import AnimateChangeInHeight from '@/components/animate-change-in-height'
-
-const EMPTY_ENTRIES: FocusTimeEntry[] = []
 
 function getOpacity(minutes: number): number {
   if (minutes <= 0) return 0
@@ -33,11 +31,10 @@ function getFallbackClass(minutes: number): string {
 interface FocusTimeGridCardProps {
   view: FocusPeriod
   filters?: ReportFilterState
-  explicitEntries?: FocusTimeEntry[]
-  isLoading?: boolean
+  reportUserId?: string
 }
 
-export function FocusTimeGridCard({ view, filters, explicitEntries, isLoading: explicitLoading }: FocusTimeGridCardProps) {
+export function FocusTimeGridCard({ view, filters, reportUserId }: FocusTimeGridCardProps) {
   const [offset, setOffset] = useState(0)
 
   useEffect(() => {
@@ -47,13 +44,20 @@ export function FocusTimeGridCard({ view, filters, explicitEntries, isLoading: e
   const period = view
 
   const range = useMemo(() => getPeriodRange({ period, offset }), [period, offset])
-  const entriesQuery = useFocusTimeEntriesRangeQuery({ startDate: range.startDate, endDate: range.endDate })
-  
-  const rawEntries = explicitEntries ?? entriesQuery.data ?? EMPTY_ENTRIES
+  const {
+    data: rawEntries,
+    isLoading,
+    isFetching,
+  } = useReportTimeEntries({
+    startDate: range.startDate,
+    endDate: range.endDate,
+    reportUserId,
+  })
+
   const entries = useFilteredEntries(rawEntries, filters ?? { goalIds: [], categoryIds: [] })
-  
-  const showLoading = (explicitLoading ?? entriesQuery.isLoading) && rawEntries.length === 0
-  const showUpdating = (explicitLoading ?? entriesQuery.isFetching) && !showLoading
+
+  const showLoading = isLoading && rawEntries.length === 0
+  const showUpdating = isFetching && !showLoading
 
   const gridResult = useMemo(() => buildTimeGrid(entries, range.days), [entries, range.days])
   const excludedNote = useMemo(

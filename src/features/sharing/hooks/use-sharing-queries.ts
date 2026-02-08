@@ -29,11 +29,17 @@ export function useSharedWithMeQuery() {
   })
 }
 
-export function useSharedUserTimeEntriesQuery(ownerId: string | null, startDate: string, endDate: string) {
+export function useSharedUserTimeEntriesQuery(
+  ownerId: string | null,
+  startDate: string,
+  endDate: string,
+  options?: { enabled?: boolean },
+) {
+  const enabled = (options?.enabled ?? true) && !!ownerId
   return useQuery({
     queryKey: sharingQueries.sharedTimeEntries(ownerId || '', startDate, endDate),
     queryFn: () => fetchSharedUserTimeEntries(ownerId!, startDate, endDate),
-    enabled: !!ownerId,
+    enabled,
   })
 }
 
