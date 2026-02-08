@@ -9,24 +9,18 @@ import { FocusHourlyCard } from '@/features/reports/components/focus-hourly-card
 import { FocusTaskTotalCard } from '@/features/reports/components/focus-task-total-card'
 import { FocusTimeGridCard } from '@/features/reports/components/focus-time-grid-card'
 import { FocusTrendCard } from '@/features/reports/components/focus-trend-card'
+import { ViewGranularityTabs } from '@/features/reports/components/view-granularity-tabs'
 import type { FocusGranularity } from '@/features/reports/utils/types'
 import { SharedReportExport } from '@/features/sharing/components/shared-report-export'
 import { useSharedUserGoalsQuery } from '@/features/sharing/hooks/use-sharing-queries'
 import { SharedGoal, SharedWithMeUser } from '@/features/sharing/utils/types'
 import { User } from 'lucide-react'
 
-import { cn } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface SharedReportsViewProps {
   sharedWithMe: SharedWithMeUser[]
 }
-
-const VIEW_TABS: Array<{ value: FocusGranularity; label: string }> = [
-  { value: 'day', label: 'Daily' },
-  { value: 'week', label: 'Weekly' },
-  { value: 'month', label: 'Monthly' },
-]
 
 export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(
@@ -125,22 +119,7 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               {/* Left Group: View Toggles & Filters */}
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="flex items-center gap-1 rounded-lg border-2 border-secondary bg-background p-1">
-                  {VIEW_TABS.map((tab) => (
-                    <button
-                      key={tab.value}
-                      onClick={() => setView(tab.value)}
-                      className={cn(
-                        'rounded-md px-3 py-1.5 text-sm font-bold transition-all sm:px-4 sm:py-2',
-                        view === tab.value
-                          ? 'bg-primary text-secondary shadow-sm'
-                          : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900',
-                      )}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
+                <ViewGranularityTabs value={view} onChange={setView} />
 
                 <div className="hidden h-8 w-0.5 bg-gray-200 sm:block" />
 
@@ -153,7 +132,7 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
               </div>
 
               {/* Right Group: Export */}
-              <SharedReportExport userId={selectedUserId!} userName={selectedUser.name ?? 'report'} view={view} />
+              <SharedReportExport userId={selectedUserId!} userName={selectedUser.name ?? 'report'} />
             </div>
           </div>
 

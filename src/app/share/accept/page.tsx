@@ -23,7 +23,10 @@ import { toast } from 'react-hot-toast'
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { authApi, sharingApi } from '@/lib/api'
+import { dateRangeValueToRange, getDefaultDateRangeValue } from '@/lib/date-range-utils'
 import { cn, formatDate, formatDuration } from '@/lib/utils'
+import DateRangePicker from '@/components/DateRangePicker'
+import type { DateRangeValue } from '@/components/DateRangePicker/types'
 
 interface SharedOwner {
   id: string
@@ -65,33 +68,15 @@ interface SharedTimeEntry {
   }
 }
 
-function getRollingWeekRange(offset: number = 0) {
-  const now = new Date()
-  const dayOfWeek = now.getDay()
-  const startOfWeek = new Date(now)
-  startOfWeek.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1) + offset * 7)
-  startOfWeek.setHours(0, 0, 0, 0)
-
-  const endOfWeek = new Date(startOfWeek)
-  endOfWeek.setDate(startOfWeek.getDate() + 6)
-  endOfWeek.setHours(23, 59, 59, 999)
-
-  return {
-    startDate: startOfWeek.toISOString().split('T')[0],
-    endDate: endOfWeek.toISOString().split('T')[0],
-    label: `${formatDate(startOfWeek, 'MMM d')} - ${formatDate(endOfWeek, 'MMM d, yyyy')}`,
-  }
-}
-
 const COLORS = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8']
 
 function PublicShareViewContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const token = searchParams.get('token')
-  const [weekOffset, setWeekOffset] = useState(0)
+  const [dateRangeValue, setDateRangeValue] = useState<DateRangeValue>(getDefaultDateRangeValue)
 
-  const range = useMemo(() => getRollingWeekRange(weekOffset), [weekOffset])
+  const range = dateRangeValueToRange(dateRangeValue, { withLabel: true })
 
   // Check authentication status
   const isAuthenticated = typeof window !== 'undefined' && !!localStorage.getItem('accessToken')
@@ -360,38 +345,41 @@ function PublicShareViewContent() {
         )}
 
         {/* Invitation Acceptance Notice for Unauthenticated Users - Email Invites Only */}
-        {!isAuthenticated && shareInfoQuery.data && !shareInfoQuery.data.isAccepted && !shareInfoQuery.data.isPublicLink && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="card-brutal-colored bg-accent-orange text-white"
-          >
-            <div className="mb-4">
-              <h3 className="mb-2 flex items-center gap-2 text-lg font-bold uppercase">
-                <Mail className="h-5 w-5" />
-                Account Required
-              </h3>
-              <p className="font-mono text-sm opacity-90">
-                {owner?.name} has invited you to view their focus time reports. To access this data, you must create
-                an account or log in first.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href={`/signup?redirect=${encodeURIComponent(`/share/accept?token=${token}`)}`}
-                className="btn-brutal-dark flex-1 sm:flex-none"
-              >
-                Create Account
-              </Link>
-              <Link
-                href={`/login?redirect=${encodeURIComponent(`/share/accept?token=${token}`)}`}
-                className="btn-brutal-secondary flex-1 sm:flex-none"
-              >
-                Log In
-              </Link>
-            </div>
-          </motion.div>
-        )}
+        {!isAuthenticated &&
+          shareInfoQuery.data &&
+          !shareInfoQuery.data.isAccepted &&
+          !shareInfoQuery.data.isPublicLink && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="card-brutal-colored bg-accent-orange text-white"
+            >
+              <div className="mb-4">
+                <h3 className="mb-2 flex items-center gap-2 text-lg font-bold uppercase">
+                  <Mail className="h-5 w-5" />
+                  Account Required
+                </h3>
+                <p className="font-mono text-sm opacity-90">
+                  {owner?.name} has invited you to view their focus time reports. To access this data, you must create
+                  an account or log in first.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href={`/signup?redirect=${encodeURIComponent(`/share/accept?token=${token}`)}`}
+                  className="btn-brutal-dark flex-1 sm:flex-none"
+                >
+                  Create Account
+                </Link>
+                <Link
+                  href={`/login?redirect=${encodeURIComponent(`/share/accept?token=${token}`)}`}
+                  className="btn-brutal-secondary flex-1 sm:flex-none"
+                >
+                  Log In
+                </Link>
+              </div>
+            </motion.div>
+          )}
 
         {/* Public Link Notice for Unauthenticated Users */}
         {!isAuthenticated && shareInfoQuery.data && shareInfoQuery.data.isPublicLink && (
@@ -412,29 +400,7 @@ function PublicShareViewContent() {
 
         {/* Date Range Selector - Only show if data is viewable */}
         {canViewData && (
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            <span className="font-mono text-sm">{range.label}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => setWeekOffset((o) => o - 1)} className="btn-brutal-secondary px-3 py-2 text-xs">
-              Prev Week
-            </button>
-            <button
-              onClick={() => setWeekOffset((o) => Math.min(o + 1, 0))}
-              disabled={weekOffset >= 0}
-              className={cn('btn-brutal-secondary px-3 py-2 text-xs', weekOffset >= 0 && 'opacity-50')}
-            >
-              Next Week
-            </button>
-            {weekOffset !== 0 && (
-              <button onClick={() => setWeekOffset(0)} className="btn-brutal px-3 py-2 text-xs">
-                Today
-              </button>
-            )}
-          </div>
-        </div>
+          <DateRangePicker value={dateRangeValue} onChange={setDateRangeValue} allowClearing={false} align="start" />
         )}
 
         {/* Stats Overview - Only show if data is viewable */}
