@@ -180,7 +180,7 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
           </div>
 
           <Select value={selectedUserId || ''} onValueChange={(v) => setSelectedUserId(v)}>
-            <SelectTrigger className="w-full border-3 border-secondary bg-white sm:w-[300px]">
+            <SelectTrigger className="h-12 w-full border-3 border-secondary bg-white py-2 sm:w-[300px]">
               <SelectValue placeholder="Select a person" />
             </SelectTrigger>
             <SelectContent>
@@ -205,37 +205,50 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
       {selectedUser && (
         <div className="space-y-6">
           {/* Controls Bar */}
-          <div className="sticky top-0 z-10 flex flex-col gap-4 bg-background/95 pb-2 pt-2 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1 rounded-lg border-2 border-secondary bg-white p-1">
-                {VIEW_TABS.map((tab) => (
-                  <button
-                    key={tab.value}
-                    onClick={() => setView(tab.value)}
-                    className={cn(
-                      'rounded-md px-3 py-1.5 text-sm font-bold transition-all',
-                      view === tab.value
-                        ? 'bg-primary text-secondary shadow-sm'
-                        : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900',
-                    )}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
+          <div className="card-brutal sticky top-0 z-10 bg-white">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              {/* Left Group: View Toggles & Filters */}
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="flex items-center gap-1 rounded-lg border-2 border-secondary bg-background p-1">
+                  {VIEW_TABS.map((tab) => (
+                    <button
+                      key={tab.value}
+                      onClick={() => setView(tab.value)}
+                      className={cn(
+                        'rounded-md px-3 py-1.5 text-sm font-bold transition-all sm:px-4 sm:py-2',
+                        view === tab.value
+                          ? 'bg-primary text-secondary shadow-sm'
+                          : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900',
+                      )}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
 
-              <div className="flex items-center gap-2">
+                <div className="hidden h-8 w-0.5 bg-gray-200 sm:block" />
+
                 <FocusFilters
                   filters={filters}
                   onChange={setFilters}
                   explicitGoals={filterGoals as any}
                   explicitCategories={filterCategories}
                 />
+              </div>
+
+              {/* Right Group: Info & Actions */}
+              <div className="flex flex-row items-center justify-between gap-4 lg:justify-end">
+                <div className="flex flex-col items-start gap-0.5 text-xs text-gray-600 sm:items-end sm:text-sm">
+                  <span className="font-mono font-bold text-gray-900">{dateRange.label}</span>
+                  <span className="font-mono text-gray-500">{adaptedEntries.length} entries found</span>
+                </div>
+
+                <div className="hidden h-8 w-0.5 bg-gray-200 sm:block" />
 
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="h-9 gap-2 border-2"
+                  size="default"
+                  className="h-10 gap-2 border-2 border-secondary bg-white font-bold hover:bg-gray-50"
                   onClick={handleExportCSV}
                   disabled={adaptedEntries.length === 0}
                 >
@@ -243,12 +256,6 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
                   <span className="hidden sm:inline">Export</span>
                 </Button>
               </div>
-            </div>
-
-            <div className="flex items-center gap-2 font-mono text-sm text-gray-500">
-              <span>{dateRange.label}</span>
-              <span className="h-1 w-1 rounded-full bg-gray-300" />
-              <span>{adaptedEntries.length} entries found</span>
             </div>
           </div>
 
