@@ -37,7 +37,7 @@ export type FocusPeriod = 'day' | 'week' | 'month'
 
 // New types for enhanced reports
 
-export type ReportViewType = 'detailed' | 'summary' | 'day_by_task' | 'day_total'
+export type ReportViewType = 'detailed' | 'summary' | 'day_by_task' | 'day_total' | 'schedule'
 export type ReportGroupBy = 'goal' | 'task' | 'date' | 'category'
 export type ReportSortBy = 'date_asc' | 'date_desc' | 'duration_asc' | 'duration_desc' | 'goal' | 'task'
 export type ExportFormat = 'csv' | 'pdf' | 'json'
