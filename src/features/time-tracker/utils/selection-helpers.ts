@@ -30,13 +30,6 @@ export const filterGoalsByCategory = (goals: Goal[], category: string) => {
   return goals.filter((goal) => goal.category === category)
 }
 
-export const filterTasks = (tasks: Task[], category?: string, goalId?: string) => {
-  return tasks.filter((task) => {
-    if (goalId && task.goalId !== goalId) return false
-    if (category && task.category !== category) return false
-    return true
-  })
-}
 
 export const sortTasksBySelection = (tasks: Task[], goalId?: string, category?: string) => {
   if (!goalId && !category) return tasks
