@@ -13,41 +13,61 @@
   }
 
   body {
-    @apply !min-w-full; /* Prevent layout shift when scrollbar is hidden. Fixes layout shifts when shadcn dialog or select open. */
+    @apply !min-w-full;
+    /* Prevent layout shift when scrollbar is hidden. Fixes layout shifts when shadcn dialog or select open. */
   }
 
   :root {
     /* Updated neubrutalist palette matching design system */
-    --background: 48 98% 97%; /* #FDFCF0 - lighter cream */
-    --foreground: 44 71% 9%; /* #1c190d - warm black */
-    --card: 0 0% 100%; /* #FFFFFF */
+    --background: 48 98% 97%;
+    /* #FDFCF0 - lighter cream */
+    --foreground: 44 71% 9%;
+    /* #1c190d - warm black */
+    --card: 0 0% 100%;
+    /* #FFFFFF */
     --card-foreground: 44 71% 9%;
     --popover: 0 0% 100%;
     --popover-foreground: 44 71% 9%;
-    --primary: 48 94% 50%; /* #f2cc0d - warmer yellow */
-    --primary-foreground: 44 71% 9%; /* warm black text on yellow */
-    --secondary: 44 71% 9%; /* #1c190d - warm black */
-    --secondary-foreground: 0 0% 98%; /* near-white */
-    --muted: 48 98% 97%; /* match background */
+    --primary: 48 94% 50%;
+    /* #f2cc0d - warmer yellow */
+    --primary-foreground: 44 71% 9%;
+    /* warm black text on yellow */
+    --secondary: 44 71% 9%;
+    /* #1c190d - warm black */
+    --secondary-foreground: 0 0% 98%;
+    /* near-white */
+    --muted: 48 98% 97%;
+    /* match background */
     --muted-foreground: 0 0% 35%;
-    --accent: 48 98% 97%; /* match background */
+    --accent: 48 98% 97%;
+    /* match background */
     --accent-foreground: 44 71% 9%;
-    --destructive: 0 84% 60%; /* default red */
+    --destructive: 0 84% 60%;
+    /* default red */
     --destructive-foreground: 0 0% 98%;
-    --border: 44 71% 9%; /* warm black outlines */
+    --border: 44 71% 9%;
+    /* warm black outlines */
     --input: 44 71% 9%;
-    --ring: 48 94% 50%; /* yellow focus ring */
-    --chart-1: 48 94% 50%; /* yellow */
-    --chart-2: 142 72% 47%; /* #22C55E */
-    --chart-3: 25 95% 53%; /* #F97316 */
-    --chart-4: 330 79% 59%; /* #EC4899 */
-    --chart-5: 258 91% 67%; /* #8B5CF6 */
-    --radius: 0.25rem; /* sharper corners for brutalism */
+    --ring: 48 94% 50%;
+    /* yellow focus ring */
+    --chart-1: 48 94% 50%;
+    /* yellow */
+    --chart-2: 142 72% 47%;
+    /* #22C55E */
+    --chart-3: 25 95% 53%;
+    /* #F97316 */
+    --chart-4: 330 79% 59%;
+    /* #EC4899 */
+    --chart-5: 258 91% 67%;
+    /* #8B5CF6 */
+    --radius: 0.25rem;
+    /* sharper corners for brutalism */
   }
 
   .dark {
     /* Dark theme aligned to the same palette */
-    --background: 44 67% 7%; /* #221f10 - warm dark */
+    --background: 44 67% 7%;
+    /* #221f10 - warm dark */
     --foreground: 0 0% 98%;
     --card: 0 0% 8%;
     --card-foreground: 0 0% 98%;
@@ -88,32 +108,18 @@
 }
 
 @layer components {
+
   /* Neo-brutalism button styles */
   .btn-brutal {
-    @apply relative px-3 py-1.5 text-xs font-bold uppercase tracking-wide
-           border-3 border-secondary bg-primary text-secondary
-           shadow-brutal transition-all duration-150
-           hover:shadow-brutal-hover hover:-translate-x-0.5 hover:-translate-y-0.5
-           active:shadow-none active:translate-x-1 active:translate-y-1
-           sm:px-4 sm:py-2 sm:text-xs sm:tracking-wide;
+    @apply relative px-3 py-1.5 text-xs font-bold uppercase tracking-wide border-3 border-secondary bg-primary text-secondary shadow-brutal transition-all duration-150 hover:shadow-brutal-hover hover:-translate-x-0.5 hover:-translate-y-0.5 active:shadow-none active:translate-x-1 active:translate-y-1 sm:px-4 sm:py-2 sm:text-xs sm:tracking-wide;
   }
 
   .btn-brutal-secondary {
-    @apply relative px-3 py-1.5 text-xs font-bold uppercase tracking-wide
-           border-3 border-secondary bg-white text-secondary
-           shadow-brutal transition-all duration-150
-           hover:shadow-brutal-hover hover:-translate-x-0.5 hover:-translate-y-0.5
-           active:shadow-none active:translate-x-1 active:translate-y-1
-           sm:px-6 sm:py-3 sm:text-sm sm:tracking-wider;
+    @apply relative px-3 py-1.5 text-xs font-bold uppercase tracking-wide border-3 border-secondary bg-white text-secondary shadow-brutal transition-all duration-150 hover:shadow-brutal-hover hover:-translate-x-0.5 hover:-translate-y-0.5 active:shadow-none active:translate-x-1 active:translate-y-1 sm:px-6 sm:py-3 sm:text-sm sm:tracking-wider;
   }
 
   .btn-brutal-dark {
-    @apply relative px-3 py-1.5 text-xs font-bold uppercase tracking-wide
-           border-3 border-secondary bg-secondary text-white
-           shadow-brutal transition-all duration-150
-           hover:shadow-brutal-hover hover:-translate-x-0.5 hover:-translate-y-0.5
-           active:shadow-none active:translate-x-1 active:translate-y-1
-           sm:px-6 sm:py-3 sm:text-sm sm:tracking-wider;
+    @apply relative px-3 py-1.5 text-xs font-bold uppercase tracking-wide border-3 border-secondary bg-secondary text-white shadow-brutal transition-all duration-150 hover:shadow-brutal-hover hover:-translate-x-0.5 hover:-translate-y-0.5 active:shadow-none active:translate-x-1 active:translate-y-1 sm:px-6 sm:py-3 sm:text-sm sm:tracking-wider;
   }
 
   /* Neo-brutalism card styles */
@@ -127,16 +133,12 @@
 
   /* Neo-brutalism input styles */
   .input-brutal {
-    @apply w-full px-4 py-3 font-mono
-           border-3 border-secondary bg-white
-           focus:outline-none focus:ring-0 focus:shadow-brutal-sm
-           placeholder:text-gray-400;
+    @apply w-full px-4 py-3 font-mono border-3 border-secondary bg-white focus:outline-none focus:ring-0 focus:shadow-brutal-sm placeholder:text-gray-400;
   }
 
   /* Neo-brutalism badge */
   .badge-brutal {
-    @apply inline-flex items-center px-3 py-1 font-bold text-xs uppercase
-           border-2 border-secondary;
+    @apply inline-flex items-center px-3 py-1 font-bold text-xs uppercase border-2 border-secondary;
   }
 
   /* Progress bar */
@@ -150,16 +152,11 @@
 
   /* Sidebar navigation */
   .nav-item {
-    @apply flex items-center gap-3 px-4 py-3 font-bold uppercase text-sm
-           border-3 border-secondary bg-white
-           transition-all duration-150
-           hover:bg-primary hover:shadow-brutal-sm hover:-translate-x-0.5 hover:-translate-y-0.5;
+    @apply flex items-center gap-3 px-4 py-3 font-bold uppercase text-sm border-3 border-secondary bg-white transition-all duration-150 hover:bg-primary hover:shadow-brutal-sm hover:-translate-x-0.5 hover:-translate-y-0.5;
   }
 
   .nav-item-active {
-    @apply flex items-center gap-3 px-4 py-3 font-bold uppercase text-sm
-           border-3 border-secondary bg-primary shadow-brutal-sm
-           -translate-x-0.5 -translate-y-0.5;
+    @apply flex items-center gap-3 px-4 py-3 font-bold uppercase text-sm border-3 border-secondary bg-primary shadow-brutal-sm -translate-x-0.5 -translate-y-0.5;
   }
 
   /* Table styles */
@@ -182,12 +179,12 @@
 
   /* Tooltip */
   .tooltip-brutal {
-    @apply absolute z-50 px-3 py-2 text-sm font-bold
-           bg-secondary text-white border-2 border-secondary;
+    @apply absolute z-50 px-3 py-2 text-sm font-bold bg-secondary text-white border-2 border-secondary;
   }
 }
 
 @layer utilities {
+
   /* Text styles */
   .text-brutal-heading {
     @apply font-display font-bold uppercase tracking-tight;
@@ -199,8 +196,7 @@
 
   /* Animation utilities */
   .brutal-hover {
-    @apply transition-all duration-150
-           hover:shadow-brutal-hover hover:-translate-x-0.5 hover:-translate-y-0.5;
+    @apply transition-all duration-150 hover:shadow-brutal-hover hover:-translate-x-0.5 hover:-translate-y-0.5;
   }
 
   .brutal-active {
@@ -219,12 +215,15 @@
   .bg-goal-learning {
     @apply bg-blue-400;
   }
+
   .bg-goal-work {
     @apply bg-cyan-400;
   }
+
   .bg-goal-health {
     @apply bg-green-400;
   }
+
   .bg-goal-creative {
     @apply bg-pink-400;
   }
@@ -233,21 +232,27 @@
   .bg-schedule-deep-work {
     @apply bg-primary;
   }
+
   .bg-schedule-learning {
     @apply bg-green-400;
   }
+
   .bg-schedule-exercise {
     @apply bg-orange-400;
   }
+
   .bg-schedule-side-project {
     @apply bg-pink-400;
   }
+
   .bg-schedule-dsa {
     @apply bg-primary;
   }
+
   .bg-schedule-meeting {
     @apply bg-purple-400;
   }
+
   .bg-schedule-break {
     @apply bg-gray-300;
   }
