@@ -184,7 +184,7 @@ export function TimeTrackerPage() {
   }
 
   // Sort tasks - prioritize tasks matching current goal/category but show all tasks
-  // replace the sortTaskBySelection with FilterTasks()
+
   const orderedTasks = sortTasksBySelection(tasks, currentGoalId || undefined, currentCategory || undefined)
   
   const filteredGoals = goals.filter((goal: Goal) => {
