@@ -38,14 +38,6 @@ function SignupForm() {
 
   const register = useAuthStore((state) => state.register)
 
-  // Check email exists mutation
-  const checkEmailMutation = useMutation({
-    mutationFn: async (email: string) => {
-      const response = await authApi.checkEmailExists(email)
-      return response.data
-    },
-  })
-
   // Send OTP mutation
   const sendOTPMutation = useMutation({
     mutationFn: async (email: string) => {
@@ -103,13 +95,6 @@ function SignupForm() {
 
     if (password.length < 8) {
       toast.error('Password must be at least 8 characters')
-      return
-    }
-
-    // Check if email exists
-    const emailCheck = await checkEmailMutation.mutateAsync(email)
-    if (emailCheck.exists) {
-      toast.error('Email already registered. Please login instead.')
       return
     }
 
@@ -231,10 +216,10 @@ function SignupForm() {
 
                 <button
                   type="submit"
-                  disabled={sendOTPMutation.isPending || checkEmailMutation.isPending}
+                  disabled={sendOTPMutation.isPending}
                   className="btn-brutal flex w-full items-center justify-center gap-2"
                 >
-                  {sendOTPMutation.isPending || checkEmailMutation.isPending ? (
+                  {sendOTPMutation.isPending ? (
                     <Loading size="sm" className="h-5 w-5" />
                   ) : (
                     <>
