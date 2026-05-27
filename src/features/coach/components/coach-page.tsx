@@ -41,6 +41,33 @@ function currentScopeKey(): string {
   return `${date.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`
 }
 
+/**
+ * Human label for a scopeKey. Returns "This week · May 25 – 31" for the current
+ * ISO week, or "May 18 – 24, 2026" for a past one. Falls back to the raw
+ * scopeKey only when the parse fails.
+ */
+function humanScopeLabel(scopeKey: string): string {
+  const m = /^(\d{4})-W(\d{2})$/.exec(scopeKey)
+  if (!m) return scopeKey
+  const year = Number(m[1])
+  const week = Number(m[2])
+  // ISO-week Monday: Jan 4 of the year is always in week 1; back up to its Monday.
+  const jan4 = new Date(Date.UTC(year, 0, 4))
+  const jan4Day = jan4.getUTCDay() || 7
+  const week1Monday = new Date(jan4)
+  week1Monday.setUTCDate(jan4.getUTCDate() - (jan4Day - 1))
+  const monday = new Date(week1Monday)
+  monday.setUTCDate(week1Monday.getUTCDate() + (week - 1) * 7)
+  const sunday = new Date(monday)
+  sunday.setUTCDate(monday.getUTCDate() + 6)
+  const fmtDay = (d: Date) => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+  const fmtSundayDay = (d: Date) =>
+    d.getUTCMonth() === monday.getUTCMonth() ? String(d.getUTCDate()) : fmtDay(d)
+  const isCurrent = scopeKey === currentScopeKey()
+  const prefix = isCurrent ? 'This week · ' : ''
+  return `${prefix}${fmtDay(monday)} – ${fmtSundayDay(sunday)}`
+}
+
 function isAxios404(err: unknown): boolean {
   return axios.isAxiosError(err) && err.response?.status === 404
 }
@@ -174,7 +201,7 @@ function NarrativeSection({ scopeKey }: NarrativeSectionProps) {
         }
         action={
           <div className="flex items-center gap-2">
-            <Badge variant="default">{scopeKey}</Badge>
+            <Badge variant="default">{humanScopeLabel(scopeKey)}</Badge>
             {isStreaming && <Badge variant="brand">Streaming…</Badge>}
           </div>
         }
@@ -353,7 +380,7 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
             Ask the Coach
           </span>
         }
-        action={<Badge variant="default">{scopeKey}</Badge>}
+        action={<Badge variant="default">{humanScopeLabel(scopeKey)}</Badge>}
       />
 
       <div
@@ -364,32 +391,30 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
           <p className="text-sm text-zinc-500">Loading conversation…</p>
         ) : allMessages.length === 0 ? (
           <p className="text-sm text-zinc-500">
-            No messages yet. Ask anything about your week, schedule, focus, or goals.
+            Nothing here yet. Ask what you actually want to know — about your week, your sleep,
+            why something is hard, or what to try next.
           </p>
         ) : (
-          allMessages.map((m) => (
-            <div
-              key={m.id}
-              className={cn(
-                'flex w-full',
-                m.role === 'USER' ? 'justify-end' : 'justify-start',
-              )}
-            >
-              <div
-                className={cn(
-                  'max-w-[85%] whitespace-pre-wrap rounded-lg px-3 py-2 text-sm leading-relaxed',
-                  m.role === 'USER'
-                    ? 'bg-zinc-50 border border-zinc-200 text-zinc-900'
-                    : 'bg-zinc-900 text-white',
-                )}
-              >
-                {m.content}
-                {m.pending && m.role === 'ASSISTANT' && (
-                  <span className="ml-1 animate-pulse text-zinc-400">▍</span>
-                )}
+          <div className="space-y-5">
+            {allMessages.map((m) => (
+              <div key={m.id} className="space-y-1">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-zinc-400">
+                  {m.role === 'USER' ? 'You' : 'Coach'}
+                </span>
+                <div
+                  className={cn(
+                    'whitespace-pre-wrap text-[15px] leading-relaxed',
+                    m.role === 'USER' ? 'text-zinc-700' : 'text-zinc-900',
+                  )}
+                >
+                  {m.content}
+                  {m.pending && m.role === 'ASSISTANT' && (
+                    <span className="ml-1 animate-pulse text-zinc-400">▍</span>
+                  )}
+                </div>
               </div>
-            </div>
-          ))
+            ))}
+          </div>
         )}
       </div>
 
