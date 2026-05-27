@@ -685,7 +685,17 @@ export const coachApi = {
     ),
 
   // Chat
-  getChatHistory: (scopeKey: string) => api.get<CoachMessageDto[]>(`/coach/chat/${scopeKey}`),
+  // Backend returns { messages: CoachMessageDto[] } — normalize to a plain
+  // array at the boundary so consumers (e.g. ChatSection) can always treat
+  // res.data as an array.
+  getChatHistory: async (scopeKey: string) => {
+    const res = await api.get<{ messages?: CoachMessageDto[] } | CoachMessageDto[]>(
+      `/coach/chat/${scopeKey}`,
+    )
+    const raw = res.data as { messages?: CoachMessageDto[] } | CoachMessageDto[] | null | undefined
+    const messages = Array.isArray(raw) ? raw : raw?.messages ?? []
+    return { ...res, data: messages }
+  },
   streamChat: (scopeKey: string, content: string, opts?: { signal?: AbortSignal }) =>
     postCoachStream(`/coach/chat/${scopeKey}`, { content }, opts?.signal),
 }
