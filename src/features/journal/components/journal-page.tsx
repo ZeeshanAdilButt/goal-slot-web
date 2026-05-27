@@ -18,9 +18,11 @@ export function JournalPage() {
         description="One free-form entry per day. The coach reads these when analyzing your week."
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-[16rem_1fr] gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
         <JournalSidebar entries={entries} selectedDate={selectedDate} onSelect={selectDate} />
-        <JournalEntryEditor entry={selectedEntry} onSaveContent={upsertContent} />
+        <div className="min-w-0 overflow-hidden">
+          <JournalEntryEditor entry={selectedEntry} onSaveContent={upsertContent} />
+        </div>
       </div>
     </PageShell>
   )

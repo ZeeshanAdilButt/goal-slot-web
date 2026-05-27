@@ -119,19 +119,22 @@ export function FocusTimeGridCard({ view, filters, reportUserId }: FocusTimeGrid
             {excludedNote && <div className="text-sm text-gray-600">{excludedNote}</div>}
 
             <div className="flex flex-wrap items-center gap-4 text-xs">
-              <span className="font-mono text-gray-500">OPACITY:</span>
+              <span className="font-mono text-zinc-500">INTENSITY:</span>
               <div className="flex items-center gap-2">
-                <div className="h-4 w-4 rounded-[2px] border border-secondary bg-black/40" />
-                <span className="font-mono uppercase">1–20m</span>
+                <div className="h-4 w-4 rounded-[2px] border border-zinc-200 bg-sky-200" />
+                <span className="font-mono uppercase text-zinc-600">1–20m</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="h-4 w-4 rounded-[2px] border border-secondary bg-black/70" />
-                <span className="font-mono uppercase">21–40m</span>
+                <div className="h-4 w-4 rounded-[2px] border border-zinc-200 bg-sky-400" />
+                <span className="font-mono uppercase text-zinc-600">21–40m</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="h-4 w-4 rounded-[2px] border border-secondary bg-black" />
-                <span className="font-mono uppercase">41m+</span>
+                <div className="h-4 w-4 rounded-[2px] border border-zinc-200 bg-sky-600" />
+                <span className="font-mono uppercase text-zinc-600">41m+</span>
               </div>
+              <span className="ml-auto font-mono text-[10px] text-zinc-400">
+                {period === 'month' ? 'Hover a cell for detail' : 'Goal colors override the intensity ramp'}
+              </span>
             </div>
 
             <div
@@ -143,28 +146,28 @@ export function FocusTimeGridCard({ view, filters, reportUserId }: FocusTimeGrid
             >
               <FocusUpdatingOverlay active={showUpdating} />
 
-              <div className="min-w-[720px]">
+              <div className={cn('min-w-[720px]', period === 'month' && 'min-w-[960px]')}>
                 {/* X-axis (days), Y-axis (hours) */}
                 <div
-                  className="grid gap-px rounded-sm bg-secondary/20 p-px"
+                  className="grid gap-px rounded-sm bg-zinc-200/60 p-px"
                   style={{ gridTemplateColumns: `92px repeat(${range.days.length}, minmax(0, 1fr))` }}
                 >
                   <div className="bg-white" />
                   {range.days.map((day) => (
-                    <div key={day} className="bg-white py-1 text-center font-mono text-[10px] text-gray-500">
+                    <div key={day} className="bg-white py-1 text-center font-mono text-[10px] text-zinc-500">
                       {period === 'month' ? format(parseISO(day), 'd') : format(parseISO(day), 'EEE')}
                     </div>
                   ))}
                 </div>
 
-                <div className="mt-2 space-y-px rounded-sm bg-secondary/20 p-px">
+                <div className="mt-2 space-y-px rounded-sm bg-zinc-200/60 p-px">
                   {hours.map((hour) => (
                     <div
                       key={hour}
                       className="grid items-center gap-px"
                       style={{ gridTemplateColumns: `92px repeat(${range.days.length}, minmax(0, 1fr))` }}
                     >
-                      <div className="bg-white pr-2 text-right font-mono text-[10px] text-gray-600">
+                      <div className="bg-white pr-2 text-right font-mono text-[10px] text-zinc-600">
                         {formatHourLabel(hour)}
                       </div>
                       {range.days.map((day) => {
@@ -176,23 +179,19 @@ export function FocusTimeGridCard({ view, filters, reportUserId }: FocusTimeGrid
                         const dominantColor = dominantItem?.goalColor
                         const taskName = dominantItem?.taskName
 
-                        // Build tooltip text
-                        let tooltip = `${format(parseISO(day), 'MMM d')} • ${formatHourLabel(hour)}`
-                        if (minutes > 0) {
-                          tooltip += ` • ${formatDuration(minutes)}\n`
-                          tooltip += items.map((i) => `• ${i.taskName} (${formatDuration(i.minutes)})`).join('\n')
-                        }
+                        const isMonth = period === 'month'
 
                         return (
                           <div
                             key={day}
-                            title={tooltip}
-                            className={cn('group relative h-12 w-full rounded-[2px] transition-all hover:z-10')}
+                            className={cn(
+                              'group relative h-12 w-full rounded-[2px] transition-all hover:z-20',
+                            )}
                           >
-                            {/* Background Layer to handle Opacity independently of content */}
+                            {/* Background — colored by dominant goal OR sky-intensity fallback */}
                             <div
                               className={cn(
-                                'absolute inset-0 rounded-[2px] transition-all group-hover:brightness-95 group-hover:scale-105',
+                                'absolute inset-0 rounded-[2px] transition-[transform,filter] duration-150 group-hover:brightness-95 group-hover:scale-[1.04]',
                                 !dominantColor && getFallbackClass(minutes),
                               )}
                               style={
@@ -202,12 +201,45 @@ export function FocusTimeGridCard({ view, filters, reportUserId }: FocusTimeGrid
                               }
                             />
 
-                            {/* Content Layer - always readable */}
-                            {minutes > 0 && (
-                              <div className="pointer-events-none relative z-10 flex h-full flex-col justify-center overflow-hidden px-1 text-[10px] leading-none text-slate-900 opacity-0 mix-blend-multiply transition-opacity group-hover:opacity-100 sm:opacity-100">
+                            {/* Inline text — only on >=week views (cells wide enough) */}
+                            {minutes > 0 && !isMonth && (
+                              <div className="pointer-events-none relative z-10 flex h-full flex-col justify-center overflow-hidden px-1 text-[10px] leading-none text-slate-900 mix-blend-multiply">
                                 <span className="truncate font-semibold">{taskName}</span>
                                 {items.length > 1 && <span className="text-[9px]">+ {items.length - 1} more</span>}
                                 <span className="mt-0.5 opacity-75">{formatDuration(minutes)}</span>
+                              </div>
+                            )}
+
+                            {/* Hover card — full detail, works in every view but essential in month */}
+                            {minutes > 0 && (
+                              <div className="pointer-events-none invisible absolute left-1/2 top-full z-40 mt-1 w-56 -translate-x-1/2 rounded-lg border border-zinc-200 bg-white p-3 text-left shadow-lg opacity-0 transition-opacity duration-100 group-hover:visible group-hover:opacity-100">
+                                <div className="mb-1 flex items-baseline justify-between gap-2">
+                                  <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-500">
+                                    {format(parseISO(day), 'MMM d')} · {formatHourLabel(hour)}
+                                  </span>
+                                  <span className="font-mono text-xs font-semibold text-zinc-900">
+                                    {formatDuration(minutes)}
+                                  </span>
+                                </div>
+                                <ul className="space-y-1 text-xs text-zinc-700">
+                                  {items.slice(0, 5).map((item, idx) => (
+                                    <li key={idx} className="flex items-start gap-1.5">
+                                      <span
+                                        className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full"
+                                        style={{ backgroundColor: item.goalColor || '#94a3b8' }}
+                                      />
+                                      <span className="min-w-0 flex-1 truncate font-medium">{item.taskName}</span>
+                                      <span className="shrink-0 font-mono text-[10px] text-zinc-500">
+                                        {formatDuration(item.minutes)}
+                                      </span>
+                                    </li>
+                                  ))}
+                                  {items.length > 5 && (
+                                    <li className="font-mono text-[10px] text-zinc-400">
+                                      + {items.length - 5} more
+                                    </li>
+                                  )}
+                                </ul>
                               </div>
                             )}
                           </div>

@@ -154,19 +154,25 @@ function NoteItem({
         {...listeners}
         onMouseMove={handleMouseMove}
         className={cn(
-          'group relative flex items-center gap-1 rounded-md px-2 py-1.5 text-sm transition-colors cursor-pointer select-none',
-          isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
-          isOver && dropPosition === 'inside' && 'bg-primary/20 ring-2 ring-primary ring-inset',
+          'group relative flex items-center gap-1 rounded-md px-2 py-1.5 text-sm transition-[background-color,box-shadow,transform] duration-150 select-none cursor-grab active:cursor-grabbing',
+          isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-zinc-50',
+          isOver && dropPosition === 'inside' && 'bg-[#f2cc0d]/15 ring-2 ring-[#f2cc0d] ring-inset',
         )}
         onClick={() => onSelect(note)}
       >
-        {/* Drop Indicators */}
-        {isOver && dropPosition === 'top' && (
-          <div className="pointer-events-none absolute left-0 right-0 top-0 z-50 h-0.5 bg-primary" />
-        )}
-        {isOver && dropPosition === 'bottom' && (
-          <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-50 h-0.5 bg-primary" />
-        )}
+        {/* Drop Indicators — animated yellow bar for top/bottom inserts */}
+        <div
+          className={cn(
+            'pointer-events-none absolute left-1 right-1 top-0 z-50 h-[3px] rounded-full bg-[#f2cc0d] shadow-[0_0_6px_rgba(242,204,13,0.6)] transition-opacity duration-100',
+            isOver && dropPosition === 'top' ? 'opacity-100' : 'opacity-0',
+          )}
+        />
+        <div
+          className={cn(
+            'pointer-events-none absolute bottom-0 left-1 right-1 z-50 h-[3px] rounded-full bg-[#f2cc0d] shadow-[0_0_6px_rgba(242,204,13,0.6)] transition-opacity duration-100',
+            isOver && dropPosition === 'bottom' ? 'opacity-100' : 'opacity-0',
+          )}
+        />
 
         {/* Expand/Collapse button */}
         <button
@@ -463,17 +469,29 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
 
   const sensors = useSensors(
     useSensor(MouseSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
+      // Tight distance threshold = drag starts on a small wrist movement
+      // without firing on accidental click jiggle.
+      activationConstraint: { distance: 4 },
     }),
     useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 250,
-        tolerance: 5,
-      },
+      activationConstraint: { delay: 200, tolerance: 5 },
     }),
   )
+
+  // Set body cursor + disable text selection during drag for a calm feel.
+  useEffect(() => {
+    if (activeNote) {
+      document.body.style.cursor = 'grabbing'
+      document.body.style.userSelect = 'none'
+    } else {
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+    return () => {
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+  }, [activeNote])
 
   const handleCreateNote = (parentId?: string | null) => {
     createMutation.mutate(
@@ -654,9 +672,9 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
           </div>
         </div>
 
-        <DragOverlay>
+        <DragOverlay dropAnimation={{ duration: 180, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
           {activeNote ? (
-            <div className="flex cursor-grabbing items-center gap-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm opacity-90 shadow-xl">
+            <div className="flex max-w-[14rem] cursor-grabbing items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-sm font-medium text-zinc-900 shadow-[0_10px_30px_rgba(0,0,0,0.15),0_0_0_2px_rgba(242,204,13,0.4)]">
               <span className="shrink-0 text-base">{activeNote.icon || '📄'}</span>
               <span className="flex-1 truncate">{activeNote.title || 'Untitled'}</span>
             </div>

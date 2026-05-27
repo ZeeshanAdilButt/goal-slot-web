@@ -55,7 +55,7 @@ export function TasksAdvancedFilters({
 
   return (
     <div className={isStacked ? 'space-y-4' : 'flex flex-wrap items-center gap-2 pb-1 sm:pb-0'}>
-      {isStacked ? <div className="text-xs font-bold uppercase text-secondary">Date filter</div> : null}
+      {isStacked ? <div className="text-xs font-bold uppercase text-zinc-900">Date filter</div> : null}
       <Popover>
         <PopoverTrigger asChild>
           <button className={dateTriggerClassName}>
@@ -139,7 +139,7 @@ export function TasksAdvancedFilters({
         </PopoverContent>
       </Popover>
 
-      {isStacked ? <div className="text-xs font-bold uppercase text-secondary">Duration filter</div> : null}
+      {isStacked ? <div className="text-xs font-bold uppercase text-zinc-900">Duration filter</div> : null}
       <Popover>
         <PopoverTrigger asChild>
           <button className={durationTriggerClassName}>

@@ -23,7 +23,7 @@ export function TaskHeader({ task }: TaskHeaderProps) {
         <h4
           className={cn(
             'font-display text-base font-bold uppercase leading-tight break-words sm:text-lg',
-            'text-secondary',
+            'text-zinc-900',
           )}
         >
           {task.title}

@@ -14,7 +14,7 @@ export function VisualShowcaseSection() {
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <div>
               <div className="mb-4 inline-flex items-center gap-2 rounded border border-zinc-200 bg-primary px-3 py-1">
-                <span className="font-mono text-xs font-bold text-secondary">STEP 01</span>
+                <span className="font-mono text-xs font-bold text-zinc-900">STEP 01</span>
               </div>
               <h2 className="mb-4 font-display text-4xl font-black">Define The Goal Board</h2>
               <p className="mb-6 text-lg text-gray-700">
@@ -165,7 +165,7 @@ export function VisualShowcaseSection() {
 
             <div className="order-1 lg:order-2">
               <div className="mb-4 inline-flex items-center gap-2 rounded border border-zinc-200 bg-primary px-3 py-1">
-                <span className="font-mono text-xs font-bold text-secondary">STEP 02</span>
+                <span className="font-mono text-xs font-bold text-zinc-900">STEP 02</span>
               </div>
               <h2 className="mb-4 font-display text-4xl font-black">Allocate The Schedule</h2>
               <p className="mb-6 text-lg text-gray-700">
@@ -200,7 +200,7 @@ export function VisualShowcaseSection() {
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <div>
               <div className="mb-4 inline-flex items-center gap-2 rounded border border-zinc-200 bg-primary px-3 py-1">
-                <span className="font-mono text-xs font-bold text-secondary">STEP 03</span>
+                <span className="font-mono text-xs font-bold text-zinc-900">STEP 03</span>
               </div>
               <h2 className="mb-4 font-display text-4xl font-black">Execute The Timer</h2>
               <p className="mb-6 text-lg text-gray-700">
@@ -328,7 +328,7 @@ export function VisualShowcaseSection() {
 
             <div className="order-1 lg:order-2">
               <div className="mb-4 inline-flex items-center gap-2 rounded border border-zinc-200 bg-primary px-3 py-1">
-                <span className="font-mono text-xs font-bold text-secondary">STEP 04</span>
+                <span className="font-mono text-xs font-bold text-zinc-900">STEP 04</span>
               </div>
               <h2 className="mb-4 font-display text-4xl font-black">Review The Reports</h2>
               <p className="mb-6 text-lg text-gray-700">

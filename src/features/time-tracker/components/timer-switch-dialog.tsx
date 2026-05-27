@@ -69,7 +69,7 @@ export function TimerSwitchDialog({
               className="rounded-sm border border-zinc-200 bg-white p-1 transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-sm disabled:opacity-50"
               aria-label="Close dialog"
             >
-              <X className="h-4 w-4 text-secondary" />
+              <X className="h-4 w-4 text-zinc-900" />
             </button>
           </div>
         </AlertDialogHeader>

@@ -14,13 +14,13 @@ export function PhilosophySection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <div className="mb-8 inline-flex items-center gap-2 border border-white bg-primary px-4 py-2 text-secondary shadow-sm">
+          <div className="mb-8 inline-flex items-center gap-2 border border-white bg-primary px-4 py-2 text-zinc-900 shadow-sm">
             <CheckSquare className="h-5 w-5" />
             <span className="font-bold uppercase">The Logic</span>
           </div>
 
           <h2 className="mb-8 font-display text-4xl font-bold uppercase md:text-5xl">
-            The Logic: <span className="bg-primary px-2 text-secondary">4 Steps</span> to Mastery
+            The Logic: <span className="bg-primary px-2 text-zinc-900">4 Steps</span> to Mastery
           </h2>
 
           <p className="mb-12 text-lg text-gray-300">
@@ -32,10 +32,10 @@ export function PhilosophySection() {
           <div className="grid gap-8 md:grid-cols-4">
             <div className="border border-white bg-secondary/50 p-6">
               <div className="mb-4 inline-flex items-center gap-2 rounded border-2 border-white bg-primary px-2 py-1">
-                <span className="font-mono text-xs font-bold text-secondary">STEP 01</span>
+                <span className="font-mono text-xs font-bold text-zinc-900">STEP 01</span>
               </div>
               <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-sm border-2 border-white bg-primary mx-auto">
-                <Target className="h-6 w-6 text-secondary" />
+                <Target className="h-6 w-6 text-zinc-900" />
               </div>
               <h3 className="mb-2 font-display text-lg font-bold uppercase">Goals</h3>
               <p className="font-mono text-xs text-gray-300">
@@ -45,7 +45,7 @@ export function PhilosophySection() {
 
             <div className="border border-white bg-secondary/50 p-6">
               <div className="mb-4 inline-flex items-center gap-2 rounded border-2 border-white bg-primary px-2 py-1">
-                <span className="font-mono text-xs font-bold text-secondary">STEP 02</span>
+                <span className="font-mono text-xs font-bold text-zinc-900">STEP 02</span>
               </div>
               <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-sm border-2 border-white bg-green-500 mx-auto">
                 <Calendar className="h-6 w-6 text-white" />
@@ -58,7 +58,7 @@ export function PhilosophySection() {
 
             <div className="border border-white bg-secondary/50 p-6">
               <div className="mb-4 inline-flex items-center gap-2 rounded border-2 border-white bg-primary px-2 py-1">
-                <span className="font-mono text-xs font-bold text-secondary">STEP 03</span>
+                <span className="font-mono text-xs font-bold text-zinc-900">STEP 03</span>
               </div>
               <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-sm border-2 border-white bg-blue-500 mx-auto">
                 <Clock className="h-6 w-6 text-white" />
@@ -71,7 +71,7 @@ export function PhilosophySection() {
 
             <div className="border border-white bg-secondary/50 p-6">
               <div className="mb-4 inline-flex items-center gap-2 rounded border-2 border-white bg-primary px-2 py-1">
-                <span className="font-mono text-xs font-bold text-secondary">STEP 04</span>
+                <span className="font-mono text-xs font-bold text-zinc-900">STEP 04</span>
               </div>
               <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-sm border-2 border-white bg-purple-500 mx-auto">
                 <BarChart3 className="h-6 w-6 text-white" />
@@ -84,10 +84,10 @@ export function PhilosophySection() {
           </div>
 
           <div className="mt-12 rounded-sm border-2 border-white bg-primary p-6">
-            <p className="font-display text-xl font-black text-secondary">
+            <p className="font-display text-xl font-black text-zinc-900">
               "What gets scheduled gets done. What gets tracked gets finished."
             </p>
-            <p className="mt-2 text-sm font-bold text-secondary/80">— The GoalSlot Philosophy</p>
+            <p className="mt-2 text-sm font-bold text-zinc-700">— The GoalSlot Philosophy</p>
           </div>
         </AnimatedSection>
       </div>

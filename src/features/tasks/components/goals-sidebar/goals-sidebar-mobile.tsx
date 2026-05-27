@@ -94,7 +94,7 @@ export function GoalsSidebarMobile({
                   }}
                   className={cn(
                     'w-full flex items-center gap-3 px-4 py-3 text-left font-bold uppercase text-xs border-b-2 border-secondary/20 transition-all',
-                    selectedGoalId === WITHOUT_GOALS_ID ? 'bg-primary text-secondary' : 'bg-white hover:bg-gray-50',
+                    selectedGoalId === WITHOUT_GOALS_ID ? 'bg-primary text-zinc-900' : 'bg-white hover:bg-gray-50',
                   )}
                 >
                   <span className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full bg-gray-400" />
@@ -115,7 +115,7 @@ export function GoalsSidebarMobile({
                       }}
                       className={cn(
                         'w-full flex items-center gap-3 px-4 py-3 text-left font-bold uppercase text-xs border-b-2 border-secondary/20 transition-all',
-                        selectedGoalId === goal.id ? 'bg-primary text-secondary' : 'bg-white hover:bg-gray-50',
+                        selectedGoalId === goal.id ? 'bg-primary text-zinc-900' : 'bg-white hover:bg-gray-50',
                       )}
                     >
                       <span

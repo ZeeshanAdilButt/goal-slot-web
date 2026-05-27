@@ -1,22 +1,447 @@
 'use client'
 
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import axios from 'axios'
+import { KeyRound, MessageCircle, RotateCcw, Send, Sparkles } from 'lucide-react'
+import { toast } from 'react-hot-toast'
+
+import { coachApi, type CoachMessageDto, type CoachStreamChunk } from '@/lib/api'
+import { cn } from '@/lib/utils'
 import { PROVIDER_META, useByokKey } from '@/features/settings/hooks/use-byok-key'
-import { KeyRound, MessageCircle, Sparkles } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { GlassCard } from '@/components/ui/glass-card'
+import { Input } from '@/components/ui/input'
 import { PageHeader } from '@/components/ui/page-header'
 import { PageShell } from '@/components/ui/page-shell'
 import { SectionHeader } from '@/components/ui/section-header'
+import { SocraticQuote } from '@/components/ui/socratic-quote'
 
+const EXAMPLE_PROMPTS = [
+  'Why was Wednesday bad?',
+  "Suggest next week's schedule",
+  'Where am I leaking time?',
+]
+
+// ---------------------------------------------------------------------------
+// scopeKey helpers — ISO week "YYYY-Www" (matches backend & use-goal-reflection)
+// ---------------------------------------------------------------------------
+function currentScopeKey(): string {
+  const now = new Date()
+  const date = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
+  const dayNum = date.getUTCDay() || 7
+  date.setUTCDate(date.getUTCDate() + 4 - dayNum)
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1))
+  const weekNo = Math.ceil(((date.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
+  return `${date.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`
+}
+
+function isAxios404(err: unknown): boolean {
+  return axios.isAxiosError(err) && err.response?.status === 404
+}
+
+function statusOf(err: unknown): number | undefined {
+  if (axios.isAxiosError(err)) return err.response?.status
+  if (err && typeof err === 'object' && 'status' in err) {
+    const s = (err as { status?: unknown }).status
+    if (typeof s === 'number') return s
+  }
+  return undefined
+}
+
+function handleStreamError(status: number | undefined, message: string) {
+  if (status === 412) {
+    toast.error('Your API key was removed. Reconnect it in Integrations.')
+  } else if (status === 429) {
+    toast.error('Rate limit hit — try again later or check your token budget.')
+  } else {
+    toast.error(message)
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Narrative
+// ---------------------------------------------------------------------------
+interface NarrativeSectionProps {
+  scopeKey: string
+}
+
+function NarrativeSection({ scopeKey }: NarrativeSectionProps) {
+  const queryClient = useQueryClient()
+
+  const [streamingText, setStreamingText] = useState('')
+  const [isStreaming, setIsStreaming] = useState(false)
+  const [usage, setUsage] = useState<{ promptTokens: number; completionTokens: number } | null>(null)
+  const [streamError, setStreamError] = useState<string | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
+
+  // Cached narrative (404 means none yet — that's fine, we render a prompt).
+  const cachedQuery = useQuery<CoachMessageDto | null>({
+    queryKey: ['coach', 'narrative', scopeKey],
+    queryFn: async () => {
+      try {
+        const res = await coachApi.getNarrative(scopeKey)
+        return res.data
+      } catch (err) {
+        if (isAxios404(err)) return null
+        throw err
+      }
+    },
+  })
+
+  const runStream = useCallback(
+    async (opts: { force: boolean }) => {
+      if (isStreaming) return
+      // Cancel any in-flight stream just in case.
+      abortRef.current?.abort()
+      const controller = new AbortController()
+      abortRef.current = controller
+      setIsStreaming(true)
+      setStreamingText('')
+      setStreamError(null)
+      setUsage(null)
+      try {
+        const iter = await coachApi.streamNarrative(scopeKey, {
+          force: opts.force,
+          signal: controller.signal,
+        })
+        let acc = ''
+        let lastUsage: CoachStreamChunk['usage'] | undefined
+        let lastError: string | undefined
+        for await (const chunk of iter) {
+          if (chunk.delta) {
+            acc += chunk.delta
+            setStreamingText(acc)
+          }
+          if (chunk.usage) lastUsage = chunk.usage
+          if (chunk.error) lastError = chunk.error
+          if (chunk.done) break
+        }
+        if (lastError) {
+          setStreamError(lastError)
+        } else {
+          // Persist as the cached narrative.
+          if (acc) {
+            queryClient.setQueryData<CoachMessageDto | null>(['coach', 'narrative', scopeKey], (prev) => ({
+              id: prev?.id ?? `local_${Date.now()}`,
+              scopeKey,
+              role: 'SYSTEM_NARRATIVE',
+              content: acc,
+              promptTokens: lastUsage?.promptTokens ?? null,
+              completionTokens: lastUsage?.completionTokens ?? null,
+              model: prev?.model ?? null,
+              createdAt: new Date().toISOString(),
+            }))
+          }
+          if (lastUsage) setUsage(lastUsage)
+        }
+      } catch (err) {
+        const status = statusOf(err)
+        const message = err instanceof Error ? err.message : 'Failed to generate narrative'
+        handleStreamError(status, message)
+        setStreamError(message)
+      } finally {
+        setIsStreaming(false)
+        abortRef.current = null
+      }
+    },
+    [isStreaming, queryClient, scopeKey],
+  )
+
+  // Cancel stream on unmount.
+  useEffect(() => {
+    return () => abortRef.current?.abort()
+  }, [])
+
+  const cached = cachedQuery.data
+  const displayText = isStreaming || streamingText ? streamingText : cached?.content ?? ''
+  const hasContent = displayText.length > 0
+  const isLoadingCache = cachedQuery.isLoading
+
+  return (
+    <GlassCard padded className="space-y-3">
+      <SectionHeader
+        title={
+          <span className="inline-flex items-center gap-2">
+            <Sparkles className="h-4 w-4" />
+            Your week, in narrative
+          </span>
+        }
+        action={
+          <div className="flex items-center gap-2">
+            <Badge variant="default">{scopeKey}</Badge>
+            {isStreaming && <Badge variant="brand">Streaming…</Badge>}
+          </div>
+        }
+      />
+
+      {isLoadingCache && !hasContent && (
+        <p className="text-sm text-zinc-500">Loading the latest narrative…</p>
+      )}
+
+      {!isLoadingCache && !hasContent && !isStreaming && !streamError && (
+        <div className="space-y-3">
+          <p className="text-sm text-zinc-600">
+            No narrative for this week yet. Generate one to read a plain-English review of how your week went,
+            plus a Socratic question to keep you honest.
+          </p>
+          <Button variant="brand" size="sm" onClick={() => runStream({ force: false })}>
+            <Sparkles className="h-3.5 w-3.5" />
+            Generate this week&apos;s narrative
+          </Button>
+        </div>
+      )}
+
+      {hasContent && (
+        <SocraticQuote>
+          <span className="whitespace-pre-wrap not-italic text-zinc-800">{displayText}</span>
+          {isStreaming && <span className="ml-1 animate-pulse text-zinc-400">▍</span>}
+        </SocraticQuote>
+      )}
+
+      {usage && !isStreaming && (
+        <p className="text-[11px] text-zinc-500">
+          {usage.promptTokens} prompt + {usage.completionTokens} completion tokens
+        </p>
+      )}
+
+      {streamError && (
+        <Badge variant="destructive" className="normal-case">
+          {streamError}
+        </Badge>
+      )}
+
+      {hasContent && (
+        <div className="flex justify-end">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => runStream({ force: true })}
+            disabled={isStreaming}
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            Regenerate
+          </Button>
+        </div>
+      )}
+    </GlassCard>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Chat
+// ---------------------------------------------------------------------------
+interface ChatMessageView {
+  id: string
+  role: 'USER' | 'ASSISTANT' | 'SYSTEM_NARRATIVE'
+  content: string
+  pending?: boolean
+}
+
+interface ChatSectionProps {
+  scopeKey: string
+}
+
+function ChatSection({ scopeKey }: ChatSectionProps) {
+  const queryClient = useQueryClient()
+
+  const historyQuery = useQuery<CoachMessageDto[]>({
+    queryKey: ['coach', 'chat', scopeKey],
+    queryFn: async () => {
+      const res = await coachApi.getChatHistory(scopeKey)
+      return res.data ?? []
+    },
+  })
+
+  const [input, setInput] = useState('')
+  const [streaming, setStreaming] = useState(false)
+  const [optimistic, setOptimistic] = useState<ChatMessageView[]>([])
+  const [streamingReply, setStreamingReply] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
+  const scrollRef = useRef<HTMLDivElement | null>(null)
+
+  // Filter chat-relevant messages (exclude narratives so the chat thread is clean).
+  const persistedMessages = useMemo<ChatMessageView[]>(() => {
+    return (historyQuery.data ?? [])
+      .filter((m) => m.role === 'USER' || m.role === 'ASSISTANT')
+      .map((m) => ({ id: m.id, role: m.role, content: m.content }))
+  }, [historyQuery.data])
+
+  const allMessages = useMemo<ChatMessageView[]>(() => {
+    const list = [...persistedMessages, ...optimistic]
+    if (streaming && streamingReply) {
+      list.push({ id: 'streaming-assistant', role: 'ASSISTANT', content: streamingReply, pending: true })
+    } else if (streaming) {
+      list.push({ id: 'streaming-assistant', role: 'ASSISTANT', content: '…', pending: true })
+    }
+    return list
+  }, [persistedMessages, optimistic, streaming, streamingReply])
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    }
+  }, [allMessages.length, streamingReply])
+
+  useEffect(() => {
+    return () => abortRef.current?.abort()
+  }, [])
+
+  const handleSend = useCallback(
+    async (content: string) => {
+      const trimmed = content.trim()
+      if (!trimmed || streaming) return
+      setError(null)
+      setInput('')
+      const userMsgId = `local_user_${Date.now()}`
+      setOptimistic((prev) => [...prev, { id: userMsgId, role: 'USER', content: trimmed }])
+      setStreamingReply('')
+      setStreaming(true)
+      abortRef.current?.abort()
+      const controller = new AbortController()
+      abortRef.current = controller
+      try {
+        const iter = await coachApi.streamChat(scopeKey, trimmed, { signal: controller.signal })
+        let acc = ''
+        let streamErr: string | undefined
+        for await (const chunk of iter) {
+          if (chunk.delta) {
+            acc += chunk.delta
+            setStreamingReply(acc)
+          }
+          if (chunk.error) streamErr = chunk.error
+          if (chunk.done) break
+        }
+        if (streamErr) {
+          setError(streamErr)
+        }
+        // Invalidate history so we get authoritative IDs/timestamps; drop optimistic.
+        await queryClient.invalidateQueries({ queryKey: ['coach', 'chat', scopeKey] })
+        setOptimistic([])
+      } catch (err) {
+        const status = statusOf(err)
+        const message = err instanceof Error ? err.message : 'Chat failed'
+        handleStreamError(status, message)
+        setError(message)
+        // Keep the optimistic user message visible so the user can retry.
+      } finally {
+        setStreaming(false)
+        setStreamingReply('')
+        abortRef.current = null
+      }
+    },
+    [queryClient, scopeKey, streaming],
+  )
+
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    void handleSend(input)
+  }
+
+  return (
+    <GlassCard padded className="space-y-3">
+      <SectionHeader
+        title={
+          <span className="inline-flex items-center gap-2">
+            <MessageCircle className="h-4 w-4" />
+            Ask the Coach
+          </span>
+        }
+        action={<Badge variant="default">{scopeKey}</Badge>}
+      />
+
+      <div
+        ref={scrollRef}
+        className="max-h-[420px] min-h-[180px] space-y-3 overflow-y-auto rounded-lg border border-zinc-100 bg-white/40 p-3"
+      >
+        {historyQuery.isLoading && allMessages.length === 0 ? (
+          <p className="text-sm text-zinc-500">Loading conversation…</p>
+        ) : allMessages.length === 0 ? (
+          <p className="text-sm text-zinc-500">
+            No messages yet. Ask anything about your week, schedule, focus, or goals.
+          </p>
+        ) : (
+          allMessages.map((m) => (
+            <div
+              key={m.id}
+              className={cn(
+                'flex w-full',
+                m.role === 'USER' ? 'justify-end' : 'justify-start',
+              )}
+            >
+              <div
+                className={cn(
+                  'max-w-[85%] whitespace-pre-wrap rounded-lg px-3 py-2 text-sm leading-relaxed',
+                  m.role === 'USER'
+                    ? 'bg-zinc-50 border border-zinc-200 text-zinc-900'
+                    : 'bg-zinc-900 text-white',
+                )}
+              >
+                {m.content}
+                {m.pending && m.role === 'ASSISTANT' && (
+                  <span className="ml-1 animate-pulse text-zinc-400">▍</span>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {EXAMPLE_PROMPTS.map((p) => (
+          <button
+            key={p}
+            type="button"
+            onClick={() => setInput(p)}
+            disabled={streaming}
+            className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-[12px] text-zinc-700 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {p}
+          </button>
+        ))}
+      </div>
+
+      <form onSubmit={onSubmit} className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <Input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Ask the Coach a question…"
+          disabled={streaming}
+          className="flex-1"
+        />
+        <Button type="submit" variant="brand" disabled={streaming || !input.trim()}>
+          <Send className="h-3.5 w-3.5" />
+          {streaming ? 'Thinking…' : 'Send'}
+        </Button>
+      </form>
+
+      {error && (
+        <p className="text-xs text-rose-600" role="alert">
+          {error}
+        </p>
+      )}
+    </GlassCard>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
 export function CoachPage() {
   const { status, provider } = useByokKey()
   const hasKey = status === 'active'
   const providerLabel = PROVIDER_META[provider].label
+
+  const [scopeKey, setScopeKey] = useState('')
+  useEffect(() => {
+    setScopeKey(currentScopeKey())
+  }, [])
 
   return (
     <PageShell>
@@ -53,50 +478,10 @@ export function CoachPage() {
         </GlassCard>
       )}
 
-      {hasKey && (
+      {hasKey && scopeKey && (
         <>
-          <GlassCard padded className="space-y-3">
-            <SectionHeader
-              title={
-                <span className="inline-flex items-center gap-2">
-                  <Sparkles className="h-4 w-4" />
-                  Your week, in narrative
-                </span>
-              }
-              action={<Badge variant="brand">Coming soon</Badge>}
-            />
-            <p className="text-sm leading-relaxed text-zinc-600">
-              Every week (and every month), the Coach will write a plain-English narrative of how you spent your
-              time, what worked, what blocked you, and the smallest friction to remove next. Then it will ask one
-              Socratic question to keep you honest.
-            </p>
-            <p className="text-xs text-zinc-500">
-              We&apos;re wiring this to your {providerLabel} key right now. Once it ships, narratives will stream in
-              here and on each report period.
-            </p>
-          </GlassCard>
-
-          <GlassCard padded className="space-y-3">
-            <SectionHeader
-              title={
-                <span className="inline-flex items-center gap-2">
-                  <MessageCircle className="h-4 w-4" />
-                  Ask the Coach
-                </span>
-              }
-              action={<Badge variant="brand">Coming soon</Badge>}
-            />
-            <p className="text-sm leading-relaxed text-zinc-600">
-              A persistent chat with the Coach scoped to a report period. Ask things like &ldquo;why was Wednesday
-              bad?&rdquo;, &ldquo;suggest next week&apos;s schedule,&rdquo; or &ldquo;where am I leaking time?&rdquo; —
-              and the Coach will probe back with the questions that actually move the needle (sleep, environment,
-              friction).
-            </p>
-            <p className="text-xs text-zinc-500">
-              We don&apos;t show fabricated chat replies. The conversation will go live the moment the backend
-              streaming endpoint ships.
-            </p>
-          </GlassCard>
+          <NarrativeSection scopeKey={scopeKey} />
+          <ChatSection scopeKey={scopeKey} />
         </>
       )}
     </PageShell>

@@ -1,8 +1,10 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback } from 'react'
 
-const STORAGE_KEY = 'goalslot:coach:byok'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
+import { coachApi, type CoachByokStateDto, type CoachProviderEnum } from '@/lib/api'
 
 export type ByokProvider = 'openai' | 'anthropic'
 export type ByokStatus = 'active' | 'unset'
@@ -13,13 +15,6 @@ export interface ByokState {
   tokensUsed: number
   tokensLimit: number
   status: ByokStatus
-}
-
-interface PersistedState {
-  provider: ByokProvider
-  maskedKey: string | null
-  tokensUsed: number
-  tokensLimit: number
 }
 
 const DEFAULT_LIMIT = 100000
@@ -43,89 +38,102 @@ export const PROVIDER_META: Record<
   },
 }
 
-function readState(): PersistedState | null {
-  if (typeof window === 'undefined') return null
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw) as Partial<PersistedState>
+const QUERY_KEY = ['coach', 'byok-key'] as const
+
+function toClientProvider(p: CoachProviderEnum | null | undefined): ByokProvider {
+  return p === 'ANTHROPIC' ? 'anthropic' : 'openai'
+}
+
+function toServerProvider(p: ByokProvider): CoachProviderEnum {
+  return p === 'anthropic' ? 'ANTHROPIC' : 'OPENAI'
+}
+
+function mapStateDto(dto: CoachByokStateDto | undefined | null): ByokState {
+  if (!dto || dto.status !== 'active') {
     return {
-      provider: parsed.provider === 'anthropic' ? 'anthropic' : 'openai',
-      maskedKey: parsed.maskedKey ?? null,
-      tokensUsed: parsed.tokensUsed ?? 0,
-      tokensLimit: parsed.tokensLimit ?? DEFAULT_LIMIT,
-    }
-  } catch {
-    return null
-  }
-}
-
-function writeState(state: PersistedState | null) {
-  if (typeof window === 'undefined') return
-  if (state === null) {
-    window.localStorage.removeItem(STORAGE_KEY)
-  } else {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-  }
-}
-
-function maskKey(rawKey: string, provider: ByokProvider): string {
-  const trimmed = rawKey.trim()
-  const tail = trimmed.length > 4 ? trimmed.slice(-4) : trimmed
-  return `${PROVIDER_META[provider].prefix}...${tail}`
-}
-
-export function useByokKey() {
-  const [state, setState] = useState<ByokState>({
-    provider: DEFAULT_PROVIDER,
-    maskedKey: null,
-    tokensUsed: 0,
-    tokensLimit: DEFAULT_LIMIT,
-    status: 'unset',
-  })
-
-  useEffect(() => {
-    const persisted = readState()
-    if (persisted && persisted.maskedKey) {
-      setState({
-        provider: persisted.provider,
-        maskedKey: persisted.maskedKey,
-        tokensUsed: persisted.tokensUsed,
-        tokensLimit: persisted.tokensLimit,
-        status: 'active',
-      })
-    }
-  }, [])
-
-  const saveKey = useCallback((rawKey: string, provider: ByokProvider) => {
-    const masked = maskKey(rawKey, provider)
-    const next: PersistedState = {
-      provider,
-      maskedKey: masked,
-      tokensUsed: 0,
-      tokensLimit: DEFAULT_LIMIT,
-    }
-    writeState(next)
-    setState({
-      provider,
-      maskedKey: masked,
-      tokensUsed: next.tokensUsed,
-      tokensLimit: next.tokensLimit,
-      status: 'active',
-    })
-    return { success: true as const, maskedKey: masked }
-  }, [])
-
-  const deleteKey = useCallback(() => {
-    writeState(null)
-    setState({
       provider: DEFAULT_PROVIDER,
       maskedKey: null,
       tokensUsed: 0,
       tokensLimit: DEFAULT_LIMIT,
       status: 'unset',
+    }
+  }
+  return {
+    provider: toClientProvider(dto.provider),
+    maskedKey: dto.maskedKey,
+    tokensUsed: dto.tokensUsed ?? 0,
+    tokensLimit: dto.tokensLimit ?? DEFAULT_LIMIT,
+    status: 'active',
+  }
+}
+
+export function useByokKey() {
+  const queryClient = useQueryClient()
+
+  const query = useQuery<ByokState>({
+    queryKey: QUERY_KEY,
+    queryFn: async () => {
+      const res = await coachApi.getByokKey()
+      return mapStateDto(res.data)
+    },
+  })
+
+  const saveMutation = useMutation({
+    mutationFn: async (vars: { rawKey: string; provider: ByokProvider }) => {
+      const res = await coachApi.saveByokKey({
+        provider: toServerProvider(vars.provider),
+        apiKey: vars.rawKey,
+      })
+      return mapStateDto(res.data)
+    },
+    onSuccess: (next) => {
+      queryClient.setQueryData<ByokState>(QUERY_KEY, next)
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      await coachApi.deleteByokKey()
+    },
+    onSuccess: () => {
+      queryClient.setQueryData<ByokState>(QUERY_KEY, {
+        provider: DEFAULT_PROVIDER,
+        maskedKey: null,
+        tokensUsed: 0,
+        tokensLimit: DEFAULT_LIMIT,
+        status: 'unset',
+      })
+      // Invalidate any related Coach queries since prior keys are gone.
+      queryClient.invalidateQueries({ queryKey: ['coach'] })
+    },
+  })
+
+  const state: ByokState = query.data ?? {
+    provider: DEFAULT_PROVIDER,
+    maskedKey: null,
+    tokensUsed: 0,
+    tokensLimit: DEFAULT_LIMIT,
+    status: 'unset',
+  }
+
+  const saveKey = useCallback(
+    (rawKey: string, provider: ByokProvider) => {
+      // Return the same { success, maskedKey } shape consumers expect.
+      return saveMutation
+        .mutateAsync({ rawKey, provider })
+        .then((next) => ({ success: true as const, maskedKey: next.maskedKey }))
+        .catch((err) => {
+          return { success: false as const, maskedKey: null as string | null, error: err }
+        })
+    },
+    [saveMutation],
+  )
+
+  const deleteKey = useCallback(() => {
+    return deleteMutation.mutateAsync().catch(() => {
+      /* best-effort delete */
     })
-  }, [])
+  }, [deleteMutation])
 
   return {
     ...state,

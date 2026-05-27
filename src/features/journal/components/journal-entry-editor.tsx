@@ -85,18 +85,20 @@ export function JournalEntryEditor({ entry, onSaveContent }: JournalEntryEditorP
   }
 
   return (
-    <GlassCard padded className="space-y-3">
-      <div className="flex items-baseline justify-between gap-3">
+    <GlassCard padded className="space-y-3 overflow-hidden">
+      <div className="flex flex-wrap items-baseline justify-between gap-3">
         <h2 className="text-lg font-semibold text-zinc-900">{prettyDate(entry.date)}</h2>
         {savedLabel && <span className="text-xs text-zinc-500">{savedLabel}</span>}
       </div>
-      <TiptapEditor
-        key={entry.id}
-        content={entry.content}
-        onChange={handleChange}
-        placeholder="What's on your mind today?"
-        className="min-h-[360px] border-none shadow-none"
-      />
+      <div className="min-w-0 overflow-x-auto">
+        <TiptapEditor
+          key={entry.id}
+          content={entry.content}
+          onChange={handleChange}
+          placeholder="What's on your mind today?"
+          className="min-h-[360px] border-none shadow-none"
+        />
+      </div>
     </GlassCard>
   )
 }

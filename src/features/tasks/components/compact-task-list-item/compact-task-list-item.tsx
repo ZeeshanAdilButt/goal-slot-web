@@ -127,7 +127,7 @@ export function CompactTaskListItem({
               <span
                 className={cn(
                   'px-2 py-1 text-[10px] sm:text-xs font-bold uppercase border border-zinc-200 flex-shrink-0',
-                  isInProgress ? 'bg-sky-50 text-white' : 'bg-white text-secondary',
+                  isInProgress ? 'bg-sky-50 text-white' : 'bg-white text-zinc-900',
                 )}
               >
                 {task.status.replace('_', ' ')}

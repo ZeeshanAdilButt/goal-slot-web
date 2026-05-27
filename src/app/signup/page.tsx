@@ -248,7 +248,7 @@ function SignupForm() {
             <>
               <button
                 onClick={() => setStep(1)}
-                className="mb-4 flex items-center gap-2 font-mono text-sm font-bold uppercase text-gray-600 hover:text-secondary"
+                className="mb-4 flex items-center gap-2 font-mono text-sm font-bold uppercase text-gray-600 hover:text-zinc-900"
               >
                 <ArrowLeft className="h-4 w-4" /> Back
               </button>

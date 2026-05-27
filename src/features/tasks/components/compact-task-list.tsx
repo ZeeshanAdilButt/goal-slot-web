@@ -65,7 +65,7 @@ export function CompactTaskList({ tasks, groupBy, onEdit, onComplete }: CompactT
                 <span
                   className={cn(
                     'px-2 py-0.5 text-[10px] md:text-xs font-bold uppercase border border-zinc-200 flex-shrink-0',
-                    item.group === 'DOING' ? 'bg-sky-50 text-white' : 'bg-white text-secondary',
+                    item.group === 'DOING' ? 'bg-sky-50 text-white' : 'bg-white text-zinc-900',
                   )}
                 >
                   {item.count}

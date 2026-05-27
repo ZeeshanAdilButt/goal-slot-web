@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-const STORAGE_KEY = 'goalslot:coach:journal:entries'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
+import { coachApi, type CoachJournalEntryDto } from '@/lib/api'
 
 export interface JournalEntry {
   id: string
@@ -13,6 +15,8 @@ export interface JournalEntry {
   updatedAt: string // ISO
 }
 
+const QUERY_KEY = ['coach', 'journal', 'entries'] as const
+
 function todayKey(): string {
   const d = new Date()
   const yyyy = d.getFullYear()
@@ -21,60 +25,98 @@ function todayKey(): string {
   return `${yyyy}-${mm}-${dd}`
 }
 
-function makeId() {
-  return `je_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
-}
-
-function readEntries(): JournalEntry[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw)
-    if (!Array.isArray(parsed)) return []
-    return parsed as JournalEntry[]
-  } catch {
-    return []
+function fromDto(dto: CoachJournalEntryDto): JournalEntry {
+  return {
+    id: dto.id,
+    date: dto.date,
+    mood: dto.mood,
+    energy: dto.energy,
+    content: dto.content ?? '',
+    updatedAt: dto.updatedAt,
   }
-}
-
-function writeEntries(entries: JournalEntry[]) {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
-}
-
-function ensureToday(entries: JournalEntry[]): { entries: JournalEntry[]; todayDate: string } {
-  const td = todayKey()
-  if (entries.some((e) => e.date === td)) {
-    return { entries, todayDate: td }
-  }
-  const fresh: JournalEntry = {
-    id: makeId(),
-    date: td,
-    mood: null,
-    energy: null,
-    content: '',
-    updatedAt: new Date().toISOString(),
-  }
-  return { entries: [...entries, fresh], todayDate: td }
 }
 
 export function useJournalEntries() {
-  const [entries, setEntries] = useState<JournalEntry[]>([])
+  const queryClient = useQueryClient()
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
-  const [isLoaded, setIsLoaded] = useState(false)
+  const [hasEnsuredToday, setHasEnsuredToday] = useState(false)
 
-  // Hydrate from localStorage + auto-create today's entry
+  const query = useQuery<JournalEntry[]>({
+    queryKey: QUERY_KEY,
+    queryFn: async () => {
+      const res = await coachApi.listJournalEntries()
+      return (res.data ?? []).map(fromDto)
+    },
+  })
+
+  const ensureMutation = useMutation({
+    mutationFn: async (date: string) => {
+      const res = await coachApi.upsertJournalEntry({ date })
+      return fromDto(res.data)
+    },
+    onSuccess: (entry) => {
+      queryClient.setQueryData<JournalEntry[]>(QUERY_KEY, (prev) => {
+        const list = prev ?? []
+        if (list.some((e) => e.date === entry.date)) return list
+        return [...list, entry]
+      })
+    },
+  })
+
+  const contentMutation = useMutation({
+    mutationFn: async (vars: { date: string; content: string }) => {
+      const res = await coachApi.updateJournalContent(vars.date, vars.content)
+      return fromDto(res.data)
+    },
+    onSuccess: (entry) => {
+      queryClient.setQueryData<JournalEntry[]>(QUERY_KEY, (prev) => {
+        const list = prev ?? []
+        const idx = list.findIndex((e) => e.date === entry.date)
+        if (idx === -1) return [...list, entry]
+        const next = [...list]
+        next[idx] = entry
+        return next
+      })
+    },
+  })
+
+  const moodMutation = useMutation({
+    mutationFn: async (vars: { date: string; mood: number | null; energy: number | null }) => {
+      const res = await coachApi.updateJournalMood(vars.date, vars.mood, vars.energy)
+      return fromDto(res.data)
+    },
+    onSuccess: (entry) => {
+      queryClient.setQueryData<JournalEntry[]>(QUERY_KEY, (prev) => {
+        const list = prev ?? []
+        const idx = list.findIndex((e) => e.date === entry.date)
+        if (idx === -1) return [...list, entry]
+        const next = [...list]
+        next[idx] = entry
+        return next
+      })
+    },
+  })
+
+  // Once the list loads, ensure today's entry exists and select it.
   useEffect(() => {
-    const existing = readEntries()
-    const { entries: withToday, todayDate } = ensureToday(existing)
-    setEntries(withToday)
-    setSelectedDate(todayDate)
-    if (withToday.length !== existing.length) {
-      writeEntries(withToday)
+    if (query.isLoading || hasEnsuredToday) return
+    const td = todayKey()
+    const list = query.data ?? []
+    if (list.some((e) => e.date === td)) {
+      setSelectedDate((cur) => cur ?? td)
+      setHasEnsuredToday(true)
+      return
     }
-    setIsLoaded(true)
-  }, [])
+    setHasEnsuredToday(true)
+    ensureMutation.mutate(td, {
+      onSuccess: () => {
+        setSelectedDate((cur) => cur ?? td)
+      },
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query.isLoading, query.data, hasEnsuredToday])
+
+  const entries = query.data ?? []
 
   const sortedEntries = useMemo(
     () => [...entries].sort((a, b) => (a.date < b.date ? 1 : -1)),
@@ -86,65 +128,48 @@ export function useJournalEntries() {
     [entries, selectedDate],
   )
 
-  const selectDate = useCallback((date: string) => {
-    setEntries((prev) => {
-      if (prev.some((e) => e.date === date)) return prev
-      const fresh: JournalEntry = {
-        id: makeId(),
+  const selectDate = useCallback(
+    (date: string) => {
+      const list = queryClient.getQueryData<JournalEntry[]>(QUERY_KEY) ?? []
+      if (list.some((e) => e.date === date)) {
+        setSelectedDate(date)
+        return
+      }
+      // Optimistically insert a stub entry into the cache so selectedEntry is
+      // non-null immediately — no flicker to the "select an entry" empty state.
+      const stub: JournalEntry = {
+        id: `tmp_${date}`,
         date,
         mood: null,
         energy: null,
         content: '',
         updatedAt: new Date().toISOString(),
       }
-      const next = [...prev, fresh]
-      writeEntries(next)
-      return next
-    })
-    setSelectedDate(date)
-  }, [])
+      queryClient.setQueryData<JournalEntry[]>(QUERY_KEY, (prev) => {
+        const cur = prev ?? []
+        if (cur.some((e) => e.date === date)) return cur
+        return [...cur, stub]
+      })
+      setSelectedDate(date)
+      // Server upsert; onSuccess replaces the stub with the real row (real id).
+      ensureMutation.mutate(date)
+    },
+    [ensureMutation, queryClient],
+  )
 
-  const upsertContent = useCallback((date: string, content: string) => {
-    setEntries((prev) => {
-      const next = [...prev]
-      const idx = next.findIndex((e) => e.date === date)
-      if (idx === -1) {
-        next.push({
-          id: makeId(),
-          date,
-          mood: null,
-          energy: null,
-          content,
-          updatedAt: new Date().toISOString(),
-        })
-      } else {
-        next[idx] = { ...next[idx], content, updatedAt: new Date().toISOString() }
-      }
-      writeEntries(next)
-      return next
-    })
-  }, [])
+  const upsertContent = useCallback(
+    (date: string, content: string) => {
+      contentMutation.mutate({ date, content })
+    },
+    [contentMutation],
+  )
 
-  const upsertMoodEnergy = useCallback((date: string, mood: number | null, energy: number | null) => {
-    setEntries((prev) => {
-      const next = [...prev]
-      const idx = next.findIndex((e) => e.date === date)
-      if (idx === -1) {
-        next.push({
-          id: makeId(),
-          date,
-          mood,
-          energy,
-          content: '',
-          updatedAt: new Date().toISOString(),
-        })
-      } else {
-        next[idx] = { ...next[idx], mood, energy, updatedAt: new Date().toISOString() }
-      }
-      writeEntries(next)
-      return next
-    })
-  }, [])
+  const upsertMoodEnergy = useCallback(
+    (date: string, mood: number | null, energy: number | null) => {
+      moodMutation.mutate({ date, mood, energy })
+    },
+    [moodMutation],
+  )
 
   return {
     entries: sortedEntries,
@@ -153,6 +178,6 @@ export function useJournalEntries() {
     selectDate,
     upsertContent,
     upsertMoodEnergy,
-    isLoaded,
+    isLoaded: !query.isLoading,
   }
 }

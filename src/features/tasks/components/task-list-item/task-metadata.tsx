@@ -16,7 +16,7 @@ export function TaskMetadata({ task }: TaskMetadataProps) {
   return (
     <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-semibold uppercase sm:gap-2 sm:text-[11px]">
       {task.category && (
-        <div className="rounded-sm border border-secondary/20 bg-secondary/5 px-1.5 py-0.5 text-secondary/70 sm:px-2 sm:py-1">
+        <div className="rounded-sm border border-secondary/20 bg-secondary/5 px-1.5 py-0.5 text-zinc-600 sm:px-2 sm:py-1">
           {task.category.replace('_', ' ')}
         </div>
       )}
@@ -33,7 +33,7 @@ export function TaskMetadata({ task }: TaskMetadataProps) {
 
       {task.goal && (
         <div
-          className="flex min-w-0 items-center gap-1 rounded-sm border-2 px-1.5 py-0.5 text-[10px] uppercase text-secondary sm:px-2 sm:py-1 sm:text-xs"
+          className="flex min-w-0 items-center gap-1 rounded-sm border-2 px-1.5 py-0.5 text-[10px] uppercase text-zinc-900 sm:px-2 sm:py-1 sm:text-xs"
           style={goalAccent}
         >
           <Target className="h-2.5 w-2.5 shrink-0 sm:h-3 sm:w-3" />

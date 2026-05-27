@@ -26,7 +26,7 @@ export function TaskProgress({ task }: TaskProgressProps) {
           </span>
         </div>
         {trackedMinutes !== undefined && trackedMinutes > 0 && (
-          <span className="flex items-center gap-1 whitespace-nowrap font-semibold text-secondary">
+          <span className="flex items-center gap-1 whitespace-nowrap font-semibold text-zinc-900">
             <CheckCircle2 className="h-2.5 w-2.5 shrink-0 sm:h-3 sm:w-3" />
             Logged {formatDuration(trackedMinutes)}
           </span>

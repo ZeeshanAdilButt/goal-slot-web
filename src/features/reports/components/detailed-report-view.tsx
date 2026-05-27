@@ -145,7 +145,7 @@ export function DetailedReportView({
               </span>
               <span className="ml-auto font-mono text-sm text-gray-600">
                 {day.entries.length} {day.entries.length === 1 ? 'entry' : 'entries'} •{' '}
-                <span className="font-semibold text-secondary">{day.totalFormatted}</span>
+                <span className="font-semibold text-zinc-900">{day.totalFormatted}</span>
               </span>
             </button>
 
@@ -158,7 +158,7 @@ export function DetailedReportView({
                 {/* Daily Subtotal */}
                 <div className="flex items-center justify-end gap-4 bg-gray-50 px-4 py-2 font-mono text-sm">
                   <span className="font-semibold uppercase text-gray-600">Day Total:</span>
-                  <span className="font-bold text-secondary">{day.totalFormatted}</span>
+                  <span className="font-bold text-zinc-900">{day.totalFormatted}</span>
                 </div>
               </div>
             )}
@@ -236,7 +236,7 @@ function EntryRow({ entry, showScheduleContext, includeTaskNotes }: { entry: Det
       </div>
 
       {/* Duration */}
-      <div className="col-span-2 font-mono text-sm font-semibold text-secondary">
+      <div className="col-span-2 font-mono text-sm font-semibold text-zinc-900">
         {entry.durationFormatted}
       </div>
 

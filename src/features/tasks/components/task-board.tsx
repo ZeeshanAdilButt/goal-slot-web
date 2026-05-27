@@ -391,7 +391,7 @@ function TaskCard({
             className="inline-flex cursor-grab rounded-sm border border-zinc-200 bg-white p-0.5 transition sm:hover:-translate-x-0.5 sm:hover:-translate-y-0.5"
             aria-label="Drag task"
           >
-            <GripVertical className="h-3 w-3 text-secondary" />
+            <GripVertical className="h-3 w-3 text-zinc-900" />
           </button>
           <button
             onClick={(event) => {
@@ -401,7 +401,7 @@ function TaskCard({
             className="rounded-sm border border-zinc-200 bg-white p-1 transition sm:hover:-translate-x-0.5 sm:hover:-translate-y-0.5"
             aria-label="Start timer"
           >
-            <Play className="h-3 w-3 fill-secondary text-secondary" />
+            <Play className="h-3 w-3 fill-zinc-900 text-zinc-900" />
           </button>
           {onComplete && task.status !== 'DONE' && (
             <button
@@ -424,7 +424,7 @@ function TaskCard({
               className="rounded-sm border border-zinc-200 bg-white p-1 transition sm:hover:-translate-x-0.5 sm:hover:-translate-y-0.5"
               aria-label="Edit task"
             >
-              <PencilLine className="h-3 w-3 text-secondary" />
+              <PencilLine className="h-3 w-3 text-zinc-900" />
             </button>
           )}
           <button
@@ -514,11 +514,11 @@ function TaskDetailDialog({ task, onClose }: TaskDetailDialogProps) {
     <Dialog open={!!task} onOpenChange={(open) => (!open ? onClose() : null)}>
       <DialogContent className=" w-[90vw] max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold uppercase text-secondary sm:text-2xl">Task Details</DialogTitle>
+          <DialogTitle className="text-xl font-bold uppercase text-zinc-900 sm:text-2xl">Task Details</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <h4 className="font-display text-base font-bold uppercase leading-tight text-secondary sm:text-lg">
+            <h4 className="font-display text-base font-bold uppercase leading-tight text-zinc-900 sm:text-lg">
               {task.title}
             </h4>
             {task.description ? (

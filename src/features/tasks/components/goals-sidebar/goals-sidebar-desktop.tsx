@@ -57,7 +57,7 @@ function SortableGoalItem({
         className={cn(
           'flex w-full cursor-pointer items-center gap-2 border border-zinc-200 px-2 py-2 text-left text-xs font-bold uppercase transition-all',
           isSelected
-            ? 'bg-primary text-secondary shadow-sm -translate-x-0.5 -translate-y-0.5'
+            ? 'bg-primary text-zinc-900 shadow-sm -translate-x-0.5 -translate-y-0.5'
             : 'bg-white hover:bg-gray-50 hover:shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5',
         )}
         onClick={onSelect}
@@ -177,7 +177,7 @@ export function GoalsSidebarDesktop({
                 <button
                   type="button"
                   onClick={onToggleCollapse}
-                  className="flex h-8 w-8 items-center justify-center border border-zinc-200 bg-primary text-secondary shadow-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-sm active:translate-x-1 active:translate-y-1 active:shadow-none"
+                  className="flex h-8 w-8 items-center justify-center border border-zinc-200 bg-primary text-zinc-900 shadow-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-sm active:translate-x-1 active:translate-y-1 active:shadow-none"
                   aria-label="Collapse goals sidebar"
                   title="Collapse goals sidebar"
                 >
@@ -201,7 +201,7 @@ export function GoalsSidebarDesktop({
                 className={cn(
                   'flex w-full items-center gap-2 border border-zinc-200 px-2 py-2 text-left text-xs font-bold uppercase transition-all',
                   selectedGoalId === WITHOUT_GOALS_ID
-                    ? 'bg-primary text-secondary shadow-sm -translate-x-0.5 -translate-y-0.5'
+                    ? 'bg-primary text-zinc-900 shadow-sm -translate-x-0.5 -translate-y-0.5'
                     : 'bg-white hover:bg-gray-50 hover:shadow-sm hover:-translate-x-0.5 hover:-translate-y-0.5',
                 )}
               >

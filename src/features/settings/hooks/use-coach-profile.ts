@@ -1,8 +1,10 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback } from 'react'
 
-const STORAGE_KEY = 'goalslot:coach:profile'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
+import { coachApi, type CoachHabitsProfileDto } from '@/lib/api'
 
 export interface CoachProfile {
   why: string
@@ -28,46 +30,60 @@ const DEFAULT_PROFILE: CoachProfile = {
   additionalContext: '',
 }
 
-function readProfile(): CoachProfile {
-  if (typeof window === 'undefined') return DEFAULT_PROFILE
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (!raw) return DEFAULT_PROFILE
-    const parsed = JSON.parse(raw) as Partial<CoachProfile>
-    return { ...DEFAULT_PROFILE, ...parsed }
-  } catch {
-    return DEFAULT_PROFILE
+const QUERY_KEY = ['coach', 'habits-profile'] as const
+
+function fromDto(dto: CoachHabitsProfileDto | null | undefined): CoachProfile {
+  if (!dto) return DEFAULT_PROFILE
+  return {
+    why: dto.why ?? '',
+    phoneBlockerInstalled: dto.phoneBlockerInstalled ?? false,
+    distractingSubsCancelled: dto.distractingSubsCancelled ?? false,
+    websiteBlockerUrls: dto.websiteBlockerUrls ?? '',
+    sleepTargetHours: dto.sleepTargetHours ?? 8,
+    bedtime: dto.bedtime ?? '23:00',
+    wakeTime: dto.wakeTime ?? '07:00',
+    workEnvironment: dto.workEnvironment ?? '',
+    additionalContext: dto.additionalContext ?? '',
   }
 }
 
-function writeProfile(profile: CoachProfile) {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(profile))
-}
-
 export function useCoachProfile() {
-  const [profile, setProfile] = useState<CoachProfile>(DEFAULT_PROFILE)
-  const [isSaving, setIsSaving] = useState(false)
-  const [isLoaded, setIsLoaded] = useState(false)
+  const queryClient = useQueryClient()
 
-  useEffect(() => {
-    setProfile(readProfile())
-    setIsLoaded(true)
-  }, [])
+  const query = useQuery<CoachProfile>({
+    queryKey: QUERY_KEY,
+    queryFn: async () => {
+      const res = await coachApi.getHabitsProfile()
+      return fromDto(res.data)
+    },
+  })
 
-  const save = useCallback(async (payload: CoachProfile) => {
-    setIsSaving(true)
-    await new Promise<void>((resolve) => setTimeout(resolve, 800))
-    writeProfile(payload)
-    setProfile(payload)
-    setIsSaving(false)
-    return { success: true as const }
-  }, [])
+  const mutation = useMutation({
+    mutationFn: async (payload: CoachProfile) => {
+      const res = await coachApi.updateHabitsProfile(payload)
+      return fromDto(res.data)
+    },
+    onSuccess: (next) => {
+      queryClient.setQueryData<CoachProfile>(QUERY_KEY, next)
+    },
+  })
+
+  const save = useCallback(
+    async (payload: CoachProfile) => {
+      try {
+        await mutation.mutateAsync(payload)
+        return { success: true as const }
+      } catch (err) {
+        return { success: false as const, error: err }
+      }
+    },
+    [mutation],
+  )
 
   return {
-    profile,
-    isLoaded,
-    isSaving,
+    profile: query.data ?? DEFAULT_PROFILE,
+    isLoaded: !query.isLoading,
+    isSaving: mutation.isPending,
     save,
   }
 }

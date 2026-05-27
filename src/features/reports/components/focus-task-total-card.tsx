@@ -224,7 +224,7 @@ export function FocusTaskTotalCard({ view, filters, reportUserId }: FocusTaskTot
                   <span className="font-semibold">{format(parseISO(day.date), 'EEEE, MMM d')}</span>
                   <span className="ml-auto font-mono text-sm">
                     {day.tasks.length} {day.tasks.length === 1 ? 'task' : 'tasks'} •{' '}
-                    <span className="font-semibold text-secondary">{formatDuration(day.totalMinutes)}</span>
+                    <span className="font-semibold text-zinc-900">{formatDuration(day.totalMinutes)}</span>
                   </span>
                 </button>
 
@@ -245,7 +245,7 @@ export function FocusTaskTotalCard({ view, filters, reportUserId }: FocusTaskTot
                             <span className="ml-2 text-xs font-semibold text-gray-700">({task.goalTitle})</span>
                           )}
                         </div>
-                        <span className="font-mono text-sm font-semibold text-secondary">
+                        <span className="font-mono text-sm font-semibold text-zinc-900">
                           {formatDuration(task.totalMinutes)}
                         </span>
                       </div>

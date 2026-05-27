@@ -67,7 +67,7 @@ export function WhoItsForSection() {
               <div className={`border-b border-zinc-200 ${persona.color} p-4`}>
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-sm border-2 border-white bg-white">
-                    <persona.icon className="h-5 w-5 text-secondary" />
+                    <persona.icon className="h-5 w-5 text-zinc-900" />
                   </div>
                   <div>
                     <h3 className="font-display text-lg font-bold text-white">{persona.title}</h3>

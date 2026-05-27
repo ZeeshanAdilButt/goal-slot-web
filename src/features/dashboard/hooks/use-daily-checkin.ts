@@ -1,6 +1,10 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback } from 'react'
+
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
+import { coachApi, type CoachDailyCheckin } from '@/lib/api'
 
 export interface DailyCheckin {
   date: string
@@ -20,50 +24,67 @@ function todayKey(): string {
   return `${yyyy}-${mm}-${dd}`
 }
 
-function storageKey(date: string) {
-  return `goalslot:coach:checkin:${date}`
-}
+const QUERY_KEY = ['coach', 'checkins', 'today'] as const
 
-function readCheckin(date: string): DailyCheckin | null {
-  if (typeof window === 'undefined') return null
-  try {
-    const raw = window.localStorage.getItem(storageKey(date))
-    if (!raw) return null
-    return JSON.parse(raw) as DailyCheckin
-  } catch {
-    return null
+function fromDto(dto: CoachDailyCheckin | null | undefined): DailyCheckin | null {
+  if (!dto) return null
+  return {
+    date: dto.date,
+    mood: dto.mood,
+    energy: dto.energy,
+    focus: dto.focus,
+    blocked: dto.blocked ?? '',
+    worked: dto.worked ?? '',
+    submittedAt: dto.updatedAt ?? dto.createdAt ?? new Date().toISOString(),
   }
 }
 
 export function useDailyCheckin() {
-  const [todayCheckin, setTodayCheckin] = useState<DailyCheckin | null>(null)
-  const [date, setDate] = useState<string>('')
+  const queryClient = useQueryClient()
 
-  useEffect(() => {
-    const d = todayKey()
-    setDate(d)
-    setTodayCheckin(readCheckin(d))
-  }, [])
+  const query = useQuery<DailyCheckin | null>({
+    queryKey: QUERY_KEY,
+    queryFn: async () => {
+      const res = await coachApi.getTodayCheckin()
+      return fromDto(res.data)
+    },
+  })
+
+  const mutation = useMutation({
+    mutationFn: async (payload: Omit<DailyCheckin, 'date' | 'submittedAt'>) => {
+      const date = todayKey()
+      const res = await coachApi.upsertCheckin({
+        date,
+        mood: payload.mood,
+        energy: payload.energy,
+        focus: payload.focus,
+        blocked: payload.blocked || undefined,
+        worked: payload.worked || undefined,
+      })
+      return fromDto(res.data)
+    },
+    onSuccess: (next) => {
+      queryClient.setQueryData<DailyCheckin | null>(QUERY_KEY, next)
+      queryClient.invalidateQueries({ queryKey: ['coach', 'checkins'] })
+    },
+  })
 
   const submit = useCallback(
     (payload: Omit<DailyCheckin, 'date' | 'submittedAt'>) => {
-      if (!date) return
-      const next: DailyCheckin = {
+      mutation.mutate(payload)
+      // Return an optimistic shape — components that read this discard the value today.
+      const date = todayKey()
+      return {
         ...payload,
         date,
         submittedAt: new Date().toISOString(),
-      }
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(storageKey(date), JSON.stringify(next))
-      }
-      setTodayCheckin(next)
-      return next
+      } satisfies DailyCheckin
     },
-    [date],
+    [mutation],
   )
 
   return {
-    todayCheckin,
+    todayCheckin: query.data ?? null,
     submit,
   }
 }

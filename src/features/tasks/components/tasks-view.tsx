@@ -116,7 +116,7 @@ export function TasksView({
               <button
                 type="button"
                 onClick={onToggleGoalsSidebar}
-                className="hidden h-9 items-center gap-2 border border-zinc-200 bg-primary px-3 text-[10px] font-bold uppercase text-secondary shadow-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-sm active:translate-x-1 active:translate-y-1 active:shadow-none md:inline-flex"
+                className="hidden h-9 items-center gap-2 border border-zinc-200 bg-primary px-3 text-[10px] font-bold uppercase text-zinc-900 shadow-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-sm active:translate-x-1 active:translate-y-1 active:shadow-none md:inline-flex"
                 aria-label="Expand goals sidebar"
                 title="Show goals sidebar"
               >
@@ -131,7 +131,7 @@ export function TasksView({
               <button
                 onClick={() => setViewMode('board')}
                 className={`px-3 py-2 text-[10px] font-bold uppercase transition-colors sm:px-4 sm:text-xs ${
-                  viewMode === 'board' ? 'bg-primary text-secondary' : 'hover:bg-gray-100'
+                  viewMode === 'board' ? 'bg-primary text-zinc-900' : 'hover:bg-gray-100'
                 }`}
               >
                 Board
@@ -139,7 +139,7 @@ export function TasksView({
               <button
                 onClick={() => setViewMode('list')}
                 className={`px-3 py-2 text-[10px] font-bold uppercase transition-colors sm:px-4 sm:text-xs ${
-                  viewMode === 'list' ? 'bg-primary text-secondary' : 'hover:bg-gray-100'
+                  viewMode === 'list' ? 'bg-primary text-zinc-900' : 'hover:bg-gray-100'
                 }`}
               >
                 List
@@ -190,7 +190,7 @@ export function TasksView({
                   className="max-h-[85svh] overflow-y-auto border-t border-zinc-200 bg-[#fafafa]"
                 >
                   <SheetHeader className="text-left">
-                    <SheetTitle className="font-display text-sm font-bold uppercase text-secondary">Filters</SheetTitle>
+                    <SheetTitle className="font-display text-sm font-bold uppercase text-zinc-900">Filters</SheetTitle>
                   </SheetHeader>
                   <div className="mt-4">
                     <TasksAdvancedFilters
@@ -237,7 +237,7 @@ export function TasksView({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 text-[10px] font-semibold uppercase tracking-wide text-secondary/70">
+          <div className="flex flex-wrap items-center gap-2 text-[10px] font-semibold uppercase tracking-wide text-zinc-600">
             <TasksFilters showCompleted={showCompleted} onShowCompletedChange={onShowCompletedChange} />
             {viewMode === 'board' ? (
               <span className="rounded-sm border border-dashed border-secondary/40 px-2 py-1">
