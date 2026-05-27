@@ -70,8 +70,10 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onVie
     }
   }
 
+  const accentColor = categoryColor || block.color || '#9CA3AF'
   const blockStyle: CSSProperties = {
-    backgroundColor: categoryColor || block.color || '#9CA3AF',
+    backgroundColor: `${accentColor}1a`,
+    borderLeftColor: accentColor,
     top,
     height,
     minHeight: height,
@@ -89,7 +91,7 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onVie
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: isActiveDrag ? 0 : 1, scale: isActiveDrag ? 1 : 1 }}
       transition={{ type: 'spring', stiffness: 500, damping: 40 }}
-      className="group absolute left-1 right-1 cursor-grab overflow-hidden border-2 border-secondary p-2 shadow-brutal-sm"
+      className="group absolute left-1 right-1 cursor-grab overflow-hidden rounded-md border border-l-4 p-2 shadow-sm"
       data-block
       style={blockStyle}
       onClick={handleBlockClick}
@@ -102,18 +104,18 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onVie
             <div className="text-xs font-bold uppercase">{block.title}</div>
             {/* Desktop: Actions overlay on hover */}
             <div className="absolute right-0 top-0 hidden opacity-0 transition-opacity group-hover:opacity-100 md:flex">
-              <div className="flex gap-0.5 border border-secondary bg-white shadow-brutal-sm">
+              <div className="flex gap-0.5 rounded-md border border-zinc-200 bg-white shadow-sm">
                 <button
                   onClick={handleEditClick}
                   onPointerDown={(event) => event.stopPropagation()}
-                  className="flex h-5 w-5 items-center justify-center border-r border-secondary bg-white hover:bg-gray-100"
+                  className="flex h-5 w-5 items-center justify-center border-r border-zinc-200 bg-white hover:bg-zinc-50"
                 >
                   <Pencil className="h-3 w-3" />
                 </button>
                 <button
                   onClick={handleDeleteClick}
                   onPointerDown={(event) => event.stopPropagation()}
-                  className="flex h-5 w-5 items-center justify-center bg-white text-red-500 hover:bg-red-50"
+                  className="flex h-5 w-5 items-center justify-center bg-white text-rose-500 hover:bg-rose-50"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -134,7 +136,7 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onVie
 
       {isUpdating && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="rounded-full border-2 border-secondary bg-white/80 p-1 shadow-brutal-sm">
+          <div className="rounded-full border border-zinc-200 bg-white/80 p-1 shadow-sm">
             <Loading size="sm" className="h-3 w-3" />
           </div>
         </div>
@@ -172,7 +174,7 @@ function ResizeHandle({ position, block }: ResizeHandleProps) {
   return (
     <div
       ref={setNodeRef}
-      className={`absolute left-1 right-1 h-2 cursor-ns-resize border border-secondary bg-white/70 ${
+      className={`absolute left-1 right-1 h-2 cursor-ns-resize border border-zinc-200 bg-white/70 ${
         position === 'top' ? '-top-1' : '-bottom-1'
       } ${isDragging ? 'opacity-80' : 'opacity-0 group-hover:opacity-80'}`}
       {...listeners}

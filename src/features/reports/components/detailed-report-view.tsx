@@ -72,17 +72,17 @@ export function DetailedReportView({
     <div className="space-y-4">
       {/* Summary Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-lg border-2 border-secondary bg-white p-3">
+        <div className="rounded-lg border border-zinc-200 bg-white p-3">
           <div className="text-xs font-medium uppercase text-gray-500">Total Time</div>
           <div className="text-xl font-bold">{summary.totalFormatted}</div>
           <div className="text-xs text-gray-500">{summary.totalHours.toFixed(1)} hours</div>
         </div>
-        <div className="rounded-lg border-2 border-secondary bg-white p-3">
+        <div className="rounded-lg border border-zinc-200 bg-white p-3">
           <div className="text-xs font-medium uppercase text-gray-500">Entries</div>
           <div className="text-xl font-bold">{summary.totalEntries}</div>
           <div className="text-xs text-gray-500">{summary.daysWithEntries} days</div>
         </div>
-        <div className="rounded-lg border-2 border-secondary bg-white p-3">
+        <div className="rounded-lg border border-zinc-200 bg-white p-3">
           <div className="text-xs font-medium uppercase text-gray-500">Daily Avg</div>
           <div className="text-xl font-bold">{formatDuration(summary.avgMinutesPerDay)}</div>
         </div>
@@ -102,23 +102,23 @@ export function DetailedReportView({
         <button
           type="button"
           onClick={expandAll}
-          className="btn-brutal-secondary px-3 py-1 text-xs"
+          className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 px-3 py-1 text-xs"
         >
           Expand All
         </button>
         <button
           type="button"
           onClick={collapseAll}
-          className="btn-brutal-secondary px-3 py-1 text-xs"
+          className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 px-3 py-1 text-xs"
         >
           Collapse All
         </button>
       </div>
 
       {/* Daily Breakdown - Spreadsheet Style */}
-      <div className="overflow-hidden rounded-lg border-3 border-secondary bg-white">
+      <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
         {/* Table Header */}
-        <div className="hidden border-b-2 border-secondary bg-gray-50 px-4 py-2 font-mono text-xs font-semibold uppercase sm:grid sm:grid-cols-12">
+        <div className="hidden border-b border-zinc-200 bg-gray-50 px-4 py-2 font-mono text-xs font-semibold uppercase sm:grid sm:grid-cols-12">
           <div className="col-span-2">Time</div>
           <div className="col-span-3">Task</div>
           <div className="col-span-2">Goal</div>
@@ -166,7 +166,7 @@ export function DetailedReportView({
         ))}
 
         {/* Grand Total */}
-        <div className="flex items-center justify-end gap-4 border-t-3 border-secondary bg-secondary px-4 py-3 text-white">
+        <div className="flex items-center justify-end gap-4 border-t border-zinc-200 bg-secondary px-4 py-3 text-white">
           <span className="font-semibold uppercase">Grand Total:</span>
           <span className="text-xl font-bold">{summary.totalFormatted}</span>
           {showBillable && billable && (
@@ -245,7 +245,7 @@ function EntryRow({ entry, showScheduleContext, includeTaskNotes }: { entry: Det
         {entry.notes && (
           <div className="group relative">
             <FileText className="h-4 w-4 cursor-help text-gray-400" />
-            <div className="absolute bottom-full right-0 z-10 mb-2 hidden w-48 rounded-lg border-2 border-secondary bg-white p-2 text-xs shadow-lg group-hover:block">
+            <div className="absolute bottom-full right-0 z-10 mb-2 hidden w-48 rounded-lg border border-zinc-200 bg-white p-2 text-xs shadow-lg group-hover:block">
               {entry.notes}
             </div>
           </div>
@@ -256,7 +256,7 @@ function EntryRow({ entry, showScheduleContext, includeTaskNotes }: { entry: Det
         <div className="col-span-2">
           <div className="group relative">
             <FileText className="h-4 w-4 cursor-help text-gray-400" />
-            <div className="absolute bottom-full right-0 z-10 mb-2 hidden w-48 rounded-lg border-2 border-secondary bg-white p-2 text-xs shadow-lg group-hover:block">
+            <div className="absolute bottom-full right-0 z-10 mb-2 hidden w-48 rounded-lg border border-zinc-200 bg-white p-2 text-xs shadow-lg group-hover:block">
               {entry.taskNotes}
             </div>
           </div>

@@ -90,17 +90,17 @@ export function SummaryReportView({
     <div className="space-y-6">
       {/* Summary Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-lg border-2 border-secondary bg-white p-3">
+        <div className="rounded-lg border border-zinc-200 bg-white p-3">
           <div className="text-xs font-medium uppercase text-gray-500">Total Time</div>
           <div className="text-xl font-bold">{summary.totalFormatted}</div>
           <div className="text-xs text-gray-500">{summary.totalHours.toFixed(1)} hours</div>
         </div>
-        <div className="rounded-lg border-2 border-secondary bg-white p-3">
+        <div className="rounded-lg border border-zinc-200 bg-white p-3">
           <div className="text-xs font-medium uppercase text-gray-500">Entries</div>
           <div className="text-xl font-bold">{summary.totalEntries}</div>
           <div className="text-xs text-gray-500">{summary.uniqueDays} unique days</div>
         </div>
-        <div className="rounded-lg border-2 border-secondary bg-white p-3">
+        <div className="rounded-lg border border-zinc-200 bg-white p-3">
           <div className="text-xs font-medium uppercase text-gray-500">{GROUP_BY_LABELS[groupBy]}</div>
           <div className="text-xl font-bold">{items.length}</div>
         </div>
@@ -118,7 +118,7 @@ export function SummaryReportView({
       {/* Charts Row */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Pie Chart */}
-        <div className="rounded-lg border-3 border-secondary bg-white p-4">
+        <div className="rounded-lg border border-zinc-200 bg-white p-4">
           <h3 className="mb-4 font-bold uppercase">By {GROUP_BY_LABELS[groupBy]}</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -163,7 +163,7 @@ export function SummaryReportView({
         </div>
 
         {/* Bar Chart - Date Trend */}
-        <div className="rounded-lg border-3 border-secondary bg-white p-4">
+        <div className="rounded-lg border border-zinc-200 bg-white p-4">
           <h3 className="mb-4 font-bold uppercase">Daily Activity</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -196,8 +196,8 @@ export function SummaryReportView({
       </div>
 
       {/* Items Table */}
-      <div className="rounded-lg border-3 border-secondary bg-white">
-        <div className="border-b-2 border-secondary bg-gray-50 px-4 py-3">
+      <div className="rounded-lg border border-zinc-200 bg-white">
+        <div className="border-b border-zinc-200 bg-gray-50 px-4 py-3">
           <h3 className="font-bold uppercase">
             <GroupIcon className="mr-2 inline-block h-4 w-4" />
             {GROUP_BY_LABELS[groupBy]} Breakdown
@@ -205,7 +205,7 @@ export function SummaryReportView({
         </div>
         
         {/* Table Header */}
-        <div className="hidden border-b-2 border-secondary bg-gray-100 px-4 py-2 font-mono text-xs font-semibold uppercase sm:grid sm:grid-cols-12">
+        <div className="hidden border-b border-zinc-200 bg-gray-100 px-4 py-2 font-mono text-xs font-semibold uppercase sm:grid sm:grid-cols-12">
           <div className="col-span-5">{groupBy === 'goal' ? 'Goal' : groupBy === 'task' ? 'Task' : 'Item'}</div>
           <div className="col-span-2 text-right">Hours</div>
           <div className="col-span-2 text-right">Entries</div>
@@ -270,7 +270,7 @@ export function SummaryReportView({
         </div>
 
         {/* Grand Total */}
-        <div className="flex items-center justify-between border-t-3 border-secondary bg-secondary px-4 py-3 text-white">
+        <div className="flex items-center justify-between border-t border-zinc-200 bg-secondary px-4 py-3 text-white">
           <span className="font-semibold uppercase">Total</span>
           <div className="flex items-center gap-6">
             <span className="text-xl font-bold">{summary.totalFormatted}</span>

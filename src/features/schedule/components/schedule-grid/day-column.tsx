@@ -22,7 +22,7 @@ export function DayColumn({ dayOfWeek, children, onPointerDown, onPointerMove, o
   return (
     <div
       ref={setNodeRef}
-      className="relative border-l border-gray-200"
+      className="relative border-l border-zinc-200 bg-white"
       style={{ height: COLUMN_HEIGHT }}
       onPointerDown={(event) => onPointerDown(dayOfWeek, event)}
       onPointerMove={onPointerMove}
@@ -32,7 +32,7 @@ export function DayColumn({ dayOfWeek, children, onPointerDown, onPointerMove, o
       {HOURS.map((hour) => {
         const top = (hour * 60 - DAY_START_MIN) * PX_PER_MIN
         return (
-          <div key={hour} className="absolute left-0 right-0 border-t border-dashed border-gray-200" style={{ top }} />
+          <div key={hour} className="absolute left-0 right-0 border-t border-dashed border-zinc-100" style={{ top }} />
         )
       })}
 

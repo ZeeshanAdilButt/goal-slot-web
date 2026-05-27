@@ -4,14 +4,17 @@ import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 import { CategoryManagement } from '@/features/categories/components/category-management'
+import { SettingsCoachProfileTab, SettingsIntegrationsTab } from '@/features/settings'
 import { motion } from 'framer-motion'
-import { Check, CreditCard, Crown, Download, Eye, EyeOff, Key, LogOut, Shield, Tag, Trash2, User } from 'lucide-react'
+import { Brain, Check, CreditCard, Crown, Download, Eye, EyeOff, Key, KeyRound, LogOut, Shield, Tag, Trash2, User } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { authApi, stripeApi, usersApi } from '@/lib/api'
 import { useAuthStore } from '@/lib/store'
 import { cn } from '@/lib/utils'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
+import { PageHeader } from '@/components/ui/page-header'
+import { PageShell } from '@/components/ui/page-shell'
 
 const TABS = [
   { id: 'profile', label: 'Profile', icon: User },
@@ -19,6 +22,8 @@ const TABS = [
   { id: 'billing', label: 'Billing', icon: CreditCard },
   { id: 'security', label: 'Security', icon: Shield },
   { id: 'data', label: 'Data & Privacy', icon: Download },
+  { id: 'integrations', label: 'Integrations', icon: KeyRound },
+  { id: 'coach-profile', label: 'Coach Profile', icon: Brain },
 ]
 
 export default function SettingsPage() {
@@ -43,35 +48,33 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-8 p-2 sm:p-6">
-      {/* Header */}
-      <div>
-        <h1 className="font-display text-4xl font-bold uppercase">Settings</h1>
-        <p className="font-mono uppercase text-gray-600">Manage your account</p>
-      </div>
+    <PageShell>
+      <PageHeader eyebrow="Account" title="Settings" description="Manage your account" />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
         {/* Sidebar */}
         <div className="lg:col-span-1">
-          <div className="card-brutal overflow-x-auto p-0">
+          <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
                 className={cn(
-                  'w-full flex items-center gap-3 px-4 py-3 font-bold uppercase text-left border-b-2 border-secondary transition-all',
-                  activeTab === tab.id ? 'bg-primary' : 'hover:bg-gray-100',
+                  'flex w-full items-center gap-3 border-b border-zinc-100 px-4 py-3 text-left text-sm font-semibold transition-colors last:border-b-0',
+                  activeTab === tab.id
+                    ? 'bg-zinc-100 text-zinc-900'
+                    : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900',
                 )}
               >
-                <tab.icon className="h-5 w-5" />
+                <tab.icon className="h-4 w-4" />
                 {tab.label}
               </button>
             ))}
             <button
               onClick={handleLogout}
-              className="flex w-full items-center gap-3 px-4 py-3 text-left font-bold uppercase text-red-600 hover:bg-red-50"
+              className="flex w-full items-center gap-3 border-t border-zinc-200 px-4 py-3 text-left text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-50"
             >
-              <LogOut className="h-5 w-5" />
+              <LogOut className="h-4 w-4" />
               Logout
             </button>
           </div>
@@ -84,9 +87,11 @@ export default function SettingsPage() {
           {activeTab === 'billing' && <BillingSettings />}
           {activeTab === 'security' && <SecuritySettings />}
           {activeTab === 'data' && <DataSettings />}
+          {activeTab === 'integrations' && <SettingsIntegrationsTab />}
+          {activeTab === 'coach-profile' && <SettingsCoachProfileTab />}
         </div>
       </div>
-    </div>
+    </PageShell>
   )
 }
 
@@ -112,20 +117,20 @@ function ProfileSettings() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-      <div className="card-brutal">
+      <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
         <h2 className="mb-6 text-xl font-bold uppercase">Profile Information</h2>
 
         <div className="space-y-4">
           <div>
             <label className="mb-2 block text-sm font-bold uppercase">Full Name</label>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="input-brutal" />
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]" />
           </div>
 
           <div>
             <label className="mb-2 block text-sm font-bold uppercase">Email Address</label>
             <div className="flex flex-col gap-4 sm:flex-row">
-              <input type="email" value={email} disabled className="input-brutal flex-1 opacity-75" />
-              <span className="border-3 border-secondary bg-gray-100 px-4 py-3 text-center font-mono text-sm sm:text-left">
+              <input type="email" value={email} disabled className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] flex-1 opacity-75" />
+              <span className="border border-zinc-200 bg-gray-100 px-4 py-3 text-center font-mono text-sm sm:text-left">
                 {user?.userType === 'SSO' ? 'SSO' : 'Verified'}
               </span>
             </div>
@@ -133,7 +138,7 @@ function ProfileSettings() {
           </div>
 
           <div className="pt-4">
-            <button onClick={handleSave} disabled={isLoading} className="btn-brutal-dark">
+            <button onClick={handleSave} disabled={isLoading} className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50">
               {isLoading ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
@@ -141,12 +146,12 @@ function ProfileSettings() {
       </div>
 
       {/* Account Type */}
-      <div className="card-brutal">
+      <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-xl font-bold uppercase">Account Type</h2>
         <div className="flex items-center gap-4">
           <div
             className={cn(
-              'px-4 py-2 font-bold uppercase border-3 border-secondary',
+              'px-4 py-2 font-bold uppercase border border-zinc-200',
               user?.plan === 'BASIC' || user?.plan === 'PRO' ? 'bg-primary' : 'bg-gray-100',
             )}
           >
@@ -200,7 +205,7 @@ function BillingSettings() {
       {/* Current Plan */}
       <div
         className={cn(
-          'card-brutal p-4 sm:p-8',
+          'rounded-xl border border-zinc-200 bg-white p-6 shadow-sm p-4 sm:p-8',
           user?.plan === 'BASIC' || user?.plan === 'PRO' ? 'bg-primary' : 'bg-white',
         )}
       >
@@ -236,14 +241,14 @@ function BillingSettings() {
               <button
                 onClick={() => startCheckout('BASIC')}
                 disabled={isLoading}
-                className="btn-brutal-dark w-full"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 w-full"
               >
                 {isLoading ? 'Loading…' : 'Upgrade to Pro – $7/mo'}
               </button>
               <button
                 onClick={() => startCheckout('PRO')}
                 disabled={isLoading}
-                className="btn-brutal w-full"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 w-full"
               >
                 {isLoading ? 'Loading…' : 'Go Max – $12/mo'}
               </button>
@@ -261,12 +266,12 @@ function BillingSettings() {
               {user?.plan === 'PRO' && <div>✓ Priority Support</div>}
             </div>
             {user?.plan === 'BASIC' && (
-              <button onClick={() => startCheckout('PRO')} disabled={isLoading} className="btn-brutal">
+              <button onClick={() => startCheckout('PRO')} disabled={isLoading} className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50">
                 {isLoading ? 'Loading…' : 'Upgrade to Max – $12/mo'}
               </button>
             )}
             {user?.plan === 'PRO' && (
-              <button onClick={handleManage} disabled={isLoading} className="btn-brutal-dark">
+              <button onClick={handleManage} disabled={isLoading} className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50">
                 {isLoading ? 'Loading...' : 'Manage Subscription'}
               </button>
             )}
@@ -276,7 +281,7 @@ function BillingSettings() {
 
       {/* Paid Features */}
       {user?.plan === 'FREE' && (
-        <div className="card-brutal">
+        <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
           <h3 className="mb-4 text-xl font-bold uppercase">Pro & Max Benefits</h3>
           <div className="space-y-3">
             {[
@@ -375,7 +380,7 @@ function SecuritySettings() {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       {user?.userType !== 'SSO' && (
-        <div className="card-brutal">
+        <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
           <h2 className="mb-6 flex items-center gap-2 text-xl font-bold uppercase">
             <Key className="h-5 w-5" />
             Change Password
@@ -390,7 +395,7 @@ function SecuritySettings() {
                     type={showCurrentPassword ? 'text' : 'password'}
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="input-brutal pr-12"
+                    className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] pr-12"
                     placeholder="Enter your current password"
                   />
                   <button
@@ -403,11 +408,11 @@ function SecuritySettings() {
                 </div>
               </div>
               <div className="flex gap-3 pt-2">
-                <button onClick={handleSendOTP} disabled={isLoading || !currentPassword} className="btn-brutal-dark">
+                <button onClick={handleSendOTP} disabled={isLoading || !currentPassword} className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50">
                   {isLoading ? 'Sending...' : 'Send Verification Code'}
                 </button>
               </div>
-              <div className="rounded-lg border-2 border-secondary bg-blue-50 p-4">
+              <div className="rounded-lg border border-zinc-200 bg-blue-50 p-4">
                 <p className="font-mono text-sm text-gray-700">
                   <strong>Security Notice:</strong> You'll receive a verification code via email to confirm your
                   password change.
@@ -418,7 +423,7 @@ function SecuritySettings() {
 
           {step === 'verify-otp' && (
             <div className="space-y-4">
-              <div className="rounded-lg border-2 border-secondary bg-primary p-4">
+              <div className="rounded-lg border border-zinc-200 bg-primary p-4">
                 <p className="mb-2 font-bold uppercase">Verification Code Sent!</p>
                 <p className="font-mono text-sm">Check your email for the 6-digit code and enter it below.</p>
               </div>
@@ -432,7 +437,7 @@ function SecuritySettings() {
                         <InputOTPSlot
                           key={index}
                           index={index}
-                          className="h-14 w-14 border-3 border-secondary bg-white text-xl font-bold uppercase shadow-brutal"
+                          className="h-14 w-14 border border-zinc-200 bg-white text-xl font-bold uppercase shadow-sm"
                         />
                       ))}
                     </InputOTPGroup>
@@ -447,7 +452,7 @@ function SecuritySettings() {
                     type={showNewPassword ? 'text' : 'password'}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="input-brutal pr-12"
+                    className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] pr-12"
                     placeholder="Enter your new password"
                   />
                   <button
@@ -468,7 +473,7 @@ function SecuritySettings() {
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="input-brutal pr-12"
+                    className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] pr-12"
                     placeholder="Confirm your new password"
                   />
                   <button
@@ -485,11 +490,11 @@ function SecuritySettings() {
                 <button
                   onClick={handleChangePassword}
                   disabled={isLoading || !otp || !newPassword || !confirmPassword}
-                  className="btn-brutal-dark"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50"
                 >
                   {isLoading ? 'Changing...' : 'Change Password'}
                 </button>
-                <button onClick={handleCancel} disabled={isLoading} className="btn-brutal">
+                <button onClick={handleCancel} disabled={isLoading} className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50">
                   Cancel
                 </button>
               </div>
@@ -499,7 +504,7 @@ function SecuritySettings() {
       )}
 
       {user?.userType === 'SSO' && (
-        <div className="card-brutal">
+        <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-xl font-bold uppercase">SSO Authentication</h2>
           <p className="font-mono text-gray-600">
             Your account is managed via SSO. Password changes should be made through your SSO account.
@@ -536,7 +541,7 @@ function DataSettings() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-      <div className="card-brutal border-red-500">
+      <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm border-red-500">
         <h2 className="mb-4 text-xl font-bold uppercase text-red-600">Danger Zone</h2>
         <p className="mb-4 font-mono text-gray-600">
           Once you delete your account, there is no going back. Please be certain.
@@ -544,7 +549,7 @@ function DataSettings() {
         <button
           onClick={handleDeleteAccount}
           disabled={isDeleting}
-          className="active:translate-x-brutal active:translate-y-brutal flex items-center gap-2 border-3 border-secondary bg-red-500 px-6 py-3 font-bold uppercase text-white shadow-brutal transition-all hover:shadow-brutal-hover active:shadow-none"
+          className="inline-flex items-center gap-2 rounded-lg bg-rose-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-rose-600 disabled:opacity-50"
         >
           <Trash2 className="h-5 w-5" />
           {isDeleting ? 'Deleting...' : 'Delete Account'}

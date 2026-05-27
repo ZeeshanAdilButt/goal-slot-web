@@ -43,7 +43,7 @@ export function CompleteTaskModal({ task, onClose, onConfirm }: CompleteTaskModa
 
   return (
     <Dialog open={!!task} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="modal-brutal max-w-md">
+      <DialogContent className=" max-w-md">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold uppercase">Complete "{task?.title}"</DialogTitle>
         </DialogHeader>
@@ -53,7 +53,7 @@ export function CompleteTaskModal({ task, onClose, onConfirm }: CompleteTaskModa
             <input
               type="number"
               min={1}
-              className="input-brutal mt-1 w-full"
+              className="mt-1 h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
               value={minutes}
               onChange={(e) => setMinutes(e.target.value)}
             />
@@ -83,7 +83,7 @@ export function CompleteTaskModal({ task, onClose, onConfirm }: CompleteTaskModa
           <div>
             <label className="font-mono text-sm uppercase">Note</label>
             <textarea
-              className="input-brutal mt-1 w-full"
+              className="mt-1 h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
@@ -91,10 +91,10 @@ export function CompleteTaskModal({ task, onClose, onConfirm }: CompleteTaskModa
           </div>
         </div>
         <DialogFooter className="flex-row gap-3 pt-4">
-          <button className="btn-brutal-secondary flex-1" onClick={onClose}>
+          <button className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 flex-1" onClick={onClose}>
             Cancel
           </button>
-          <button className="btn-brutal flex-1" onClick={handleSubmit} disabled={isSubmitting}>
+          <button className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 flex-1" onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting ? 'Saving...' : 'Log & Complete'}
           </button>
         </DialogFooter>

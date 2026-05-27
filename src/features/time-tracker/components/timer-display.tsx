@@ -1,5 +1,3 @@
-import { motion } from 'framer-motion'
-
 interface TimerDisplayProps {
   elapsedTime: number
   timerState: 'STOPPED' | 'RUNNING' | 'PAUSED'
@@ -15,17 +13,13 @@ export function TimerDisplay({ elapsedTime, timerState }: TimerDisplayProps) {
 
   return (
     <div className="mb-6 text-center sm:mb-8">
-      <motion.div
-        className="font-mono text-5xl font-bold tracking-wider sm:text-6xl md:text-7xl lg:text-8xl"
-        animate={timerState === 'RUNNING' ? { scale: [1, 1.02, 1] } : {}}
-        transition={{ duration: 1, repeat: timerState === 'RUNNING' ? Infinity : 0 }}
-      >
+      <div className="text-6xl font-mono font-light tracking-tight text-zinc-900 tabular-nums">
         {formatTimerDisplay(elapsedTime)}
-      </motion.div>
-      <div className="mt-2 font-mono text-sm opacity-75 sm:text-base md:text-lg">
+      </div>
+      <div className="mt-2 text-xs uppercase tracking-wider text-zinc-500">
         {timerState === 'STOPPED' && 'Ready to start'}
-        {timerState === 'RUNNING' && '⏱ Timer running...'}
-        {timerState === 'PAUSED' && '⏸ Paused'}
+        {timerState === 'RUNNING' && 'Timer running'}
+        {timerState === 'PAUSED' && 'Paused'}
       </div>
     </div>
   )

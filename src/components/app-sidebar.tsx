@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 
 import {
   BarChart3,
+  BookOpen,
   Calendar,
   CheckSquare,
   Clock,
@@ -46,6 +47,7 @@ const navItems = [
   { href: '/dashboard/schedule', label: 'Schedule', icon: Calendar },
   { href: '/dashboard/tasks', label: 'Tasks', icon: CheckSquare },
   { href: '/dashboard/notes', label: 'Notes', icon: FileText },
+  { href: '/dashboard/journal', label: 'Journal', icon: BookOpen },
   { href: '/dashboard/time-tracker', label: 'Time Tracker', icon: Clock },
   { href: '/dashboard/reports', label: 'Reports', icon: BarChart3 },
   { href: '/dashboard/reports/export', label: 'Export Reports', icon: Download },
@@ -86,13 +88,13 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar side="left" variant="sidebar" collapsible="icon" className="border-r-3 border-secondary bg-brutalist-bg">
-      <SidebarHeader className="border-b-3 border-secondary p-4 group-data-[collapsible=icon]:p-2">
+    <Sidebar side="left" variant="sidebar" collapsible="icon">
+      <SidebarHeader className="border-b border-zinc-200 p-4 group-data-[collapsible=icon]:p-2">
         <div className="flex items-center gap-2">
           <Link href="/dashboard" className="group-data-[collapsible=icon]:hidden">
             <GoalSlotBrand size="md" tagline="Your growth, measured." />
           </Link>
-          <SidebarTrigger className="ml-auto h-9 w-9 border-3 border-secondary !bg-primary !text-secondary shadow-brutal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:!bg-primary hover:shadow-brutal-hover active:translate-x-1 active:translate-y-1 active:shadow-none group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:ml-0" />
+          <SidebarTrigger className="ml-auto h-8 w-8 rounded-md hover:bg-zinc-100 text-zinc-500 group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:ml-0" />
         </div>
       </SidebarHeader>
 
@@ -110,10 +112,14 @@ export function AppSidebar() {
                       isActive={isActive}
                       size="lg"
                       tooltip={item.label}
-                      className={cn(isActive ? 'nav-item-active' : 'nav-item')}
                     >
                       <Link href={item.href}>
-                        <item.icon className="h-6 w-6 group-data-[collapsible=icon]:-ml-1 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5" />
+                        <item.icon
+                          className={cn(
+                            'h-6 w-6 group-data-[collapsible=icon]:-ml-1 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5',
+                            isActive && 'text-[#f2cc0d]',
+                          )}
+                        />
                         <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -142,10 +148,14 @@ export function AppSidebar() {
                         isActive={isActive}
                         size="lg"
                         tooltip={item.label}
-                        className={cn(isActive ? 'nav-item-active' : 'nav-item')}
                       >
                         <Link href={item.href}>
-                          <item.icon className="h-5 w-5 group-data-[collapsible=icon]:h-6 group-data-[collapsible=icon]:w-6" />
+                          <item.icon
+                            className={cn(
+                              'h-5 w-5 group-data-[collapsible=icon]:h-6 group-data-[collapsible=icon]:w-6',
+                              isActive && 'text-[#f2cc0d]',
+                            )}
+                          />
                           <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
                         </Link>
                       </SidebarMenuButton>
@@ -158,13 +168,13 @@ export function AppSidebar() {
         )}
       </SidebarContent>
 
-      <SidebarFooter className="border-t-3 border-secondary p-3 group-data-[collapsible=icon]:p-2">
+      <SidebarFooter className="border-t border-zinc-200 p-3 group-data-[collapsible=icon]:p-2">
         {shouldShowPopover ? (
           <div className="flex justify-center">
             <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
               <PopoverTrigger asChild>
                 <button
-                  className="flex h-8 w-8 items-center justify-center border-2 border-secondary bg-primary text-sm font-bold uppercase shadow-brutal-sm transition-all hover:shadow-brutal"
+                  className="flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-zinc-100 bg-zinc-900 text-white text-sm font-semibold transition-all hover:bg-zinc-800"
                   aria-label="User menu"
                 >
                   {user?.name?.charAt(0) || 'U'}
@@ -173,7 +183,7 @@ export function AppSidebar() {
               <PopoverContent
                 side="right"
                 align="end"
-                className="w-72 border-3 border-secondary bg-white shadow-brutal"
+                className="w-72 rounded-xl border border-zinc-200 bg-white shadow-lg"
               >
                 <SidebarFooterContent onLogout={handleLogout} />
               </PopoverContent>

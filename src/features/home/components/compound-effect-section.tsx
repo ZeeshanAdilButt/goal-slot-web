@@ -2,7 +2,7 @@ import { AnimatedSection } from '@/components/animated-section'
 
 export function CompoundEffectSection() {
   return (
-    <section className="w-full border-b-2 border-secondary bg-white px-4 py-24 sm:px-6 lg:px-8">
+    <section className="w-full border-b border-zinc-200 bg-white px-4 py-24 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl text-center">
         <AnimatedSection
           initial={{ opacity: 0, y: 30 }}
@@ -22,7 +22,7 @@ export function CompoundEffectSection() {
             <div className="absolute inset-0 bg-grid opacity-30"></div>
 
             {/* Chart Area */}
-            <div className="relative rounded-sm border-2 border-secondary bg-white p-8 shadow-brutal">
+            <div className="relative rounded-sm border border-zinc-200 bg-white p-8 shadow-sm">
               {/* Y-axis labels */}
               <div className="absolute left-2 top-8 flex flex-col justify-between text-right text-xs font-bold text-gray-400" style={{ height: '250px' }}>
                 <span>300h</span>
@@ -92,15 +92,15 @@ export function CompoundEffectSection() {
 
           {/* Stats Below Graph */}
           <div className="mt-12 grid gap-6 md:grid-cols-3">
-            <div className="rounded-sm border-2 border-secondary bg-background p-6 shadow-brutal-sm">
+            <div className="rounded-sm border border-zinc-200 bg-background p-6 shadow-sm">
               <div className="mb-2 font-mono text-4xl font-black text-primary">1h</div>
               <p className="text-sm font-bold text-gray-600">Daily Commitment</p>
             </div>
-            <div className="rounded-sm border-2 border-secondary bg-background p-6 shadow-brutal-sm">
+            <div className="rounded-sm border border-zinc-200 bg-background p-6 shadow-sm">
               <div className="mb-2 font-mono text-4xl font-black text-primary">300h</div>
               <p className="text-sm font-bold text-gray-600">Total in 10 Months</p>
             </div>
-            <div className="rounded-sm border-2 border-secondary bg-background p-6 shadow-brutal-sm">
+            <div className="rounded-sm border border-zinc-200 bg-background p-6 shadow-sm">
               <div className="mb-2 font-mono text-4xl font-black text-primary">3%</div>
               <p className="text-sm font-bold text-gray-600">Who Actually Track</p>
             </div>

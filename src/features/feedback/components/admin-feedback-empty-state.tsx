@@ -6,7 +6,7 @@ interface AdminFeedbackEmptyStateProps {
 
 export const AdminFeedbackEmptyState = ({ filter }: AdminFeedbackEmptyStateProps) => {
   return (
-    <div className="card-brutal text-center">
+    <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm text-center">
       <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
       <p className="mt-4 font-bold">No feedback found</p>
       <p className="text-sm text-gray-600">

@@ -37,7 +37,7 @@ export function CompactTaskList({ tasks, groupBy, onEdit, onComplete }: CompactT
   if (tasks.length === 0) {
     return (
       <div className="px-1 md:-ml-[3px] md:px-0">
-        <div className="card-brutal p-3 text-center font-mono text-sm text-gray-600">No tasks found</div>
+        <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm p-3 text-center font-mono text-sm text-gray-600">No tasks found</div>
       </div>
     )
   }
@@ -64,8 +64,8 @@ export function CompactTaskList({ tasks, groupBy, onEdit, onComplete }: CompactT
                 </h3>
                 <span
                   className={cn(
-                    'px-2 py-0.5 text-[10px] md:text-xs font-bold uppercase border-2 border-secondary flex-shrink-0',
-                    item.group === 'DOING' ? 'bg-accent-blue text-white' : 'bg-white text-secondary',
+                    'px-2 py-0.5 text-[10px] md:text-xs font-bold uppercase border border-zinc-200 flex-shrink-0',
+                    item.group === 'DOING' ? 'bg-sky-50 text-white' : 'bg-white text-secondary',
                   )}
                 >
                   {item.count}

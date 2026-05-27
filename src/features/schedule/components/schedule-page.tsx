@@ -13,6 +13,10 @@ import { Plus } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { useHasProAccess } from '@/lib/store'
+import { Button } from '@/components/ui/button'
+import { GlassCard } from '@/components/ui/glass-card'
+import { PageHeader } from '@/components/ui/page-header'
+import { PageShell } from '@/components/ui/page-shell'
 
 export function SchedulePage() {
   const [showModal, setShowModal] = useState(false)
@@ -21,7 +25,7 @@ export function SchedulePage() {
   const [detailBlock, setDetailBlock] = useState<ScheduleBlock | null>(null)
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
   const [presetTimes, setPresetTimes] = useState<{ startTime: string; endTime: string } | null>(null)
-  const [draftKey, setDraftKey] = useState(0) // Reset the draft when modal is closed (to clear any draft blocks).
+  const [draftKey, setDraftKey] = useState(0)
   const hasProAccess = useHasProAccess()
   const { data: weekSchedule = {} as WeekSchedule, isPending: isSchedulePending } = useWeeklySchedule()
   const { data: categories = [] } = useCategoriesQuery()
@@ -78,34 +82,34 @@ export function SchedulePage() {
 
   const totalBlocks = Object.values(weekSchedule).flat().length
   return (
-    <div className="isolate space-y-8 p-2 sm:p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-4xl font-bold uppercase">Schedule</h1>
-          <p className="font-mono uppercase text-gray-600">Plan your weekly time blocks</p>
-        </div>
-
-        <button onClick={() => handleAddBlock(1)} className="btn-brutal flex items-center">
-          <Plus className="h-5 w-5" />
-          Add Block
-        </button>
-      </div>
+    <PageShell className="isolate">
+      <PageHeader
+        eyebrow="Plan your week"
+        title="Schedule"
+        description="Plan your weekly time blocks"
+        actions={
+          <Button onClick={() => handleAddBlock(1)} variant="brand">
+            <Plus className="h-4 w-4" />
+            Add Block
+          </Button>
+        }
+      />
 
       {!hasProAccess && totalBlocks >= 5 && (
-        <div className="card-brutal-colored bg-primary">
+        <GlassCard className="bg-yellow-50 border-yellow-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-bold uppercase">Schedule limit reached (5 blocks)</p>
-              <p className="font-mono text-sm">Upgrade to Pro for unlimited schedule blocks</p>
+              <p className="font-semibold text-zinc-900">Schedule limit reached (5 blocks)</p>
+              <p className="text-sm text-zinc-600">Upgrade to Pro for unlimited schedule blocks</p>
             </div>
-            <a href="/dashboard/settings#billing" className="btn-brutal-dark">
-              Upgrade
-            </a>
+            <Button asChild variant="default">
+              <a href="/dashboard/settings#billing">Upgrade</a>
+            </Button>
           </div>
-        </div>
+        </GlassCard>
       )}
 
-      <div className="card-brutal overflow-hidden p-0">
+      <GlassCard padded={false} className="overflow-hidden p-0">
         <ScheduleGrid
           weekSchedule={weekSchedule}
           isPending={isSchedulePending}
@@ -114,13 +118,13 @@ export function SchedulePage() {
           onViewDetail={handleViewDetail}
           draftKey={draftKey}
         />
-      </div>
+      </GlassCard>
 
       <div className="flex flex-wrap gap-4">
         {categories.map((cat) => (
           <div key={cat.value} className="flex items-center gap-2">
-            <div className="h-4 w-4 border-2 border-secondary" style={{ backgroundColor: cat.color }} />
-            <span className="font-mono text-sm uppercase">{cat.name}</span>
+            <div className="h-3 w-3 rounded-sm border border-zinc-200" style={{ backgroundColor: cat.color }} />
+            <span className="text-xs font-medium uppercase tracking-wider text-zinc-500">{cat.name}</span>
           </div>
         ))}
       </div>
@@ -144,6 +148,6 @@ export function SchedulePage() {
         onEdit={handleEditFromDetail}
         onDelete={handleDeleteFromDetail}
       />
-    </div>
+    </PageShell>
   )
 }

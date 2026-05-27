@@ -10,6 +10,8 @@ import { HOURLY_RATE_STORAGE_KEY } from '@/features/reports/utils/export-reports
 import type { ReportFilters, ReportGroupBy, ReportViewType } from '@/features/reports/utils/types'
 
 import { dateRangeValueToRange, getDefaultDateRangeValue } from '@/lib/date-range-utils'
+import { PageHeader } from '@/components/ui/page-header'
+import { PageShell } from '@/components/ui/page-shell'
 import type { DateRangeValue } from '@/components/DateRangePicker/types'
 
 export function ExportReportsPage() {
@@ -107,17 +109,13 @@ export function ExportReportsPage() {
   }
 
   return (
-    <div className="space-y-6 p-2 sm:p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="font-display text-3xl font-bold uppercase sm:text-4xl">Export Reports</h1>
-          <p className="font-mono text-sm uppercase text-gray-600">
-            Generate detailed or summary reports for invoicing, mentors, or teachers
-          </p>
-        </div>
-
-        <ExportReportsPageExportDialog filters={filters} dateRange={dateRange} viewType={viewType} />
-      </div>
+    <PageShell>
+      <PageHeader
+        eyebrow="Reports"
+        title="Export Reports"
+        description="Generate detailed or summary reports for invoicing, mentors, or teachers"
+        actions={<ExportReportsPageExportDialog filters={filters} dateRange={dateRange} viewType={viewType} />}
+      />
 
       <ExportReportsFilters state={filterState} />
 
@@ -130,6 +128,6 @@ export function ExportReportsPage() {
       />
 
       <ExportUseCaseHints />
-    </div>
+    </PageShell>
   )
 }

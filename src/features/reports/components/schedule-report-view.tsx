@@ -77,7 +77,7 @@ function DayCell({ day, hasSchedule }: { day: ScheduleDayData; hasSchedule: bool
 
         {/* Tasks preview on hover */}
         {day.tasks.length > 0 && (
-          <div className="absolute left-1/2 top-full z-20 hidden w-48 -translate-x-1/2 rounded border-2 border-secondary bg-white p-2 shadow-brutal group-hover:block">
+          <div className="absolute left-1/2 top-full z-20 hidden w-48 -translate-x-1/2 rounded border border-zinc-200 bg-white p-2 shadow-sm group-hover:block">
             <div className="space-y-1">
               {day.tasks.slice(0, 5).map((task, i) => (
                 <div key={i} className="flex items-center justify-between text-xs">
@@ -97,7 +97,7 @@ function DayCell({ day, hasSchedule }: { day: ScheduleDayData; hasSchedule: bool
 function ScheduleRow({ row, days }: { row: ScheduleReportRow; days: ScheduleReportResponse['days'] }) {
   return (
     <div
-      className="grid border-b-2 border-secondary last:border-b-0"
+      className="grid border-b border-zinc-200 last:border-b-0"
       style={{ gridTemplateColumns: `minmax(200px, 280px) repeat(${days.length}, minmax(80px, 1fr)) 100px` }}
     >
       {/* Schedule Info Column */}
@@ -175,7 +175,7 @@ export function ScheduleReportView({ data, isLoading }: ScheduleReportViewProps)
 
   if (!data || data.rows.length === 0) {
     return (
-      <div className="card-brutal py-16 text-center">
+      <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm py-16 text-center">
         <Calendar className="mx-auto mb-4 h-16 w-16 opacity-30" />
         <h3 className="mb-2 text-xl font-bold uppercase">No Schedule Data</h3>
         <p className="font-mono text-gray-600">No time entries with schedule blocks found for this period.</p>
@@ -194,7 +194,7 @@ export function ScheduleReportView({ data, isLoading }: ScheduleReportViewProps)
         animate={{ opacity: 1, y: 0 }}
         className="grid grid-cols-2 gap-4 md:grid-cols-4"
       >
-        <div className="card-brutal p-4">
+        <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm p-4">
           <div className="flex items-center gap-2 text-gray-600">
             <Clock className="h-4 w-4" />
             <span className="font-mono text-xs uppercase">Logged</span>
@@ -202,7 +202,7 @@ export function ScheduleReportView({ data, isLoading }: ScheduleReportViewProps)
           <div className="mt-2 text-2xl font-bold">{data.summary.totalFormatted}</div>
         </div>
 
-        <div className="card-brutal p-4">
+        <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm p-4">
           <div className="flex items-center gap-2 text-gray-600">
             <Calendar className="h-4 w-4" />
             <span className="font-mono text-xs uppercase">Expected</span>
@@ -210,7 +210,7 @@ export function ScheduleReportView({ data, isLoading }: ScheduleReportViewProps)
           <div className="mt-2 text-2xl font-bold">{data.summary.totalExpectedFormatted}</div>
         </div>
 
-        <div className="card-brutal p-4">
+        <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm p-4">
           <div className="flex items-center gap-2 text-gray-600">
             <TrendingUp className="h-4 w-4" />
             <span className="font-mono text-xs uppercase">Completion</span>
@@ -229,7 +229,7 @@ export function ScheduleReportView({ data, isLoading }: ScheduleReportViewProps)
           </div>
         </div>
 
-        <div className="card-brutal p-4">
+        <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm p-4">
           <div className="flex items-center gap-2 text-gray-600">
             <CheckCircle className="h-4 w-4" />
             <span className="font-mono text-xs uppercase">Schedules</span>
@@ -243,9 +243,9 @@ export function ScheduleReportView({ data, isLoading }: ScheduleReportViewProps)
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="card-brutal overflow-hidden"
+        className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm overflow-hidden"
       >
-        <div className="border-b-2 border-secondary bg-slate-50 p-4">
+        <div className="border-b border-zinc-200 bg-slate-50 p-4">
           <h3 className="flex items-center gap-2 text-lg font-bold uppercase">
             <Calendar className="h-5 w-5" />
             Schedule Breakdown
@@ -259,7 +259,7 @@ export function ScheduleReportView({ data, isLoading }: ScheduleReportViewProps)
           <div className="min-w-[800px]">
             {/* Header Row */}
             <div
-              className="grid border-b-2 border-secondary bg-slate-100"
+              className="grid border-b border-zinc-200 bg-slate-100"
               style={{
                 gridTemplateColumns: `minmax(200px, 280px) repeat(${data.days.length}, minmax(80px, 1fr)) 100px`,
               }}

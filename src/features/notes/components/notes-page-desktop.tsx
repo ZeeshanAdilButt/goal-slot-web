@@ -118,11 +118,11 @@ export function NotesPageDesktop({ initialNoteId }: NotesPageDesktopProps = {}) 
   }
 
   return (
-    <div className="flex h-full overflow-hidden rounded-lg border-2 border-border bg-card">
+    <div className="flex h-full overflow-hidden rounded-lg border border-zinc-200 bg-card">
       {/* Sidebar */}
       <div
         className={cn(
-          'shrink-0 border-r-2 border-border bg-muted/30 transition-all duration-300',
+          'shrink-0 border-r border-zinc-200 bg-white transition-all duration-300',
           isSidebarCollapsed ? 'w-0 overflow-hidden border-r-0' : '',
         )}
         style={{ width: isSidebarCollapsed ? 0 : sidebarWidth }}
@@ -161,7 +161,7 @@ export function NotesPageDesktop({ initialNoteId }: NotesPageDesktopProps = {}) 
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Collapse toggle button bar */}
-        <div className="flex h-10 shrink-0 items-center border-b border-border/50 bg-muted/20 px-2">
+        <div className="flex h-10 shrink-0 items-center border-b border-border/50 bg-white px-2">
           <button
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
             className={cn(
@@ -210,7 +210,7 @@ export function NotesPageDesktop({ initialNoteId }: NotesPageDesktopProps = {}) 
             <NoteEditor key={selectedNote.id} note={selectedNote} onDelete={handleDeleteNote} />
           ) : (
             <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
-              <div className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-border bg-muted">
+              <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-zinc-200 bg-muted">
                 <FileText className="h-10 w-10 text-muted-foreground" />
               </div>
               <div>
@@ -220,7 +220,7 @@ export function NotesPageDesktop({ initialNoteId }: NotesPageDesktopProps = {}) 
               <button
                 onClick={handleCreateNote}
                 disabled={createMutation.isPending}
-                className="mt-4 flex items-center gap-2 rounded-lg border-2 border-border bg-primary px-4 py-2 font-bold text-primary-foreground shadow-brutal transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-4 flex items-center gap-2 rounded-lg border border-zinc-200 bg-primary px-4 py-2 font-bold text-primary-foreground shadow-sm transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {createMutation.isPending ? (
                   <>

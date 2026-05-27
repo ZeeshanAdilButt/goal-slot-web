@@ -6,7 +6,8 @@ import { format } from 'date-fns'
 import { motion } from 'framer-motion'
 import { ArrowRight, Plus, Target } from 'lucide-react'
 
-import { getProgressColor } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { GlassCard } from '@/components/ui/glass-card'
 
 interface DashboardGoalsProps {
   goals: Goal[]
@@ -17,77 +18,83 @@ export function DashboardGoals({ goals, categories }: DashboardGoalsProps) {
   return (
     <div className="lg:col-span-2">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-bold uppercase sm:text-xl">Active Goals</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Active Goals</h2>
         <Link
           href="/dashboard/goals"
-          className="flex items-center gap-2 text-xs font-bold uppercase transition-colors hover:text-primary sm:text-sm"
+          className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-900 transition-colors"
         >
           <span className="hidden sm:inline">View All</span>
           <span className="sm:hidden">All</span>
-          <ArrowRight className="h-4 w-4" />
+          <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
 
-      <div className="space-y-2 sm:space-y-4">
+      <div className="space-y-3">
         {goals.length === 0 ? (
-          <div className="card-brutal py-4 text-center sm:py-12">
-            <Target className="mx-auto mb-3 h-10 w-10 text-gray-400 sm:mb-4 sm:h-12 sm:w-12" />
-            <p className="mb-2 text-sm font-bold uppercase sm:text-base">No Active Goals</p>
-            <p className="mb-4 font-mono text-sm text-gray-600">Create your first goal to start tracking</p>
-            <Link href="/dashboard/goals" className="btn-brutal inline-flex items-center gap-2">
-              <Plus className="h-4 w-4" /> Create Goal
-            </Link>
-          </div>
+          <GlassCard className="text-center py-10">
+            <Target className="mx-auto mb-3 h-10 w-10 text-zinc-400" />
+            <p className="mb-1 text-base font-semibold text-zinc-900">No active goals</p>
+            <p className="mb-4 text-sm text-zinc-500">Create your first goal to start tracking</p>
+            <Button asChild variant="brand" size="sm">
+              <Link href="/dashboard/goals">
+                <Plus className="h-4 w-4" /> Create Goal
+              </Link>
+            </Button>
+          </GlassCard>
         ) : (
           goals.slice(0, 4).map((goal, i) => {
             const progress =
               goal.targetHours > 0 ? Math.min(100, Math.round((goal.loggedHours / goal.targetHours) * 100)) : 0
+            const category = categories.find((cat) => cat.value === goal.category)
 
             return (
               <motion.div
                 key={goal.id}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className="card-brutal flex items-center gap-2 sm:gap-4"
+                transition={{ delay: i * 0.05 }}
               >
-                <div
-                  className="h-full min-h-[60px] w-2 border-r-3 border-secondary sm:min-h-[80px] sm:w-3"
-                  style={{ backgroundColor: goal.color }}
-                />
+                <GlassCard padded={false} className="flex items-stretch gap-4 p-4">
+                  <div
+                    className="w-1 shrink-0 rounded-full"
+                    style={{ backgroundColor: goal.color }}
+                  />
 
-                <div className="flex-1 overflow-hidden">
-                  <div className="mb-2 flex items-center justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <span
-                        className="badge-brutal mr-2 text-xs"
-                        style={{
-                          backgroundColor: categories.find((cat) => cat.value === goal.category)?.color || '#9CA3AF',
-                        }}
-                      >
-                        {goal.category}
-                      </span>
-                      <span className="truncate text-sm font-bold uppercase sm:text-base">{goal.title}</span>
-                    </div>
-                    {goal.deadline && (
-                      <span className="badge-brutal shrink-0 bg-secondary text-xs text-white">
-                        {format(new Date(goal.deadline), 'MMM d')}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <div className="progress-brutal">
-                        <div
-                          className={`progress-brutal-fill ${getProgressColor(progress)}`}
-                          style={{ width: `${progress}%` }}
-                        />
+                  <div className="flex-1 overflow-hidden">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1 flex items-center gap-2">
+                        <span
+                          className="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
+                          style={{
+                            backgroundColor: (category?.color || '#9CA3AF') + '20',
+                            color: category?.color || '#4B5563',
+                            borderColor: (category?.color || '#9CA3AF') + '40',
+                          }}
+                        >
+                          {goal.category}
+                        </span>
+                        <span className="truncate text-sm font-semibold text-zinc-900">{goal.title}</span>
                       </div>
+                      {goal.deadline && (
+                        <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                          {format(new Date(goal.deadline), 'MMM d')}
+                        </span>
+                      )}
                     </div>
-                    <span className="font-mono text-sm font-bold">{progress}%</span>
+
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1">
+                        <div className="h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-[#f2cc0d] transition-all"
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                      </div>
+                      <span className="font-mono text-xs font-semibold text-zinc-700 tabular-nums">{progress}%</span>
+                    </div>
                   </div>
-                </div>
+                </GlassCard>
               </motion.div>
             )
           })

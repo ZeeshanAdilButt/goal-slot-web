@@ -11,14 +11,14 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(({ 
     <div className="flex w-full flex-col gap-2">
       <textarea
         className={cn(
-          'flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none',
-          error && 'border-destructive ring-1 ring-destructive',
+          'min-h-[80px] w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm transition-colors placeholder:text-zinc-400 focus-visible:outline-none focus-visible:border-[#f2cc0d] focus-visible:ring-1 focus-visible:ring-[#f2cc0d] disabled:cursor-not-allowed disabled:opacity-50 resize-none',
+          error && 'border-rose-500 ring-1 ring-rose-500',
           className,
         )}
         ref={ref}
         {...props}
       />
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-sm text-rose-600">{error}</p>}
     </div>
   )
 })

@@ -77,7 +77,7 @@ export function EditTimeEntryModal({ isOpen, onClose, entry }: EditTimeEntryModa
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="modal-brutal max-w-md">
+      <DialogContent className=" max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl font-bold uppercase">
             <Pencil className="h-5 w-5" />
@@ -93,7 +93,7 @@ export function EditTimeEntryModal({ isOpen, onClose, entry }: EditTimeEntryModa
               value={taskName}
               onChange={(e) => setTaskName(e.target.value)}
               placeholder="What did you work on?"
-              className="input-brutal"
+              className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
               required
             />
           </div>
@@ -105,7 +105,7 @@ export function EditTimeEntryModal({ isOpen, onClose, entry }: EditTimeEntryModa
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="input-brutal"
+                className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
                 required
               />
             </div>
@@ -118,7 +118,7 @@ export function EditTimeEntryModal({ isOpen, onClose, entry }: EditTimeEntryModa
                   onChange={(e) => setHours(Math.max(0, parseInt(e.target.value) || 0))}
                   min={0}
                   max={23}
-                  className="input-brutal w-16 text-center"
+                  className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] w-16 text-center"
                   placeholder="0"
                 />
                 <span className="text-sm font-bold">h</span>
@@ -128,7 +128,7 @@ export function EditTimeEntryModal({ isOpen, onClose, entry }: EditTimeEntryModa
                   onChange={(e) => setMinutes(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
                   min={0}
                   max={59}
-                  className="input-brutal w-16 text-center"
+                  className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] w-16 text-center"
                   placeholder="30"
                 />
                 <span className="text-sm font-bold">m</span>
@@ -147,8 +147,8 @@ export function EditTimeEntryModal({ isOpen, onClose, entry }: EditTimeEntryModa
                   setMinutes(min % 60)
                 }}
                 className={cn(
-                  'rounded-sm border-2 border-secondary px-2.5 py-1 font-mono text-xs transition-all',
-                  totalDuration === min ? 'bg-primary shadow-brutal-sm' : 'bg-white hover:bg-gray-100',
+                  'rounded-sm border border-zinc-200 px-2.5 py-1 font-mono text-xs transition-all',
+                  totalDuration === min ? 'bg-primary shadow-sm' : 'bg-white hover:bg-gray-100',
                 )}
               >
                 {min >= 60 ? `${min / 60}h` : `${min}m`}
@@ -165,7 +165,7 @@ export function EditTimeEntryModal({ isOpen, onClose, entry }: EditTimeEntryModa
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Add notes about this session..."
-              className="input-brutal min-h-[60px] resize-none"
+              className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] min-h-[60px] resize-none"
               rows={2}
             />
           </div>
@@ -192,14 +192,14 @@ export function EditTimeEntryModal({ isOpen, onClose, entry }: EditTimeEntryModa
         </form>
 
         <DialogFooter className="flex-row gap-3 pt-2">
-          <button type="button" onClick={onClose} className="btn-brutal-secondary flex-1 text-sm">
+          <button type="button" onClick={onClose} className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 flex-1 text-sm">
             Cancel
           </button>
           <button
             type="submit"
             form="edit-entry-form"
             disabled={updateEntry.isPending || totalDuration < 1}
-            className="btn-brutal flex-[2] text-sm"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 flex-[2] text-sm"
           >
             {updateEntry.isPending ? 'Saving...' : 'Save Changes'}
           </button>

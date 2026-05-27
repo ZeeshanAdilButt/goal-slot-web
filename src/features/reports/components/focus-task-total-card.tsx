@@ -137,7 +137,7 @@ export function FocusTaskTotalCard({ view, filters, reportUserId }: FocusTaskTot
   const collapseAll = () => setExpandedDays(new Set())
 
   return (
-    <div className="card-brutal relative">
+    <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm relative">
       {showUpdating && <FocusUpdatingOverlay active={showUpdating} />}
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -153,7 +153,7 @@ export function FocusTaskTotalCard({ view, filters, reportUserId }: FocusTaskTot
           <button
             type="button"
             onClick={() => setOffset((o) => o - 1)}
-            className="btn-brutal-secondary px-3 py-2 text-xs"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 px-3 py-2 text-xs"
           >
             Prev
           </button>
@@ -161,7 +161,7 @@ export function FocusTaskTotalCard({ view, filters, reportUserId }: FocusTaskTot
             type="button"
             onClick={() => setOffset((o) => Math.min(o + 1, 0))}
             disabled={offset >= 0}
-            className={cn('btn-brutal-secondary px-3 py-2 text-xs', offset >= 0 && 'opacity-50')}
+            className={cn('inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-xs font-semibold px-3 py-2 transition-colors hover:bg-zinc-50', offset >= 0 && 'opacity-50')}
           >
             Next
           </button>
@@ -182,15 +182,15 @@ export function FocusTaskTotalCard({ view, filters, reportUserId }: FocusTaskTot
         <div className="space-y-4">
           {/* Summary Stats */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="rounded-lg border-2 border-secondary bg-white p-3 text-center">
+            <div className="rounded-lg border border-zinc-200 bg-white p-3 text-center">
               <div className="text-xs font-medium uppercase text-gray-500">Total Time</div>
               <div className="text-xl font-bold">{formatDuration(grandTotal)}</div>
             </div>
-            <div className="rounded-lg border-2 border-secondary bg-white p-3 text-center">
+            <div className="rounded-lg border border-zinc-200 bg-white p-3 text-center">
               <div className="text-xs font-medium uppercase text-gray-500">Unique Tasks</div>
               <div className="text-xl font-bold">{uniqueTaskCount}</div>
             </div>
-            <div className="rounded-lg border-2 border-secondary bg-white p-3 text-center">
+            <div className="rounded-lg border border-zinc-200 bg-white p-3 text-center">
               <div className="text-xs font-medium uppercase text-gray-500">Days Worked</div>
               <div className="text-xl font-bold">{dailyTotals.length}</div>
             </div>
@@ -198,16 +198,16 @@ export function FocusTaskTotalCard({ view, filters, reportUserId }: FocusTaskTot
 
           {/* Controls */}
           <div className="flex items-center gap-2">
-            <button type="button" onClick={expandAll} className="btn-brutal-secondary px-3 py-1 text-xs">
+            <button type="button" onClick={expandAll} className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 px-3 py-1 text-xs">
               Expand All
             </button>
-            <button type="button" onClick={collapseAll} className="btn-brutal-secondary px-3 py-1 text-xs">
+            <button type="button" onClick={collapseAll} className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 px-3 py-1 text-xs">
               Collapse All
             </button>
           </div>
 
           {/* Daily Breakdown */}
-          <div className="overflow-hidden rounded-lg border-3 border-secondary bg-white">
+          <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
             {dailyTotals.map((day) => (
               <div key={day.date} className="border-b border-gray-200 last:border-b-0">
                 {/* Day Header */}
@@ -256,7 +256,7 @@ export function FocusTaskTotalCard({ view, filters, reportUserId }: FocusTaskTot
             ))}
 
             {/* Grand Total */}
-            <div className="flex items-center justify-end gap-4 border-t-3 border-secondary bg-secondary px-4 py-3 text-white">
+            <div className="flex items-center justify-end gap-4 border-t border-zinc-200 bg-secondary px-4 py-3 text-white">
               <span className="font-semibold uppercase">Grand Total:</span>
               <span className="text-xl font-bold">{formatDuration(grandTotal)}</span>
             </div>

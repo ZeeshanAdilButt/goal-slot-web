@@ -17,7 +17,7 @@ export function SharingPendingInvites({ invites, onAccept, onDecline }: SharingP
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="card-brutal-colored bg-accent-orange text-white"
+      className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm bg-amber-100 text-white"
     >
       <h2 className="mb-2 flex items-center gap-2 text-lg font-bold uppercase sm:text-xl">
         <Mail className="h-4 w-4 sm:h-5 sm:w-5" />

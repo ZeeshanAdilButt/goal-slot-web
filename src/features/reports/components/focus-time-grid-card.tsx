@@ -73,7 +73,7 @@ export function FocusTimeGridCard({ view, filters, reportUserId }: FocusTimeGrid
   const hours = useMemo(() => Array.from({ length: 24 }, (_, hour) => hour), [])
 
   return (
-    <div className="card-brutal">
+    <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold uppercase">Time Grid</h2>
@@ -84,7 +84,7 @@ export function FocusTimeGridCard({ view, filters, reportUserId }: FocusTimeGrid
           <button
             type="button"
             onClick={() => setOffset((o) => o - 1)}
-            className="btn-brutal-secondary px-3 py-2 text-xs"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 px-3 py-2 text-xs"
           >
             Prev
           </button>
@@ -92,7 +92,7 @@ export function FocusTimeGridCard({ view, filters, reportUserId }: FocusTimeGrid
             type="button"
             onClick={() => setOffset((o) => Math.min(o + 1, 0))}
             disabled={offset >= 0}
-            className={cn('btn-brutal-secondary px-3 py-2 text-xs', offset >= 0 && 'opacity-50')}
+            className={cn('inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-xs font-semibold px-3 py-2 transition-colors hover:bg-zinc-50', offset >= 0 && 'opacity-50')}
           >
             Next
           </button>
@@ -136,7 +136,7 @@ export function FocusTimeGridCard({ view, filters, reportUserId }: FocusTimeGrid
 
             <div
               className={cn(
-                'relative overflow-x-auto border-2 border-secondary bg-white p-2',
+                'relative overflow-x-auto border border-zinc-200 bg-white p-2',
                 // Let the card grow and use page scrolling (inner Y-scroll felt cramped in month view).
                 period === 'month' && 'overflow-y-visible',
               )}

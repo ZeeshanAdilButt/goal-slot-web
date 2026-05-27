@@ -89,7 +89,7 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="modal-brutal max-w-md">
+      <DialogContent className=" max-w-md">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold uppercase sm:text-2xl">Share Your Data</DialogTitle>
         </DialogHeader>
@@ -101,10 +101,10 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
               type="button"
               onClick={() => setShareMode('email')}
               className={cn(
-                'flex flex-1 items-center justify-center gap-2 border-3 p-3 font-bold transition-colors',
+                'flex flex-1 items-center justify-center gap-2 rounded-lg border p-3 text-sm font-semibold transition-colors',
                 shareMode === 'email'
-                  ? 'border-secondary bg-primary text-secondary'
-                  : 'border-secondary bg-white hover:bg-gray-50'
+                  ? 'border-yellow-400 bg-yellow-50 text-zinc-900'
+                  : 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50'
               )}
             >
               <Mail className="h-4 w-4" />
@@ -114,10 +114,10 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
               type="button"
               onClick={() => setShareMode('public-link')}
               className={cn(
-                'flex flex-1 items-center justify-center gap-2 border-3 p-3 font-bold transition-colors',
+                'flex flex-1 items-center justify-center gap-2 rounded-lg border p-3 text-sm font-semibold transition-colors',
                 shareMode === 'public-link'
-                  ? 'border-secondary bg-primary text-secondary'
-                  : 'border-secondary bg-white hover:bg-gray-50'
+                  ? 'border-yellow-400 bg-yellow-50 text-zinc-900'
+                  : 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50'
               )}
             >
               <Link2 className="h-4 w-4" />
@@ -136,12 +136,12 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="colleague@example.com"
-                className="input-brutal"
+                className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
                 required
               />
             </div>
 
-            <div className="border-2 border-secondary bg-gray-50 p-3 sm:p-4">
+            <div className="border border-zinc-200 bg-gray-50 p-3 sm:p-4">
               <div className="flex items-start gap-2">
                 <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-accent-orange sm:h-5 sm:w-5" />
                 <p className="font-mono text-xs text-gray-600 sm:text-sm">
@@ -161,7 +161,7 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
               <select
                 value={expiresInDays}
                 onChange={(e) => setExpiresInDays(Number(e.target.value))}
-                className="input-brutal"
+                className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
               >
                 <option value={7}>7 days</option>
                 <option value={14}>14 days</option>
@@ -172,7 +172,7 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
               </select>
             </div>
 
-            <div className="border-2 border-secondary bg-blue-50 p-3 sm:p-4">
+            <div className="border border-zinc-200 bg-blue-50 p-3 sm:p-4">
               <div className="flex items-start gap-2">
                 <Globe className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600 sm:h-5 sm:w-5" />
                 <div className="flex-1">
@@ -191,7 +191,7 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
         {inviteResult && (
           <div className="space-y-3">
             {inviteResult.emailSent && (
-              <div className="border-2 border-secondary bg-green-50 p-3 sm:p-4">
+              <div className="border border-zinc-200 bg-green-50 p-3 sm:p-4">
                 <div className="flex items-start gap-2">
                   <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600 sm:h-5 sm:w-5" />
                   <div className="flex-1">
@@ -219,19 +219,19 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
             )}
 
             {inviteResult.inviteLink && (
-              <div className="border-2 border-secondary bg-gray-50 p-3 sm:p-4">
+              <div className="border border-zinc-200 bg-gray-50 p-3 sm:p-4">
                 <label className="mb-2 block text-xs font-bold uppercase sm:text-sm">Invite Link</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     readOnly
                     value={`${typeof window !== 'undefined' ? window.location.origin : ''}${inviteResult.inviteLink}`}
-                    className="input-brutal flex-1 font-mono text-xs"
+                    className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] flex-1 font-mono text-xs"
                   />
                   <button
                     type="button"
                     onClick={copyInviteLink}
-                    className="btn-brutal-secondary whitespace-nowrap px-3 text-xs sm:px-4 sm:text-sm"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 whitespace-nowrap px-3 text-xs sm:px-4 sm:text-sm"
                   >
                     <Copy className="h-4 w-4" />
                   </button>
@@ -247,7 +247,7 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
         {/* Public Link Result */}
         {publicLinkResult && (
           <div className="space-y-3">
-            <div className="border-2 border-secondary bg-green-50 p-3 sm:p-4">
+            <div className="border border-zinc-200 bg-green-50 p-3 sm:p-4">
               <div className="flex items-start gap-2">
                 <Link2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600 sm:h-5 sm:w-5" />
                 <div className="flex-1">
@@ -260,19 +260,19 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
               </div>
             </div>
 
-            <div className="border-2 border-secondary bg-gray-50 p-3 sm:p-4">
+            <div className="border border-zinc-200 bg-gray-50 p-3 sm:p-4">
               <label className="mb-2 block text-xs font-bold uppercase sm:text-sm">Public Link</label>
               <div className="flex gap-2">
                 <input
                   type="text"
                   readOnly
                   value={`${typeof window !== 'undefined' ? window.location.origin : ''}${publicLinkResult.publicLink}`}
-                  className="input-brutal flex-1 font-mono text-xs"
+                  className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] flex-1 font-mono text-xs"
                 />
                 <button
                   type="button"
                   onClick={copyPublicLink}
-                  className="btn-brutal-secondary whitespace-nowrap px-3 text-xs sm:px-4 sm:text-sm"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 whitespace-nowrap px-3 text-xs sm:px-4 sm:text-sm"
                 >
                   <Copy className="h-4 w-4" />
                 </button>
@@ -287,14 +287,14 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
         <DialogFooter className="flex-row gap-2 pt-3 sm:gap-4 sm:pt-4">
           {!hasResult && shareMode === 'email' && (
             <>
-              <button type="button" onClick={onClose} className="btn-brutal-secondary flex-1 text-xs sm:text-sm">
+              <button type="button" onClick={onClose} className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 flex-1 text-xs sm:text-sm">
                 Cancel
               </button>
               <button
                 type="submit"
                 form="invite-form"
                 disabled={shareMutation.isPending}
-                className="btn-brutal-dark flex-1 text-xs sm:text-sm"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-rose-500 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-rose-600 disabled:opacity-50 flex-1 text-xs sm:text-sm"
               >
                 {shareMutation.isPending ? 'Sending...' : 'Send Invite'}
               </button>
@@ -302,14 +302,14 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
           )}
           {!hasResult && shareMode === 'public-link' && (
             <>
-              <button type="button" onClick={onClose} className="btn-brutal-secondary flex-1 text-xs sm:text-sm">
+              <button type="button" onClick={onClose} className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 flex-1 text-xs sm:text-sm">
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleCreatePublicLink}
                 disabled={createPublicLinkMutation.isPending}
-                className="btn-brutal-dark flex-1 text-xs sm:text-sm"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-rose-500 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-rose-600 disabled:opacity-50 flex-1 text-xs sm:text-sm"
               >
                 {createPublicLinkMutation.isPending ? 'Creating...' : 'Create Link'}
               </button>
@@ -322,7 +322,7 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
                 onSuccess()
                 onClose()
               }}
-              className="btn-brutal-dark flex-1 text-xs sm:text-sm"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-rose-500 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-rose-600 disabled:opacity-50 flex-1 text-xs sm:text-sm"
             >
               Done
             </button>

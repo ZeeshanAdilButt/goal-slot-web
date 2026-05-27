@@ -99,7 +99,7 @@ export function TasksView({
     return (
       <div className="p-4 sm:p-6">
         <div className="px-0 sm:px-2 md:-ml-[3px] md:px-0">
-          <div className="card-brutal p-4 text-center font-mono text-sm text-gray-600 sm:p-6 sm:text-base">
+          <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm p-4 text-center font-mono text-sm text-gray-600 sm:p-6 sm:text-base">
             Select a goal to view tasks.
           </div>
         </div>
@@ -116,7 +116,7 @@ export function TasksView({
               <button
                 type="button"
                 onClick={onToggleGoalsSidebar}
-                className="hidden h-9 items-center gap-2 border-3 border-secondary bg-primary px-3 text-[10px] font-bold uppercase text-secondary shadow-brutal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal-hover active:translate-x-1 active:translate-y-1 active:shadow-none md:inline-flex"
+                className="hidden h-9 items-center gap-2 border border-zinc-200 bg-primary px-3 text-[10px] font-bold uppercase text-secondary shadow-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-sm active:translate-x-1 active:translate-y-1 active:shadow-none md:inline-flex"
                 aria-label="Expand goals sidebar"
                 title="Show goals sidebar"
               >
@@ -127,7 +127,7 @@ export function TasksView({
             <h1 className="font-display text-2xl font-bold uppercase sm:text-3xl md:text-4xl">Tasks</h1>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex border-3 border-secondary bg-white shadow-brutal-sm">
+            <div className="flex border border-zinc-200 bg-white shadow-sm">
               <button
                 onClick={() => setViewMode('board')}
                 className={`px-3 py-2 text-[10px] font-bold uppercase transition-colors sm:px-4 sm:text-xs ${
@@ -145,7 +145,7 @@ export function TasksView({
                 List
               </button>
             </div>
-            <button onClick={onCreate} className="btn-brutal flex items-center">
+            <button onClick={onCreate} className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 flex items-center">
               <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
               <span className="hidden sm:inline">New Task</span>
               <span className="sm:hidden">New</span>
@@ -175,11 +175,11 @@ export function TasksView({
                 placeholder="Search tasks..."
                 value={searchQuery}
                 onChange={(e) => onSearchQueryChange(e.target.value)}
-                className="h-8 w-full flex-1 rounded-sm border-2 border-secondary bg-white px-3 text-xs font-bold uppercase placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black/20 sm:w-48"
+                className="h-8 w-full flex-1 rounded-sm border border-zinc-200 bg-white px-3 text-xs font-bold uppercase placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black/20 sm:w-48"
               />
               <Sheet>
                 <SheetTrigger asChild>
-                  <button className="flex h-8 items-center gap-2 rounded-sm border-2 border-secondary bg-white px-2 text-[10px] font-bold uppercase shadow-brutal-sm md:hidden">
+                  <button className="flex h-8 items-center gap-2 rounded-sm border border-zinc-200 bg-white px-2 text-[10px] font-bold uppercase shadow-sm md:hidden">
                     <SlidersHorizontal className="h-3 w-3" />
                     Filters
                     {hasActiveFilters ? <span className="ml-1 h-1.5 w-1.5 rounded-full bg-red-500" /> : null}
@@ -187,7 +187,7 @@ export function TasksView({
                 </SheetTrigger>
                 <SheetContent
                   side="bottom"
-                  className="max-h-[85svh] overflow-y-auto border-t-3 border-secondary bg-brutalist-bg"
+                  className="max-h-[85svh] overflow-y-auto border-t border-zinc-200 bg-[#fafafa]"
                 >
                   <SheetHeader className="text-left">
                     <SheetTitle className="font-display text-sm font-bold uppercase text-secondary">Filters</SheetTitle>

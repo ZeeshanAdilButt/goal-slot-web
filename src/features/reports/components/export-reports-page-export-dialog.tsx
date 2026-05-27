@@ -231,13 +231,13 @@ export function ExportReportsPageExportDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger ?? (
-          <Button className="btn-brutal gap-2">
+          <Button className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 gap-2">
             <Download className="h-4 w-4" />
             Export Report
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="border-3 border-secondary sm:max-w-xl">
+      <DialogContent className="border border-zinc-200 sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold uppercase">Export Report</DialogTitle>
         </DialogHeader>
@@ -248,7 +248,7 @@ export function ExportReportsPageExportDialog({
               value={exportTitle}
               onChange={(e) => setExportTitle(e.target.value)}
               placeholder="e.g., Weekly Progress Report"
-              className="border-2 border-secondary"
+              className="border border-zinc-200"
             />
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -258,7 +258,7 @@ export function ExportReportsPageExportDialog({
                 value={exportClientName}
                 onChange={(e) => setExportClientName(e.target.value)}
                 placeholder="e.g., Acme Corp"
-                className="border-2 border-secondary"
+                className="border border-zinc-200"
               />
             </div>
             <div className="space-y-2">
@@ -267,7 +267,7 @@ export function ExportReportsPageExportDialog({
                 value={exportProjectName}
                 onChange={(e) => setExportProjectName(e.target.value)}
                 placeholder="e.g., Website Redesign"
-                className="border-2 border-secondary"
+                className="border border-zinc-200"
               />
             </div>
           </div>
@@ -278,7 +278,7 @@ export function ExportReportsPageExportDialog({
               onChange={(e) => setExportNotes(e.target.value)}
               placeholder="Additional notes for the report..."
               rows={3}
-              className="border-2 border-secondary"
+              className="border border-zinc-200"
             />
           </div>
         </div>

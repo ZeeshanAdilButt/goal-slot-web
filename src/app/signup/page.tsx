@@ -146,7 +146,7 @@ function SignupForm() {
   }, [resendCooldown])
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-brutalist-bg p-2 sm:p-6">
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-2 sm:p-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
         {/* Logo */}
         <Link href="/" className="mb-8 flex justify-center">
@@ -155,7 +155,7 @@ function SignupForm() {
 
         {/* Plan Badge */}
         {checkoutPlan && (
-          <div className="mb-6 border-3 border-secondary bg-primary p-4 text-center shadow-brutal">
+          <div className="mb-6 border border-zinc-200 bg-primary p-4 text-center shadow-sm">
             <span className="font-bold uppercase">{checkoutPlan === 'PRO' ? 'Max Plan' : 'Pro Plan'} Selected</span>
             <p className="mt-1 font-mono text-sm">You'll be redirected to checkout after signup</p>
           </div>
@@ -163,12 +163,12 @@ function SignupForm() {
 
         {/* Step Indicator */}
         <div className="mb-6 flex items-center justify-center gap-2">
-          <div className={`h-2 w-16 border-2 border-secondary ${step === 1 ? 'bg-primary' : 'bg-gray-200'}`} />
-          <div className={`h-2 w-16 border-2 border-secondary ${step === 2 ? 'bg-primary' : 'bg-gray-200'}`} />
+          <div className={`h-2 w-16 border border-zinc-200 ${step === 1 ? 'bg-primary' : 'bg-gray-200'}`} />
+          <div className={`h-2 w-16 border border-zinc-200 ${step === 2 ? 'bg-primary' : 'bg-gray-200'}`} />
         </div>
 
         {/* Signup Card */}
-        <div className="card-brutal">
+        <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
           {step === 1 ? (
             <>
               <h1 className="mb-6 text-center text-2xl font-bold uppercase">Create Account</h1>
@@ -182,7 +182,7 @@ function SignupForm() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="John Doe"
-                      className="input-brutal pl-12"
+                      className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] pl-12"
                       required
                       minLength={2}
                     />
@@ -198,7 +198,7 @@ function SignupForm() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@example.com"
-                      className="input-brutal pl-12"
+                      className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] pl-12"
                       required
                     />
                   </div>
@@ -213,7 +213,7 @@ function SignupForm() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="input-brutal pl-12 pr-12"
+                      className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] pl-12 pr-12"
                       required
                       minLength={8}
                     />
@@ -232,7 +232,7 @@ function SignupForm() {
                 <button
                   type="submit"
                   disabled={sendOTPMutation.isPending || checkEmailMutation.isPending}
-                  className="btn-brutal flex w-full items-center justify-center gap-2"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 flex w-full items-center justify-center gap-2"
                 >
                   {sendOTPMutation.isPending || checkEmailMutation.isPending ? (
                     <Loading size="sm" className="h-5 w-5" />
@@ -265,27 +265,27 @@ function SignupForm() {
                     <InputOTPGroup>
                       <InputOTPSlot
                         index={0}
-                        className="h-14 w-14 border-3 border-secondary text-xl font-bold shadow-brutal"
+                        className="h-14 w-14 border border-zinc-200 text-xl font-bold shadow-sm"
                       />
                       <InputOTPSlot
                         index={1}
-                        className="h-14 w-14 border-3 border-secondary text-xl font-bold shadow-brutal"
+                        className="h-14 w-14 border border-zinc-200 text-xl font-bold shadow-sm"
                       />
                       <InputOTPSlot
                         index={2}
-                        className="h-14 w-14 border-3 border-secondary text-xl font-bold shadow-brutal"
+                        className="h-14 w-14 border border-zinc-200 text-xl font-bold shadow-sm"
                       />
                       <InputOTPSlot
                         index={3}
-                        className="h-14 w-14 border-3 border-secondary text-xl font-bold shadow-brutal"
+                        className="h-14 w-14 border border-zinc-200 text-xl font-bold shadow-sm"
                       />
                       <InputOTPSlot
                         index={4}
-                        className="h-14 w-14 border-3 border-secondary text-xl font-bold shadow-brutal"
+                        className="h-14 w-14 border border-zinc-200 text-xl font-bold shadow-sm"
                       />
                       <InputOTPSlot
                         index={5}
-                        className="h-14 w-14 border-3 border-secondary text-xl font-bold shadow-brutal"
+                        className="h-14 w-14 border border-zinc-200 text-xl font-bold shadow-sm"
                       />
                     </InputOTPGroup>
                   </InputOTP>
@@ -295,7 +295,7 @@ function SignupForm() {
                 <button
                   type="submit"
                   disabled={registerMutation.isPending || otp.length !== 6}
-                  className="btn-brutal flex w-full items-center justify-center gap-2"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 flex w-full items-center justify-center gap-2"
                 >
                   {registerMutation.isPending ? (
                     <Loading size="sm" className="h-5 w-5" />
@@ -347,9 +347,9 @@ export default function SignupPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-brutalist-bg p-2 sm:p-6">
+        <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-2 sm:p-6">
           <div className="w-full max-w-md">
-            <div className="card-brutal">
+            <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
               <div className="flex items-center justify-center p-8">
                 <Loading size="sm" />
               </div>

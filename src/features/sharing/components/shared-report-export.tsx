@@ -70,7 +70,7 @@ export function SharedReportExport({ userId, userName }: SharedReportExportProps
       <Button
         variant="outline"
         size="default"
-        className="h-10 gap-2 border-2 border-secondary bg-white font-bold hover:bg-gray-50"
+        className="h-10 gap-2 border border-zinc-200 bg-white font-bold hover:bg-gray-50"
         onClick={handleExport}
         disabled={isExporting}
       >

@@ -43,21 +43,21 @@ export const ReleaseNoteBanner = () => {
   }
 
   return (
-    <div className={clsx('border-b border-secondary bg-white px-4 py-3 shadow-brutal md:px-6 md:py-4')}>
+    <div className={clsx('border-b border-yellow-200 bg-yellow-50 px-4 py-3 md:px-6 md:py-4')}>
       <div className="flex items-start gap-3">
-        <Megaphone className="h-5 w-5 text-primary" />
+        <Megaphone className="h-5 w-5 text-yellow-700" />
         <div className="flex-1 space-y-1">
-          <div className="flex flex-wrap items-center gap-2 text-[17px] font-semibold text-gray-900">
+          <div className="flex flex-wrap items-center gap-2 text-base font-semibold text-zinc-900">
             <span>{note.title}</span>
-            <span className="rounded-full bg-primary px-2 py-0.5 text-xs uppercase text-secondary">{note.version}</span>
-            <span className="text-xs text-gray-600">Published {formatDate(note.publishedAt)}</span>
+            <span className="inline-flex items-center rounded-full border border-yellow-400/20 bg-yellow-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-yellow-700">{note.version}</span>
+            <span className="text-xs text-zinc-500">Published {formatDate(note.publishedAt)}</span>
             {unseenNotes && unseenNotes.length > 1 && (
-               <span className="text-xs font-bold text-primary">+{unseenNotes.length - 1} more</span>
+               <span className="text-xs font-semibold text-yellow-700">+{unseenNotes.length - 1} more</span>
             )}
           </div>
-          <p className="whitespace-pre-wrap text-[17px] leading-relaxed text-gray-800">{note.content}</p>
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-700">{note.content}</p>
         </div>
-        <button onClick={handleDismiss} className="text-gray-500 hover:text-gray-800" aria-label="Dismiss release note">
+        <button onClick={handleDismiss} className="text-zinc-500 hover:text-zinc-900" aria-label="Dismiss release note">
           <X className="h-4 w-4" />
         </button>
       </div>

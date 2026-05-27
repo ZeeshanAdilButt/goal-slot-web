@@ -139,7 +139,7 @@ export function CreateTaskModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="min-w-screen modal-brutal h-dvh max-h-dvh overflow-y-auto p-2 sm:max-h-fit sm:w-[90vw] sm:max-w-2xl">
+      <DialogContent className="min-w-screen  h-dvh max-h-dvh overflow-y-auto p-2 sm:max-h-fit sm:w-[90vw] sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold uppercase">{task ? 'Edit Task' : 'New Task'}</DialogTitle>
         </DialogHeader>
@@ -147,7 +147,7 @@ export function CreateTaskModal({
           <div>
             <label className="mb-1 block font-mono text-sm font-semibold uppercase">Title</label>
             <input
-              className="input-brutal w-full"
+              className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               placeholder="Enter task title..."
@@ -159,7 +159,7 @@ export function CreateTaskModal({
             <div>
               <label className="mb-1 block font-mono text-sm font-semibold uppercase">Status</label>
               <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="input-brutal w-full">
+                <SelectTrigger className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -177,7 +177,7 @@ export function CreateTaskModal({
                 value={form.goalId || NO_GOAL_VALUE}
                 onValueChange={(value) => setForm({ ...form, goalId: value === NO_GOAL_VALUE ? '' : value })}
               >
-                <SelectTrigger className="input-brutal w-full">
+                <SelectTrigger className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]">
                   <SelectValue placeholder="Select a goal" />
                 </SelectTrigger>
                 <SelectContent>
@@ -200,7 +200,7 @@ export function CreateTaskModal({
                 type="number"
                 min={0}
                 step={0.1}
-                className="input-brutal w-full"
+                className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
                 value={estimatedHours}
                 onChange={(e) => setEstimatedHours(e.target.value)}
                 placeholder="e.g. 1.5"
@@ -210,7 +210,7 @@ export function CreateTaskModal({
               <label className="mb-1 block font-mono text-sm font-semibold uppercase">Due Date</label>
               <input
                 type="date"
-                className="input-brutal w-full"
+                className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
                 value={form.dueDate}
                 onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
               />
@@ -234,7 +234,7 @@ export function CreateTaskModal({
           <div>
             <label className="font-mono text-sm uppercase">Notes</label>
             <textarea
-              className="input-brutal mt-1 w-full resize-none"
+              className="mt-1 h-24 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] resize-none"
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
               placeholder="Additional notes about this task..."
@@ -242,11 +242,11 @@ export function CreateTaskModal({
             />
           </div>
         </div>
-        <DialogFooter className="mt-4 flex-row gap-3 border-t-3 border-secondary pt-3">
-          <button className="btn-brutal-secondary flex-1" onClick={onClose}>
+        <DialogFooter className="mt-4 flex-row gap-3 border-t border-zinc-200 pt-3">
+          <button className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 flex-1" onClick={onClose}>
             Cancel
           </button>
-          <button className="btn-brutal flex-1" onClick={handleSubmit} disabled={creating}>
+          <button className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 flex-1" onClick={handleSubmit} disabled={creating}>
             {creating ? 'Saving...' : task ? 'Update Task' : 'Create Task'}
           </button>
         </DialogFooter>

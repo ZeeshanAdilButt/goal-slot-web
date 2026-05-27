@@ -35,7 +35,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-brutalist-bg">
+      <div className="flex min-h-screen items-center justify-center bg-[#fafafa]">
         <GoalSlotSpinner size="xl" />
       </div>
     )
@@ -48,9 +48,9 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="flex flex-col bg-brutalist-bg">
-        <div className="flex h-16 shrink-0 items-center gap-2 border-b-3 border-secondary px-4 md:hidden">
-          <SidebarTrigger className="h-10 w-10 border-3 border-secondary !bg-primary !text-secondary shadow-brutal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:!bg-primary hover:shadow-brutal-hover active:translate-x-1 active:translate-y-1 active:shadow-none" />
+      <SidebarInset className="flex flex-col bg-[#fafafa]">
+        <div className="flex h-16 shrink-0 items-center gap-2 border-b border-zinc-200 bg-white px-4 md:hidden">
+          <SidebarTrigger className="h-9 w-9 rounded-md hover:bg-zinc-100 text-zinc-700" />
         </div>
         <TimeEntryBanner />
         <ReleaseNoteBanner />
@@ -64,7 +64,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-brutalist-bg">
+        <div className="flex min-h-screen items-center justify-center bg-[#fafafa]">
           <GoalSlotSpinner size="xl" />
         </div>
       }

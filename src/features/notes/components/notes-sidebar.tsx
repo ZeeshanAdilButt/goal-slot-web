@@ -556,7 +556,7 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search notes..."
-            className="w-full rounded-md border-2 border-border bg-background py-1.5 pl-9 pr-3 text-sm outline-none focus:border-primary"
+            className="w-full rounded-md border border-zinc-200 bg-background py-1.5 pl-9 pr-3 text-sm outline-none focus:border-primary"
           />
         </div>
       </div>

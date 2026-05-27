@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 
-import { SharedReportsView } from './shared-reports-view'
 import { SharingActiveShares } from '@/features/sharing/components/sharing-active-shares'
 import { SharingHeader } from '@/features/sharing/components/sharing-header'
 import { SharingInviteModal } from '@/features/sharing/components/sharing-invite-modal'
@@ -22,7 +21,10 @@ import { DataShare, TabType } from '@/features/sharing/utils/types'
 import { AnimatePresence, motion } from 'framer-motion'
 
 import { Loading } from '@/components/ui/loading'
+import { PageShell } from '@/components/ui/page-shell'
 import { ConfirmDialog } from '@/components/confirm-dialog'
+
+import { SharedReportsView } from './shared-reports-view'
 
 export function SharingPage() {
   const [activeTab, setActiveTab] = useState<TabType>('my')
@@ -67,7 +69,7 @@ export function SharingPage() {
   const isLoading = mySharesQuery.isLoading || pendingInvitesQuery.isLoading || sharedWithMeQuery.isLoading
 
   return (
-    <div className="space-y-4 p-4 sm:space-y-8 sm:p-6">
+    <PageShell>
       <SharingHeader onCreateClick={() => setShowInviteModal(true)} showInviteButton={activeTab === 'my'} />
 
       <SharingTabs
@@ -127,6 +129,6 @@ export function SharingPage() {
         variant="destructive"
         isLoading={revokeMutation.isPending}
       />
-    </div>
+    </PageShell>
   )
 }

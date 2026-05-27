@@ -143,7 +143,7 @@ export function TaskSelector({
           }}
           placeholder="Type to search or create a task..."
           disabled={isDisabled}
-          className={`w-full border-3 py-3 pl-10 pr-4 text-lg font-bold focus:border-primary focus:outline-none disabled:opacity-50 ${
+          className={`w-full border py-3 pl-10 pr-4 text-lg font-bold focus:border-primary focus:outline-none disabled:opacity-50 ${
             variant === 'dark'
               ? 'border-white/30 bg-white/10 text-white placeholder-white/50'
               : 'border-black/20 bg-white text-black placeholder-black/40'
@@ -154,7 +154,7 @@ export function TaskSelector({
       {/* Dropdown */}
       {isOpen && !isDisabled && (
         <AnimateChangeInHeight className="absolute z-50 mt-1 w-full">
-          <div className="border-3 border-black bg-white shadow-brutal">
+          <div className="border border-zinc-200 bg-white shadow-sm">
             {/* Existing tasks */}
             <div className="max-h-80 overflow-auto">
               {groupedTasks.map((group) => (
@@ -195,9 +195,9 @@ export function TaskSelector({
                 type="button"
                 onClick={handleCreateNew}
                 disabled={isCreating}
-                className="flex w-full items-center gap-2 border-t-2 border-gray-200 px-4 py-3 text-left transition-colors hover:bg-accent-green/20"
+                className="flex w-full items-center gap-2 border-t-2 border-gray-200 px-4 py-3 text-left transition-colors hover:bg-emerald-100/20"
               >
-                <Plus className="h-4 w-4 text-accent-green" />
+                <Plus className="h-4 w-4 text-emerald-600" />
                 <span className="font-medium text-black">
                   {isCreating ? 'Creating...' : `Create "${searchValue.trim()}"`}
                 </span>

@@ -61,7 +61,7 @@ export function ConfirmDialog({
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
-            className={variant === 'destructive' ? 'btn-brutal-dark' : undefined}
+            className={variant === 'destructive' ? 'bg-rose-500 text-white hover:bg-rose-600' : undefined}
             disabled={isLoading}
           >
             {isLoading ? 'Loading...' : confirmButtonText}

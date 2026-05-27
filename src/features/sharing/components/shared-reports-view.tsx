@@ -66,7 +66,7 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
 
   if (sharedWithMe.length === 0) {
     return (
-      <div className="card-brutal py-16 text-center">
+      <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm py-16 text-center">
         <User className="mx-auto mb-4 h-16 w-16 opacity-30" />
         <h3 className="mb-2 text-xl font-bold uppercase">No shared reports</h3>
         <p className="font-mono text-gray-600">
@@ -79,7 +79,7 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
   return (
     <div className="space-y-6 text-gray-900">
       {/* User Selector Card */}
-      <div className="card-brutal">
+      <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
           <div>
             <h2 className="flex items-center gap-2 text-lg font-bold uppercase sm:text-xl">
@@ -90,14 +90,14 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
           </div>
 
           <Select value={selectedUserId || ''} onValueChange={(v) => setSelectedUserId(v)}>
-            <SelectTrigger className="h-12 w-full border-3 border-secondary bg-white py-2 sm:w-[300px]">
+            <SelectTrigger className="h-12 w-full border border-zinc-200 bg-white py-2 sm:w-[300px]">
               <SelectValue placeholder="Select a person" />
             </SelectTrigger>
             <SelectContent>
               {sharedWithMe.map((share) => (
                 <SelectItem key={share.owner.id} value={share.owner.id}>
                   <div className="flex items-center gap-2">
-                    <div className="flex h-6 w-6 items-center justify-center border-2 border-secondary bg-primary text-xs font-bold">
+                    <div className="flex h-6 w-6 items-center justify-center border border-zinc-200 bg-primary text-xs font-bold">
                       {share.owner.name?.[0]?.toUpperCase() || '?'}
                     </div>
                     <div className="flex flex-col items-start">
@@ -115,7 +115,7 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
       {selectedUser && (
         <div className="space-y-6">
           {/* Controls Bar */}
-          <div className="card-brutal sticky top-0 z-10 bg-white">
+          <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm sticky top-0 z-10 bg-white">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               {/* Left Group: View Toggles & Filters */}
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

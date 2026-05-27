@@ -36,10 +36,10 @@ import { TimerSwitchDialog } from '@/features/time-tracker/components/timer-swit
 import VirtualizedList from '@/components/virtualized-list'
 
 const BOARD_COLUMNS: Array<{ id: TaskStatus; title: string; helper: string; accent: string; text: string }> = [
-  { id: 'BACKLOG', title: 'Backlog', helper: 'Capture ideas', accent: 'bg-gray-50', text: 'text-gray-700' },
-  { id: 'TODO', title: 'To Do', helper: 'Ready to start next', accent: 'bg-amber-50', text: 'text-secondary' },
-  { id: 'DOING', title: 'Doing', helper: 'In motion right now', accent: 'bg-blue-50', text: 'text-blue-700' },
-  { id: 'DONE', title: 'Done', helper: 'Shipped and finished', accent: 'bg-green-50', text: 'text-green-700' },
+  { id: 'BACKLOG', title: 'Backlog', helper: 'Capture ideas', accent: 'bg-zinc-50/50', text: 'text-zinc-700' },
+  { id: 'TODO', title: 'To Do', helper: 'Ready to start next', accent: 'bg-zinc-50/50', text: 'text-zinc-700' },
+  { id: 'DOING', title: 'Doing', helper: 'In motion right now', accent: 'bg-zinc-50/50 border-2 border-yellow-400/40', text: 'text-zinc-700' },
+  { id: 'DONE', title: 'Done', helper: 'Shipped and finished', accent: 'bg-zinc-50/50', text: 'text-zinc-700' },
 ]
 
 interface TaskBoardProps {
@@ -236,19 +236,19 @@ function BoardColumn({ column, renderTask }: BoardColumnProps) {
     <div
       ref={setNodeRef}
       className={cn(
-        'flex min-h-[260px] min-w-[280px] snap-center flex-col gap-3 p-0 sm:min-w-[320px] md:min-w-[350px] h-full',
+        'flex min-h-[260px] min-w-[280px] snap-center flex-col gap-3 rounded-xl p-4 sm:min-w-[320px] md:min-w-[350px] h-full',
         column.accent,
-        isOver ? 'ring-2 ring-secondary' : 'ring-0',
+        isOver ? 'ring-2 ring-yellow-400/40' : 'ring-0',
       )}
     >
-      <div className="flex items-start justify-between gap-3 px-2 py-3">
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-display text-sm font-bold uppercase text-secondary sm:text-base">{column.title}</p>
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-secondary/70 sm:text-xs">
+          <p className="text-sm font-semibold uppercase tracking-wider text-zinc-700 sm:text-base">{column.title}</p>
+          <p className="text-[11px] font-medium text-zinc-500 sm:text-xs">
             {column.helper}
           </p>
         </div>
-        <span className="badge-brutal text-[11px] sm:text-xs">{column.tasks.length}</span>
+        <span className="inline-flex items-center rounded-full border border-zinc-200 bg-white px-2.5 py-0.5 text-[11px] font-semibold tabular-nums text-zinc-700">{column.tasks.length}</span>
       </div>
 
       <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
@@ -263,7 +263,7 @@ function BoardColumn({ column, renderTask }: BoardColumnProps) {
               renderItem={({ item }) => <div className="pb-2">{renderTask(item)}</div>}
             />
           ) : (
-            <div className="flex flex-1 items-center justify-center rounded-md border-2 border-dashed border-secondary/30 px-2 py-6 text-center text-[11px] font-semibold uppercase tracking-wide text-secondary/60 sm:text-xs">
+            <div className="flex flex-1 items-center justify-center rounded-md border border-dashed border-zinc-200 px-2 py-6 text-center text-[11px] font-medium text-zinc-400 sm:text-xs">
               Drop tasks here
             </div>
           )}
@@ -360,7 +360,7 @@ function TaskCard({
             {task.title}
           </h3>
           {task.estimatedMinutes ? (
-            <span className="badge-brutal hidden text-[10px] sm:inline-flex sm:text-xs">
+            <span className="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider hidden text-[10px] sm:inline-flex sm:text-xs">
               {parseFloat((task.estimatedMinutes / 60).toFixed(2))}h
             </span>
           ) : null}
@@ -374,7 +374,7 @@ function TaskCard({
         ) : null}
         <div className="hidden flex-wrap items-center gap-2 sm:flex">
           {task.goal?.title ? (
-            <span className="rounded-sm border-2 border-secondary bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-secondary">
+            <span className="rounded-sm border border-zinc-200 bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-secondary">
               {task.goal.title}
             </span>
           ) : null}
@@ -384,12 +384,12 @@ function TaskCard({
             </span>
           ) : null}
         </div>
-        <div className="flex items-center gap-0.5 rounded-sm border-2 border-secondary/30 bg-secondary/20 p-0.5 shadow-brutal-sm transition sm:pointer-events-none sm:absolute sm:right-0 sm:top-0 sm:opacity-0 sm:group-focus-within:pointer-events-auto sm:group-focus-within:opacity-100 sm:group-hover:pointer-events-auto sm:group-hover:opacity-100">
+        <div className="flex items-center gap-0.5 rounded-sm border border-zinc-200/30 bg-secondary/20 p-0.5 shadow-sm transition sm:pointer-events-none sm:absolute sm:right-0 sm:top-0 sm:opacity-0 sm:group-focus-within:pointer-events-auto sm:group-focus-within:opacity-100 sm:group-hover:pointer-events-auto sm:group-hover:opacity-100">
           <button
             {...listeners}
             {...attributes}
             onClick={(event) => event.stopPropagation()}
-            className="inline-flex cursor-grab rounded-sm border-2 border-secondary bg-white p-0.5 transition sm:hover:-translate-x-0.5 sm:hover:-translate-y-0.5"
+            className="inline-flex cursor-grab rounded-sm border border-zinc-200 bg-white p-0.5 transition sm:hover:-translate-x-0.5 sm:hover:-translate-y-0.5"
             aria-label="Drag task"
           >
             <GripVertical className="h-3 w-3 text-secondary" />
@@ -399,7 +399,7 @@ function TaskCard({
               event.stopPropagation()
               handleStartTimer()
             }}
-            className="rounded-sm border-2 border-secondary bg-white p-1 transition sm:hover:-translate-x-0.5 sm:hover:-translate-y-0.5"
+            className="rounded-sm border border-zinc-200 bg-white p-1 transition sm:hover:-translate-x-0.5 sm:hover:-translate-y-0.5"
             aria-label="Start timer"
           >
             <Play className="h-3 w-3 fill-secondary text-secondary" />
@@ -422,7 +422,7 @@ function TaskCard({
                 event.stopPropagation()
                 onEdit(task)
               }}
-              className="rounded-sm border-2 border-secondary bg-white p-1 transition sm:hover:-translate-x-0.5 sm:hover:-translate-y-0.5"
+              className="rounded-sm border border-zinc-200 bg-white p-1 transition sm:hover:-translate-x-0.5 sm:hover:-translate-y-0.5"
               aria-label="Edit task"
             >
               <PencilLine className="h-3 w-3 text-secondary" />
@@ -513,7 +513,7 @@ function TaskDetailDialog({ task, onClose }: TaskDetailDialogProps) {
 
   return (
     <Dialog open={!!task} onOpenChange={(open) => (!open ? onClose() : null)}>
-      <DialogContent className="modal-brutal w-[90vw] max-w-2xl">
+      <DialogContent className=" w-[90vw] max-w-2xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold uppercase text-secondary sm:text-2xl">Task Details</DialogTitle>
         </DialogHeader>

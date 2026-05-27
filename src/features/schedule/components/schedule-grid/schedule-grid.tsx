@@ -113,27 +113,27 @@ export function ScheduleGrid({
   return (
     <div className="overflow-x-auto">
       <div className="min-w-[960px]">
-        <div className="grid grid-cols-[4rem_repeat(7,minmax(0,1fr))] border-b-3 border-secondary">
-          <div className="w-16 bg-secondary p-2 text-center font-bold uppercase text-white">Time</div>
+        <div className="grid grid-cols-[4rem_repeat(7,minmax(0,1fr))] border-b border-zinc-200">
+          <div className="w-16 bg-zinc-50 p-2 text-center text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Time</div>
           {DAYS_OF_WEEK_FULL.map((day, index) => (
             <div
               key={day}
-              className="border-l-2 border-gray-700 bg-secondary p-4 text-center font-bold uppercase text-white"
+              className="border-l border-zinc-200 bg-zinc-50 p-3 text-center text-[11px] font-semibold uppercase tracking-wider text-zinc-700"
             >
               {day.slice(0, 3)}
               <button
                 onClick={() => onAddBlock(index)}
-                className="ml-2 inline-flex h-6 w-6 items-center justify-center bg-primary text-xs text-secondary transition-transform hover:scale-110"
+                className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-md bg-[#f2cc0d] text-zinc-900 transition-transform hover:scale-110"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-3 w-3" />
               </button>
             </div>
           ))}
         </div>
 
         <ScheduleGridDragLayer onDragStart={handleDragStart} onDragMove={handleDragMove} onDragEnd={handleDragEnd}>
-          <div className="flex overflow-y-hidden border-t border-gray-200">
-            <div className="relative w-16 border-r-3 border-secondary" style={{ height: COLUMN_HEIGHT }}>
+          <div className="flex overflow-y-hidden border-t border-zinc-200">
+            <div className="relative w-16 border-r border-zinc-200" style={{ height: COLUMN_HEIGHT }}>
               {Array.from({ length: 17 }, (_, hourIndex) => {
                 const hour = hourIndex + 6
                 const top = (hour * 60 - DAY_START_MIN) * PX_PER_MIN

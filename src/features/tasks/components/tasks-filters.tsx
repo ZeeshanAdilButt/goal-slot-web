@@ -11,7 +11,7 @@ export function TasksFilters({ showCompleted, onShowCompletedChange }: TasksFilt
       <button
         onClick={() => onShowCompletedChange(!showCompleted)}
         className={cn(
-          'h-8 rounded-sm border-2 px-3 shadow-brutal-sm transition',
+          'h-8 rounded-sm border-2 px-3 shadow-sm transition',
           showCompleted ? 'border-secondary bg-secondary text-white' : 'border-secondary bg-white text-secondary',
         )}
       >

@@ -15,12 +15,12 @@ export function SharingShareCard({ share, onRevoke, isPending = false }: Sharing
     <motion.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
-      className="flex items-center justify-between border-2 border-secondary bg-white p-3 sm:p-4"
+      className="flex items-center justify-between border border-zinc-200 bg-white p-3 sm:p-4"
     >
       <div className="flex items-center gap-2 sm:gap-4">
         <div
           className={cn(
-            'h-8 w-8 sm:h-10 sm:w-10 border-2 border-secondary flex items-center justify-center font-bold text-sm sm:text-lg flex-shrink-0',
+            'h-8 w-8 sm:h-10 sm:w-10 border border-zinc-200 flex items-center justify-center font-bold text-sm sm:text-lg flex-shrink-0',
             share.accessLevel === 'EDIT' ? 'bg-primary' : 'bg-gray-100',
           )}
         >
@@ -39,7 +39,7 @@ export function SharingShareCard({ share, onRevoke, isPending = false }: Sharing
               {share.accessLevel === 'EDIT' ? 'Can Edit' : 'View Only'}
             </span>
             {isPending && (
-              <span className="whitespace-nowrap bg-accent-orange px-1.5 py-0.5 font-mono text-[10px] uppercase text-white sm:text-xs">
+              <span className="whitespace-nowrap bg-amber-100 px-1.5 py-0.5 font-mono text-[10px] uppercase text-white sm:text-xs">
                 Pending
               </span>
             )}
@@ -49,7 +49,7 @@ export function SharingShareCard({ share, onRevoke, isPending = false }: Sharing
 
       <button
         onClick={onRevoke}
-        className="group flex h-8 w-8 flex-shrink-0 items-center justify-center border-2 border-secondary transition-colors hover:border-red-500 hover:bg-red-50 sm:h-10 sm:w-10"
+        className="group flex h-8 w-8 flex-shrink-0 items-center justify-center border border-zinc-200 transition-colors hover:border-red-500 hover:bg-red-50 sm:h-10 sm:w-10"
       >
         <Trash2 className="h-4 w-4 text-gray-600 group-hover:text-red-500 sm:h-5 sm:w-5" />
       </button>

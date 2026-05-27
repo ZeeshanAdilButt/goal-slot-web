@@ -38,7 +38,7 @@ export function StopTimerModal({ isOpen, onClose, onConfirm, taskName, duration,
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="modal-brutal max-w-md">
+      <DialogContent className=" max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl font-bold uppercase">
             <CheckCircle className="h-5 w-5 text-green-600" />
@@ -48,7 +48,7 @@ export function StopTimerModal({ isOpen, onClose, onConfirm, taskName, duration,
 
         <form id="stop-timer-form" onSubmit={handleSubmit} className="space-y-4">
           {/* Session summary card */}
-          <div className="rounded-sm border-2 border-secondary bg-primary/10 p-4">
+          <div className="rounded-sm border border-zinc-200 bg-primary/10 p-4">
             <p className="mb-1 truncate text-base font-bold">{taskName}</p>
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-gray-600" />
@@ -65,7 +65,7 @@ export function StopTimerModal({ isOpen, onClose, onConfirm, taskName, duration,
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="What did you accomplish?"
-              className="input-brutal min-h-[80px] resize-none"
+              className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] min-h-[80px] resize-none"
               rows={3}
               autoFocus
             />
@@ -76,7 +76,7 @@ export function StopTimerModal({ isOpen, onClose, onConfirm, taskName, duration,
           <button
             type="button"
             onClick={handleSkip}
-            className="btn-brutal-secondary flex-1 text-sm"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 flex-1 text-sm"
             disabled={isLoading}
           >
             Skip
@@ -85,7 +85,7 @@ export function StopTimerModal({ isOpen, onClose, onConfirm, taskName, duration,
             type="submit"
             form="stop-timer-form"
             disabled={isLoading}
-            className="btn-brutal flex-[2] text-sm"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 flex-[2] text-sm"
           >
             {isLoading ? 'Saving...' : 'Save Entry'}
           </button>

@@ -1,139 +1,123 @@
+'use client'
+
 import Link from 'next/link'
+import { motion } from 'framer-motion'
+import { Check } from 'lucide-react'
 
-import { ArrowRight, CheckCircle } from 'lucide-react'
+// Plan names and limits MUST match dw-time-api/src/modules/auth/plan-limits.ts.
+// FREE: 3 goals, 5 schedule blocks, 3 tasks/day.
+// BASIC: 10 goals, unlimited schedules, unlimited tasks/day.
+// PRO: unlimited everything.
+// Pricing reflects the team's marketing doc; if pricing changes,
+// update here AND in `dw-time-web/src/app/dashboard/settings/page.tsx` billing tab.
 
-import { AnimatedSection } from '@/components/animated-section'
-
-const plans = [
+const tiers = [
   {
     name: 'Free',
     price: '$0',
-    period: 'forever',
-    subtext: 'No credit card required',
-    buttonText: 'Get Started',
-    buttonHref: '/signup',
-    buttonClass: 'btn-brutal-secondary',
-    features: [
-      '3 Active Goals',
-      '5 Schedule Blocks',
-      '3 Tasks Per Day',
-      '5 Notes',
-      'Basic Analytics',
-      '7-Day Data History',
-    ],
+    blurb: 'Start the habit',
+    features: ['3 active goals', '5 schedule blocks', '3 tasks per day', 'Basic reports'],
+    cta: 'Start Free',
+    href: '/signup',
+    popular: false,
+  },
+  {
+    name: 'Basic',
+    price: '$7',
+    suffix: '/mo',
+    blurb: 'Outgrow the free limits',
+    features: ['10 active goals', 'Unlimited schedule blocks', 'Unlimited tasks per day', 'Share with a mentor'],
+    cta: 'Get Basic',
+    href: '/signup?plan=basic',
+    popular: false,
   },
   {
     name: 'Pro',
-    price: '$7',
-    period: '/month',
-    subtext: '60-day free trial',
-    buttonText: 'Start Free Trial',
-    buttonHref: '/signup?plan=pro',
-    buttonClass: 'btn-brutal',
-    isPopular: true,
-    features: [
-      '10 Active Goals',
-      'Unlimited Schedules',
-      'Unlimited Tasks',
-      '50 Notes',
-      'Advanced Analytics',
-      '90-Day Data History',
-      'Export Reports',
-      'Share with Mentor',
-    ],
-  },
-  {
-    name: 'Max',
-    price: '$12',
-    period: '/month',
-    subtext: '60-day free trial',
-    buttonText: 'Start Free Trial',
-    buttonHref: '/signup?plan=max',
-    buttonClass: 'btn-brutal-secondary',
-    features: [
-      'Unlimited Goals',
-      'Unlimited Schedules',
-      'Unlimited Tasks',
-      'Unlimited Notes',
-      'Advanced Analytics',
-      'Unlimited Data History',
-      'Priority Support',
-      'Export Reports',
-      'Share with Team',
-      'API Access',
-    ],
+    price: '$10',
+    suffix: '/mo',
+    blurb: 'Go unlimited',
+    features: ['Unlimited everything', 'Advanced analytics', 'CSV / PDF export', 'Priority support'],
+    cta: 'Get Pro',
+    href: '/signup?plan=pro',
+    popular: true,
   },
 ]
 
 export function PricingSection() {
   return (
-    <section id="pricing" className="border-b-2 border-secondary bg-white px-4 py-12 sm:px-6 sm:py-20">
-      <div className="mx-auto max-w-5xl">
-        <AnimatedSection
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-12 text-center"
-        >
-          <h2 className="mb-4 font-display text-4xl font-black tracking-tight sm:text-5xl">
-            Pricing
-          </h2>
-          <p className="text-lg text-gray-600">
-            Start free. Upgrade when you need more.
-          </p>
-        </AnimatedSection>
+    <section id="pricing" className="border-t border-gray-200 bg-gray-50 py-24">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-16 text-center">
+          <motion.h2
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="font-display text-4xl font-bold text-gray-900"
+          >
+            Invest in your output
+          </motion.h2>
+          <p className="mt-4 text-gray-600">Simple pricing. Free forever for the basics.</p>
+        </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          {plans.map((plan, index) => (
-            <AnimatedSection
-              key={plan.name}
-              initial={{ opacity: 0, y: 30 }}
+        <div className="mx-auto grid max-w-5xl gap-8 md:grid-cols-3">
+          {tiers.map((t, i) => (
+            <motion.div
+              key={t.name}
+              initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              className={`relative rounded-sm border-2 border-secondary bg-white p-6 shadow-brutal ${
-                plan.isPopular ? 'ring-2 ring-primary ring-offset-2' : ''
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              className={`relative flex flex-col rounded-xl bg-white p-8 ${
+                t.popular
+                  ? 'border-2 border-[#f2cc0d] shadow-[0_20px_50px_-15px_rgba(242,204,13,0.4)] md:-translate-y-4'
+                  : 'border border-gray-200'
               }`}
             >
-              {plan.isPopular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="rounded-sm border-2 border-secondary bg-primary px-3 py-1 text-xs font-bold uppercase">
-                    Most Popular
-                  </span>
+              {t.popular && (
+                <div className="absolute right-0 top-0 rounded-bl rounded-tr-xl bg-[#f2cc0d] px-3 py-1 text-xs font-bold text-gray-900">
+                  POPULAR
                 </div>
               )}
-
               <div className="mb-4">
-                <h3 className="font-display text-xl font-bold">{plan.name}</h3>
-                <div className="mt-2 flex items-baseline gap-1">
-                  <span className="font-mono text-4xl font-black">{plan.price}</span>
-                  <span className="text-gray-500">{plan.period}</span>
+                <h3 className="text-xl font-bold text-gray-900">{t.name}</h3>
+                <div className="mt-2 font-display text-4xl font-bold text-gray-900">
+                  {t.price}
+                  {t.suffix && <span className="text-lg font-normal text-gray-500">{t.suffix}</span>}
                 </div>
-                <p className="mt-1 text-sm text-gray-500">{plan.subtext}</p>
+                <p className="mt-1 text-sm text-gray-500">{t.blurb}</p>
               </div>
-
-              <ul className="mb-6 space-y-2">
-                {plan.features.map((feature, i) => (
-                  <li key={i} className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="h-4 w-4 shrink-0 text-green-600" />
-                    <span>{feature}</span>
+              <ul className="mb-8 flex-1 space-y-4">
+                {t.features.map((f) => (
+                  <li key={f} className="flex items-center gap-3 text-sm text-gray-700">
+                    {t.popular ? (
+                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#f2cc0d]">
+                        <Check className="h-3 w-3 text-gray-900" />
+                      </span>
+                    ) : (
+                      <Check className="h-4 w-4 text-[#f2cc0d]" />
+                    )}
+                    {f}
                   </li>
                 ))}
               </ul>
-
               <Link
-                href={plan.buttonHref}
-                className={`${plan.buttonClass} flex w-full items-center justify-center gap-2`}
+                href={t.href}
+                className={`block w-full rounded py-3 text-center font-semibold transition ${
+                  t.popular
+                    ? 'bg-[#f2cc0d] text-gray-900 hover:bg-[#e0bd0a]'
+                    : 'border border-gray-200 text-gray-700 hover:bg-gray-50'
+                }`}
               >
-                {plan.buttonText}
-                <ArrowRight className="h-4 w-4" />
+                {t.cta}
               </Link>
-            </AnimatedSection>
+            </motion.div>
           ))}
         </div>
 
-        <p className="mt-8 text-center text-sm text-gray-500">
-          All paid plans include a 60-day free trial. Cancel anytime.
+        <p className="mx-auto mt-10 max-w-2xl text-center text-xs text-gray-500">
+          Plan limits enforced by the backend (see <code className="font-mono text-gray-600">plan-limits.ts</code>).
+          No credit card required for the Free plan.
         </p>
       </div>
     </section>

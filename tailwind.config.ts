@@ -23,20 +23,11 @@ const config: Config = {
           foreground: 'hsl(var(--secondary-foreground))',
         },
         accent: {
-          pink: '#EC4899',
-          blue: '#3B82F6',
-          green: '#22C55E',
-          orange: '#F97316',
-          purple: '#8B5CF6',
-          cyan: '#06B6D4',
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
         },
-        brutalist: {
-          bg: '#FEF3C7',
-          card: '#FFFFFF',
-          border: '#000000',
-        },
+        success: 'hsl(var(--success))',
+        warning: 'hsl(var(--warning))',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
@@ -73,11 +64,9 @@ const config: Config = {
         body: ['Inter', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        brutal: '4px 4px 0px 0px #000000',
-        'brutal-sm': '2px 2px 0px 0px #000000',
-        'brutal-lg': '6px 6px 0px 0px #000000',
-        'brutal-xl': '8px 8px 0px 0px #000000',
-        'brutal-hover': '6px 6px 0px 0px #000000',
+        glass: '0 1px 2px rgba(0,0,0,0.02), 0 4px 12px rgba(0,0,0,0.03)',
+        'glass-hover': '0 10px 20px rgba(0,0,0,0.04)',
+        'timer-glow': '0 0 40px rgba(242, 204, 13, 0.15)',
         border: 'var(--ds-shadow-border)',
         'border-small': 'var(--ds-shadow-border-small)',
         'border-medium': 'var(--ds-shadow-border-medium)',
@@ -89,15 +78,14 @@ const config: Config = {
         'focus-ring': 'var(--ds-focus-ring)',
         'focus-input': 'var(--ds-input-ring)',
       },
-      borderWidth: {
-        '3': '3px',
-      },
       animation: {
         'bounce-slow': 'bounce 2s infinite',
         'pulse-slow': 'pulse 3s infinite',
         wiggle: 'wiggle 1s ease-in-out infinite',
         'fade-spin': 'fade-spin 1.2s linear infinite',
         'flip-y': 'flip-y 1s ease-in-out infinite',
+        'screen-enter': 'screenEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        blink: 'blink 1s step-start infinite',
       },
       keyframes: {
         wiggle: {
@@ -127,11 +115,19 @@ const config: Config = {
             transform: 'rotateY(360deg)',
           },
         },
+        screenEnter: {
+          from: { opacity: '0', transform: 'scale(0.99) translateY(4px)' },
+          to: { opacity: '1', transform: 'scale(1) translateY(0)' },
+        },
+        blink: {
+          '50%': { opacity: '0' },
+        },
       },
       borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        sm: '0.375rem',
+        md: '0.5rem',
+        lg: '0.75rem',
+        xl: '1rem',
       },
     },
   },

@@ -5,7 +5,9 @@ import Link from 'next/link'
 import { LogOut, Settings } from 'lucide-react'
 
 import { useAuthStore } from '@/lib/store'
-import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { GlassCard } from '@/components/ui/glass-card'
 
 interface SidebarFooterContentProps {
   onLogout: () => void
@@ -14,57 +16,54 @@ interface SidebarFooterContentProps {
 export function SidebarFooterContent({ onLogout }: SidebarFooterContentProps) {
   const { user } = useAuthStore()
 
+  const isPro = user?.plan === 'PRO' || user?.unlimitedAccess
+
   return (
     <>
-      <div className="card-brutal mb-3 p-1.5">
+      <GlassCard padded={false} className="mb-3 p-3">
         <div className="mb-3 flex items-center gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center border-2 border-secondary bg-primary text-lg font-bold uppercase shadow-brutal-sm">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full ring-2 ring-zinc-100 bg-zinc-900 text-white font-semibold">
             {user?.name?.charAt(0) || 'U'}
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-bold">{user?.name || 'User'}</p>
             <div className="mt-1 flex flex-wrap gap-1">
-              {user?.role !== 'USER' && (
-                <span className="badge-brutal bg-accent-pink px-1.5 py-0 text-[10px] text-white">{user?.role}</span>
+              {user?.role !== 'USER' && user?.role && (
+                <Badge variant="destructive">{user.role}</Badge>
               )}
-              {user?.userType === 'INTERNAL' && (
-                <span className="badge-brutal bg-accent-blue px-1.5 py-0 text-[10px] text-white">DW</span>
-              )}
+              {user?.userType === 'INTERNAL' && <Badge variant="success">DW</Badge>}
             </div>
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-2 border-t-2 border-secondary/10 pt-3">
-          <p className="truncate font-mono text-xs text-gray-500" title={user?.email}>
+        <div className="flex items-center justify-between gap-2 border-t border-zinc-200 pt-3">
+          <p className="truncate font-mono text-xs text-zinc-500" title={user?.email}>
             {user?.email || ''}
           </p>
-          <span
-            className={cn(
-              'badge-brutal shrink-0 px-2 py-0 text-[10px]',
-              user?.plan === 'PRO' || user?.unlimitedAccess ? 'bg-primary' : 'bg-gray-100',
-            )}
-          >
-            {user?.plan || 'FREE'}
-          </span>
+          {isPro ? (
+            <Badge variant="brand">PRO</Badge>
+          ) : (
+            <Badge variant="default">{user?.plan || 'FREE'}</Badge>
+          )}
         </div>
-      </div>
+      </GlassCard>
 
       <div className="flex gap-2">
-        <Link
-          href="/dashboard/settings"
-          className="btn-brutal-secondary flex h-10 w-10 items-center justify-center p-0"
-          title="Settings"
-        >
-          <Settings className="h-4 w-4" />
-        </Link>
-        <button
+        <Button asChild variant="secondary" size="icon" title="Settings">
+          <Link href="/dashboard/settings">
+            <Settings className="h-4 w-4" />
+          </Link>
+        </Button>
+        <Button
           onClick={onLogout}
-          className="flex min-w-0 flex-1 items-center justify-center gap-2 border-3 border-secondary bg-gray-100 px-2 py-2 text-sm font-bold uppercase shadow-brutal-sm transition-all hover:shadow-brutal"
+          variant="ghost"
+          size="icon"
           title="Logout"
+          className="flex min-w-0 flex-1 items-center justify-center gap-2"
         >
           <LogOut className="h-4 w-4 shrink-0" />
           <span className="truncate">Logout</span>
-        </button>
+        </Button>
       </div>
     </>
   )

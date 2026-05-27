@@ -10,7 +10,7 @@ interface CompactTaskExpandedProps {
 
 export function CompactTaskExpanded({ task }: CompactTaskExpandedProps) {
   return (
-    <div className="space-y-3 border-t-3 border-secondary p-3 sm:p-4">
+    <div className="space-y-3 border-t border-zinc-200 p-3 sm:p-4">
       {/* Task Description */}
       {task.description && (
         <HtmlContent

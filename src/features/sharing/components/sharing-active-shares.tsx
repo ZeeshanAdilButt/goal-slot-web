@@ -12,7 +12,7 @@ export function SharingActiveShares({ activeShares, pendingShares, onRevoke }: S
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Active Shares */}
-      <div className="card-brutal">
+      <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
         <h2 className="mb-4 flex items-center gap-2 text-lg font-bold uppercase sm:mb-6 sm:text-xl">
           <Users className="h-4 w-4 sm:h-5 sm:w-5" />
           <span className="text-sm sm:text-base">People with Access ({activeShares.length})</span>
@@ -35,7 +35,7 @@ export function SharingActiveShares({ activeShares, pendingShares, onRevoke }: S
 
       {/* Pending Shares */}
       {pendingShares.length > 0 && (
-        <div className="card-brutal">
+        <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
           <h2 className="mb-4 flex items-center gap-2 text-lg font-bold uppercase sm:mb-6 sm:text-xl">
             <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
             <span className="text-sm sm:text-base">Pending Invites Sent ({pendingShares.length})</span>
@@ -51,7 +51,7 @@ export function SharingActiveShares({ activeShares, pendingShares, onRevoke }: S
 
       {/* Sharing Info */}
       <div className="grid grid-cols-1 gap-4 sm:gap-6">
-        <div className="card-brutal">
+        <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
           <h3 className="mb-3 flex items-center gap-2 text-base font-bold uppercase sm:mb-4 sm:text-lg">
             <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
             View Access

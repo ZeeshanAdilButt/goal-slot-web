@@ -19,7 +19,7 @@ export function Loading({ variant = 'spinner', size = 'sm', className, fullWidth
     return (
       <div
         className={cn(
-          'animate-pulse rounded-md bg-primary/10',
+          'animate-pulse rounded-md bg-zinc-100',
           skeletonSizeClasses[size],
           fullWidth && 'w-full',
           className,

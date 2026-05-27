@@ -1,59 +1,68 @@
+'use client'
+
 import Link from 'next/link'
-
-import { ArrowRight, CheckCircle } from 'lucide-react'
-
-import { AnimatedSection } from '@/components/animated-section'
+import { motion } from 'framer-motion'
 
 export function CTASection() {
   return (
-    <section className="bg-primary px-4 py-16 text-secondary sm:px-6 sm:py-24">
-      <div className="mx-auto max-w-4xl text-center">
-        <AnimatedSection
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
+    <section className="relative overflow-hidden bg-white py-24">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-30"
+        style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, #E5E7EB 1px, transparent 0)',
+          backgroundSize: '24px 24px',
+        }}
+      />
+      <div className="relative mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
+        <motion.h2
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="font-display text-4xl font-bold text-gray-900 md:text-5xl"
         >
-          <h2 className="mb-6 font-display text-5xl font-black uppercase md:text-6xl">
-            Join the next generation
-            <br />
-            of builders.
-          </h2>
-
-          <p className="mx-auto mb-8 max-w-2xl text-xl">
-            Start tracking every hour. Build your proof. Ship your ambitions.
-          </p>
-
-          {/* CTA Form */}
-          <div className="mx-auto mb-6 flex max-w-md flex-col gap-3 sm:flex-row">
-            <input
-              type="email"
-              placeholder="Enter your email here"
-              className="flex-1 rounded-sm border-2 border-secondary px-4 py-3 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
-            />
-            <Link
-              href="/signup"
-              className="flex items-center justify-center gap-2 rounded-sm border-2 border-secondary bg-secondary px-6 py-3 font-bold uppercase tracking-wide text-white shadow-brutal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal-hover active:translate-x-1 active:translate-y-1 active:shadow-none"
-            >
-              Get Started
-            </Link>
-          </div>
-
-          {/* Trust Signals */}
-          <div className="flex flex-wrap justify-center gap-6 text-sm font-medium">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4" />
-              60-day Pro trial
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4" />
-              No credit card
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4" />
-              Cancel anytime
-            </div>
-          </div>
-        </AnimatedSection>
+          Ready to regain control?
+        </motion.h2>
+        <motion.p
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mt-6 text-xl text-gray-600"
+        >
+          Start tracking your deep work today. Free forever for the basics.
+        </motion.p>
+        <motion.form
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mx-auto mt-10 flex max-w-md flex-col gap-4 sm:flex-row"
+          onSubmit={(e) => {
+            e.preventDefault()
+            window.location.href = '/signup'
+          }}
+        >
+          <input
+            type="email"
+            placeholder="Enter your email"
+            className="flex-1 rounded border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 transition focus:border-[#f2cc0d] focus:outline-none focus:ring-2 focus:ring-[#f2cc0d]/20"
+          />
+          <button
+            type="submit"
+            className="whitespace-nowrap rounded bg-[#f2cc0d] px-8 py-3 font-bold text-gray-900 transition hover:bg-[#e0bd0a]"
+          >
+            Start Free
+          </button>
+        </motion.form>
+        <p className="mt-4 text-xs text-gray-500">No credit card required for Entry plan.</p>
+        <p className="mt-2 text-sm text-gray-500">
+          Prefer a quick look first?{' '}
+          <Link href="#how-it-works" className="font-medium text-[#8a7307] hover:underline">
+            See how it works
+          </Link>
+        </p>
       </div>
     </section>
   )

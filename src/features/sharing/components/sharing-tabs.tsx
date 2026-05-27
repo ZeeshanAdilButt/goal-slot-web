@@ -12,21 +12,20 @@ interface SharingTabsProps {
 
 export function SharingTabs({ activeTab, onTabChange, activeSharesCount, sharedWithMeCount }: SharingTabsProps) {
   return (
-    <div className="flex">
+    <div className="inline-flex items-center gap-1 rounded-lg bg-zinc-100 p-1">
       <button
         onClick={() => onTabChange('my')}
         className={cn(
-          'relative flex items-center gap-2 border-3 border-secondary px-4 py-3 font-bold uppercase transition-all sm:px-6',
+          'flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition-all sm:px-4',
           activeTab === 'my'
-            ? 'z-10 bg-primary text-secondary shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
-            : 'bg-white text-secondary hover:bg-gray-50',
-          activeTab === 'shared-with-me' && '-mr-[3px]',
+            ? 'bg-white text-zinc-900 shadow-sm'
+            : 'text-zinc-500 hover:text-zinc-900',
         )}
       >
-        <Share2 className="h-4 w-4 sm:h-5 sm:w-5" />
-        <span className="text-xs sm:text-sm">My</span>
+        <Share2 className="h-4 w-4" />
+        <span>My</span>
         {activeSharesCount > 0 && (
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-white sm:h-6 sm:w-6 sm:text-xs">
+          <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-zinc-900 px-1.5 text-[10px] font-semibold text-white">
             {activeSharesCount}
           </span>
         )}
@@ -34,17 +33,16 @@ export function SharingTabs({ activeTab, onTabChange, activeSharesCount, sharedW
       <button
         onClick={() => onTabChange('shared-with-me')}
         className={cn(
-          'relative flex items-center gap-2 border-3 border-secondary px-4 py-3 font-bold uppercase transition-all sm:px-6',
+          'flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition-all sm:px-4',
           activeTab === 'shared-with-me'
-            ? 'z-10 bg-primary text-secondary shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
-            : 'bg-white text-secondary hover:bg-gray-50',
-          activeTab === 'my' && '-ml-[3px]',
+            ? 'bg-white text-zinc-900 shadow-sm'
+            : 'text-zinc-500 hover:text-zinc-900',
         )}
       >
-        <Users className="h-4 w-4 sm:h-5 sm:w-5" />
-        <span className="text-xs sm:text-sm">Shared with me</span>
+        <Users className="h-4 w-4" />
+        <span>Shared with me</span>
         {sharedWithMeCount > 0 && (
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-white sm:h-6 sm:w-6 sm:text-xs">
+          <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-zinc-900 px-1.5 text-[10px] font-semibold text-white">
             {sharedWithMeCount}
           </span>
         )}

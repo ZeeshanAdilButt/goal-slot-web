@@ -102,12 +102,12 @@ export function FocusFilters({
   return (
     <div className="flex flex-wrap items-center gap-2">
       <DropdownMenu open={open} onOpenChange={handleOpenChange}>
-        <div className="flex items-center rounded-md border-3 border-secondary bg-white shadow-brutal">
+        <div className="flex items-center rounded-md border border-zinc-200 bg-white shadow-sm">
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
               className={cn(
-                'btn-brutal-secondary h-10 gap-2 border-none bg-transparent shadow-none hover:bg-primary/20',
+                'inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 transition-colors hover:bg-zinc-50',
                 activeFilterCount > 0 && 'rounded-r-none pr-2',
                 triggerClassName,
               )}
@@ -131,7 +131,7 @@ export function FocusFilters({
             </Button>
           )}
         </div>
-        <DropdownMenuContent className="w-64 border-3 border-secondary bg-white p-1.5 shadow-brutal" align="end">
+        <DropdownMenuContent className="w-64 border border-zinc-200 bg-white p-1.5 shadow-sm" align="end">
           <DropdownMenuLabel className="flex items-center justify-between">
             <span className="font-bold uppercase">Filter By</span>
             {(open ? draftFilters.goalIds.length + draftFilters.categoryIds.length : activeFilterCount) > 0 && (
@@ -216,7 +216,7 @@ export function FocusFilters({
             <Badge
               key={goal.id}
               variant="outline"
-              className="gap-1.5 border-2 border-secondary bg-white px-2 py-1 text-xs text-foreground"
+              className="gap-1.5 border border-zinc-200 bg-white px-2 py-1 text-xs text-foreground"
             >
               {goal.color != null && (
                 <span
@@ -243,7 +243,7 @@ export function FocusFilters({
             <Badge
               key={name}
               variant="outline"
-              className="gap-1 border-2 border-secondary bg-gray-100 px-2 py-1 text-xs text-foreground"
+              className="gap-1 border border-zinc-200 bg-gray-100 px-2 py-1 text-xs text-foreground"
             >
               {name}
               <button

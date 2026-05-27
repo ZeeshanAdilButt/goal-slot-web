@@ -58,7 +58,7 @@ export function TaskActions({ task, isHovered, onEdit, onDelete, onRestore }: Ta
         {task.status !== 'DONE' && (
           <button
             onClick={handleStartTimer}
-            className="rounded-sm border-2 border-primary bg-white p-1.5 shadow-brutal-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal"
+            className="rounded-sm border-2 border-primary bg-white p-1.5 shadow-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-sm"
             title="Start time tracking"
           >
             <Play className="h-3.5 w-3.5 text-primary" />
@@ -67,7 +67,7 @@ export function TaskActions({ task, isHovered, onEdit, onDelete, onRestore }: Ta
         {task.status === 'DONE' && (
           <button
             onClick={onRestore}
-            className="rounded-sm border-2 border-green-300 bg-white p-1.5 shadow-brutal-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal"
+            className="rounded-sm border-2 border-green-300 bg-white p-1.5 shadow-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-sm"
             title="Restore task"
           >
             <RotateCcw className="h-3.5 w-3.5 text-green-600" />
@@ -76,7 +76,7 @@ export function TaskActions({ task, isHovered, onEdit, onDelete, onRestore }: Ta
         {onEdit && (
           <button
             onClick={() => onEdit(task)}
-            className="rounded-sm border-2 border-secondary bg-white p-1.5 shadow-brutal-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal"
+            className="rounded-sm border border-zinc-200 bg-white p-1.5 shadow-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-sm"
             title="Edit task"
           >
             <Edit className="h-3.5 w-3.5 text-gray-700" />
@@ -84,7 +84,7 @@ export function TaskActions({ task, isHovered, onEdit, onDelete, onRestore }: Ta
         )}
         <button
           onClick={onDelete}
-          className="rounded-sm border-2 border-red-300 bg-white p-1.5 shadow-brutal-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal"
+          className="rounded-sm border-2 border-red-300 bg-white p-1.5 shadow-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-sm"
           title="Delete task"
         >
           <Trash2 className="h-3.5 w-3.5 text-red-600" />

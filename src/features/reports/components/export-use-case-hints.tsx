@@ -37,7 +37,7 @@ export function ExportUseCaseHints() {
       {HINTS.map((hint) => {
         const Icon = hint.icon
         return (
-          <div key={hint.id} className={cn('card-brutal border-l-4', hint.accentClass)}>
+          <div key={hint.id} className={cn('rounded-xl border border-zinc-200 bg-white p-4 shadow-sm border-l-4', hint.accentClass)}>
             <h3 className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-gray-900">
               <Icon className="h-4 w-4 shrink-0" />
               {hint.title}

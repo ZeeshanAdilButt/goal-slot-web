@@ -130,7 +130,7 @@ export function KanbanBlockComponent({ block, isSelected, onSelect }: KanbanBloc
         {block.columns.map((column) => (
           <div
             key={column.id}
-            className="w-72 shrink-0 rounded-lg border-2 border-border bg-card"
+            className="w-72 shrink-0 rounded-lg border border-zinc-200 bg-card"
             onDragOver={(e) => handleDragOver(e, column.id)}
             onDrop={(e) => handleDrop(e, column.id)}
           >
@@ -192,8 +192,8 @@ export function KanbanBlockComponent({ block, isSelected, onSelect }: KanbanBloc
                   draggable
                   onDragStart={() => handleDragStart(column.id, card.id)}
                   className={cn(
-                    'group/card cursor-grab rounded-lg border-2 border-border bg-background p-3 shadow-brutal-sm transition-all',
-                    'hover:shadow-brutal active:cursor-grabbing'
+                    'group/card cursor-grab rounded-lg border border-zinc-200 bg-background p-3 shadow-sm transition-all',
+                    'hover:shadow-md active:cursor-grabbing'
                   )}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -219,7 +219,7 @@ export function KanbanBlockComponent({ block, isSelected, onSelect }: KanbanBloc
                     onChange={(e) => setNewCardContent(e.target.value)}
                     placeholder="Enter a title for this card..."
                     autoFocus
-                    className="w-full resize-none rounded-lg border-2 border-border p-2 text-sm outline-none focus:border-primary"
+                    className="w-full resize-none rounded-lg border border-zinc-200 p-2 text-sm outline-none focus:border-primary"
                     rows={2}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {

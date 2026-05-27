@@ -46,7 +46,7 @@ const faqCategories: FAQCategory[] = [
   {
     title: 'Goals & Tasks',
     icon: <Target className="h-6 w-6" />,
-    color: 'bg-accent-green',
+    color: 'bg-emerald-100',
     items: [
       {
         question: 'How do I set up my first goal?',
@@ -73,7 +73,7 @@ const faqCategories: FAQCategory[] = [
   {
     title: 'Time Tracking',
     icon: <Clock className="h-6 w-6" />,
-    color: 'bg-accent-blue',
+    color: 'bg-sky-100',
     items: [
       {
         question: 'How do I track my time?',
@@ -100,7 +100,7 @@ const faqCategories: FAQCategory[] = [
   {
     title: 'Sharing & Collaboration',
     icon: <Share2 className="h-6 w-6" />,
-    color: 'bg-accent-pink',
+    color: 'bg-rose-100',
     items: [
       {
         question: 'How do I share my progress with my mentor?',
@@ -122,7 +122,7 @@ const faqCategories: FAQCategory[] = [
   {
     title: 'Account & Security',
     icon: <Lock className="h-6 w-6" />,
-    color: 'bg-accent-orange',
+    color: 'bg-amber-100',
     items: [
       {
         question: 'How is my data protected?',
@@ -176,7 +176,7 @@ const faqCategories: FAQCategory[] = [
 
 function FAQAccordion({ item, isOpen, onToggle }: { item: FAQItem; isOpen: boolean; onToggle: () => void }) {
   return (
-    <div className="border-3 border-secondary bg-white">
+    <div className="border border-zinc-200 bg-white">
       <button
         onClick={onToggle}
         className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-gray-50"
@@ -195,7 +195,7 @@ function FAQAccordion({ item, isOpen, onToggle }: { item: FAQItem; isOpen: boole
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="border-t-2 border-secondary bg-gray-50 p-4 font-mono text-gray-700">{item.answer}</div>
+            <div className="border-t border-zinc-200 bg-gray-50 p-4 font-mono text-gray-700">{item.answer}</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -220,19 +220,19 @@ export default function FAQPage() {
     : faqCategories
 
   return (
-    <div className="min-h-screen bg-brutalist-bg">
+    <div className="min-h-screen bg-zinc-50">
       {/* Navigation */}
-      <nav className="fixed left-0 right-0 top-0 z-50 border-b-3 border-secondary bg-brutalist-bg">
+      <nav className="fixed left-0 right-0 top-0 z-50 border-b border-zinc-200 bg-zinc-50">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
           <Link href="/">
             <GoalSlotBrand size="md" tagline="Your growth, measured." />
           </Link>
 
           <div className="flex items-center gap-4">
-            <Link href="/login" className="btn-brutal-secondary px-4 py-2 text-sm">
+            <Link href="/login" className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 px-4 py-2 text-sm">
               Login
             </Link>
-            <Link href="/signup" className="btn-brutal px-4 py-2 text-sm">
+            <Link href="/signup" className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 px-4 py-2 text-sm">
               Get Started
             </Link>
           </div>
@@ -253,9 +253,9 @@ export default function FAQPage() {
             </Link>
 
             {/* Header */}
-            <div className="card-brutal mb-8 text-center">
+            <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm mb-8 text-center">
               <div className="mb-4 flex justify-center">
-                <div className="flex h-20 w-20 items-center justify-center border-3 border-secondary bg-accent-pink shadow-brutal">
+                <div className="flex h-20 w-20 items-center justify-center border border-zinc-200 bg-rose-100 shadow-sm">
                   <HelpCircle className="h-10 w-10 text-white" />
                 </div>
               </div>
@@ -267,8 +267,8 @@ export default function FAQPage() {
             <div className="mb-8 flex flex-wrap justify-center gap-3">
               <button
                 onClick={() => setActiveCategory(null)}
-                className={`flex items-center gap-2 border-3 border-secondary px-4 py-2 font-bold uppercase transition-all ${
-                  activeCategory === null ? 'bg-secondary text-white shadow-brutal-sm' : 'bg-white hover:bg-gray-50'
+                className={`flex items-center gap-2 border border-zinc-200 px-4 py-2 font-bold uppercase transition-all ${
+                  activeCategory === null ? 'bg-secondary text-white shadow-sm' : 'bg-white hover:bg-gray-50'
                 }`}
               >
                 <Users className="h-4 w-4" />
@@ -278,9 +278,9 @@ export default function FAQPage() {
                 <button
                   key={category.title}
                   onClick={() => setActiveCategory(activeCategory === category.title ? null : category.title)}
-                  className={`flex items-center gap-2 border-3 border-secondary px-4 py-2 font-bold uppercase transition-all ${
+                  className={`flex items-center gap-2 border border-zinc-200 px-4 py-2 font-bold uppercase transition-all ${
                     activeCategory === category.title
-                      ? `${category.color} text-white shadow-brutal-sm`
+                      ? `${category.color} text-white shadow-sm`
                       : 'bg-white hover:bg-gray-50'
                   }`}
                 >
@@ -304,7 +304,7 @@ export default function FAQPage() {
                     {/* Category Header */}
                     <div className="mb-4 flex items-center gap-3">
                       <div
-                        className={`flex h-12 w-12 items-center justify-center border-3 border-secondary ${category.color} shadow-brutal-sm`}
+                        className={`flex h-12 w-12 items-center justify-center border border-zinc-200 ${category.color} shadow-sm`}
                       >
                         {category.icon}
                       </div>
@@ -334,11 +334,11 @@ export default function FAQPage() {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="mt-12"
             >
-              <div className="card-brutal bg-secondary text-center text-white">
+              <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm bg-secondary text-center text-white">
                 <h3 className="mb-4 font-display text-2xl font-bold uppercase">Still Have Questions?</h3>
                 <p className="mb-6 font-mono">Can't find what you're looking for? Our support team is here to help!</p>
                 <div className="flex flex-wrap justify-center gap-4">
-                  <a href="mailto:support@goalslot.com" className="btn-brutal flex items-center gap-2">
+                  <a href="mailto:support@goalslot.com" className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 flex items-center gap-2">
                     Contact Support
                   </a>
                 </div>
@@ -349,7 +349,7 @@ export default function FAQPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t-3 border-secondary px-4 py-8 sm:px-6 sm:py-12">
+      <footer className="border-t border-zinc-200 px-4 py-8 sm:px-6 sm:py-12">
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <GoalSlotBrand size="sm" showTagline={false} />

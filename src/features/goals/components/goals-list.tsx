@@ -2,8 +2,11 @@ import { GoalItem } from '@/features/goals/components/goal-item'
 import { Goal } from '@/features/goals/utils/types'
 import { Plus, Target } from 'lucide-react'
 
-import { Loading } from '@/components/ui/loading'
 import { useAuthStore } from '@/lib/store'
+import { Button } from '@/components/ui/button'
+import { EmptyState } from '@/components/ui/empty-state'
+import { GlassCard } from '@/components/ui/glass-card'
+import { Loading } from '@/components/ui/loading'
 
 interface GoalsListProps {
   goals: Goal[]
@@ -28,26 +31,30 @@ export function GoalsList({ goals, isLoading, filter, onEdit, onCreateClick }: G
 
   if (goals.length === 0) {
     return (
-      <div className="card-brutal py-16 text-center">
-        <Target className="mx-auto mb-4 h-16 w-16 text-gray-400" />
-        <h3 className="mb-2 text-xl font-bold uppercase">No {filter.toLowerCase()} Goals</h3>
-        <p className="mb-6 font-mono text-gray-600">
-          {filter === 'ACTIVE'
-            ? 'Create your first goal to start tracking your progress'
-            : `No ${filter.toLowerCase()} goals yet`}
-        </p>
-        {filter === 'ACTIVE' && (
-          <button onClick={onCreateClick} className="btn-brutal">
-            <Plus className="mr-2 inline h-4 w-4" />
-            Create Goal
-          </button>
-        )}
-      </div>
+      <GlassCard>
+        <EmptyState
+          icon={<Target />}
+          title={`No ${filter.toLowerCase()} goals`}
+          description={
+            filter === 'ACTIVE'
+              ? 'Create your first goal to start tracking your progress.'
+              : `No ${filter.toLowerCase()} goals yet`
+          }
+          action={
+            filter === 'ACTIVE' ? (
+              <Button onClick={onCreateClick} variant="brand" size="sm">
+                <Plus className="h-4 w-4" />
+                Create Goal
+              </Button>
+            ) : undefined
+          }
+        />
+      </GlassCard>
     )
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {goals.map((goal, i) => {
         // For active goals, lock only when limit exists and user is not unlimited
         const isLocked = filter === 'ACTIVE' && !isUnlimited && i >= maxGoals

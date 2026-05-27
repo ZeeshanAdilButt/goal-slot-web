@@ -139,7 +139,7 @@ export default function ForgotPasswordPage() {
   }, [resendCooldown])
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-brutalist-bg p-6">
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
         {/* Logo */}
         <Link href="/" className="mb-8 flex justify-center">
@@ -148,13 +148,13 @@ export default function ForgotPasswordPage() {
 
         {/* Step Indicator */}
         <div className="mb-6 flex items-center justify-center gap-2">
-          <div className={`h-2 w-12 border-2 border-secondary ${step === 1 ? 'bg-primary' : 'bg-gray-200'}`} />
-          <div className={`h-2 w-12 border-2 border-secondary ${step === 2 ? 'bg-primary' : 'bg-gray-200'}`} />
-          <div className={`h-2 w-12 border-2 border-secondary ${step === 3 ? 'bg-primary' : 'bg-gray-200'}`} />
+          <div className={`h-2 w-12 border border-zinc-200 ${step === 1 ? 'bg-primary' : 'bg-gray-200'}`} />
+          <div className={`h-2 w-12 border border-zinc-200 ${step === 2 ? 'bg-primary' : 'bg-gray-200'}`} />
+          <div className={`h-2 w-12 border border-zinc-200 ${step === 3 ? 'bg-primary' : 'bg-gray-200'}`} />
         </div>
 
         {/* Reset Password Card */}
-        <div className="card-brutal">
+        <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
           {/* Step 1: Email Input */}
           {step === 1 && (
             <>
@@ -173,7 +173,7 @@ export default function ForgotPasswordPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@example.com"
-                      className="input-brutal pl-12"
+                      className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] pl-12"
                       required
                     />
                   </div>
@@ -182,7 +182,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={sendOTPMutation.isPending}
-                  className="btn-brutal flex w-full items-center justify-center gap-2"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 flex w-full items-center justify-center gap-2"
                 >
                   {sendOTPMutation.isPending ? (
                     <Loading size="sm" className="h-5 w-5" />
@@ -218,27 +218,27 @@ export default function ForgotPasswordPage() {
                     <InputOTPGroup>
                       <InputOTPSlot
                         index={0}
-                        className="h-14 w-14 border-3 border-secondary text-xl font-bold shadow-brutal"
+                        className="h-14 w-14 border border-zinc-200 text-xl font-bold shadow-sm"
                       />
                       <InputOTPSlot
                         index={1}
-                        className="h-14 w-14 border-3 border-secondary text-xl font-bold shadow-brutal"
+                        className="h-14 w-14 border border-zinc-200 text-xl font-bold shadow-sm"
                       />
                       <InputOTPSlot
                         index={2}
-                        className="h-14 w-14 border-3 border-secondary text-xl font-bold shadow-brutal"
+                        className="h-14 w-14 border border-zinc-200 text-xl font-bold shadow-sm"
                       />
                       <InputOTPSlot
                         index={3}
-                        className="h-14 w-14 border-3 border-secondary text-xl font-bold shadow-brutal"
+                        className="h-14 w-14 border border-zinc-200 text-xl font-bold shadow-sm"
                       />
                       <InputOTPSlot
                         index={4}
-                        className="h-14 w-14 border-3 border-secondary text-xl font-bold shadow-brutal"
+                        className="h-14 w-14 border border-zinc-200 text-xl font-bold shadow-sm"
                       />
                       <InputOTPSlot
                         index={5}
-                        className="h-14 w-14 border-3 border-secondary text-xl font-bold shadow-brutal"
+                        className="h-14 w-14 border border-zinc-200 text-xl font-bold shadow-sm"
                       />
                     </InputOTPGroup>
                   </InputOTP>
@@ -248,7 +248,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={verifyOTPMutation.isPending || otp.length !== 6}
-                  className="btn-brutal flex w-full items-center justify-center gap-2"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 flex w-full items-center justify-center gap-2"
                 >
                   {verifyOTPMutation.isPending ? (
                     <Loading size="sm" className="h-5 w-5" />
@@ -296,7 +296,7 @@ export default function ForgotPasswordPage() {
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="input-brutal pl-12 pr-12"
+                      className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] pl-12 pr-12"
                       required
                       minLength={8}
                     />
@@ -321,7 +321,7 @@ export default function ForgotPasswordPage() {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="input-brutal pl-12 pr-12"
+                      className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] pl-12 pr-12"
                       required
                       minLength={8}
                     />
@@ -339,7 +339,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={resetPasswordMutation.isPending}
-                  className="btn-brutal flex w-full items-center justify-center gap-2"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 flex w-full items-center justify-center gap-2"
                 >
                   {resetPasswordMutation.isPending ? (
                     <Loading size="sm" className="h-5 w-5" />

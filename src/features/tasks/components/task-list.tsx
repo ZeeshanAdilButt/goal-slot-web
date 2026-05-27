@@ -34,7 +34,7 @@ export function TaskList({ tasks, groupBy, onComplete, onEdit }: TaskListProps) 
   if (!tasks.length) {
     return (
       <div className="px-2 md:-ml-[3px] md:px-0">
-        <div className="card-brutal p-2 text-center font-mono text-gray-600 sm:p-6">
+        <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm p-2 text-center font-mono text-gray-600 sm:p-6">
           No tasks yet. Create one to link it to your schedule and goals.
         </div>
       </div>
@@ -54,7 +54,7 @@ export function TaskList({ tasks, groupBy, onComplete, onEdit }: TaskListProps) 
         renderItem={({ item }) =>
           item.type === 'header' ? (
             <div className="pb-3">
-              <div className={cn('card-brutal p-3 sm:p-4', item.group === 'DONE' ? 'bg-gray-50 opacity-75' : '')}>
+              <div className={cn('rounded-xl border border-zinc-200 bg-white p-4 shadow-sm p-3 sm:p-4', item.group === 'DONE' ? 'bg-gray-50 opacity-75' : '')}>
                 <div className="flex items-center justify-between sm:mb-1">
                   <h3
                     className={cn(
@@ -66,8 +66,8 @@ export function TaskList({ tasks, groupBy, onComplete, onEdit }: TaskListProps) 
                   </h3>
                   <span
                     className={cn(
-                      'badge-brutal text-[10px] sm:text-xs flex-shrink-0',
-                      item.group === 'DOING' ? 'bg-accent-blue text-white' : '',
+                      'inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[10px] sm:text-xs flex-shrink-0',
+                      item.group === 'DOING' ? 'bg-sky-50 text-white' : '',
                     )}
                   >
                     {item.count}
@@ -77,7 +77,7 @@ export function TaskList({ tasks, groupBy, onComplete, onEdit }: TaskListProps) 
             </div>
           ) : (
             <div className="pb-3">
-              <div className={cn('card-brutal p-3 sm:p-4', item.group === 'DONE' ? 'bg-gray-50 opacity-75' : '')}>
+              <div className={cn('rounded-xl border border-zinc-200 bg-white p-4 shadow-sm p-3 sm:p-4', item.group === 'DONE' ? 'bg-gray-50 opacity-75' : '')}>
                 <div className="grid gap-3 md:grid-cols-2">
                   {item.tasks.map((task) => (
                     <TaskListItem key={task.id} task={task} onComplete={onComplete} onEdit={onEdit} />

@@ -12,7 +12,9 @@ import {
 import { toast } from 'react-hot-toast'
 
 import { cn, DAYS_OF_WEEK_FULL, TIME_OPTIONS } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const generateSeriesId = () => {
@@ -93,7 +95,6 @@ export function ScheduleBlockModal({
     }
   }, [categories, category])
 
-  // Update category and color when a goal is selected
   useEffect(() => {
     if (goalId && goals.length > 0) {
       const selectedGoal = goals.find((g) => g.id === goalId)
@@ -176,26 +177,25 @@ export function ScheduleBlockModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="modal-brutal">
+      <DialogContent>
         <DialogHeader className="mb-2 flex-row items-center justify-between">
-          <DialogTitle className="text-2xl font-bold uppercase">{block ? 'Edit Block' : 'New Block'}</DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-zinc-900">{block ? 'Edit Block' : 'New Block'}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-2 block text-sm font-bold uppercase">Title</label>
-            <input
+            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Title</label>
+            <Input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Deep Work"
-              className="input-brutal"
               required
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-bold uppercase">{block ? 'Day' : 'Days (select multiple)'}</label>
+            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{block ? 'Day' : 'Days (select multiple)'}</label>
             {block ? (
               <Select
                 value={selectedDays[0].toString()}
@@ -221,8 +221,10 @@ export function ScheduleBlockModal({
                     type="button"
                     onClick={() => toggleDay(i)}
                     className={cn(
-                      'px-3 py-2 border-3 border-secondary font-bold uppercase text-sm transition-all',
-                      selectedDays.includes(i) ? 'bg-primary shadow-brutal' : 'bg-white hover:bg-gray-100',
+                      'rounded-lg border px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-all',
+                      selectedDays.includes(i)
+                        ? 'bg-[#f2cc0d] border-yellow-400 text-zinc-900'
+                        : 'bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50',
                     )}
                   >
                     {d.slice(0, 3)}
@@ -234,7 +236,7 @@ export function ScheduleBlockModal({
 
           {isSeriesEdit && (
             <div>
-              <label className="mb-2 block text-sm font-bold uppercase">Apply changes to</label>
+              <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Apply changes to</label>
               <div className="flex flex-col gap-2 sm:flex-row">
                 {(
                   [
@@ -250,15 +252,17 @@ export function ScheduleBlockModal({
                     type="button"
                     onClick={() => setUpdateScope(option.value)}
                     className={cn(
-                      'flex-1 px-3 py-2 border-3 border-secondary text-sm font-bold uppercase transition-all',
-                      updateScope === option.value ? 'bg-primary shadow-brutal' : 'bg-white hover:bg-gray-100',
+                      'flex-1 rounded-lg border px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-all',
+                      updateScope === option.value
+                        ? 'bg-[#f2cc0d] border-yellow-400 text-zinc-900'
+                        : 'bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50',
                     )}
                   >
                     {option.label}
                   </button>
                 ))}
               </div>
-              <p className="mt-2 font-mono text-xs uppercase text-gray-600">
+              <p className="mt-2 text-xs text-zinc-500">
                 {updateScope === 'series'
                   ? 'Day assignments stay the same; other changes update across every linked block.'
                   : 'Only this specific block will be updated.'}
@@ -267,14 +271,13 @@ export function ScheduleBlockModal({
           )}
 
           <div>
-            <label className="mb-2 block text-sm font-bold uppercase">Category</label>
+            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Category</label>
             <Select
               value={category}
               onValueChange={(value) => {
                 setCategory(value)
                 const cat = categories.find((c) => c.value === value)
                 if (cat) {
-                  // Use the hex color directly
                   setColor(cat.color)
                 }
               }}
@@ -294,7 +297,7 @@ export function ScheduleBlockModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-2 block text-sm font-bold uppercase">Start Time</label>
+              <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Start Time</label>
               <Select value={startTime} onValueChange={setStartTime}>
                 <SelectTrigger>
                   <SelectValue placeholder="Start time" />
@@ -309,7 +312,7 @@ export function ScheduleBlockModal({
               </Select>
             </div>
             <div>
-              <label className="mb-2 block text-sm font-bold uppercase">End Time</label>
+              <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">End Time</label>
               <Select value={endTime} onValueChange={setEndTime}>
                 <SelectTrigger>
                   <SelectValue placeholder="End time" />
@@ -326,7 +329,7 @@ export function ScheduleBlockModal({
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-bold uppercase">Link to Goal (Optional)</label>
+            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Link to Goal (Optional)</label>
             <Select
               value={goalId || 'no_goal'}
               onValueChange={(value) => setGoalId(value === 'no_goal' ? '' : value)}
@@ -346,13 +349,13 @@ export function ScheduleBlockModal({
             </Select>
           </div>
 
-          <DialogFooter className="flex-row gap-4 pt-4">
-            <button type="button" onClick={onClose} className="btn-brutal-secondary flex-1">
+          <DialogFooter className="flex-row gap-3 pt-4">
+            <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
               Cancel
-            </button>
-            <button type="submit" disabled={isSaving} className="btn-brutal-dark flex-1">
+            </Button>
+            <Button type="submit" disabled={isSaving} className="flex-1">
               {isSaving ? 'Saving...' : block ? 'Update' : 'Create'}
-            </button>
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

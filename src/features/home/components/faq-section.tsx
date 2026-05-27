@@ -1,55 +1,66 @@
-import { AnimatedSection } from '@/components/animated-section'
+'use client'
+
+import Link from 'next/link'
+import { motion } from 'framer-motion'
+
+// Source of truth: dw-time-web/src/app/faq/page.tsx (the full FAQ page).
+// Only items that match the actual product behavior are surfaced on the landing.
+// Do NOT add fabricated answers (e.g. Google Calendar sync, streaks,
+// leaderboards, 2FA, refund/student discounts) — they aren't in the product yet.
 
 const faqs = [
   {
-    q: "I've tried tracking apps before and always quit. Why would this be different?",
-    a: "Because other apps only track time OR tasks OR goals. They never connect. You quit because the data felt meaningless. GoalSlot links everything: your goals show real hours logged, your schedule turns into tracked time, your progress becomes visible. When you see your hours stack up toward a goal, quitting feels like losing progress—and that's powerful motivation.",
+    q: 'Is GoalSlot free to use?',
+    a: 'Yes. The Free plan lets you track 3 active goals, 5 schedule blocks, and 3 tasks per day — enough to build the habit. Upgrade when you outgrow the limits.',
   },
   {
-    q: "I'm already using Notion/Toggl/Todoist. Do I need another app?",
-    a: "You're paying $25+/month for tools that don't talk to each other. GoalSlot replaces all of them at $7/month AND connects everything. Your logged time automatically updates your goal progress. No more copying data between apps or guessing how much time you spent on what.",
+    q: 'What’s the difference between goals and tasks?',
+    a: 'Goals are your larger objectives (e.g. "Learn React" or "Ship MVP"). Tasks are smaller, actionable items you work on daily. Tasks can be linked to goals so completing them automatically logs time toward the bigger objective.',
   },
   {
-    q: 'What if I forget to track my time?',
-    a: "We've got you covered. You can manually add time entries after the fact, use the live timer, or quickly log time from your schedule. Most users find that once they see their progress chart, they WANT to track—it becomes addictive in a good way.",
+    q: 'How do I track my time?',
+    a: 'Use the timer on your dashboard to track time in real-time, or add manual entries after working. Each entry can be assigned to a goal, task, or schedule block — so every minute counts toward something.',
   },
   {
-    q: 'Is my data private? Can my employer see it?',
-    a: "100% private by default. You choose what to share and with whom. Share your dashboard with a mentor? Your choice. Keep it completely private? Also your choice. We'll never sell your data or share it without your explicit permission.",
+    q: 'Can I share my progress with my mentor?',
+    a: 'Yes. From the Sharing tab you can invite a mentor (or accountability partner) to view your goals, time entries, and reports. They don’t need a paid plan to view what you share.',
   },
   {
-    q: 'What happens if I cancel?',
-    a: "You can export all your data anytime. No lock-in, no hostage situation. And if you're on the free plan, you keep access forever. We want you to stay because the product is valuable, not because you're trapped.",
+    q: 'Can I export my data?',
+    a: 'Yes. Reports can be exported as CSV or PDF from the Reports → Export page. You always own your data.',
   },
 ]
 
 export function FAQSection() {
   return (
-    <section className="border-y-3 border-secondary bg-white px-4 py-12 sm:px-6 sm:py-20">
-      <div className="mx-auto max-w-4xl">
-        <AnimatedSection
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-12 text-center"
-        >
-          <h2 className="mb-4 font-display text-4xl font-bold uppercase md:text-5xl">Questions? We've Got Answers</h2>
-        </AnimatedSection>
-
-        <div className="space-y-4">
-          {faqs.map((faq, i) => (
-            <AnimatedSection
+    <section className="bg-white py-24">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-16 text-center">
+          <h2 className="font-display text-3xl font-bold text-gray-900 md:text-4xl">Frequently Asked Questions</h2>
+        </div>
+        <div className="mx-auto max-w-3xl space-y-4">
+          {faqs.map((f, i) => (
+            <motion.details
               key={i}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="card-brutal"
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.4, delay: i * 0.05 }}
+              className="group rounded-lg border border-gray-200 bg-gray-50 p-6 transition-colors open:border-[#f2cc0d]/50"
             >
-              <h3 className="mb-3 font-display text-lg font-bold">{faq.q}</h3>
-              <p className="font-mono leading-relaxed text-gray-600">{faq.a}</p>
-            </AnimatedSection>
+              <summary className="flex cursor-pointer items-center justify-between text-lg font-bold text-gray-900">
+                {f.q}
+                <span className="ml-4 text-2xl text-gray-400 transition-transform group-open:rotate-45">+</span>
+              </summary>
+              <p className="mt-3 text-gray-600">{f.a}</p>
+            </motion.details>
           ))}
+        </div>
+        <div className="mt-10 text-center text-sm text-gray-500">
+          More questions?{' '}
+          <Link href="/faq" className="font-medium text-[#8a7307] hover:underline">
+            See the full FAQ →
+          </Link>
         </div>
       </div>
     </section>

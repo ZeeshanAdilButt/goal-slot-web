@@ -118,9 +118,9 @@ export function NotesPageMobile({ initialNoteId }: NotesPageMobileProps = {}) {
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden border-2 border-border bg-card">
+    <div className="flex h-full flex-col overflow-hidden border border-zinc-200 bg-card">
       {/* Mobile Header with Menu and Create */}
-      <div className="flex h-12 shrink-0 items-center justify-between border-b-2 border-border bg-muted/20 px-3">
+      <div className="flex h-12 shrink-0 items-center justify-between border-b border-zinc-200 bg-white px-3">
         <div className="flex items-center gap-2">
           {/* Sidebar Toggle Button */}
           <button
@@ -159,7 +159,7 @@ export function NotesPageMobile({ initialNoteId }: NotesPageMobileProps = {}) {
         {/* Sidebar - slides in from left */}
         <div
           className={cn(
-            'absolute inset-y-0 left-0 z-10 flex w-[280px] flex-col border-r-2 border-border bg-background transition-transform duration-300',
+            'absolute inset-y-0 left-0 z-10 flex w-[280px] flex-col border-r border-zinc-200 bg-background transition-transform duration-300',
             isSidebarOpen ? 'translate-x-0' : '-translate-x-full',
           )}
         >
@@ -172,7 +172,7 @@ export function NotesPageMobile({ initialNoteId }: NotesPageMobileProps = {}) {
             <NoteEditor key={selectedNote.id} note={selectedNote} onDelete={handleDeleteNote} />
           ) : (
             <div className="flex h-full flex-col items-center justify-center gap-4 p-2 text-center sm:p-6">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-border bg-muted">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-zinc-200 bg-muted">
                 <FileText className="h-8 w-8 text-muted-foreground" />
               </div>
               <div>
@@ -182,7 +182,7 @@ export function NotesPageMobile({ initialNoteId }: NotesPageMobileProps = {}) {
               <button
                 onClick={handleCreateNote}
                 disabled={createMutation.isPending}
-                className="mt-2 flex items-center gap-2 rounded-lg border-2 border-border bg-primary px-4 py-2 font-bold text-primary-foreground shadow-brutal transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-2 flex items-center gap-2 rounded-lg border border-zinc-200 bg-primary px-4 py-2 font-bold text-primary-foreground shadow-sm transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {createMutation.isPending ? (
                   <>

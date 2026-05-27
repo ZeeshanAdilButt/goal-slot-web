@@ -2,7 +2,7 @@ import { AnimatedSection } from '@/components/animated-section'
 
 export function VisualShowcaseSection() {
   return (
-    <section className="w-full border-b-2 border-secondary bg-background px-4 py-24 sm:px-6 lg:px-8">
+    <section className="w-full border-b border-zinc-200 bg-background px-4 py-24 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         {/* Step 1: Define The Goal Board */}
         <AnimatedSection
@@ -13,7 +13,7 @@ export function VisualShowcaseSection() {
         >
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <div>
-              <div className="mb-4 inline-flex items-center gap-2 rounded border-2 border-secondary bg-primary px-3 py-1">
+              <div className="mb-4 inline-flex items-center gap-2 rounded border border-zinc-200 bg-primary px-3 py-1">
                 <span className="font-mono text-xs font-bold text-secondary">STEP 01</span>
               </div>
               <h2 className="mb-4 font-display text-4xl font-black">Define The Goal Board</h2>
@@ -38,7 +38,7 @@ export function VisualShowcaseSection() {
             </div>
 
             {/* Visual Mockup */}
-            <div className="rounded-sm border-2 border-secondary bg-white p-6 shadow-brutal">
+            <div className="rounded-sm border border-zinc-200 bg-white p-6 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-mono text-xs font-bold uppercase text-gray-500">
                   QUARTERLY GOALS
@@ -106,7 +106,7 @@ export function VisualShowcaseSection() {
         >
           <div className="grid items-center gap-12 lg:grid-cols-2">
             {/* Visual Mockup */}
-            <div className="order-2 rounded-sm border-2 border-secondary bg-white p-6 shadow-brutal lg:order-1">
+            <div className="order-2 rounded-sm border border-zinc-200 bg-white p-6 shadow-sm lg:order-1">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-mono text-xs font-bold uppercase text-gray-500">
                   WEEKLY SCHEDULE
@@ -120,7 +120,7 @@ export function VisualShowcaseSection() {
                 <div>
                   <p className="mb-1 text-xs font-bold text-gray-400">MON</p>
                   <div className="grid grid-cols-12 gap-1">
-                    <div className="col-span-4 rounded-sm border-2 border-secondary bg-primary p-2">
+                    <div className="col-span-4 rounded-sm border border-zinc-200 bg-primary p-2">
                       <p className="text-xs font-bold">Deep Work</p>
                       <p className="text-xs opacity-70">9-11am</p>
                     </div>
@@ -135,7 +135,7 @@ export function VisualShowcaseSection() {
                 <div>
                   <p className="mb-1 text-xs font-bold text-gray-400">TUE</p>
                   <div className="grid grid-cols-12 gap-1">
-                    <div className="col-span-5 rounded-sm border-2 border-secondary bg-primary p-2">
+                    <div className="col-span-5 rounded-sm border border-zinc-200 bg-primary p-2">
                       <p className="text-xs font-bold">Deep Work</p>
                       <p className="text-xs opacity-70">9-11:30am</p>
                     </div>
@@ -150,7 +150,7 @@ export function VisualShowcaseSection() {
                 <div>
                   <p className="mb-1 text-xs font-bold text-gray-400">WED</p>
                   <div className="grid grid-cols-12 gap-1">
-                    <div className="col-span-4 rounded-sm border-2 border-secondary bg-primary p-2">
+                    <div className="col-span-4 rounded-sm border border-zinc-200 bg-primary p-2">
                       <p className="text-xs font-bold">Deep Work</p>
                       <p className="text-xs opacity-70">9-11am</p>
                     </div>
@@ -164,7 +164,7 @@ export function VisualShowcaseSection() {
             </div>
 
             <div className="order-1 lg:order-2">
-              <div className="mb-4 inline-flex items-center gap-2 rounded border-2 border-secondary bg-primary px-3 py-1">
+              <div className="mb-4 inline-flex items-center gap-2 rounded border border-zinc-200 bg-primary px-3 py-1">
                 <span className="font-mono text-xs font-bold text-secondary">STEP 02</span>
               </div>
               <h2 className="mb-4 font-display text-4xl font-black">Allocate The Schedule</h2>
@@ -199,7 +199,7 @@ export function VisualShowcaseSection() {
         >
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <div>
-              <div className="mb-4 inline-flex items-center gap-2 rounded border-2 border-secondary bg-primary px-3 py-1">
+              <div className="mb-4 inline-flex items-center gap-2 rounded border border-zinc-200 bg-primary px-3 py-1">
                 <span className="font-mono text-xs font-bold text-secondary">STEP 03</span>
               </div>
               <h2 className="mb-4 font-display text-4xl font-black">Execute The Timer</h2>
@@ -224,7 +224,7 @@ export function VisualShowcaseSection() {
             </div>
 
             {/* Visual Mockup - Timer */}
-            <div className="rounded-sm border-2 border-secondary bg-gray-900 p-8 shadow-brutal">
+            <div className="rounded-sm border border-zinc-200 bg-gray-900 p-8 shadow-sm">
               <div className="mb-6 text-center">
                 <p className="mb-2 text-xs font-bold uppercase tracking-wider text-gray-400">
                   WORKING ON: Deep Work (Frontend Architecture)
@@ -233,10 +233,10 @@ export function VisualShowcaseSection() {
               </div>
 
               <div className="mb-6 flex items-center justify-center gap-4">
-                <button className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-white bg-white shadow-brutal">
+                <button className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-white bg-white shadow-sm">
                   <div className="h-0 w-0 border-y-8 border-l-12 border-y-transparent border-l-gray-900"></div>
                 </button>
-                <button className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-white bg-red-500 shadow-brutal">
+                <button className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-white bg-red-500 shadow-sm">
                   <div className="h-6 w-6 rounded-sm bg-white"></div>
                 </button>
               </div>
@@ -269,7 +269,7 @@ export function VisualShowcaseSection() {
         >
           <div className="grid items-center gap-12 lg:grid-cols-2">
             {/* Visual Mockup */}
-            <div className="order-2 rounded-sm border-2 border-secondary bg-white p-6 shadow-brutal lg:order-1">
+            <div className="order-2 rounded-sm border border-zinc-200 bg-white p-6 shadow-sm lg:order-1">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-mono text-xs font-bold uppercase text-gray-500">
                   WEEKLY ANALYTICS
@@ -294,31 +294,31 @@ export function VisualShowcaseSection() {
               {/* Bar Chart */}
               <div className="mb-2 flex items-end gap-2">
                 <div className="flex flex-1 flex-col items-center">
-                  <div className="mb-2 w-full rounded-t-sm border-2 border-secondary bg-primary shadow-brutal-sm" style={{ height: '60px' }}></div>
+                  <div className="mb-2 w-full rounded-t-sm border border-zinc-200 bg-primary shadow-sm" style={{ height: '60px' }}></div>
                   <p className="text-xs font-bold text-gray-400">M</p>
                 </div>
                 <div className="flex flex-1 flex-col items-center">
-                  <div className="mb-2 w-full rounded-t-sm border-2 border-secondary bg-primary shadow-brutal-sm" style={{ height: '80px' }}></div>
+                  <div className="mb-2 w-full rounded-t-sm border border-zinc-200 bg-primary shadow-sm" style={{ height: '80px' }}></div>
                   <p className="text-xs font-bold text-gray-400">T</p>
                 </div>
                 <div className="flex flex-1 flex-col items-center">
-                  <div className="mb-2 w-full rounded-t-sm border-2 border-secondary bg-primary shadow-brutal-sm" style={{ height: '100px' }}></div>
+                  <div className="mb-2 w-full rounded-t-sm border border-zinc-200 bg-primary shadow-sm" style={{ height: '100px' }}></div>
                   <p className="text-xs font-bold text-gray-400">W</p>
                 </div>
                 <div className="flex flex-1 flex-col items-center">
-                  <div className="mb-2 w-full rounded-t-sm border-2 border-secondary bg-primary shadow-brutal-sm" style={{ height: '70px' }}></div>
+                  <div className="mb-2 w-full rounded-t-sm border border-zinc-200 bg-primary shadow-sm" style={{ height: '70px' }}></div>
                   <p className="text-xs font-bold text-gray-400">T</p>
                 </div>
                 <div className="flex flex-1 flex-col items-center">
-                  <div className="mb-2 w-full rounded-t-sm border-2 border-secondary bg-primary shadow-brutal-sm" style={{ height: '90px' }}></div>
+                  <div className="mb-2 w-full rounded-t-sm border border-zinc-200 bg-primary shadow-sm" style={{ height: '90px' }}></div>
                   <p className="text-xs font-bold text-gray-400">F</p>
                 </div>
                 <div className="flex flex-1 flex-col items-center">
-                  <div className="mb-2 w-full rounded-t-sm border-2 border-secondary bg-primary shadow-brutal-sm" style={{ height: '50px' }}></div>
+                  <div className="mb-2 w-full rounded-t-sm border border-zinc-200 bg-primary shadow-sm" style={{ height: '50px' }}></div>
                   <p className="text-xs font-bold text-gray-400">S</p>
                 </div>
                 <div className="flex flex-1 flex-col items-center">
-                  <div className="mb-2 w-full rounded-t-sm border-2 border-secondary bg-primary shadow-brutal-sm" style={{ height: '40px' }}></div>
+                  <div className="mb-2 w-full rounded-t-sm border border-zinc-200 bg-primary shadow-sm" style={{ height: '40px' }}></div>
                   <p className="text-xs font-bold text-gray-400">S</p>
                 </div>
               </div>
@@ -327,7 +327,7 @@ export function VisualShowcaseSection() {
             </div>
 
             <div className="order-1 lg:order-2">
-              <div className="mb-4 inline-flex items-center gap-2 rounded border-2 border-secondary bg-primary px-3 py-1">
+              <div className="mb-4 inline-flex items-center gap-2 rounded border border-zinc-200 bg-primary px-3 py-1">
                 <span className="font-mono text-xs font-bold text-secondary">STEP 04</span>
               </div>
               <h2 className="mb-4 font-display text-4xl font-black">Review The Reports</h2>

@@ -30,7 +30,7 @@ export const AdminReleaseNotesList = ({ onEdit }: AdminReleaseNotesListProps) =>
   }
 
   return (
-    <div className="mt-8 space-y-4 rounded-md border-3 border-secondary bg-white p-4 shadow-brutal">
+    <div className="mt-8 space-y-4 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
       <h2 className="text-lg font-bold">Release History</h2>
       <div className="space-y-4">
         {notes.map((note) => (

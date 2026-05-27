@@ -227,13 +227,13 @@ export function FocusReportExportDialog({ view, dateRange, trigger }: FocusRepor
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger ?? (
-          <Button className="btn-brutal h-10 gap-2 px-4">
+          <Button className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 h-10 gap-2 px-4">
             <Download className="h-4 w-4" />
             <span className="hidden sm:inline">Export</span>
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="border-3 border-secondary sm:max-w-lg">
+      <DialogContent className="border border-zinc-200 sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold uppercase">Export {viewLabel} Report</DialogTitle>
         </DialogHeader>
@@ -250,7 +250,7 @@ export function FocusReportExportDialog({ view, dateRange, trigger }: FocusRepor
                 value={exportViewType}
                 onValueChange={(v) => setExportViewType(v as 'detailed' | 'summary' | 'day_by_task' | 'day_total')}
               >
-                <SelectTrigger className="border-2 border-secondary">
+                <SelectTrigger className="border border-zinc-200">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -268,7 +268,7 @@ export function FocusReportExportDialog({ view, dateRange, trigger }: FocusRepor
                 value={exportTitle}
                 onChange={(e) => setExportTitle(e.target.value)}
                 placeholder="Report Title"
-                className="border-2 border-secondary"
+                className="border border-zinc-200"
               />
             </div>
           </div>
@@ -280,7 +280,7 @@ export function FocusReportExportDialog({ view, dateRange, trigger }: FocusRepor
               onChange={(e) => setExportNotes(e.target.value)}
               placeholder="Additional notes..."
               rows={3}
-              className="resize-none border-2 border-secondary"
+              className="resize-none border border-zinc-200"
             />
           </div>
 

@@ -130,7 +130,7 @@ export function SlashCommandMenu() {
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 w-80 overflow-hidden rounded-lg border-2 border-border bg-card shadow-brutal"
+      className="fixed z-50 w-80 overflow-hidden rounded-lg border border-zinc-200 bg-card shadow-md"
       style={{
         left: slashMenuPosition.x,
         top: slashMenuPosition.y + 8,

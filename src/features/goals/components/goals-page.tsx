@@ -5,11 +5,13 @@ import { useState } from 'react'
 import { GoalModal } from '@/features/goals/components/goal-modal'
 import { GoalsFilters } from '@/features/goals/components/goals-filters'
 import { GoalsHeader } from '@/features/goals/components/goals-header'
+import { GoalsLimitBanner } from '@/features/goals/components/goals-limit-banner'
 import { GoalsList } from '@/features/goals/components/goals-list'
 import { GoalsStats } from '@/features/goals/components/goals-stats'
-import { GoalsLimitBanner } from '@/features/goals/components/goals-limit-banner'
 import { useGoalsQuery } from '@/features/goals/hooks/use-goals-queries'
 import { Goal, GoalFilters } from '@/features/goals/utils/types'
+
+import { PageShell } from '@/components/ui/page-shell'
 
 export function GoalsPage() {
   const [filters, setFilters] = useState<GoalFilters>({ status: 'ACTIVE' })
@@ -36,7 +38,7 @@ export function GoalsPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 sm:space-y-8 sm:p-6">
+    <PageShell>
       <GoalsHeader onCreateClick={() => setShowModal(true)} />
 
       <GoalsLimitBanner activeGoalsCount={activeGoalsCount} />
@@ -54,6 +56,6 @@ export function GoalsPage() {
       />
 
       <GoalModal isOpen={showModal} onClose={handleCloseModal} goal={editingGoal} />
-    </div>
+    </PageShell>
   )
 }

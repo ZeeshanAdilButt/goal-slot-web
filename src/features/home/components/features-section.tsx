@@ -1,152 +1,118 @@
-import { BarChart3, BookOpen, Calendar, Clock, Layers, Share2, Target, Zap } from 'lucide-react'
+'use client'
 
-import { AnimatedSection } from '@/components/animated-section'
-
-const appsReplaced = [
-  { name: 'Toggl', color: 'bg-red-100 text-red-700 border-red-300' },
-  { name: 'Notion', color: 'bg-gray-100 text-gray-700 border-gray-300' },
-  { name: 'Google Calendar', color: 'bg-blue-100 text-blue-700 border-blue-300' },
-  { name: 'Todoist', color: 'bg-orange-100 text-orange-700 border-orange-300' },
-  { name: 'Forest', color: 'bg-green-100 text-green-700 border-green-300' },
-]
-
-const features = [
-  {
-    icon: Target,
-    title: 'Goal Boards',
-    replaces: 'Todoist / Asana',
-    description: 'Visual kanban for goals with deadlines, progress bars, and linked tasks. Not just todos—outcomes.',
-    color: 'bg-primary',
-    highlight: true,
-  },
-  {
-    icon: Calendar,
-    title: 'Weekly Schedule',
-    replaces: 'Google Calendar',
-    description: 'Recurring time blocks for Deep Work, Learning, Exercise. Your goals get real calendar commitment.',
-    color: 'bg-green-500',
-    highlight: true,
-  },
-  {
-    icon: Clock,
-    title: 'Live Timer',
-    replaces: 'Toggl / Forest',
-    description: 'One-click tracking that auto-links to your scheduled block. Manual entries work too. Every minute counts.',
-    color: 'bg-blue-500',
-    highlight: true,
-  },
-  {
-    icon: BarChart3,
-    title: 'Analytics Dashboard',
-    replaces: 'Spreadsheets',
-    description: 'Beautiful charts show where your time actually goes. Daily, weekly, monthly breakdowns by goal.',
-    color: 'bg-purple-500',
-    highlight: true,
-  },
-  {
-    icon: BookOpen,
-    title: 'Notes with /Slash Commands',
-    replaces: 'Notion',
-    description: 'Rich editor with /heading, /code, /list, /quote. Link notes to goals. Build your knowledge base as you learn.',
-    color: 'bg-orange-500',
-    highlight: false,
-  },
-  {
-    icon: Share2,
-    title: 'Share & Accountability',
-    replaces: 'Screenshots',
-    description: "Share live dashboards with mentors or accountability partners. Data doesn't lie—build honest habits.",
-    color: 'bg-pink-500',
-    highlight: false,
-  },
-  {
-    icon: Layers,
-    title: 'Categories & Labels',
-    replaces: 'Manual tagging',
-    description: 'Organize goals by category (Work, Learning, Health). Add custom labels. Filter and analyze by any dimension.',
-    color: 'bg-teal-500',
-    highlight: false,
-  },
-  {
-    icon: Zap,
-    title: 'Native Integration',
-    replaces: 'Zapier hacks',
-    description: 'Everything works together out of the box. No syncing. No Zapier. No "which app has the data?"',
-    color: 'bg-yellow-500',
-    highlight: false,
-  },
-]
+import { motion } from 'framer-motion'
+import { CheckCircle } from 'lucide-react'
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="border-b-2 border-secondary bg-white px-4 py-12 sm:px-6 sm:py-20">
-      <div className="mx-auto max-w-7xl">
-        <AnimatedSection
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-12 text-center"
-        >
-          <h2 className="mb-4 font-display text-4xl font-black tracking-tight sm:text-5xl">
-            Replace Your Entire Stack
-          </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
-            Stop juggling 5 apps that don't talk to each other. GoalSlot does it all—natively.
-          </p>
-
-          {/* Apps replaced badges */}
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-            <span className="text-sm font-bold text-gray-500">REPLACES:</span>
-            {appsReplaced.map((app) => (
-              <span
-                key={app.name}
-                className={`rounded-sm border px-2 py-1 font-mono text-xs font-bold line-through ${app.color}`}
-              >
-                {app.name}
-              </span>
-            ))}
-          </div>
-        </AnimatedSection>
-
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {features.map((feature, i) => (
-            <AnimatedSection
-              key={i}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.05 }}
-              className={`group rounded-sm border-2 border-secondary bg-white p-5 shadow-brutal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal-hover ${
-                feature.highlight ? 'ring-2 ring-primary ring-offset-2' : ''
-              }`}
-            >
-              <div
-                className={`mb-3 inline-flex h-12 w-12 items-center justify-center rounded-sm border-2 border-secondary ${feature.color} shadow-brutal-sm`}
-              >
-                <feature.icon className="h-6 w-6 text-white" />
+    <section id="features" className="bg-white py-24">
+      <div className="mx-auto max-w-7xl space-y-24 px-4 sm:px-6 lg:px-8">
+        {/* Feature 1 */}
+        <div className="flex flex-col items-center gap-12 md:flex-row">
+          <motion.div
+            initial={{ opacity: 0, x: -24 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.5 }}
+            className="order-2 w-full md:order-1 md:w-1/2"
+          >
+            <div className="flex aspect-video items-center justify-center rounded-lg border border-gray-200 bg-gray-50 p-6">
+              <div className="grid w-full grid-cols-3 gap-2">
+                <div className="rounded border border-l-2 border-transparent bg-gray-100 p-2 text-[10px] text-gray-500">
+                  Generic Meeting
+                </div>
+                <div className="flex h-20 flex-col justify-between rounded border border-l-4 border-[#f2cc0d] bg-[#f2cc0d]/10 p-2 text-xs font-bold text-[#8a7307]">
+                  <span>Deep Work: API</span>
+                  <span className="w-max rounded bg-[#f2cc0d] px-1 text-[10px] text-gray-900">ACTIVE</span>
+                </div>
+                <div className="rounded bg-gray-100 p-2 text-[10px] text-gray-500">Gym</div>
               </div>
-              <h3 className="mb-1 font-display text-lg font-bold">{feature.title}</h3>
-              <p className="mb-2 font-mono text-xs text-gray-400">
-                Replaces <span className="line-through">{feature.replaces}</span>
-              </p>
-              <p className="text-sm text-gray-600">{feature.description}</p>
-            </AnimatedSection>
-          ))}
+            </div>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: 24 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.5 }}
+            className="order-1 w-full md:order-2 md:w-1/2"
+          >
+            <h3 className="font-display text-3xl font-bold text-gray-900">Anti-Drift Mechanism</h3>
+            <p className="mt-4 text-lg text-gray-600">
+              Goals without schedules are wishes. Time tracking without goals is busywork. GoalSlot hard-links your
+              calendar blocks to your goals. You can&apos;t start a timer without assigning it to a mission.
+            </p>
+            <ul className="mt-6 space-y-3">
+              <li className="flex items-center gap-3 text-gray-700">
+                <CheckCircle className="h-5 w-5 text-[#f2cc0d]" />
+                Forces deliberate action
+              </li>
+              <li className="flex items-center gap-3 text-gray-700">
+                <CheckCircle className="h-5 w-5 text-[#f2cc0d]" />
+                Reduces context switching cost
+              </li>
+            </ul>
+          </motion.div>
         </div>
 
-        {/* Bottom CTA */}
-        <AnimatedSection
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mt-12 text-center"
-        >
-          <div className="inline-block rounded-sm border-2 border-secondary bg-primary px-6 py-4 shadow-brutal">
-            <p className="font-display text-lg font-bold">
-              One app. One subscription. Everything connected.
+        {/* Feature 2 */}
+        <div className="flex flex-col items-center gap-12 md:flex-row">
+          <motion.div
+            initial={{ opacity: 0, x: -24 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.5 }}
+            className="w-full md:w-1/2"
+          >
+            <h3 className="font-display text-3xl font-bold text-gray-900">Data as Accountability</h3>
+            <p className="mt-4 text-lg text-gray-600">
+              Don&apos;t rely on &ldquo;feeling productive.&rdquo; Get a receipt for your effort. See exactly how many
+              hours you invested in &ldquo;Learn React&rdquo; vs &ldquo;Random YouTube.&rdquo;
             </p>
-          </div>
-        </AnimatedSection>
+            <ul className="mt-6 space-y-3">
+              <li className="flex items-center gap-3 text-gray-700">
+                <CheckCircle className="h-5 w-5 text-[#f2cc0d]" />
+                Weekly heatmap visualization
+              </li>
+              <li className="flex items-center gap-3 text-gray-700">
+                <CheckCircle className="h-5 w-5 text-[#f2cc0d]" />
+                Export reports for clients or bosses
+              </li>
+            </ul>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: 24 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.5 }}
+            className="w-full md:w-1/2"
+          >
+            <div className="flex aspect-video items-center justify-center rounded-lg border border-gray-200 bg-gray-50 p-6">
+              <div className="w-full">
+                <div className="mb-4 flex items-end justify-between">
+                  <div>
+                    <div className="text-xs uppercase tracking-wider text-gray-500">Total Focus</div>
+                    <div className="text-3xl font-bold text-gray-900">34h 12m</div>
+                  </div>
+                  <div className="text-sm font-bold text-[#8a7307]">+12% vs last week</div>
+                </div>
+                <div className="flex h-32 items-end gap-2">
+                  {[40, 65, 85, 50, 75, 20, 10].map((h, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ height: 0 }}
+                      whileInView={{ height: `${h}%` }}
+                      viewport={{ once: true, amount: 0.5 }}
+                      transition={{ duration: 0.6, delay: i * 0.07, ease: 'easeOut' }}
+                      className={`flex-1 rounded-t transition-colors ${
+                        i === 2 ? 'bg-[#f2cc0d] shadow-[0_0_15px_rgba(242,204,13,0.4)]' : 'bg-gray-200 hover:bg-gray-300'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </div>
     </section>
   )

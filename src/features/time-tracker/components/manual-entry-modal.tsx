@@ -149,7 +149,7 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="modal-brutal max-w-md">
+      <DialogContent className=" max-w-md">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold uppercase">Manual Time Entry</DialogTitle>
         </DialogHeader>
@@ -173,7 +173,7 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="What did you work on?"
-              className="input-brutal"
+              className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
               required
             />
           </div>
@@ -185,7 +185,7 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="input-brutal"
+                className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
                 required
               />
             </div>
@@ -195,7 +195,7 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
                 type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                className="input-brutal"
+                className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
               />
             </div>
           </div>
@@ -209,8 +209,8 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
                   type="button"
                   onClick={() => setDuration(min)}
                   className={cn(
-                    'flex-1 py-2 border-2 border-secondary font-mono text-sm transition-all',
-                    duration === min ? 'bg-primary shadow-brutal-sm' : 'bg-white hover:bg-gray-100',
+                    'flex-1 py-2 border border-zinc-200 font-mono text-sm transition-all',
+                    duration === min ? 'bg-primary shadow-sm' : 'bg-white hover:bg-gray-100',
                   )}
                 >
                   {min}m
@@ -222,7 +222,7 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
               value={duration}
               onChange={(e) => setDuration(parseInt(e.target.value) || 0)}
               min={1}
-              className="input-brutal mt-2"
+              className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] mt-2"
             />
           </div>
 
@@ -296,14 +296,14 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
         </form>
 
         <DialogFooter className="flex-row gap-4 pt-4">
-          <button type="button" onClick={onClose} className="btn-brutal-secondary flex-1">
+          <button type="button" onClick={onClose} className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 flex-1">
             Cancel
           </button>
           <button
             type="submit"
             form="manual-entry-form"
             disabled={createEntry.isPending}
-            className="btn-brutal-dark flex-1"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-rose-500 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-rose-600 disabled:opacity-50 flex-1"
           >
             {createEntry.isPending ? 'Adding...' : 'Add Entry'}
           </button>

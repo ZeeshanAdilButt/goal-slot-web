@@ -44,7 +44,7 @@ export function ExportReportPreview({
 
   if (isLoading) {
     return (
-      <div className="card-brutal flex min-h-[400px] items-center justify-center">
+      <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm flex min-h-[400px] items-center justify-center">
         <Loading size="sm" />
       </div>
     )
@@ -52,7 +52,7 @@ export function ExportReportPreview({
 
   if (viewType === 'detailed' && detailedQuery.data) {
     return (
-      <div className="card-brutal min-h-[400px]">
+      <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm min-h-[400px]">
         <DetailedReportView
           dailyBreakdown={detailedQuery.data.dailyBreakdown}
           summary={detailedQuery.data.summary}
@@ -67,7 +67,7 @@ export function ExportReportPreview({
 
   if (viewType === 'summary' && summaryQuery.data) {
     return (
-      <div className="card-brutal min-h-[400px]">
+      <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm min-h-[400px]">
         <SummaryReportView
           items={summaryQuery.data.items}
           dateBreakdown={summaryQuery.data.dateBreakdown}
@@ -82,7 +82,7 @@ export function ExportReportPreview({
 
   if (viewType === 'day_by_task' && dayByTaskQuery.data) {
     return (
-      <div className="card-brutal min-h-[400px] p-6">
+      <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm min-h-[400px] p-6">
         <h3 className="mb-4 text-lg font-bold">Day by Task Report</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -129,11 +129,11 @@ export function ExportReportPreview({
 
   if (viewType === 'day_total' && dayTotalQuery.data) {
     return (
-      <div className="card-brutal min-h-[400px] p-6">
+      <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm min-h-[400px] p-6">
         <h3 className="mb-4 text-lg font-bold">Day Total Report</h3>
         <div className="space-y-4">
           {dayTotalQuery.data.dailyBreakdown.map((day, i) => (
-            <div key={i} className="border-2 border-gray-200 bg-white shadow-brutal">
+            <div key={i} className="border-2 border-gray-200 bg-white shadow-sm">
               <div className="flex items-center justify-between border-b-2 border-gray-200 bg-gray-50 px-4 py-3">
                 <span className="text-lg font-bold text-gray-900">{format(new Date(day.date), 'EEEE, MMMM d')}</span>
                 <span className="font-mono text-lg font-bold text-gray-900">{day.totalFormatted}</span>
@@ -164,7 +164,7 @@ export function ExportReportPreview({
             </div>
           ))}
           {dayTotalQuery.data.dailyBreakdown.length === 0 && (
-            <div className="border-2 border-gray-200 bg-white px-4 py-8 text-center text-gray-500 shadow-brutal">
+            <div className="border-2 border-gray-200 bg-white px-4 py-8 text-center text-gray-500 shadow-sm">
               No activity found for this period.
             </div>
           )}
@@ -174,7 +174,7 @@ export function ExportReportPreview({
   }
 
   return (
-    <div className="card-brutal flex min-h-[400px] items-center justify-center text-gray-500">
+    <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm flex min-h-[400px] items-center justify-center text-gray-500">
       Select a date range to view your report
     </div>
   )

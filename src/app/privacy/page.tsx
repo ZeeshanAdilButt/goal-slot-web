@@ -9,19 +9,19 @@ import { GoalSlotBrand } from '@/components/goalslot-logo'
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="min-h-screen bg-brutalist-bg">
+    <div className="min-h-screen bg-zinc-50">
       {/* Navigation */}
-      <nav className="fixed left-0 right-0 top-0 z-50 border-b-3 border-secondary bg-brutalist-bg">
+      <nav className="fixed left-0 right-0 top-0 z-50 border-b border-zinc-200 bg-zinc-50">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
           <Link href="/">
             <GoalSlotBrand size="md" tagline="Your growth, measured." />
           </Link>
 
           <div className="flex items-center gap-4">
-            <Link href="/login" className="btn-brutal-secondary px-4 py-2 text-sm">
+            <Link href="/login" className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 px-4 py-2 text-sm">
               Login
             </Link>
-            <Link href="/signup" className="btn-brutal px-4 py-2 text-sm">
+            <Link href="/signup" className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 px-4 py-2 text-sm">
               Get Started
             </Link>
           </div>
@@ -42,9 +42,9 @@ export default function PrivacyPolicyPage() {
             </Link>
 
             {/* Header */}
-            <div className="card-brutal mb-8">
+            <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm mb-8">
               <div className="flex items-center gap-4">
-                <div className="flex h-16 w-16 items-center justify-center border-3 border-secondary bg-accent-blue shadow-brutal">
+                <div className="flex h-16 w-16 items-center justify-center border border-zinc-200 bg-sky-100 shadow-sm">
                   <Shield className="h-8 w-8 text-white" />
                 </div>
                 <div>
@@ -56,7 +56,7 @@ export default function PrivacyPolicyPage() {
 
             {/* Content Sections */}
             <div className="space-y-6">
-              <section className="card-brutal">
+              <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
                 <h2 className="mb-4 font-display text-2xl font-bold uppercase">1. Introduction</h2>
                 <p className="font-mono text-gray-700">
                   Welcome to GoalSlot. We respect your privacy and are committed to protecting your personal data. This
@@ -65,7 +65,7 @@ export default function PrivacyPolicyPage() {
                 </p>
               </section>
 
-              <section className="card-brutal">
+              <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
                 <h2 className="mb-4 font-display text-2xl font-bold uppercase">2. Information We Collect</h2>
                 <div className="space-y-4 font-mono text-gray-700">
                   <p>We collect information that you provide directly to us, including:</p>
@@ -88,7 +88,7 @@ export default function PrivacyPolicyPage() {
                 </div>
               </section>
 
-              <section className="card-brutal">
+              <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
                 <h2 className="mb-4 font-display text-2xl font-bold uppercase">3. How We Use Your Information</h2>
                 <div className="space-y-4 font-mono text-gray-700">
                   <p>We use your information to:</p>
@@ -102,7 +102,7 @@ export default function PrivacyPolicyPage() {
                 </div>
               </section>
 
-              <section className="card-brutal">
+              <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
                 <h2 className="mb-4 font-display text-2xl font-bold uppercase">4. Data Security</h2>
                 <p className="font-mono text-gray-700">
                   We implement appropriate technical and organizational security measures to protect your personal data
@@ -112,7 +112,7 @@ export default function PrivacyPolicyPage() {
                 </p>
               </section>
 
-              <section className="card-brutal">
+              <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
                 <h2 className="mb-4 font-display text-2xl font-bold uppercase">5. Data Sharing</h2>
                 <div className="space-y-4 font-mono text-gray-700">
                   <p>We do not sell your personal data. We may share your information only in these circumstances:</p>
@@ -132,7 +132,7 @@ export default function PrivacyPolicyPage() {
                 </div>
               </section>
 
-              <section className="card-brutal">
+              <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
                 <h2 className="mb-4 font-display text-2xl font-bold uppercase">6. Your Rights</h2>
                 <div className="space-y-4 font-mono text-gray-700">
                   <p>You have the right to:</p>
@@ -146,7 +146,7 @@ export default function PrivacyPolicyPage() {
                 </div>
               </section>
 
-              <section className="card-brutal">
+              <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
                 <h2 className="mb-4 font-display text-2xl font-bold uppercase">7. Cookies & Tracking</h2>
                 <p className="font-mono text-gray-700">
                   We use essential cookies to maintain your session and preferences. We do not use third-party tracking
@@ -154,7 +154,7 @@ export default function PrivacyPolicyPage() {
                 </p>
               </section>
 
-              <section className="card-brutal">
+              <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
                 <h2 className="mb-4 font-display text-2xl font-bold uppercase">8. Children's Privacy</h2>
                 <p className="font-mono text-gray-700">
                   Our service is not directed to children under 13. We do not knowingly collect personal information
@@ -163,7 +163,7 @@ export default function PrivacyPolicyPage() {
                 </p>
               </section>
 
-              <section className="card-brutal">
+              <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
                 <h2 className="mb-4 font-display text-2xl font-bold uppercase">9. Changes to This Policy</h2>
                 <p className="font-mono text-gray-700">
                   We may update this privacy policy from time to time. We will notify you of any changes by posting the
@@ -172,12 +172,12 @@ export default function PrivacyPolicyPage() {
                 </p>
               </section>
 
-              <section className="card-brutal border-l-8 border-l-primary">
+              <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm border-l-8 border-l-primary">
                 <h2 className="mb-4 font-display text-2xl font-bold uppercase">10. Contact Us</h2>
                 <p className="font-mono text-gray-700">
                   If you have any questions about this privacy policy or our data practices, please contact us at:
                 </p>
-                <div className="mt-4 inline-block border-3 border-secondary bg-gray-100 px-4 py-2">
+                <div className="mt-4 inline-block border border-zinc-200 bg-gray-100 px-4 py-2">
                   <a
                     href="mailto:privacy@goalslot.com"
                     className="font-mono font-bold transition-colors hover:text-primary"
@@ -192,7 +192,7 @@ export default function PrivacyPolicyPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t-3 border-secondary px-4 py-8 sm:px-6 sm:py-12">
+      <footer className="border-t border-zinc-200 px-4 py-8 sm:px-6 sm:py-12">
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <GoalSlotBrand size="sm" showTagline={false} />

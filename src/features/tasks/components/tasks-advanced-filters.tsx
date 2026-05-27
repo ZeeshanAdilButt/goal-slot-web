@@ -45,11 +45,11 @@ export function TasksAdvancedFilters({
 }: TasksAdvancedFiltersProps) {
   const isStacked = variant === 'stacked'
   const dateTriggerClassName = isStacked
-    ? 'flex h-10 w-full items-center justify-between rounded-sm border-2 border-secondary bg-white px-3 text-xs font-bold uppercase shadow-brutal-sm outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2'
-    : 'flex h-8 w-[130px] items-center justify-between rounded-sm border-2 border-secondary bg-white px-3 text-[10px] font-bold uppercase shadow-brutal-sm outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2'
+    ? 'flex h-10 w-full items-center justify-between rounded-sm border border-zinc-200 bg-white px-3 text-xs font-bold uppercase shadow-sm outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2'
+    : 'flex h-8 w-[130px] items-center justify-between rounded-sm border border-zinc-200 bg-white px-3 text-[10px] font-bold uppercase shadow-sm outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2'
   const durationTriggerClassName = isStacked
-    ? 'flex h-10 w-full items-center justify-between rounded-sm border-2 border-secondary bg-white px-3 text-xs font-bold uppercase shadow-brutal-sm outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2'
-    : 'flex h-8 w-[140px] items-center justify-between rounded-sm border-2 border-secondary bg-white px-3 text-[10px] font-bold uppercase shadow-brutal-sm outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2'
+    ? 'flex h-10 w-full items-center justify-between rounded-sm border border-zinc-200 bg-white px-3 text-xs font-bold uppercase shadow-sm outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2'
+    : 'flex h-8 w-[140px] items-center justify-between rounded-sm border border-zinc-200 bg-white px-3 text-[10px] font-bold uppercase shadow-sm outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2'
   const iconSizeClassName = isStacked ? 'h-4 w-4' : 'h-3 w-3'
   const chevronClassName = isStacked ? 'h-4 w-4' : 'h-3 w-3'
 
@@ -76,7 +76,7 @@ export function TasksAdvancedFilters({
             <ChevronDown className={cn(chevronClassName, 'flex-shrink-0 opacity-50')} />
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-64 border-2 border-secondary p-3" align="start">
+        <PopoverContent className="w-64 border border-zinc-200 p-3" align="start">
           <div className="space-y-3">
             <div className="space-y-1">
               {[
@@ -118,7 +118,7 @@ export function TasksAdvancedFilters({
                       setCustomDateStart(e.target.value)
                       if (e.target.value) setDueDateFilter('custom')
                     }}
-                    className="h-8 border-2 border-secondary text-xs"
+                    className="h-8 border border-zinc-200 text-xs"
                   />
                 </div>
                 <div>
@@ -130,7 +130,7 @@ export function TasksAdvancedFilters({
                       setCustomDateEnd(e.target.value)
                       if (e.target.value) setDueDateFilter('custom')
                     }}
-                    className="h-8 border-2 border-secondary text-xs"
+                    className="h-8 border border-zinc-200 text-xs"
                   />
                 </div>
               </div>
@@ -158,7 +158,7 @@ export function TasksAdvancedFilters({
             <ChevronDown className={cn(chevronClassName, 'flex-shrink-0 opacity-50')} />
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-64 border-2 border-secondary p-3" align="start">
+        <PopoverContent className="w-64 border border-zinc-200 p-3" align="start">
           <div className="space-y-3">
             <div className="space-y-1">
               {[
@@ -201,7 +201,7 @@ export function TasksAdvancedFilters({
                       setCustomDurationMin(val)
                       if (val !== '') setDurationFilter('custom')
                     }}
-                    className="h-8 border-2 border-secondary text-xs"
+                    className="h-8 border border-zinc-200 text-xs"
                   />
                 </div>
                 <span className="mt-4 text-gray-400">–</span>
@@ -217,7 +217,7 @@ export function TasksAdvancedFilters({
                       setCustomDurationMax(val)
                       if (val !== '') setDurationFilter('custom')
                     }}
-                    className="h-8 border-2 border-secondary text-xs"
+                    className="h-8 border border-zinc-200 text-xs"
                   />
                 </div>
               </div>

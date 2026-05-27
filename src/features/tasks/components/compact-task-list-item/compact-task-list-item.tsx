@@ -55,11 +55,11 @@ export function CompactTaskListItem({
     <>
       <div
         className={cn(
-          'relative w-full border-3 border-secondary bg-white',
+          'relative w-full border border-zinc-200 bg-white',
           'transition-all duration-150',
-          !isExpanded && 'hover:bg-primary hover:shadow-brutal-sm hover:-translate-x-0.25 hover:-translate-y-0.25',
+          !isExpanded && 'hover:bg-primary hover:shadow-sm hover:-translate-x-0.25 hover:-translate-y-0.25',
           isCompleted && 'opacity-60',
-          isExpanded && 'shadow-brutal',
+          isExpanded && 'shadow-sm',
         )}
         onMouseEnter={() => onHover(task.id)}
         onMouseLeave={() => onHover(null)}
@@ -103,7 +103,7 @@ export function CompactTaskListItem({
                     onComplete(task)
                   }}
                   className={cn(
-                    'rounded-sm border-2 border-green-300 bg-white p-1.5 shadow-brutal-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal',
+                    'rounded-sm border-2 border-green-300 bg-white p-1.5 shadow-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-sm',
                     'transition-opacity duration-150',
                     'opacity-100 sm:opacity-0',
                     isHovered && 'sm:opacity-100',
@@ -126,8 +126,8 @@ export function CompactTaskListItem({
             {!isCompleted && (
               <span
                 className={cn(
-                  'px-2 py-1 text-[10px] sm:text-xs font-bold uppercase border-2 border-secondary flex-shrink-0',
-                  isInProgress ? 'bg-accent-blue text-white' : 'bg-white text-secondary',
+                  'px-2 py-1 text-[10px] sm:text-xs font-bold uppercase border border-zinc-200 flex-shrink-0',
+                  isInProgress ? 'bg-sky-50 text-white' : 'bg-white text-secondary',
                 )}
               >
                 {task.status.replace('_', ' ')}

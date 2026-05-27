@@ -31,7 +31,7 @@ export function ComparisonSection() {
         </AnimatedSection>
 
         <div className="overflow-x-auto">
-          <table className="w-full border-3 border-secondary">
+          <table className="w-full border border-zinc-200">
             <thead>
               <tr className="bg-secondary text-white">
                 <th className="p-4 text-left font-display text-sm uppercase">Feature</th>
@@ -95,7 +95,7 @@ export function ComparisonSection() {
               ))}
             </tbody>
             <tfoot>
-              <tr className="border-t-3 border-secondary bg-primary/10">
+              <tr className="border-t border-zinc-200 bg-primary/10">
                 <td className="p-4 font-display font-bold uppercase">Total Cost</td>
                 <td className="p-4 text-center font-mono text-xl font-bold text-accent-green">$7/mo</td>
                 <td colSpan={3} className="p-4 text-center font-mono text-gray-500">

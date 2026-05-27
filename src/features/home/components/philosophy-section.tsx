@@ -14,7 +14,7 @@ export function PhilosophySection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <div className="mb-8 inline-flex items-center gap-2 border-3 border-white bg-primary px-4 py-2 text-secondary shadow-brutal-sm">
+          <div className="mb-8 inline-flex items-center gap-2 border border-white bg-primary px-4 py-2 text-secondary shadow-sm">
             <CheckSquare className="h-5 w-5" />
             <span className="font-bold uppercase">The Logic</span>
           </div>
@@ -30,7 +30,7 @@ export function PhilosophySection() {
           </p>
 
           <div className="grid gap-8 md:grid-cols-4">
-            <div className="border-3 border-white bg-secondary/50 p-6">
+            <div className="border border-white bg-secondary/50 p-6">
               <div className="mb-4 inline-flex items-center gap-2 rounded border-2 border-white bg-primary px-2 py-1">
                 <span className="font-mono text-xs font-bold text-secondary">STEP 01</span>
               </div>
@@ -43,7 +43,7 @@ export function PhilosophySection() {
               </p>
             </div>
 
-            <div className="border-3 border-white bg-secondary/50 p-6">
+            <div className="border border-white bg-secondary/50 p-6">
               <div className="mb-4 inline-flex items-center gap-2 rounded border-2 border-white bg-primary px-2 py-1">
                 <span className="font-mono text-xs font-bold text-secondary">STEP 02</span>
               </div>
@@ -56,7 +56,7 @@ export function PhilosophySection() {
               </p>
             </div>
 
-            <div className="border-3 border-white bg-secondary/50 p-6">
+            <div className="border border-white bg-secondary/50 p-6">
               <div className="mb-4 inline-flex items-center gap-2 rounded border-2 border-white bg-primary px-2 py-1">
                 <span className="font-mono text-xs font-bold text-secondary">STEP 03</span>
               </div>
@@ -69,7 +69,7 @@ export function PhilosophySection() {
               </p>
             </div>
 
-            <div className="border-3 border-white bg-secondary/50 p-6">
+            <div className="border border-white bg-secondary/50 p-6">
               <div className="mb-4 inline-flex items-center gap-2 rounded border-2 border-white bg-primary px-2 py-1">
                 <span className="font-mono text-xs font-bold text-secondary">STEP 04</span>
               </div>

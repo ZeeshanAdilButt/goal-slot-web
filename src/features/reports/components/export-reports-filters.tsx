@@ -107,7 +107,7 @@ export function ExportReportsFilters({ state }: ExportReportsFiltersProps) {
   }
 
   return (
-    <div className="card-brutal">
+    <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
       <AnimateChangeInHeight>
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -142,7 +142,7 @@ export function ExportReportsFilters({ state }: ExportReportsFiltersProps) {
             <div className="flex flex-col gap-2">
               <Label>View Type</Label>
               <Select value={viewType} onValueChange={(v) => setViewType(v as ReportViewType)}>
-                <SelectTrigger className="h-10 border-2 border-secondary text-left [&>span]:text-left">
+                <SelectTrigger className="h-10 border border-zinc-200 text-left [&>span]:text-left">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -162,7 +162,7 @@ export function ExportReportsFilters({ state }: ExportReportsFiltersProps) {
               <div className="flex flex-col gap-2">
                 <Label>Group By</Label>
                 <Select value={groupBy} onValueChange={(v) => setGroupBy(v as ReportGroupBy)}>
-                  <SelectTrigger className="h-10 border-2 border-secondary text-left [&>span]:text-left">
+                  <SelectTrigger className="h-10 border border-zinc-200 text-left [&>span]:text-left">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -184,7 +184,7 @@ export function ExportReportsFilters({ state }: ExportReportsFiltersProps) {
               <Popover open={goalPopoverOpen} onOpenChange={handleGoalPopoverOpenChange}>
                 <div className="flex w-full items-center gap-1">
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="h-10 w-full justify-between border-2 border-secondary">
+                    <Button variant="outline" className="h-10 w-full justify-between border border-zinc-200">
                       {selectedGoalIds.length > 0 ? `${selectedGoalIds.length} selected` : 'All goals'}
                       <ChevronDown className="h-4 w-4" />
                     </Button>
@@ -201,7 +201,7 @@ export function ExportReportsFilters({ state }: ExportReportsFiltersProps) {
                     </Button>
                   )}
                 </div>
-                <PopoverContent className="w-64 border-3 border-secondary bg-white p-2 shadow-brutal">
+                <PopoverContent className="w-64 border border-zinc-200 bg-white p-2 shadow-sm">
                   <div className="max-h-64 space-y-1 overflow-y-auto">
                     {goalsQuery.isLoading ? (
                       <p className="py-4 text-center text-sm text-gray-500">Loading goals…</p>
@@ -240,7 +240,7 @@ export function ExportReportsFilters({ state }: ExportReportsFiltersProps) {
               <Popover open={taskPopoverOpen} onOpenChange={handleTaskPopoverOpenChange}>
                 <div className="flex w-full items-center gap-1">
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="h-10 w-full justify-between border-2 border-secondary">
+                    <Button variant="outline" className="h-10 w-full justify-between border border-zinc-200">
                       {selectedTaskIds.length > 0 ? `${selectedTaskIds.length} selected` : 'All tasks'}
                       <ChevronDown className="h-4 w-4" />
                     </Button>
@@ -257,7 +257,7 @@ export function ExportReportsFilters({ state }: ExportReportsFiltersProps) {
                     </Button>
                   )}
                 </div>
-                <PopoverContent className="w-64 border-3 border-secondary bg-white p-2 shadow-brutal">
+                <PopoverContent className="w-64 border border-zinc-200 bg-white p-2 shadow-sm">
                   <div className="max-h-64 space-y-1 overflow-y-auto">
                     {tasksQuery.isLoading ? (
                       <p className="py-4 text-center text-sm text-gray-500">Loading tasks…</p>
@@ -292,7 +292,7 @@ export function ExportReportsFilters({ state }: ExportReportsFiltersProps) {
                 <DollarSign className="h-4 w-4" />
                 Billable Hours
               </Label>
-              <div className="flex items-center gap-4 rounded-lg border-2 border-secondary p-3">
+              <div className="flex items-center gap-4 rounded-lg border border-zinc-200 p-3">
                 <Switch checked={includeBillable} onCheckedChange={setIncludeBillable} />
                 <span className="text-sm">Include billing</span>
               </div>
@@ -318,7 +318,7 @@ export function ExportReportsFilters({ state }: ExportReportsFiltersProps) {
                           }
                         }
                       }}
-                      className="w-24 border-2 border-secondary pl-7"
+                      className="w-24 border border-zinc-200 pl-7"
                     />
                   </div>
                   <span className="text-sm text-gray-500">/hour</span>
@@ -331,7 +331,7 @@ export function ExportReportsFilters({ state }: ExportReportsFiltersProps) {
                 <Calendar className="h-4 w-4" />
                 Schedule Blocks
               </Label>
-              <div className="flex items-center gap-4 rounded-lg border-2 border-secondary p-3">
+              <div className="flex items-center gap-4 rounded-lg border border-zinc-200 p-3">
                 <Switch checked={showScheduleContext} onCheckedChange={setShowScheduleContext} />
                 <span className="text-sm">Show schedule context</span>
               </div>
@@ -345,7 +345,7 @@ export function ExportReportsFilters({ state }: ExportReportsFiltersProps) {
                 <FileText className="h-4 w-4" />
                 Task Notes
               </Label>
-              <div className="flex items-center gap-4 rounded-lg border-2 border-secondary p-3">
+              <div className="flex items-center gap-4 rounded-lg border border-zinc-200 p-3">
                 <Switch checked={includeTaskNotes} onCheckedChange={setIncludeTaskNotes} />
                 <span className="text-sm">Include task notes</span>
               </div>

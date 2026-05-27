@@ -12,13 +12,15 @@ import {
   LabelInput,
 } from '@/features/goals/utils/types'
 import { useDeleteLabelMutation, useLabelsQuery, useUpdateLabelMutation } from '@/features/labels'
-import { Calendar, Check, Clock, Pencil, Trash2, X } from 'lucide-react'
+import { Calendar, Check, Clock, Pencil, Sparkles, Trash2, X } from 'lucide-react'
 
 import { COLOR_OPTIONS } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { TiptapEditor } from '@/components/tiptap-editor/tiptap-editor'
+import { WeeklyReflectionModal } from '@/features/goals/components/weekly-reflection-modal'
 
 interface GoalModalProps {
   isOpen: boolean
@@ -57,6 +59,7 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
   const [editingLabelName, setEditingLabelName] = useState('')
   const [editingLabelColor, setEditingLabelColor] = useState('')
   const [deleteLabelId, setDeleteLabelId] = useState<string | null>(null)
+  const [isReflectionOpen, setIsReflectionOpen] = useState(false)
   const labelInputRef = useRef<HTMLInputElement>(null)
   const suggestionsRef = useRef<HTMLDivElement>(null)
   const createMutation = useCreateGoalMutation()
@@ -201,9 +204,22 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="modal-brutal flex max-h-[90vh] w-[95vw] max-w-2xl flex-col overflow-hidden p-0 sm:w-full">
+      <DialogContent className="flex max-h-[90vh] w-[95vw] max-w-2xl flex-col overflow-hidden p-0 sm:w-full">
         <DialogHeader className="mb-3 flex-shrink-0 px-6 pt-6">
-          <DialogTitle className="text-xl font-bold uppercase">{goal ? 'Edit Goal' : 'New Goal'}</DialogTitle>
+          <div className="flex items-center justify-between gap-3 pr-8">
+            <DialogTitle className="text-xl font-semibold text-zinc-900">{goal ? 'Edit Goal' : 'New Goal'}</DialogTitle>
+            {goal && (
+              <Button
+                type="button"
+                variant="brand"
+                size="sm"
+                onClick={() => setIsReflectionOpen(true)}
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                Weekly reflection
+              </Button>
+            )}
+          </div>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
@@ -215,12 +231,12 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
               <div className="space-y-4">
                 {/* Title */}
                 <div>
-                  <label className="mb-1.5 block text-xs font-bold uppercase">Title</label>
+                  <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Title</label>
                   <input
                     type="text"
                     value={form.title}
                     onChange={(e) => updateField('title', e.target.value)}
-                    className="input-brutal w-full py-2"
+                    className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
                     placeholder="e.g., Learn Rust"
                     required
                   />
@@ -228,9 +244,9 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
 
                 {/* Category */}
                 <div>
-                  <label className="mb-1.5 block text-xs font-bold uppercase">Category</label>
+                  <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Category</label>
                   <Select value={form.category} onValueChange={(value) => updateField('category', value)}>
-                    <SelectTrigger className="input-brutal w-full py-2">
+                    <SelectTrigger className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -246,14 +262,14 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                 {/* Target Hours & Deadline row */}
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
-                    <label className="mb-1.5 block text-xs font-bold uppercase">Target Hours</label>
+                    <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Target Hours</label>
                     <div className="relative">
                       <Clock className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
                       <input
                         type="number"
                         value={form.targetHours}
                         onChange={(e) => updateField('targetHours', e.target.value)}
-                        className="input-brutal w-full py-2 pl-8"
+                        className="h-10 w-full rounded-lg border border-zinc-200 bg-white pl-8 pr-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
                         placeholder="100"
                         min="1"
                         required
@@ -261,14 +277,14 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                     </div>
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-xs font-bold uppercase">Deadline</label>
+                    <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Deadline</label>
                     <div className="relative">
                       <Calendar className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
                       <input
                         type="date"
                         value={form.deadline}
                         onChange={(e) => updateField('deadline', e.target.value)}
-                        className="input-brutal w-full py-2 pl-8 text-sm"
+                        className="h-10 w-full rounded-lg border border-zinc-200 bg-white pl-8 pr-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
                       />
                     </div>
                   </div>
@@ -277,9 +293,9 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                 {/* Status - Only show when editing */}
                 {goal && (
                   <div>
-                    <label className="mb-1.5 block text-xs font-bold uppercase">Status</label>
+                    <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Status</label>
                     <Select value={form.status} onValueChange={(value) => updateField('status', value as GoalStatus)}>
-                      <SelectTrigger className="input-brutal w-full py-2">
+                      <SelectTrigger className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -298,7 +314,7 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
               <div className="space-y-4">
                 {/* Labels */}
                 <div>
-                  <label className="mb-1.5 block text-xs font-bold uppercase">Labels</label>
+                  <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Labels</label>
 
                   {/* Label input with color picker */}
                   <div className="flex flex-col gap-2 sm:flex-row">
@@ -321,14 +337,14 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                           }
                         }}
                         placeholder="Type or click to browse..."
-                        className="input-brutal w-full py-2"
+                        className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
                       />
 
                       {/* Suggestions dropdown - show when focused */}
                       {showLabelSuggestions && (labelSuggestions.length > 0 || labelInput.trim()) && (
                         <div
                           ref={suggestionsRef}
-                          className="absolute z-50 mt-1 max-h-64 w-full overflow-y-auto border-3 border-black bg-white shadow-brutal"
+                          className="absolute z-50 mt-1 max-h-64 w-full overflow-y-auto border border-zinc-200 bg-white shadow-lg"
                         >
                           {/* Existing labels */}
                           {labelSuggestions.map((suggestion) => (
@@ -474,7 +490,7 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                         }
                       }}
                       disabled={!labelInput.trim()}
-                      className="btn-brutal-secondary px-3 py-2 text-xs disabled:opacity-50"
+                      className="inline-flex h-10 items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-900 transition-colors hover:bg-zinc-50 hover:border-zinc-300 disabled:opacity-50"
                     >
                       Add
                     </button>
@@ -526,7 +542,7 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
 
                 {/* Goal Color */}
                 <div>
-                  <label className="mb-1.5 block text-xs font-bold uppercase">Goal Color</label>
+                  <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Goal Color</label>
                   <div className="flex flex-wrap gap-2">
                     {COLOR_OPTIONS.map((c) => (
                       <button
@@ -546,7 +562,7 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
 
             {/* Description - Full width below two-column layout */}
             <div className="mt-4">
-              <label className="mb-1.5 block text-xs font-bold uppercase">Description</label>
+              <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Description</label>
               <div className="bg-white">
                 <TiptapEditor
                   content={form.description}
@@ -559,11 +575,11 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
           </div>
 
           {/* Footer buttons - fixed at bottom */}
-          <div className="mt-5 flex flex-shrink-0 flex-col gap-3 border-t-3 border-secondary px-6 pb-6 pt-4 sm:flex-row-reverse">
-            <button type="submit" disabled={isSubmitting} className="btn-brutal-dark flex-1 py-2.5">
+          <div className="mt-5 flex flex-shrink-0 flex-col gap-3 border-t border-zinc-200 px-6 pb-6 pt-4 sm:flex-row-reverse">
+            <button type="submit" disabled={isSubmitting} className="inline-flex flex-1 items-center justify-center rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50">
               {isSubmitting ? 'Saving...' : goal ? 'Update Goal' : 'Create Goal'}
             </button>
-            <button type="button" onClick={onClose} className="btn-brutal-secondary flex-1 py-2.5">
+            <button type="button" onClick={onClose} className="inline-flex flex-1 items-center justify-center rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-900 transition-colors hover:bg-zinc-50">
               Cancel
             </button>
           </div>
@@ -581,6 +597,9 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
         variant="destructive"
         isLoading={deleteLabelMutation.isPending}
       />
+
+      {/* Weekly Reflection Modal (only meaningful when editing an existing goal) */}
+      <WeeklyReflectionModal goal={goal} open={isReflectionOpen} onOpenChange={setIsReflectionOpen} />
     </Dialog>
   )
 }

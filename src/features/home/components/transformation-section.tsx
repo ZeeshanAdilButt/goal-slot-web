@@ -4,7 +4,7 @@ import { AnimatedSection } from '@/components/animated-section'
 
 export function TransformationSection() {
   return (
-    <section className="border-b-2 border-secondary bg-white px-4 py-12 sm:px-6 sm:py-20">
+    <section className="border-b border-zinc-200 bg-white px-4 py-12 sm:px-6 sm:py-20">
       <div className="mx-auto max-w-6xl">
         <AnimatedSection
           initial={{ opacity: 0, y: 30 }}
@@ -26,10 +26,10 @@ export function TransformationSection() {
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="rounded-sm border-2 border-secondary bg-white p-6 shadow-brutal lg:col-span-2"
+            className="rounded-sm border border-zinc-200 bg-white p-6 shadow-sm lg:col-span-2"
           >
             <div className="mb-6 text-center">
-              <span className="inline-flex items-center gap-2 rounded border-2 border-secondary bg-red-500 px-3 py-1 font-display text-xs font-bold uppercase text-white shadow-brutal-sm">
+              <span className="inline-flex items-center gap-2 rounded border border-zinc-200 bg-red-500 px-3 py-1 font-display text-xs font-bold uppercase text-white shadow-sm">
                 Before
               </span>
             </div>
@@ -63,7 +63,7 @@ export function TransformationSection() {
             <AnimatedSection
               animate={{ x: [0, 10, 0] }}
               transition={{ duration: 1.5, repeat: Infinity }}
-              className="flex h-16 w-16 items-center justify-center rounded-sm border-2 border-secondary bg-primary shadow-brutal"
+              className="flex h-16 w-16 items-center justify-center rounded-sm border border-zinc-200 bg-primary shadow-sm"
             >
               <ArrowRight className="h-8 w-8" />
             </AnimatedSection>
@@ -74,7 +74,7 @@ export function TransformationSection() {
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="rounded-sm border-2 border-secondary bg-green-500 p-6 text-white shadow-brutal lg:col-span-2"
+            className="rounded-sm border border-zinc-200 bg-green-500 p-6 text-white shadow-sm lg:col-span-2"
           >
             <div className="mb-6 text-center">
               <span className="inline-flex items-center gap-2 rounded border-2 border-white bg-white px-3 py-1 font-display text-xs font-bold uppercase text-green-600 shadow-[2px_2px_0px_0px_white]">

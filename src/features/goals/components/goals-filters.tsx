@@ -5,7 +5,6 @@ import { GoalFilters } from '@/features/goals/utils/types'
 import { useLabelsQuery } from '@/features/labels'
 import { Filter } from 'lucide-react'
 
-import { cn } from '@/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface GoalsFiltersProps {
@@ -34,12 +33,12 @@ export function GoalsFilters({ filters, onFilterChange }: GoalsFiltersProps) {
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <span className="inline-flex h-11 items-center gap-2 border-2 bg-gray-50 px-3 text-xs font-bold uppercase text-gray-500">
-        <Filter className="h-4 w-4" />
+      <span className="inline-flex h-10 items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+        <Filter className="h-3.5 w-3.5" />
         Filters
       </span>
       <Select value={filters.status || 'ACTIVE'} onValueChange={handleStatusChange}>
-        <SelectTrigger aria-label="Status" className="h-11 w-full sm:w-48">
+        <SelectTrigger aria-label="Status" className="h-10 w-full sm:w-48">
           <SelectValue placeholder="Status" />
         </SelectTrigger>
         <SelectContent>
@@ -52,10 +51,7 @@ export function GoalsFilters({ filters, onFilterChange }: GoalsFiltersProps) {
       </Select>
 
       <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-        <SelectTrigger
-          aria-label="Category"
-          className={cn('h-11 w-full sm:w-56', selectedCategory !== 'all' && 'bg-accent-blue text-white')}
-        >
+        <SelectTrigger aria-label="Category" className="h-10 w-full sm:w-56">
           <SelectValue placeholder="Category" />
         </SelectTrigger>
         <SelectContent>
@@ -75,10 +71,7 @@ export function GoalsFilters({ filters, onFilterChange }: GoalsFiltersProps) {
       </Select>
 
       <Select value={selectedLabel} onValueChange={handleLabelChange}>
-        <SelectTrigger
-          aria-label="Label"
-          className={cn('h-11 w-full sm:w-56', selectedLabel !== 'all' && 'bg-accent-green text-white')}
-        >
+        <SelectTrigger aria-label="Label" className="h-10 w-full sm:w-56">
           <SelectValue placeholder="Label" />
         </SelectTrigger>
         <SelectContent>

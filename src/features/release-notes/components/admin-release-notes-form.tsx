@@ -79,7 +79,7 @@ export const AdminReleaseNotesForm = ({ editingNote, onCancelEdit }: AdminReleas
   const isPending = createMutation.isPending || updateMutation.isPending
 
   return (
-    <div className="space-y-4 rounded-md border-3 border-secondary bg-white p-4 shadow-brutal">
+    <div className="space-y-4 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Megaphone className="h-5 w-5 text-primary" />

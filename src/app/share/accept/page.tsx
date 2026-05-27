@@ -208,7 +208,7 @@ function PublicShareViewContent() {
   if (!token) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 p-2 sm:p-6">
-        <div className="card-brutal max-w-md text-center">
+        <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm max-w-md text-center">
           <Lock className="mx-auto mb-4 h-16 w-16 text-red-500" />
           <h1 className="mb-2 text-2xl font-bold uppercase">Invalid Link</h1>
           <p className="font-mono text-gray-600">This share link is invalid or missing a token.</p>
@@ -228,13 +228,13 @@ function PublicShareViewContent() {
   if (shareInfoQuery.isError) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 p-2 sm:p-6">
-        <div className="card-brutal max-w-md text-center">
+        <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm max-w-md text-center">
           <Lock className="mx-auto mb-4 h-16 w-16 text-red-500" />
           <h1 className="mb-2 text-2xl font-bold uppercase">Link Expired or Invalid</h1>
           <p className="font-mono text-gray-600">
             This share link has expired or is no longer valid. Please ask the owner to send you a new invitation.
           </p>
-          <Link href="/" className="btn-brutal mt-6 inline-block">
+          <Link href="/" className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 mt-6 inline-block">
             Go to Homepage
           </Link>
         </div>
@@ -245,13 +245,13 @@ function PublicShareViewContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="border-b-3 border-secondary bg-white">
+      <header className="border-b border-zinc-200 bg-white">
         <div className="container mx-auto flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-3">
-            <div className="border-3 border-secondary bg-primary p-2 text-xl font-bold">⏱️</div>
+            <div className="border border-zinc-200 bg-primary p-2 text-xl font-bold">⏱️</div>
             <span className="font-display text-xl font-bold uppercase">GoalSlot</span>
           </div>
-          <div className="flex items-center gap-2 border-2 border-secondary bg-accent-green/20 px-3 py-1">
+          <div className="flex items-center gap-2 border border-zinc-200 bg-emerald-100/20 px-3 py-1">
             <Shield className="h-4 w-4" />
             <span className="font-mono text-sm">View Only Access</span>
           </div>
@@ -261,10 +261,10 @@ function PublicShareViewContent() {
       <main className="container mx-auto max-w-6xl space-y-6 p-2 sm:p-6">
         {/* Owner Info */}
         {owner && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="card-brutal">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center border-3 border-secondary bg-primary text-2xl font-bold">
+                <div className="flex h-14 w-14 items-center justify-center border border-zinc-200 bg-primary text-2xl font-bold">
                   {owner.name?.[0]?.toUpperCase() || '?'}
                 </div>
                 <div>
@@ -275,7 +275,7 @@ function PublicShareViewContent() {
               {!isAuthenticated && (
                 <Link
                   href={`/signup?redirect=${encodeURIComponent(`/share/accept?token=${token}`)}`}
-                  className="btn-brutal flex items-center gap-2"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 flex items-center gap-2"
                 >
                   <ExternalLink className="h-4 w-4" />
                   Sign Up to Track Your Own Time
@@ -290,7 +290,7 @@ function PublicShareViewContent() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
             {/* Already Accepted */}
             {shareInfoQuery.data.isAccepted && (
-              <div className="flex items-start gap-3 border-2 border-secondary bg-green-50 p-4">
+              <div className="flex items-start gap-3 border border-zinc-200 bg-green-50 p-4">
                 <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
                 <div className="font-mono text-sm">
                   <strong>Invitation Already Accepted:</strong> You&apos;ve already accepted this invitation. You can
@@ -308,7 +308,7 @@ function PublicShareViewContent() {
               <>
                 {/* Email Matches */}
                 {userQuery.data.email === shareInfoQuery.data.inviteEmail && (
-                  <div className="card-brutal bg-blue-50">
+                  <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm bg-blue-50">
                     <div className="mb-4">
                       <h3 className="mb-2 text-lg font-bold">Accept Invitation</h3>
                       <p className="font-mono text-sm text-gray-700">
@@ -319,7 +319,7 @@ function PublicShareViewContent() {
                     <button
                       onClick={() => acceptInviteMutation.mutate()}
                       disabled={acceptInviteMutation.isPending}
-                      className="btn-brutal-dark w-full sm:w-auto"
+                      className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 w-full sm:w-auto"
                     >
                       {acceptInviteMutation.isPending ? 'Accepting...' : 'Accept Invitation'}
                     </button>
@@ -352,7 +352,7 @@ function PublicShareViewContent() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="card-brutal-colored bg-accent-orange text-white"
+              className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm bg-amber-100 text-white"
             >
               <div className="mb-4">
                 <h3 className="mb-2 flex items-center gap-2 text-lg font-bold uppercase">
@@ -367,13 +367,13 @@ function PublicShareViewContent() {
               <div className="flex flex-wrap gap-3">
                 <Link
                   href={`/signup?redirect=${encodeURIComponent(`/share/accept?token=${token}`)}`}
-                  className="btn-brutal-dark flex-1 sm:flex-none"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 flex-1 sm:flex-none"
                 >
                   Create Account
                 </Link>
                 <Link
                   href={`/login?redirect=${encodeURIComponent(`/share/accept?token=${token}`)}`}
-                  className="btn-brutal-secondary flex-1 sm:flex-none"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 flex-1 sm:flex-none"
                 >
                   Log In
                 </Link>
@@ -383,7 +383,7 @@ function PublicShareViewContent() {
 
         {/* Public Link Notice for Unauthenticated Users */}
         {!isAuthenticated && shareInfoQuery.data && shareInfoQuery.data.isPublicLink && (
-          <div className="flex items-start gap-3 border-2 border-secondary bg-blue-50 p-4">
+          <div className="flex items-start gap-3 border border-zinc-200 bg-blue-50 p-4">
             <Lock className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" />
             <div className="font-mono text-sm">
               <strong>Public View-Only Access:</strong> You&apos;re viewing shared focus time reports via a public link.
@@ -410,7 +410,7 @@ function PublicShareViewContent() {
             animate={{ opacity: 1, y: 0 }}
             className="grid grid-cols-2 gap-4 md:grid-cols-4"
           >
-            <div className="card-brutal p-4">
+            <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm p-4">
               <div className="flex items-center gap-2 text-gray-600">
                 <Clock className="h-4 w-4" />
                 <span className="font-mono text-xs uppercase">Total Time</span>
@@ -418,7 +418,7 @@ function PublicShareViewContent() {
               <div className="mt-2 text-2xl font-bold">{stats.totalFormatted}</div>
             </div>
 
-            <div className="card-brutal p-4">
+            <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm p-4">
               <div className="flex items-center gap-2 text-gray-600">
                 <Calendar className="h-4 w-4" />
                 <span className="font-mono text-xs uppercase">Days Active</span>
@@ -426,7 +426,7 @@ function PublicShareViewContent() {
               <div className="mt-2 text-2xl font-bold">{stats.daysActive}</div>
             </div>
 
-            <div className="card-brutal p-4">
+            <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm p-4">
               <div className="flex items-center gap-2 text-gray-600">
                 <TrendingUp className="h-4 w-4" />
                 <span className="font-mono text-xs uppercase">Avg/Day</span>
@@ -434,7 +434,7 @@ function PublicShareViewContent() {
               <div className="mt-2 text-2xl font-bold">{stats.avgFormatted}</div>
             </div>
 
-            <div className="card-brutal p-4">
+            <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm p-4">
               <div className="flex items-center gap-2 text-gray-600">
                 <BarChart3 className="h-4 w-4" />
                 <span className="font-mono text-xs uppercase">Entries</span>
@@ -452,7 +452,7 @@ function PublicShareViewContent() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="card-brutal"
+              className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm"
             >
               <h3 className="mb-4 flex items-center gap-2 font-bold uppercase">
                 <BarChart3 className="h-5 w-5" />
@@ -479,7 +479,7 @@ function PublicShareViewContent() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="card-brutal"
+              className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm"
             >
               <h3 className="mb-4 flex items-center gap-2 font-bold uppercase">
                 <Target className="h-5 w-5" />
@@ -530,7 +530,7 @@ function PublicShareViewContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="card-brutal"
+            className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm"
           >
             <h3 className="mb-4 flex items-center gap-2 font-bold uppercase">
               <Target className="h-5 w-5" />
@@ -552,7 +552,7 @@ function PublicShareViewContent() {
                           {goal.loggedHours.toFixed(1)}h / {goal.targetHours}h
                         </span>
                       </div>
-                      <div className="h-4 w-full border-2 border-secondary bg-gray-100">
+                      <div className="h-4 w-full border border-zinc-200 bg-gray-100">
                         <div
                           className="h-full transition-all duration-500"
                           style={{
@@ -571,7 +571,7 @@ function PublicShareViewContent() {
 
         {/* No entries message - Only show if data is viewable */}
         {canViewData && !entriesQuery.isLoading && entries.length === 0 && (
-          <div className="card-brutal py-12 text-center">
+          <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm py-12 text-center">
             <Clock className="mx-auto mb-4 h-12 w-12 opacity-30" />
             <h3 className="mb-2 font-bold uppercase">No focus time logged</h3>
             <p className="font-mono text-sm text-gray-600">No focus time has been logged for this period.</p>
@@ -583,13 +583,13 @@ function PublicShareViewContent() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="card-brutal-colored bg-primary text-center"
+          className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm bg-primary text-center"
         >
           <h2 className="mb-2 text-xl font-bold uppercase">Want to track your own focus time?</h2>
           <p className="mb-4 font-mono text-sm">Join GoalSlot and start building better productivity habits today!</p>
           <Link
             href={`/signup?redirect=${encodeURIComponent(`/share/accept?token=${token}`)}`}
-            className="btn-brutal-dark inline-flex items-center gap-2"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 inline-flex items-center gap-2"
           >
             <User className="h-4 w-4" />
             Create Free Account
@@ -598,7 +598,7 @@ function PublicShareViewContent() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t-3 border-secondary bg-white py-6">
+      <footer className="border-t border-zinc-200 bg-white py-6">
         <div className="container mx-auto px-4 text-center font-mono text-sm text-gray-600 sm:px-6">
           <p>© 2026 GoalSlot. Focus on what matters.</p>
         </div>

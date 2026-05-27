@@ -50,7 +50,7 @@ export function FocusTrendCard({ view, filters, reportUserId }: FocusTrendCardPr
   }, [entries, granularity, range])
 
   return (
-    <div className="card-brutal">
+    <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold uppercase">Focus Trend</h2>
@@ -61,7 +61,7 @@ export function FocusTrendCard({ view, filters, reportUserId }: FocusTrendCardPr
           <button
             type="button"
             onClick={() => setOffset((o) => o - 1)}
-            className="btn-brutal-secondary px-3 py-2 text-xs"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 px-3 py-2 text-xs"
           >
             Prev
           </button>
@@ -69,7 +69,7 @@ export function FocusTrendCard({ view, filters, reportUserId }: FocusTrendCardPr
             type="button"
             onClick={() => setOffset((o) => Math.min(o + 1, 0))}
             disabled={offset >= 0}
-            className={cn('btn-brutal-secondary px-3 py-2 text-xs', offset >= 0 && 'opacity-50')}
+            className={cn('inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-xs font-semibold px-3 py-2 transition-colors hover:bg-zinc-50', offset >= 0 && 'opacity-50')}
           >
             Next
           </button>
@@ -93,7 +93,7 @@ export function FocusTrendCard({ view, filters, reportUserId }: FocusTrendCardPr
               <div className="font-mono text-lg font-bold">{formatDuration(series.totalMinutes)}</div>
             </div>
 
-            <div className="relative h-72 w-full border-2 border-secondary bg-white p-2">
+            <div className="relative h-72 w-full border border-zinc-200 bg-white p-2">
               <FocusUpdatingOverlay active={showUpdating} />
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={series.data}>

@@ -36,7 +36,7 @@ export function WhoItsForSection() {
   return (
     <section
       id="personas"
-      className="border-b-2 border-secondary bg-background px-4 py-16 sm:px-6 sm:py-24"
+      className="border-b border-zinc-200 bg-background px-4 py-16 sm:px-6 sm:py-24"
     >
       <div className="mx-auto max-w-7xl">
         <AnimatedSection
@@ -61,10 +61,10 @@ export function WhoItsForSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="group flex flex-col rounded-sm border-2 border-secondary bg-white shadow-brutal transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brutal-hover"
+              className="group flex flex-col rounded-sm border border-zinc-200 bg-white shadow-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-sm"
             >
               {/* Header */}
-              <div className={`border-b-2 border-secondary ${persona.color} p-4`}>
+              <div className={`border-b border-zinc-200 ${persona.color} p-4`}>
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-sm border-2 border-white bg-white">
                     <persona.icon className="h-5 w-5 text-secondary" />

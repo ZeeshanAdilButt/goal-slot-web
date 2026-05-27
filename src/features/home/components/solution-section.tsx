@@ -1,137 +1,88 @@
-import { BarChart3, Calendar, CheckCircle, Clock, Target, XCircle } from 'lucide-react'
+'use client'
 
-import { AnimatedSection } from '@/components/animated-section'
+import { motion } from 'framer-motion'
+import { Target, CalendarClock, Zap, BarChart2 } from 'lucide-react'
+
+const steps = [
+  {
+    n: 1,
+    Icon: Target,
+    title: 'Define',
+    body: 'Create a clear Goal with a deadline (e.g., "Ship MVP"). If it doesn’t have a deadline, it’s just a wish.',
+  },
+  {
+    n: 2,
+    Icon: CalendarClock,
+    title: 'Schedule',
+    body: 'Allocate recurring time blocks on the weekly calendar, linked directly to that Goal.',
+  },
+  {
+    n: 3,
+    Icon: Zap,
+    title: 'Execute',
+    body: 'Click the block to start the live timer. No more switching apps to track your time.',
+  },
+  {
+    n: 4,
+    Icon: BarChart2,
+    title: 'Review',
+    body: 'View automated reports. Did you actually put in the hours? The data provides the answer.',
+  },
+]
 
 export function SolutionSection() {
   return (
-    <section className="border-b-2 border-secondary bg-background px-4 py-12 sm:px-6 sm:py-20">
-      <div className="mx-auto max-w-7xl">
-        <AnimatedSection
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-16 text-center"
-        >
-          <h2 className="mb-4 font-display text-4xl font-black tracking-tight sm:text-5xl">
-            Stop Paying for Scattered Tools
-          </h2>
-          <p className="mx-auto max-w-2xl text-lg text-gray-600">
-            You're spending $25+/month on apps that don't talk to each other
-          </p>
-        </AnimatedSection>
+    <section id="how-it-works" className="relative overflow-hidden border-y border-gray-200 bg-gray-50 py-24">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-[#f2cc0d]/10 to-transparent"
+      />
 
-        <div className="grid items-start gap-8 lg:grid-cols-2">
-          {/* Fragmented Tools */}
-          <AnimatedSection
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto mb-16 max-w-3xl text-center">
+          <motion.h2
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="rounded-sm border-2 border-secondary bg-white p-8 shadow-brutal"
+            transition={{ duration: 0.5 }}
+            className="font-display text-3xl font-bold text-gray-900 md:text-5xl"
           >
-            <div className="mb-6 flex items-center gap-2">
-              <XCircle className="h-6 w-6 text-red-500" />
-              <span className="font-display text-xl font-bold">The Fragmented Way</span>
-            </div>
-
-            {/* Visual representation of scattered tools */}
-            <div className="bg-grid relative mb-6 flex min-h-[200px] items-center justify-center rounded-sm border-2 border-dashed border-gray-300 bg-gray-50 p-6">
-              <div className="absolute left-8 top-8 -rotate-6 rounded-sm border-2 border-red-400 bg-red-100 px-3 py-2">
-                <p className="text-xs font-bold">Toggl</p>
-              </div>
-              <div className="absolute right-10 top-12 rotate-12 rounded-sm border-2 border-blue-400 bg-blue-100 px-3 py-2">
-                <p className="text-xs font-bold">Notion</p>
-              </div>
-              <div className="absolute bottom-12 left-12 rotate-3 rounded-sm border-2 border-purple-400 bg-purple-100 px-3 py-2">
-                <p className="text-xs font-bold">Todoist</p>
-              </div>
-              <div className="absolute bottom-8 right-8 -rotate-6 rounded-sm border-2 border-orange-400 bg-orange-100 px-3 py-2">
-                <p className="text-xs font-bold">Calendar</p>
-              </div>
-              <p className="z-10 font-display text-lg font-bold text-gray-400">DISCONNECTED</p>
-            </div>
-
-            <ul className="mb-6 space-y-3">
-              <li className="flex items-start gap-3 text-sm text-gray-700">
-                <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
-                <span>Toggl tracks time, but doesn't know your goals</span>
-              </li>
-              <li className="flex items-start gap-3 text-sm text-gray-700">
-                <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
-                <span>Notion stores goals, but can't schedule or track them</span>
-              </li>
-              <li className="flex items-start gap-3 text-sm text-gray-700">
-                <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
-                <span>Calendar shows blocks, but no link to actual work</span>
-              </li>
-              <li className="flex items-start gap-3 text-sm text-gray-700">
-                <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
-                <span>Nothing connects → You abandon all of them</span>
-              </li>
-            </ul>
-
-            <div className="rounded-sm border-2 border-red-200 bg-red-50 p-4">
-              <p className="font-mono text-2xl font-black text-red-600">$25+/month</p>
-              <p className="text-sm text-gray-600">for disconnected chaos</p>
-            </div>
-          </AnimatedSection>
-
-          {/* Unified System */}
-          <AnimatedSection
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            The Unified Loop
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="rounded-sm border-2 border-secondary bg-green-500 p-8 text-white shadow-brutal"
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mt-4 text-lg text-gray-600"
           >
-            <div className="mb-6 flex items-center gap-2">
-              <CheckCircle className="h-6 w-6" />
-              <span className="font-display text-xl font-bold">The GoalSlot Way</span>
-            </div>
+            GoalSlot forces a strict 4-step workflow to ensure intention matches action.
+          </motion.p>
+        </div>
 
-            {/* Visual representation of unified system */}
-            <div className="bg-grid relative mb-6 flex min-h-[200px] items-center justify-center rounded-sm border-2 border-white bg-green-400 p-6">
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                <div className="flex h-14 w-14 items-center justify-center rounded-sm border-2 border-white bg-white shadow-[2px_2px_0px_0px_white]">
-                  <Target className="h-6 w-6 text-primary" />
-                </div>
-                <div className="h-0.5 w-4 bg-white"></div>
-                <div className="flex h-14 w-14 items-center justify-center rounded-sm border-2 border-white bg-white shadow-[2px_2px_0px_0px_white]">
-                  <Calendar className="h-6 w-6 text-green-600" />
-                </div>
-                <div className="h-0.5 w-4 bg-white"></div>
-                <div className="flex h-14 w-14 items-center justify-center rounded-sm border-2 border-white bg-white shadow-[2px_2px_0px_0px_white]">
-                  <Clock className="h-6 w-6 text-blue-600" />
-                </div>
-                <div className="h-0.5 w-4 bg-white"></div>
-                <div className="flex h-14 w-14 items-center justify-center rounded-sm border-2 border-white bg-white shadow-[2px_2px_0px_0px_white]">
-                  <BarChart3 className="h-6 w-6 text-purple-600" />
-                </div>
+        <div className="grid gap-6 md:grid-cols-4">
+          {steps.map(({ n, Icon, title, body }, i) => (
+            <motion.div
+              key={n}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              whileHover={{ y: -4 }}
+              className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-6 transition-colors hover:border-[#f2cc0d]"
+            >
+              <div className="absolute right-0 top-0 p-4 opacity-10 transition-opacity group-hover:opacity-100">
+                <Icon className="h-12 w-12 text-[#f2cc0d]" />
               </div>
-            </div>
-
-            <ul className="mb-6 space-y-3">
-              <li className="flex items-start gap-3 text-sm">
-                <CheckCircle className="mt-0.5 h-5 w-5 shrink-0" />
-                <span><strong>Goals</strong> automatically link to schedule blocks</span>
-              </li>
-              <li className="flex items-start gap-3 text-sm">
-                <CheckCircle className="mt-0.5 h-5 w-5 shrink-0" />
-                <span><strong>Timer</strong> tracks work sessions toward each goal</span>
-              </li>
-              <li className="flex items-start gap-3 text-sm">
-                <CheckCircle className="mt-0.5 h-5 w-5 shrink-0" />
-                <span><strong>Reports</strong> show where every hour went</span>
-              </li>
-              <li className="flex items-start gap-3 text-sm">
-                <CheckCircle className="mt-0.5 h-5 w-5 shrink-0" />
-                <span>Everything syncs → You actually stick with it</span>
-              </li>
-            </ul>
-
-            <div className="rounded-sm border-2 border-white bg-white p-4 text-green-600">
-              <p className="font-mono text-2xl font-black">$7/month</p>
-              <p className="text-sm text-gray-700">for the complete unified system</p>
-            </div>
-          </AnimatedSection>
+              <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-lg bg-[#f2cc0d] font-mono text-xl font-bold text-gray-900 shadow-[0_4px_12px_rgba(242,204,13,0.4)]">
+                {n}
+              </div>
+              <h3 className="mb-3 text-2xl font-bold text-gray-900 transition-colors group-hover:text-[#8a7307]">
+                {title}
+              </h3>
+              <p className="leading-relaxed text-gray-600">{body}</p>
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>

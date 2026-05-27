@@ -17,55 +17,29 @@
   }
 
   :root {
-    /* Updated neubrutalist palette matching design system */
-    --background: 48 98% 97%; /* #FDFCF0 - lighter cream */
-    --foreground: 44 71% 9%; /* #1c190d - warm black */
-    --card: 0 0% 100%; /* #FFFFFF */
-    --card-foreground: 44 71% 9%;
+    --background: 0 0% 98%;
+    --foreground: 240 6% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 6% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 44 71% 9%;
-    --primary: 48 94% 50%; /* #f2cc0d - warmer yellow */
-    --primary-foreground: 44 71% 9%; /* warm black text on yellow */
-    --secondary: 44 71% 9%; /* #1c190d - warm black */
-    --secondary-foreground: 0 0% 98%; /* near-white */
-    --muted: 48 98% 97%; /* match background */
-    --muted-foreground: 0 0% 35%;
-    --accent: 48 98% 97%; /* match background */
-    --accent-foreground: 44 71% 9%;
-    --destructive: 0 84% 60%; /* default red */
-    --destructive-foreground: 0 0% 98%;
-    --border: 44 71% 9%; /* warm black outlines */
-    --input: 44 71% 9%;
-    --ring: 48 94% 50%; /* yellow focus ring */
-    --chart-1: 48 94% 50%; /* yellow */
-    --chart-2: 142 72% 47%; /* #22C55E */
-    --chart-3: 25 95% 53%; /* #F97316 */
-    --chart-4: 330 79% 59%; /* #EC4899 */
-    --chart-5: 258 91% 67%; /* #8B5CF6 */
-    --radius: 0.25rem; /* sharper corners for brutalism */
-  }
-
-  .dark {
-    /* Dark theme aligned to the same palette */
-    --background: 44 67% 7%; /* #221f10 - warm dark */
-    --foreground: 0 0% 98%;
-    --card: 0 0% 8%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 8%;
-    --popover-foreground: 0 0% 98%;
+    --popover-foreground: 240 6% 10%;
     --primary: 48 94% 50%;
-    --primary-foreground: 44 71% 9%;
-    --secondary: 0 0% 20%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 18%;
-    --muted-foreground: 0 0% 80%;
-    --accent: 0 0% 18%;
-    --accent-foreground: 0 0% 90%;
-    --destructive: 0 62.8% 55%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 24%;
-    --input: 0 0% 24%;
+    --primary-foreground: 240 6% 10%;
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 6% 10%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+    --accent: 240 5% 96%;
+    --accent-foreground: 240 6% 10%;
+    --destructive: 351 83% 61%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 160 84% 39%;
+    --warning: 38 92% 50%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
     --ring: 48 94% 50%;
+    --radius: 0.75rem;
+    --border-subtle: 240 6% 6% / 0.06;
     --chart-1: 48 94% 50%;
     --chart-2: 142 72% 47%;
     --chart-3: 25 95% 53%;
@@ -81,175 +55,29 @@
     @apply bg-background text-foreground font-sans antialiased;
   }
 
-  /* Neo-brutalism selection */
   ::selection {
-    @apply bg-primary text-secondary;
+    @apply bg-yellow-100 text-zinc-900;
   }
 }
 
 @layer components {
-  /* Neo-brutalism button styles */
-  .btn-brutal {
-    @apply relative px-3 py-1.5 text-xs font-bold uppercase tracking-wide
-           border-3 border-secondary bg-primary text-secondary
-           shadow-brutal transition-all duration-150
-           hover:shadow-brutal-hover hover:-translate-x-0.5 hover:-translate-y-0.5
-           active:shadow-none active:translate-x-1 active:translate-y-1
-           sm:px-4 sm:py-2 sm:text-xs sm:tracking-wide;
+  .glass-card {
+    @apply bg-white border border-zinc-200 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.02),0_4px_12px_rgba(0,0,0,0.03)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_20px_rgba(0,0,0,0.04)] hover:border-zinc-300;
   }
-
-  .btn-brutal-secondary {
-    @apply relative px-3 py-1.5 text-xs font-bold uppercase tracking-wide
-           border-3 border-secondary bg-white text-secondary
-           shadow-brutal transition-all duration-150
-           hover:shadow-brutal-hover hover:-translate-x-0.5 hover:-translate-y-0.5
-           active:shadow-none active:translate-x-1 active:translate-y-1
-           sm:px-6 sm:py-3 sm:text-sm sm:tracking-wider;
+  .active-nav {
+    @apply bg-zinc-100 text-zinc-900 font-semibold border border-zinc-200;
   }
-
-  .btn-brutal-dark {
-    @apply relative px-3 py-1.5 text-xs font-bold uppercase tracking-wide
-           border-3 border-secondary bg-secondary text-white
-           shadow-brutal transition-all duration-150
-           hover:shadow-brutal-hover hover:-translate-x-0.5 hover:-translate-y-0.5
-           active:shadow-none active:translate-x-1 active:translate-y-1
-           sm:px-6 sm:py-3 sm:text-sm sm:tracking-wider;
-  }
-
-  /* Neo-brutalism card styles */
-  .card-brutal {
-    @apply bg-white border-3 border-secondary shadow-brutal px-2 py-2 sm:p-4;
-  }
-
-  .card-brutal-colored {
-    @apply border-3 border-secondary shadow-brutal px-2 py-2 sm:p-4;
-  }
-
-  /* Neo-brutalism input styles */
-  .input-brutal {
-    @apply w-full px-4 py-3 font-mono
-           border-3 border-secondary bg-white
-           focus:outline-none focus:ring-0 focus:shadow-brutal-sm
-           placeholder:text-gray-400;
-  }
-
-  /* Neo-brutalism badge */
-  .badge-brutal {
-    @apply inline-flex items-center px-3 py-1 font-bold text-xs uppercase
-           border-2 border-secondary;
-  }
-
-  /* Progress bar */
-  .progress-brutal {
-    @apply h-3 bg-gray-200 border-2 border-secondary overflow-hidden;
-  }
-
-  .progress-brutal-fill {
-    @apply h-full transition-all duration-300;
-  }
-
-  /* Sidebar navigation */
-  .nav-item {
-    @apply flex items-center gap-3 px-4 py-3 font-bold uppercase text-sm
-           border-3 border-secondary bg-white
-           transition-all duration-150
-           hover:bg-primary hover:shadow-brutal-sm hover:-translate-x-0.5 hover:-translate-y-0.5;
-  }
-
-  .nav-item-active {
-    @apply flex items-center gap-3 px-4 py-3 font-bold uppercase text-sm
-           border-3 border-secondary bg-primary shadow-brutal-sm
-           -translate-x-0.5 -translate-y-0.5;
-  }
-
-  /* Table styles */
-  .table-brutal {
-    @apply w-full border-3 border-secondary;
-  }
-
-  .table-brutal th {
-    @apply bg-secondary text-white font-bold uppercase text-sm px-4 py-3 text-left;
-  }
-
-  .table-brutal td {
-    @apply border-t-2 border-secondary px-4 py-3;
-  }
-
-  /* Modal */
-  .modal-brutal {
-    @apply bg-white border-3 border-secondary shadow-brutal-xl p-4;
-  }
-
-  /* Tooltip */
-  .tooltip-brutal {
-    @apply absolute z-50 px-3 py-2 text-sm font-bold
-           bg-secondary text-white border-2 border-secondary;
+  .timer-glow {
+    box-shadow: 0 0 40px rgba(242, 204, 13, 0.15);
   }
 }
 
 @layer utilities {
-  /* Text styles */
-  .text-brutal-heading {
-    @apply font-display font-bold uppercase tracking-tight;
+  .screen-enter {
+    animation: screenEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
-
-  .text-brutal-mono {
-    @apply font-mono font-semibold;
-  }
-
-  /* Animation utilities */
-  .brutal-hover {
-    @apply transition-all duration-150
-           hover:shadow-brutal-hover hover:-translate-x-0.5 hover:-translate-y-0.5;
-  }
-
-  .brutal-active {
-    @apply active:shadow-none active:translate-x-1 active:translate-y-1;
-  }
-
-  /* Grid background pattern */
-  .bg-grid {
-    background-size: 40px 40px;
-    background-image:
-      linear-gradient(to right, rgba(28, 25, 13, 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(28, 25, 13, 0.05) 1px, transparent 1px);
-  }
-
-  /* Color variations for cards */
-  .bg-goal-learning {
-    @apply bg-blue-400;
-  }
-  .bg-goal-work {
-    @apply bg-cyan-400;
-  }
-  .bg-goal-health {
-    @apply bg-green-400;
-  }
-  .bg-goal-creative {
-    @apply bg-pink-400;
-  }
-
-  /* Schedule category colors */
-  .bg-schedule-deep-work {
-    @apply bg-primary;
-  }
-  .bg-schedule-learning {
-    @apply bg-green-400;
-  }
-  .bg-schedule-exercise {
-    @apply bg-orange-400;
-  }
-  .bg-schedule-side-project {
-    @apply bg-pink-400;
-  }
-  .bg-schedule-dsa {
-    @apply bg-primary;
-  }
-  .bg-schedule-meeting {
-    @apply bg-purple-400;
-  }
-  .bg-schedule-break {
-    @apply bg-gray-300;
+  .status-dot-live {
+    @apply w-2 h-2 rounded-full bg-emerald-500 animate-pulse;
   }
 
   /* Utility class for scrollable containers */
@@ -258,30 +86,13 @@
   }
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-brutalist-bg border-l-2 border-secondary;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-secondary border-2 border-secondary;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-800;
-}
-
-/* Custom checkbox */
-input[type='checkbox'] {
-  @apply w-5 h-5 border-3 border-secondary bg-white appearance-none cursor-pointer;
-}
-
-input[type='checkbox']:checked {
-  @apply bg-primary;
-  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='black' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+@keyframes screenEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.99) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }

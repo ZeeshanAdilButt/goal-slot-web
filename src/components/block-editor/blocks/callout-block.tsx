@@ -88,7 +88,7 @@ export function CalloutBlockComponent({ block, isSelected, onSelect }: CalloutBl
           </button>
 
           {showIconPicker && (
-            <div className="absolute left-0 top-full z-10 mt-1 rounded-lg border-2 border-border bg-card p-2 shadow-brutal">
+            <div className="absolute left-0 top-full z-10 mt-1 rounded-lg border border-zinc-200 bg-card p-2 shadow-md">
               <div className="grid grid-cols-4 gap-1">
                 {CALLOUT_ICONS.map(({ emoji, label }) => (
                   <button
@@ -125,14 +125,14 @@ export function CalloutBlockComponent({ block, isSelected, onSelect }: CalloutBl
               setShowColorPicker(!showColorPicker)
               setShowIconPicker(false)
             }}
-            className="h-6 w-6 rounded-full border-2 border-border"
+            className="h-6 w-6 rounded-full border border-zinc-200"
             style={{
               background: block.color === 'default' ? '#e5e7eb' : `var(--${block.color}-200)`,
             }}
           />
 
           {showColorPicker && (
-            <div className="absolute right-0 top-full z-10 mt-1 rounded-lg border-2 border-border bg-card p-2 shadow-brutal">
+            <div className="absolute right-0 top-full z-10 mt-1 rounded-lg border border-zinc-200 bg-card p-2 shadow-md">
               <div className="grid grid-cols-4 gap-1">
                 {(Object.keys(CALLOUT_STYLES) as CalloutColor[]).map((color) => (
                   <button

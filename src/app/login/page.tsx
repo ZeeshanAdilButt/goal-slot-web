@@ -48,7 +48,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-brutalist-bg p-2 sm:p-6">
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-2 sm:p-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
         {/* Logo */}
         <Link href="/" className="mb-8 flex justify-center">
@@ -56,7 +56,7 @@ function LoginForm() {
         </Link>
 
         {/* Login Card */}
-        <div className="card-brutal">
+        <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
           <h1 className="mb-6 text-center text-2xl font-bold uppercase">Welcome Back</h1>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -69,7 +69,7 @@ function LoginForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="input-brutal pl-12"
+                  className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] pl-12"
                   required
                 />
               </div>
@@ -84,7 +84,7 @@ function LoginForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="input-brutal pl-12 pr-12"
+                  className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] pl-12 pr-12"
                   required
                 />
                 <button
@@ -109,7 +109,7 @@ function LoginForm() {
             <button
               type="submit"
               disabled={isLoading}
-              className="btn-brutal flex w-full items-center justify-center gap-2"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 flex w-full items-center justify-center gap-2"
             >
               {isLoading ? (
                 <Loading size="sm" className="h-5 w-5" />
@@ -140,9 +140,9 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-brutalist-bg p-6">
+        <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-6">
           <div className="w-full max-w-md">
-            <div className="card-brutal">
+            <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
               <div className="flex items-center justify-center p-8">
                 <Loading size="sm" />
               </div>

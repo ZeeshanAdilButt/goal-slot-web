@@ -10,6 +10,7 @@ import { useFeedbacksQuery } from '@/features/feedback/hooks/use-feedback-querie
 import { FeedbackFilterType, Feedback as FeedbackType } from '@/features/feedback/utils/types'
 
 import { Loading } from '@/components/ui/loading'
+import { PageShell } from '@/components/ui/page-shell'
 
 export const AdminFeedbackPage = () => {
   const [filter, setFilter] = useState<FeedbackFilterType>('all')
@@ -58,7 +59,7 @@ export const AdminFeedbackPage = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <PageShell>
       <AdminFeedbackHeader />
       <AdminFeedbackFilters
         filter={filter}
@@ -72,6 +73,6 @@ export const AdminFeedbackPage = () => {
         onOpenChange={handleCloseDeleteDialog}
         feedback={selectedFeedback}
       />
-    </div>
+    </PageShell>
   )
 }

@@ -39,8 +39,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Button } from '@/components/ui/button'
+import { GlassCard } from '@/components/ui/glass-card'
 import { Loading } from '@/components/ui/loading'
+import { PageHeader } from '@/components/ui/page-header'
+import { PageShell } from '@/components/ui/page-shell'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { StatCard } from '@/components/ui/stat-card'
 
 interface User {
   id: string
@@ -403,76 +408,29 @@ export default function AdminUsersPage() {
   const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN'
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-black uppercase tracking-tight">User Management</h1>
-          <p className="mt-1 text-gray-600">Manage users, roles, subscriptions, and access permissions</p>
-        </div>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => openModal('create')}
-          className="flex items-center gap-2 border-4 border-black bg-primary px-4 py-2 font-bold shadow-brutal transition-all hover:shadow-brutal-sm"
-        >
-          <UserPlus className="h-5 w-5" />
-          Add Internal User
-        </motion.button>
-      </div>
+    <PageShell>
+      <PageHeader
+        eyebrow="Admin"
+        title="User Management"
+        description="Manage users, roles, subscriptions, and access permissions"
+        actions={
+          <Button onClick={() => openModal('create')} variant="brand">
+            <UserPlus className="h-4 w-4" />
+            Add Internal User
+          </Button>
+        }
+      />
 
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7">
-          <div className="border-4 border-black bg-white p-4 shadow-brutal">
-            <div className="flex items-center gap-2 text-gray-600">
-              <Users className="h-4 w-4" />
-              <span className="text-xs font-bold uppercase">Total</span>
-            </div>
-            <p className="mt-1 text-2xl font-black">{stats.totalUsers}</p>
-          </div>
-          <div className="border-4 border-black bg-green-100 p-4 shadow-brutal">
-            <div className="flex items-center gap-2 text-green-700">
-              <UserCheck className="h-4 w-4" />
-              <span className="text-xs font-bold uppercase">Active</span>
-            </div>
-            <p className="mt-1 text-2xl font-black text-green-800">{stats.activeUsers}</p>
-          </div>
-          <div className="border-4 border-black bg-red-100 p-4 shadow-brutal">
-            <div className="flex items-center gap-2 text-red-700">
-              <Ban className="h-4 w-4" />
-              <span className="text-xs font-bold uppercase">Disabled</span>
-            </div>
-            <p className="mt-1 text-2xl font-black text-red-800">{stats.disabledUsers}</p>
-          </div>
-          <div className="border-4 border-black bg-blue-100 p-4 shadow-brutal">
-            <div className="flex items-center gap-2 text-blue-700">
-              <MailCheck className="h-4 w-4" />
-              <span className="text-xs font-bold uppercase">Verified</span>
-            </div>
-            <p className="mt-1 text-2xl font-black text-blue-800">{stats.verifiedUsers}</p>
-          </div>
-          <div className="border-4 border-black bg-primary p-4 shadow-brutal">
-            <div className="flex items-center gap-2 text-black/70">
-              <Crown className="h-4 w-4" />
-              <span className="text-xs font-bold uppercase">Max</span>
-            </div>
-            <p className="mt-1 text-2xl font-black">{stats.byPlan.pro}</p>
-          </div>
-          <div className="border-4 border-black bg-blue-200 p-4 shadow-brutal">
-            <div className="flex items-center gap-2 text-blue-800">
-              <Sparkles className="h-4 w-4" />
-              <span className="text-xs font-bold uppercase">Pro</span>
-            </div>
-            <p className="mt-1 text-2xl font-black text-blue-900">{stats.byPlan.basic}</p>
-          </div>
-          <div className="border-4 border-black bg-gray-100 p-4 shadow-brutal">
-            <div className="flex items-center gap-2 text-gray-600">
-              <Users className="h-4 w-4" />
-              <span className="text-xs font-bold uppercase">Free</span>
-            </div>
-            <p className="mt-1 text-2xl font-black text-gray-800">{stats.byPlan.free}</p>
-          </div>
+          <StatCard label="Total" value={stats.totalUsers} icon={<Users />} accent="neutral" />
+          <StatCard label="Active" value={stats.activeUsers} icon={<UserCheck />} accent="success" />
+          <StatCard label="Disabled" value={stats.disabledUsers} icon={<Ban />} accent="danger" />
+          <StatCard label="Verified" value={stats.verifiedUsers} icon={<MailCheck />} accent="neutral" />
+          <StatCard label="Max" value={stats.byPlan.pro} icon={<Crown />} accent="brand" />
+          <StatCard label="Pro" value={stats.byPlan.basic} icon={<Sparkles />} accent="neutral" />
+          <StatCard label="Free" value={stats.byPlan.free} icon={<Users />} accent="neutral" />
         </div>
       )}
 
@@ -485,7 +443,7 @@ export default function AdminUsersPage() {
             placeholder="Search by name or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full border-4 border-black py-3 pl-12 pr-4 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full border border-zinc-200 py-3 pl-12 pr-4 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
         
@@ -493,7 +451,7 @@ export default function AdminUsersPage() {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-4 border-4 border-black bg-white px-4 py-2 shadow-brutal"
+            className="flex items-center gap-4 border border-zinc-200 bg-white px-4 py-2 shadow-sm"
           >
             <span className="font-bold">{selectedUsers.length} selected</span>
             <div className="h-6 w-0.5 bg-gray-300" />
@@ -511,7 +469,7 @@ export default function AdminUsersPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="overflow-hidden border-4 border-black bg-white shadow-brutal"
+        className="overflow-hidden border border-zinc-200 bg-white shadow-sm"
       >
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
@@ -532,7 +490,7 @@ export default function AdminUsersPage() {
                       type="checkbox"
                       checked={users.length > 0 && selectedUsers.length === users.length}
                       onChange={toggleSelectAll}
-                      className="h-5 w-5 border-2 border-white accent-primary"
+                      className="h-5 w-5 border border-zinc-200 accent-primary"
                     />
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-bold uppercase">User</th>
@@ -544,7 +502,7 @@ export default function AdminUsersPage() {
                   <th className="px-4 py-3 text-right text-sm font-bold uppercase">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y-2 divide-gray-200">
+              <tbody className="divide-y divide-zinc-100">
                 {users.map((user) => (
                   <tr
                     key={user.id}
@@ -555,14 +513,14 @@ export default function AdminUsersPage() {
                         type="checkbox"
                         checked={selectedUsers.includes(user.id)}
                         onChange={() => toggleSelectUser(user.id)}
-                        className="h-5 w-5 border-2 border-black accent-primary"
+                        className="h-5 w-5 border border-zinc-200 accent-primary"
                       />
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
                         <div
                           className={cn(
-                            'flex h-10 w-10 items-center justify-center border-2 border-black text-lg font-black',
+                            'flex h-10 w-10 items-center justify-center border border-zinc-200 text-lg font-black',
                             user.isDisabled ? 'bg-gray-300' : 'bg-primary',
                           )}
                         >
@@ -664,7 +622,7 @@ export default function AdminUsersPage() {
                             <DropdownMenuTrigger asChild>
                               <button
                                 type="button"
-                                className="cursor-pointer border-2 border-black p-2 transition-colors hover:bg-gray-100"
+                                className="cursor-pointer border border-zinc-200 p-2 transition-colors hover:bg-gray-100"
                               >
                                 <MoreHorizontal className="h-4 w-4" />
                               </button>
@@ -739,7 +697,7 @@ export default function AdminUsersPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t-4 border-black bg-gray-50 px-4 py-3">
+          <div className="flex items-center justify-between border-t border-zinc-200 bg-gray-50 px-4 py-3">
             <p className="text-sm font-medium">
               Page {currentPage} of {totalPages} ({totalUsers} users)
             </p>
@@ -747,14 +705,14 @@ export default function AdminUsersPage() {
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="border-2 border-black p-2 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                className="border border-zinc-200 p-2 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="border-2 border-black p-2 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                className="border border-zinc-200 p-2 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -767,8 +725,8 @@ export default function AdminUsersPage() {
       <Dialog open={modalType !== null} onOpenChange={(open) => !open && closeModal()}>
         {/* Create User Modal */}
         {modalType === 'create' && (
-          <DialogContent className="max-w-md border-4 border-black bg-white shadow-brutal" showCloseButton={true}>
-            <DialogHeader className="border-b-4 border-black bg-primary p-4">
+          <DialogContent className="max-w-md border border-zinc-200 bg-white shadow-sm" showCloseButton={true}>
+            <DialogHeader className="border-b border-zinc-200 bg-primary p-4">
               <DialogTitle className="text-xl font-black uppercase">Create Internal User</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleCreateUser} className="space-y-4 p-2 sm:p-6">
@@ -778,7 +736,7 @@ export default function AdminUsersPage() {
                   type="text"
                   value={newUser.name}
                   onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-                  className="w-full border-4 border-black px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full border border-zinc-200 px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="John Doe"
                   required
                 />
@@ -789,7 +747,7 @@ export default function AdminUsersPage() {
                   type="email"
                   value={newUser.email}
                   onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                  className="w-full border-4 border-black px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full border border-zinc-200 px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="john@example.com"
                   required
                 />
@@ -800,7 +758,7 @@ export default function AdminUsersPage() {
                   type="password"
                   value={newUser.password}
                   onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                  className="w-full border-4 border-black px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full border border-zinc-200 px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="••••••••"
                   required
                   minLength={8}
@@ -809,7 +767,7 @@ export default function AdminUsersPage() {
               <div>
                 <label className="mb-2 block text-sm font-bold uppercase">Role</label>
                 <Select value={newUser.role} onValueChange={(value) => setNewUser({ ...newUser, role: value as any })}>
-                  <SelectTrigger className="h-auto w-full rounded-none border-4 border-black px-4 py-2 font-medium shadow-none focus:ring-2 focus:ring-primary">
+                  <SelectTrigger className="h-auto w-full rounded-none border border-zinc-200 px-4 py-2 font-medium shadow-none focus:ring-2 focus:ring-primary">
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -822,14 +780,14 @@ export default function AdminUsersPage() {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="flex-1 border-4 border-black px-4 py-2 font-bold transition-colors hover:bg-gray-100"
+                  className="flex-1 border border-zinc-200 px-4 py-2 font-bold transition-colors hover:bg-gray-100"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex flex-1 items-center justify-center gap-2 border-4 border-black bg-primary px-4 py-2 font-bold shadow-brutal transition-all hover:shadow-brutal-sm disabled:opacity-50"
+                  className="flex flex-1 items-center justify-center gap-2 border border-zinc-200 bg-primary px-4 py-2 font-bold shadow-sm transition-all hover:shadow-sm disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <GoalSlotSpinner size="md" />
@@ -847,8 +805,8 @@ export default function AdminUsersPage() {
 
         {/* Disable User Modal */}
         {modalType === 'disable' && selectedUser && (
-          <DialogContent className="max-w-md border-4 border-black bg-white shadow-brutal" showCloseButton={true}>
-            <DialogHeader className="border-b-4 border-black bg-red-500 p-4 text-white">
+          <DialogContent className="max-w-md border border-zinc-200 bg-white shadow-sm" showCloseButton={true}>
+            <DialogHeader className="border-b border-zinc-200 bg-red-500 p-4 text-white">
               <DialogTitle className="text-xl font-black uppercase">Disable User</DialogTitle>
             </DialogHeader>
 
@@ -862,7 +820,7 @@ export default function AdminUsersPage() {
                 <textarea
                   value={disableReason}
                   onChange={(e) => setDisableReason(e.target.value)}
-                  className="w-full border-4 border-black px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full border border-zinc-200 px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-red-500"
                   placeholder="e.g., Violation of terms of service"
                   rows={3}
                   required
@@ -872,14 +830,14 @@ export default function AdminUsersPage() {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="flex-1 border-4 border-black px-4 py-2 font-bold transition-colors hover:bg-gray-100"
+                  className="flex-1 border border-zinc-200 px-4 py-2 font-bold transition-colors hover:bg-gray-100"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => handleToggleStatus(selectedUser, true)}
                   disabled={isSubmitting || !disableReason}
-                  className="flex flex-1 items-center justify-center gap-2 border-4 border-black bg-red-500 px-4 py-2 font-bold text-white shadow-brutal transition-all hover:bg-red-600 disabled:opacity-50"
+                  className="flex flex-1 items-center justify-center gap-2 border border-zinc-200 bg-red-500 px-4 py-2 font-bold text-white shadow-sm transition-all hover:bg-red-600 disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <Loading size="sm" className="h-5 w-5" />
@@ -897,8 +855,8 @@ export default function AdminUsersPage() {
 
         {/* Assign Plan Modal */}
         {(modalType === 'assignPlan' || modalType === 'bulkAssignPlan') && (
-          <DialogContent className="max-w-md border-4 border-black bg-white shadow-brutal" showCloseButton={true}>
-            <DialogHeader className="border-b-4 border-black bg-primary p-4">
+          <DialogContent className="max-w-md border border-zinc-200 bg-white shadow-sm" showCloseButton={true}>
+            <DialogHeader className="border-b border-zinc-200 bg-primary p-4">
               <DialogTitle className="text-xl font-black uppercase">
                 {modalType === 'bulkAssignPlan' ? `Assign to ${selectedUsers.length} Users` : 'Assign Plan'}
               </DialogTitle>
@@ -917,7 +875,7 @@ export default function AdminUsersPage() {
               <div>
                 <label className="mb-2 block text-sm font-bold uppercase">Plan</label>
                 <Select value={assignPlan} onValueChange={(value) => setAssignPlan(value as any)}>
-                  <SelectTrigger className="h-auto w-full rounded-none border-4 border-black px-4 py-2 font-medium shadow-none focus:ring-2 focus:ring-primary">
+                  <SelectTrigger className="h-auto w-full rounded-none border border-zinc-200 px-4 py-2 font-medium shadow-none focus:ring-2 focus:ring-primary">
                     <SelectValue placeholder="Select plan" />
                   </SelectTrigger>
                   <SelectContent>
@@ -932,7 +890,7 @@ export default function AdminUsersPage() {
                 <textarea
                   value={assignPlanNote}
                   onChange={(e) => setAssignPlanNote(e.target.value)}
-                  className="w-full border-4 border-black px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full border border-zinc-200 px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="e.g., Early adopter reward, Contest winner"
                   rows={2}
                 />
@@ -941,14 +899,14 @@ export default function AdminUsersPage() {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="flex-1 border-4 border-black px-4 py-2 font-bold transition-colors hover:bg-gray-100"
+                  className="flex-1 border border-zinc-200 px-4 py-2 font-bold transition-colors hover:bg-gray-100"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={modalType === 'bulkAssignPlan' ? handleBulkAssignPlan : handleAssignPlan}
                   disabled={isSubmitting}
-                  className="flex flex-1 items-center justify-center gap-2 border-4 border-black bg-primary px-4 py-2 font-bold shadow-brutal transition-all hover:shadow-brutal-sm disabled:opacity-50"
+                  className="flex flex-1 items-center justify-center gap-2 border border-zinc-200 bg-primary px-4 py-2 font-bold shadow-sm transition-all hover:shadow-sm disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <Loading size="sm" className="h-5 w-5" />
@@ -966,14 +924,14 @@ export default function AdminUsersPage() {
 
         {/* User Details Modal */}
         {modalType === 'details' && selectedUser && (
-          <DialogContent className="max-w-md border-4 border-black bg-white shadow-brutal" showCloseButton={true}>
-            <DialogHeader className="border-b-4 border-black bg-gray-100 p-4">
+          <DialogContent className="max-w-md border border-zinc-200 bg-white shadow-sm" showCloseButton={true}>
+            <DialogHeader className="border-b border-zinc-200 bg-gray-100 p-4">
               <DialogTitle className="text-xl font-black uppercase">User Details</DialogTitle>
             </DialogHeader>
 
             <div className="space-y-4 p-2 sm:p-6">
               <div className="flex items-center gap-4">
-                <div className="flex h-16 w-16 items-center justify-center border-4 border-black bg-primary text-2xl font-black">
+                <div className="flex h-16 w-16 items-center justify-center border border-zinc-200 bg-primary text-2xl font-black">
                   {selectedUser.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -1014,7 +972,7 @@ export default function AdminUsersPage() {
               </div>
 
               {selectedUser.isDisabled && selectedUser.disabledReason && (
-                <div className="border-4 border-red-300 bg-red-50 p-3">
+                <div className="border border-rose-200 bg-red-50 p-3">
                   <p className="text-xs font-bold uppercase text-red-600">Disabled Reason</p>
                   <p className="text-red-800">{selectedUser.disabledReason}</p>
                   {selectedUser.disabledAt && (
@@ -1026,7 +984,7 @@ export default function AdminUsersPage() {
               )}
 
               {selectedUser.adminAssignedPlan && (
-                <div className="border-4 border-emerald-300 bg-emerald-50 p-3">
+                <div className="border border-emerald-200 bg-emerald-50 p-3">
                   <p className="text-xs font-bold uppercase text-emerald-600">Admin Assigned Plan</p>
                   <p className="font-bold text-emerald-800">{selectedUser.adminAssignedPlan}</p>
                   {selectedUser.adminAssignedPlanNote && (
@@ -1041,7 +999,7 @@ export default function AdminUsersPage() {
               )}
 
               {/* Subscription & Billing Section */}
-              <div className="border-4 border-blue-300 bg-blue-50 p-3">
+              <div className="border border-sky-200 bg-blue-50 p-3">
                 <p className="mb-2 text-xs font-bold uppercase text-blue-600">Subscription & Billing</p>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
@@ -1099,7 +1057,7 @@ export default function AdminUsersPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 border-t-2 border-gray-200 pt-4">
+              <div className="grid grid-cols-2 gap-4 border-t border-zinc-200 pt-4">
                 <div>
                   <p className="text-xs font-bold uppercase text-gray-500">Created</p>
                   <p className="text-sm">{new Date(selectedUser.createdAt).toLocaleString()}</p>
@@ -1112,7 +1070,7 @@ export default function AdminUsersPage() {
 
               <button
                 onClick={closeModal}
-                className="w-full border-4 border-black px-4 py-2 font-bold transition-colors hover:bg-gray-100"
+                className="w-full border border-zinc-200 px-4 py-2 font-bold transition-colors hover:bg-gray-100"
               >
                 Close
               </button>
@@ -1120,6 +1078,6 @@ export default function AdminUsersPage() {
           </DialogContent>
         )}
       </Dialog>
-    </div>
+    </PageShell>
   )
 }

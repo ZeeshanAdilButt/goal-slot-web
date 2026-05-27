@@ -25,7 +25,7 @@ export const AdminFeedbackDeleteDialog = ({ open, onOpenChange, feedback }: Admi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="modal-brutal">
+      <DialogContent className="">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold uppercase">Delete Feedback</DialogTitle>
         </DialogHeader>
