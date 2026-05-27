@@ -69,7 +69,7 @@
     "lowlight": "^3.3.0",
     "lucide-react": "^0.439.0",
     "next": "16.0.8",
-    "next-mdx-remote": "^5.0.0",
+    "next-mdx-remote": "^6.0.0",
     "posthog-js": "^1.327.0",
     "posthog-node": "^5.21.1",
     "react": "19.2.1",
