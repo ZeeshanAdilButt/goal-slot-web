@@ -11,6 +11,8 @@ import { toast } from 'react-hot-toast'
 import { coachApi, type CoachMessageDto, type CoachStreamChunk } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { PROVIDER_META, useByokKey } from '@/features/settings/hooks/use-byok-key'
+import { useCoachInsights } from '@/features/coach/hooks/use-coach-insights'
+import { InsightCard } from '@/features/coach/components/insight-card'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -140,6 +142,7 @@ function NarrativeSection({ scopeKey }: NarrativeSectionProps) {
         let acc = ''
         let lastUsage: CoachStreamChunk['usage'] | undefined
         let lastError: string | undefined
+        let sawDone = false
         for await (const chunk of iter) {
           if (chunk.delta) {
             acc += chunk.delta
@@ -147,7 +150,10 @@ function NarrativeSection({ scopeKey }: NarrativeSectionProps) {
           }
           if (chunk.usage) lastUsage = chunk.usage
           if (chunk.error) lastError = chunk.error
-          if (chunk.done) break
+          if (chunk.done) {
+            sawDone = true
+            break
+          }
         }
         if (lastError) {
           setStreamError(lastError)
@@ -166,6 +172,13 @@ function NarrativeSection({ scopeKey }: NarrativeSectionProps) {
             }))
           }
           if (lastUsage) setUsage(lastUsage)
+        }
+        if (sawDone) {
+          // Server-side extraction runs async after the stream closes (~1.5s).
+          // Pull fresh insights so the NewSuggestionsSection picks them up.
+          setTimeout(() => {
+            queryClient.invalidateQueries({ queryKey: ['coach', 'insights'] })
+          }, 2000)
         }
       } catch (err) {
         const status = statusOf(err)
@@ -256,6 +269,42 @@ function NarrativeSection({ scopeKey }: NarrativeSectionProps) {
           </Button>
         </div>
       )}
+    </GlassCard>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// New suggestions (fresh PROPOSED insights for this week)
+// ---------------------------------------------------------------------------
+interface NewSuggestionsSectionProps {
+  scopeKey: string
+}
+
+function NewSuggestionsSection({ scopeKey }: NewSuggestionsSectionProps) {
+  const { insights, updateStatus } = useCoachInsights('ACTIVE')
+  const fresh = insights.filter(
+    (i) => i.status === 'PROPOSED' && i.scopeKey === scopeKey,
+  )
+  if (fresh.length === 0) return null
+  return (
+    <GlassCard padded className="space-y-3">
+      <SectionHeader
+        title={
+          <span className="inline-flex items-center gap-2">
+            <Sparkles className="h-4 w-4" />
+            New suggestions from this week
+          </span>
+        }
+      />
+      <div className="space-y-3">
+        {fresh.map((insight) => (
+          <InsightCard
+            key={insight.id}
+            insight={insight}
+            onUpdate={(s) => updateStatus(insight.id, s)}
+          />
+        ))}
+      </div>
     </GlassCard>
   )
 }
@@ -490,8 +539,9 @@ export function CoachPage() {
             title="Connect a key to unlock the Coach"
             description={
               <>
-                The Coach runs on your own OpenAI or Anthropic API key — your data never leaves your browser
-                without it. Add a key in Settings → Integrations to start.
+                The Coach runs on your own OpenAI or Anthropic API key. We encrypt it server-side and
+                use it only for your requests — charges go straight to your provider. Add a key in
+                Settings → Integrations to start.
               </>
             }
             action={
@@ -506,6 +556,7 @@ export function CoachPage() {
       {hasKey && scopeKey && (
         <>
           <NarrativeSection scopeKey={scopeKey} />
+          <NewSuggestionsSection scopeKey={scopeKey} />
           <ChatSection scopeKey={scopeKey} />
         </>
       )}

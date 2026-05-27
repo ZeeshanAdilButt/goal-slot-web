@@ -4,7 +4,11 @@ import { useCallback } from 'react'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { coachApi, type CoachHabitsProfileDto } from '@/lib/api'
+import {
+  coachApi,
+  type CoachHabitsProfileDto,
+  type ReligiousContextEnum,
+} from '@/lib/api'
 
 export interface CoachProfile {
   why: string
@@ -16,6 +20,8 @@ export interface CoachProfile {
   wakeTime: string
   workEnvironment: string
   additionalContext: string
+  religiousContext: ReligiousContextEnum
+  spiritualNotes: string
 }
 
 const DEFAULT_PROFILE: CoachProfile = {
@@ -28,6 +34,8 @@ const DEFAULT_PROFILE: CoachProfile = {
   wakeTime: '07:00',
   workEnvironment: '',
   additionalContext: '',
+  religiousContext: 'NONE',
+  spiritualNotes: '',
 }
 
 const QUERY_KEY = ['coach', 'habits-profile'] as const
@@ -44,6 +52,8 @@ function fromDto(dto: CoachHabitsProfileDto | null | undefined): CoachProfile {
     wakeTime: dto.wakeTime ?? '07:00',
     workEnvironment: dto.workEnvironment ?? '',
     additionalContext: dto.additionalContext ?? '',
+    religiousContext: dto.religiousContext ?? 'NONE',
+    spiritualNotes: dto.spiritualNotes ?? '',
   }
 }
 

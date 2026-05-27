@@ -426,6 +426,16 @@ export interface CoachByokUsageDto {
   windowStart: string
 }
 
+export type ReligiousContextEnum =
+  | 'NONE'
+  | 'ISLAM'
+  | 'CHRISTIANITY'
+  | 'HINDUISM'
+  | 'BUDDHISM'
+  | 'JUDAISM'
+  | 'SECULAR'
+  | 'OTHER'
+
 export interface CoachHabitsProfileDto {
   id?: string
   userId?: string
@@ -438,8 +448,72 @@ export interface CoachHabitsProfileDto {
   wakeTime?: string
   workEnvironment?: string
   additionalContext?: string
+  religiousContext?: ReligiousContextEnum
+  spiritualNotes?: string
   createdAt?: string
   updatedAt?: string
+}
+
+// Coach Insights
+export type CoachInsightKindEnum =
+  | 'OBSERVATION'
+  | 'SUGGESTION'
+  | 'EXPERIMENT'
+  | 'MEDIA_PROMPT'
+
+export type CoachInsightStatusEnum =
+  | 'PROPOSED'
+  | 'ACCEPTED'
+  | 'DOING'
+  | 'DONE'
+  | 'DISMISSED'
+  | 'SAVED'
+
+export type CoachInsightMediaSlot =
+  | 'BREAKFAST'
+  | 'LUNCH'
+  | 'EVENING'
+  | 'BEDTIME'
+  | 'ANY'
+
+export type CoachInsightMediaTopic =
+  | 'MINDSET'
+  | 'CRAFT'
+  | 'SPIRITUAL'
+  | 'HABITS'
+  | 'STRESS'
+  | 'SLEEP'
+  | 'DOPAMINE'
+
+export type CoachInsightStatusFilter =
+  | 'ACTIVE'
+  | 'PROPOSED'
+  | 'ACCEPTED'
+  | 'DOING'
+  | 'DONE'
+  | 'DISMISSED'
+  | 'SAVED'
+  | 'ALL'
+
+export interface CoachInsightDto {
+  id: string
+  scopeKey: string
+  kind: CoachInsightKindEnum
+  title: string
+  body: string
+  evidence: string
+  suggestedAction: string | null
+  mediaSlot: CoachInsightMediaSlot | null
+  mediaTopic: CoachInsightMediaTopic | null
+  status: CoachInsightStatusEnum
+  acceptedAt: string | null
+  startedDoingAt: string | null
+  completedAt: string | null
+  dismissedAt: string | null
+  savedAt: string | null
+  userNote: string | null
+  createdAt: string
+  updatedAt: string
 }
 
 export interface CoachDailyCheckin {
@@ -698,6 +772,14 @@ export const coachApi = {
   },
   streamChat: (scopeKey: string, content: string, opts?: { signal?: AbortSignal }) =>
     postCoachStream(`/coach/chat/${scopeKey}`, { content }, opts?.signal),
+
+  // Coach Insights
+  listInsights: (status?: CoachInsightStatusFilter) =>
+    api.get<CoachInsightDto[]>('/coach/insights', { params: status ? { status } : undefined }),
+  getInsight: (id: string) => api.get<CoachInsightDto>(`/coach/insights/${id}`),
+  updateInsightStatus: (id: string, status: CoachInsightStatusEnum, note?: string) =>
+    api.post<CoachInsightDto>(`/coach/insights/${id}/status`, { status, note }),
+  deleteInsight: (id: string) => api.delete<{ success: true }>(`/coach/insights/${id}`),
 }
 
 // Notes API

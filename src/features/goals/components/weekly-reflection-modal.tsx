@@ -14,6 +14,25 @@ import { Textarea } from '@/components/ui/textarea'
 
 const SCALE = [1, 2, 3, 4, 5] as const
 
+function humanWeekLabel(weekKey: string | null): string {
+  if (!weekKey) return ''
+  const m = /^(\d{4})-W(\d{2})$/.exec(weekKey)
+  if (!m) return weekKey
+  const year = Number(m[1])
+  const week = Number(m[2])
+  const jan4 = new Date(Date.UTC(year, 0, 4))
+  const jan4Day = jan4.getUTCDay() || 7
+  const week1Monday = new Date(jan4)
+  week1Monday.setUTCDate(jan4.getUTCDate() - (jan4Day - 1))
+  const monday = new Date(week1Monday)
+  monday.setUTCDate(week1Monday.getUTCDate() + (week - 1) * 7)
+  const sunday = new Date(monday)
+  sunday.setUTCDate(monday.getUTCDate() + 6)
+  const fmt = (d: Date) =>
+    d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+  return `This week · ${fmt(monday)} – ${fmt(sunday)}`
+}
+
 interface WeeklyReflectionModalProps {
   goal: Goal | null
   open: boolean
@@ -59,7 +78,9 @@ export function WeeklyReflectionModal({ goal, open, onOpenChange }: WeeklyReflec
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>Weekly reflection — {goal.title}</DialogTitle>
-          {weekKey && <p className="text-xs text-zinc-500">{weekKey}</p>}
+          {weekKey && (
+            <p className="text-xs text-zinc-500">{humanWeekLabel(weekKey)}</p>
+          )}
         </DialogHeader>
 
         <div className="mt-4 space-y-5">

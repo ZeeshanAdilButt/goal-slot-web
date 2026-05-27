@@ -46,6 +46,13 @@ export function SettingsIntegrationsTab() {
   }
 
   const handleDelete = () => {
+    const ok =
+      typeof window !== 'undefined'
+        ? window.confirm(
+            `Remove your ${PROVIDER_META[savedProvider].label} key? The Coach will stop working until you add a new one.`,
+          )
+        : true
+    if (!ok) return
     deleteKey()
     setPendingProvider('openai')
     toast.success('API key removed')
@@ -71,8 +78,9 @@ export function SettingsIntegrationsTab() {
         />
 
         <p className="text-sm text-zinc-600 mb-4">
-          Use your own API key to power the coach. Your key stays in this browser and is never sent to our servers.
-          You can rotate or remove it at any time.
+          Use your own API key to power the Coach. We send it to our server only to encrypt it (AES-GCM)
+          and store it for your future requests — it is never logged, never shared, and you can rotate
+          or remove it at any time. Charges go directly to your provider account.
         </p>
 
         {/* Provider switcher */}

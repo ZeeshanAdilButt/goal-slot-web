@@ -24,6 +24,8 @@ import {
 
 import { useAuthStore, useIsAdmin } from '@/lib/store'
 import { cn } from '@/lib/utils'
+import { useCoachInsights } from '@/features/coach/hooks/use-coach-insights'
+import { Badge } from '@/components/ui/badge'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   Sidebar,
@@ -67,6 +69,8 @@ export function AppSidebar() {
   const pathname = usePathname()
   const { user, logout } = useAuthStore()
   const isAdmin = useIsAdmin()
+  const { insights: proposedInsights } = useCoachInsights('PROPOSED')
+  const proposedCount = proposedInsights.length
   const { state, isMobile } = useSidebar()
   const [popoverOpen, setPopoverOpen] = useState(false)
   const isCollapsed = state === 'collapsed'
@@ -106,6 +110,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {navItems.map((item) => {
                 const isActive = item.href === activeNavHref
+                const showCoachBadge = item.href === '/dashboard/coach' && proposedCount > 0
 
                 return (
                   <SidebarMenuItem key={item.href}>
@@ -123,6 +128,14 @@ export function AppSidebar() {
                           )}
                         />
                         <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
+                        {showCoachBadge && (
+                          <Badge
+                            variant="brand"
+                            className="ml-auto group-data-[collapsible=icon]:hidden"
+                          >
+                            {proposedCount}
+                          </Badge>
+                        )}
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
