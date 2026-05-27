@@ -348,19 +348,18 @@ function TaskCard({
         if (!dragging) onView?.(task)
       }}
       className={cn(
-        'group relative flex cursor-pointer flex-col gap-2 rounded-md border border-secondary/20 bg-white p-2 transition-all sm:p-2.5',
-        dragging ? '' : 'hover:-translate-x-0.5 hover:-translate-y-0.5 hover:border-secondary/40',
+        'group relative flex cursor-pointer flex-col gap-2 rounded-md border border-l-4 border-zinc-200 bg-white p-3 transition-all sm:p-3',
+        statusStyle.border,
+        dragging ? '' : 'hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-sm',
       )}
     >
-      <div aria-hidden className={cn('pointer-events-none absolute inset-0 opacity-70', statusStyle.glow)} />
-
       <div className="relative flex flex-col gap-2">
         <div className="flex items-start gap-2">
-          <h3 className="flex-1 font-display text-sm font-bold uppercase leading-tight text-secondary transition-colors hover:text-primary hover:underline sm:text-base">
+          <h3 className="flex-1 text-sm font-semibold leading-snug text-zinc-900 transition-colors hover:text-zinc-700 sm:text-[15px]">
             {task.title}
           </h3>
           {task.estimatedMinutes ? (
-            <span className="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider hidden text-[10px] sm:inline-flex sm:text-xs">
+            <span className="hidden shrink-0 items-center rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-zinc-600 sm:inline-flex">
               {parseFloat((task.estimatedMinutes / 60).toFixed(2))}h
             </span>
           ) : null}
@@ -369,17 +368,17 @@ function TaskCard({
           <HtmlContent
             html={task.description}
             truncate={2}
-            className="hidden text-[11px] leading-relaxed text-secondary/80 sm:block sm:text-xs"
+            className="hidden text-[12px] leading-relaxed text-zinc-600 sm:block"
           />
         ) : null}
-        <div className="hidden flex-wrap items-center gap-2 sm:flex">
+        <div className="hidden flex-wrap items-center gap-1.5 sm:flex">
           {task.goal?.title ? (
-            <span className="rounded-sm border border-zinc-200 bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-secondary">
+            <span className="rounded border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 text-[10px] font-medium text-zinc-700">
               {task.goal.title}
             </span>
           ) : null}
           {task.dueDate ? (
-            <span className="rounded-sm border border-dashed border-secondary/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-secondary/80">
+            <span className="rounded border border-dashed border-zinc-300 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500">
               Due {new Date(task.dueDate).toLocaleDateString()}
             </span>
           ) : null}

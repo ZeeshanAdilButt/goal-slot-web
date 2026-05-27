@@ -1,10 +1,13 @@
 'use client'
 
+import { useState } from 'react'
+
 import { JournalEntry } from '@/features/journal/hooks/use-journal-entries'
-import { Calendar } from 'lucide-react'
+import { Calendar, Plus } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { GlassCard } from '@/components/ui/glass-card'
 import { SectionHeader } from '@/components/ui/section-header'
@@ -22,10 +25,62 @@ function formatDate(date: string): string {
   return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
 }
 
+function todayKey(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSidebarProps) {
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [pickerValue, setPickerValue] = useState(todayKey())
+
+  const handleAdd = () => {
+    if (!pickerValue) return
+    onSelect(pickerValue)
+    setPickerOpen(false)
+  }
+
   return (
-    <GlassCard padded={false} className="p-4 space-y-2">
-      <SectionHeader title="Past entries" />
+    <GlassCard padded={false} className="p-4 space-y-3">
+      <SectionHeader
+        title="Past entries"
+        action={
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => setPickerOpen((o) => !o)}
+            aria-expanded={pickerOpen}
+          >
+            <Plus className="h-3.5 w-3.5" />
+            New
+          </Button>
+        }
+      />
+
+      {pickerOpen && (
+        <div className="space-y-2 rounded-md border border-zinc-200 bg-zinc-50 p-2.5">
+          <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+            Entry date
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={pickerValue}
+              max={todayKey()}
+              onChange={(e) => setPickerValue(e.target.value)}
+              className="h-9 flex-1 rounded-md border border-zinc-200 bg-white px-2 text-sm text-zinc-900 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
+            />
+            <Button type="button" variant="brand" size="sm" onClick={handleAdd} disabled={!pickerValue}>
+              Open
+            </Button>
+          </div>
+          <p className="text-[11px] text-zinc-500">
+            One entry per day. Picking a date you&apos;ve already used will open that entry.
+          </p>
+        </div>
+      )}
+
       {entries.length === 0 ? (
         <EmptyState
           icon={<Calendar />}

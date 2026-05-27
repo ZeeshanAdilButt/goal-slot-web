@@ -2,8 +2,6 @@
 
 import { useMemo } from 'react'
 
-import { AskTheCoach } from '@/features/reports/components/ask-the-coach'
-import { CoachNarrative } from '@/features/reports/components/coach-narrative'
 import { FocusBreakdownCard } from '@/features/reports/components/focus-breakdown-card'
 import { FocusCategoryPieCard } from '@/features/reports/components/focus-category-pie-card'
 import { emptyFilters, FocusFilters, type ReportFilterState } from '@/features/reports/components/focus-filters'
@@ -14,7 +12,7 @@ import { FocusTimeGridCard } from '@/features/reports/components/focus-time-grid
 import { FocusTrendCard } from '@/features/reports/components/focus-trend-card'
 import { ViewGranularityTabs } from '@/features/reports/components/view-granularity-tabs'
 import type { FocusGranularity } from '@/features/reports/utils/types'
-import { endOfMonth, endOfWeek, format, getISOWeek, startOfMonth, startOfWeek } from 'date-fns'
+import { endOfMonth, endOfWeek, format, startOfMonth, startOfWeek } from 'date-fns'
 
 import { useLocalStorage } from '@/hooks/use-local-storage'
 import { PageHeader } from '@/components/ui/page-header'
@@ -59,22 +57,6 @@ export function FocusPage() {
 
   const dateRange = useMemo(() => getDateRangeForView(view), [view])
 
-  const reportPeriodKey = useMemo(() => {
-    const today = new Date()
-    switch (view) {
-      case 'day':
-        return `day-${format(today, 'yyyy-MM-dd')}`
-      case 'week': {
-        const week = getISOWeek(today)
-        return `${today.getFullYear()}-W${String(week).padStart(2, '0')}`
-      }
-      case 'month':
-        return `month-${format(today, 'yyyy-MM')}`
-      default:
-        return 'current'
-    }
-  }, [view])
-
   return (
     <PageShell>
       <PageHeader
@@ -105,8 +87,6 @@ export function FocusPage() {
         }
       />
 
-      <CoachNarrative reportPeriodKey={reportPeriodKey} />
-
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <FocusBreakdownCard view={view} groupBy={groupBy} filters={filters} />
         <FocusTrendCard view={view} filters={filters} />
@@ -124,8 +104,6 @@ export function FocusPage() {
       <div className="grid grid-cols-1 gap-6">
         <FocusTaskTotalCard view={view} filters={filters} />
       </div>
-
-      <AskTheCoach reportPeriodKey={reportPeriodKey} />
     </PageShell>
   )
 }

@@ -17,6 +17,7 @@ import {
   MessageSquare,
   Share2,
   Shield,
+  Sparkles,
   Target,
   Users,
 } from 'lucide-react'
@@ -51,6 +52,7 @@ const navItems = [
   { href: '/dashboard/time-tracker', label: 'Time Tracker', icon: Clock },
   { href: '/dashboard/reports', label: 'Reports', icon: BarChart3 },
   { href: '/dashboard/reports/export', label: 'Export Reports', icon: Download },
+  { href: '/dashboard/coach', label: 'Coach', icon: Sparkles },
   { href: '/dashboard/sharing', label: 'Sharing', icon: Share2 },
 ]
 

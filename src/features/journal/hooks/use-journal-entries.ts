@@ -87,6 +87,20 @@ export function useJournalEntries() {
   )
 
   const selectDate = useCallback((date: string) => {
+    setEntries((prev) => {
+      if (prev.some((e) => e.date === date)) return prev
+      const fresh: JournalEntry = {
+        id: makeId(),
+        date,
+        mood: null,
+        energy: null,
+        content: '',
+        updatedAt: new Date().toISOString(),
+      }
+      const next = [...prev, fresh]
+      writeEntries(next)
+      return next
+    })
     setSelectedDate(date)
   }, [])
 

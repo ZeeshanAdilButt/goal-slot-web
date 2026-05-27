@@ -4,7 +4,12 @@ import { useCategoriesQuery } from '@/features/categories'
 import { useCreateTimeEntry } from '@/features/time-tracker/hooks/use-time-tracker-mutations'
 import { TaskSelector } from '@/features/time-tracker/components/task-selector'
 import { buildLocalDateFromParts, findScheduleBlockForDateTime } from '@/features/time-tracker/utils/schedule'
-import { filterTasks, getCategoryFromGoal, getGoalIdFromCategory, getTaskByGoalOrCategory } from '@/features/time-tracker/utils/selection-helpers'
+import {
+  filterTasks,
+  getCategoryFromGoal,
+  getGoalIdFromCategory,
+  sortTasksBySelection,
+} from '@/features/time-tracker/utils/selection-helpers'
 import { Goal, Task } from '@/features/time-tracker/utils/types'
 import { WeekSchedule } from '@/features/schedule/utils/types'
 import { useQueryClient } from '@tanstack/react-query'
@@ -32,11 +37,21 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
   const [startTime, setStartTime] = useState(getLocalTimeString())
   const [taskId, setTaskId] = useState('')
   const [scheduleBlockId, setScheduleBlockId] = useState('')
+  // Becomes true the moment the user makes any explicit change (picks a task,
+  // changes the goal dropdown, types a custom title, edits category, etc).
+  // Once true, the schedule auto-bind effect below stops snapping fields back
+  // to the current-time schedule block.
+  const [userOverride, setUserOverride] = useState(false)
 
   const createEntry = useCreateTimeEntry()
   const queryClient = useQueryClient()
   const { data: categories = [] } = useCategoriesQuery()
-  const visibleTasks = filterTasks(tasks, category || undefined, goalId || undefined)
+  // Show ALL tasks for the selected goal — sorting puts the category-matching
+  // ones first but doesn't exclude others (a goal can have multiple DOING tasks
+  // across categories).
+  const visibleTasks = goalId
+    ? sortTasksBySelection(filterTasks(tasks, undefined, goalId), goalId, category || undefined)
+    : sortTasksBySelection(tasks, undefined, category || undefined)
 
   // Set default category when categories load
   useEffect(() => {
@@ -52,14 +67,19 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
     }
   }, [goals, goalId, taskId])
 
-  // Reset date/time defaults whenever the modal opens so schedule detection uses the current local context
+  // Reset date/time defaults AND override flag whenever the modal opens so
+  // schedule detection uses the current local context.
   useEffect(() => {
     if (isOpen) {
       setDate(getLocalDateString())
       setStartTime(getLocalTimeString())
+      setUserOverride(false)
     }
   }, [isOpen])
 
+  // Schedule auto-bind: prefill goal/category/title from the schedule block
+  // covering the chosen date+time — BUT only while the user hasn't made any
+  // explicit choice yet. Once they override, we never snap back.
   useEffect(() => {
     if (!isOpen) {
       setScheduleBlockId('')
@@ -78,18 +98,12 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
 
     setScheduleBlockId(activeBlock.id)
 
-    if (!taskId && activeBlock.goalId) {
-      setGoalId(activeBlock.goalId)
-    }
+    if (userOverride) return
 
-    if (!taskId && !category && activeBlock.category) {
-      setCategory(activeBlock.category)
-    }
-
-    if (!taskId && !title) {
-      setTitle(activeBlock.title)
-    }
-  }, [isOpen, weeklySchedule, date, startTime, taskId, category, title])
+    if (activeBlock.goalId) setGoalId(activeBlock.goalId)
+    if (activeBlock.category) setCategory(activeBlock.category)
+    if (!title) setTitle(activeBlock.title)
+  }, [isOpen, weeklySchedule, date, startTime, userOverride])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -136,6 +150,7 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
   }
 
   const handleTaskIdChange = (id: string) => {
+    setUserOverride(true)
     setTaskId(id)
     if (!id) return
 
@@ -234,14 +249,12 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
               value={category}
               onValueChange={(value) => {
                 if (taskId) return
+                setUserOverride(true)
                 setCategory(value)
                 const linkedGoal = getGoalIdFromCategory(value, goals)
-                setGoalId(linkedGoal)
-                const linkedTask = getTaskByGoalOrCategory(tasks, linkedGoal || undefined, value)
-                if (linkedTask) {
-                  setTaskId(linkedTask.id)
-                  setTitle(linkedTask.title)
-                }
+                if (linkedGoal) setGoalId(linkedGoal)
+                // Intentionally do NOT auto-pick a task — let the user choose
+                // from the (possibly multiple) DOING tasks for the goal.
               }}
               disabled={!!taskId}
             >
@@ -266,17 +279,15 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
               value={goalId || 'no_goal'}
               onValueChange={(value) => {
                 if (taskId) return
+                setUserOverride(true)
                 const normalized = value === 'no_goal' ? '' : value
                 setGoalId(normalized)
                 const derivedCategory = getCategoryFromGoal(normalized, goals)
                 if (derivedCategory) {
                   setCategory(derivedCategory)
                 }
-                const linkedTask = getTaskByGoalOrCategory(tasks, normalized || undefined, derivedCategory || category)
-                if (linkedTask) {
-                  setTaskId(linkedTask.id)
-                  setTitle(linkedTask.title)
-                }
+                // Intentionally do NOT auto-pick a task — let the user choose
+                // from the (possibly multiple) DOING tasks for the goal.
               }}
               disabled={!!taskId}
             >

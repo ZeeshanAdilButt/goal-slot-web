@@ -34,8 +34,11 @@ export function TaskProgress({ task }: TaskProgressProps) {
       </div>
 
       {estimatedMinutes ? (
-        <div className="progress-brutal rounded-sm">
-          <div className={cn('progress-brutal-fill', statusStyle.fill)} style={{ width: `${progress}%` }} />
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-100">
+          <div
+            className={cn('h-full rounded-full transition-all duration-300', statusStyle.fill)}
+            style={{ width: `${progress}%` }}
+          />
         </div>
       ) : null}
     </div>

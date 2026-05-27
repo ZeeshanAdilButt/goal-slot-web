@@ -2,33 +2,44 @@
 
 import { useState } from 'react'
 
-import { useByokKey } from '@/features/settings/hooks/use-byok-key'
+import { ByokProvider, PROVIDER_META, useByokKey } from '@/features/settings/hooks/use-byok-key'
 import { KeyRound, Trash2 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
+import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { GlassCard } from '@/components/ui/glass-card'
 import { Input } from '@/components/ui/input'
 import { SectionHeader } from '@/components/ui/section-header'
 
+const PROVIDERS: ByokProvider[] = ['openai', 'anthropic']
+
 export function SettingsIntegrationsTab() {
-  const { maskedKey, status, tokensUsed, tokensLimit, saveKey, deleteKey } = useByokKey()
+  const { provider: savedProvider, maskedKey, status, tokensUsed, tokensLimit, saveKey, deleteKey } = useByokKey()
+  const [pendingProvider, setPendingProvider] = useState<ByokProvider>(savedProvider)
   const [rawKey, setRawKey] = useState('')
   const [isSaving, setIsSaving] = useState(false)
 
+  const activeProvider = status === 'active' ? savedProvider : pendingProvider
+  const meta = PROVIDER_META[activeProvider]
   const tokenPct = tokensLimit > 0 ? Math.min(100, Math.round((tokensUsed / tokensLimit) * 100)) : 0
 
   const handleSave = () => {
-    if (!rawKey.trim() || rawKey.trim().length < 8) {
+    const trimmed = rawKey.trim()
+    if (trimmed.length < 8) {
       toast.error('Please enter a valid API key')
+      return
+    }
+    if (!trimmed.startsWith(meta.prefix)) {
+      toast.error(`${meta.label} keys start with "${meta.prefix}"`)
       return
     }
     setIsSaving(true)
     try {
-      saveKey(rawKey)
+      saveKey(trimmed, pendingProvider)
       setRawKey('')
-      toast.success('API key saved')
+      toast.success(`${meta.label} key saved`)
     } finally {
       setIsSaving(false)
     }
@@ -36,6 +47,7 @@ export function SettingsIntegrationsTab() {
 
   const handleDelete = () => {
     deleteKey()
+    setPendingProvider('openai')
     toast.success('API key removed')
   }
 
@@ -51,7 +63,7 @@ export function SettingsIntegrationsTab() {
           }
           action={
             status === 'active' ? (
-              <Badge variant="success">Active</Badge>
+              <Badge variant="success">{PROVIDER_META[savedProvider].label} · Active</Badge>
             ) : (
               <Badge variant="default">Not Configured</Badge>
             )
@@ -59,9 +71,40 @@ export function SettingsIntegrationsTab() {
         />
 
         <p className="text-sm text-zinc-600 mb-4">
-          Use your own Anthropic API key to power the coach. Your key stays in this browser and is never sent to our
-          servers. You can rotate or remove it at any time.
+          Use your own API key to power the coach. Your key stays in this browser and is never sent to our servers.
+          You can rotate or remove it at any time.
         </p>
+
+        {/* Provider switcher */}
+        <div className="mb-4">
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-500">Provider</label>
+          <div className="inline-flex rounded-lg border border-zinc-200 bg-zinc-50 p-1">
+            {PROVIDERS.map((p) => {
+              const isActive = status === 'active' ? savedProvider === p : pendingProvider === p
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => {
+                    if (status === 'active' && savedProvider !== p) {
+                      toast(
+                        `Remove the current ${PROVIDER_META[savedProvider].label} key first to switch providers.`,
+                      )
+                      return
+                    }
+                    setPendingProvider(p)
+                  }}
+                  className={cn(
+                    'rounded-md px-3 py-1 text-sm font-medium transition-colors',
+                    isActive ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-600 hover:text-zinc-900',
+                  )}
+                >
+                  {PROVIDER_META[p].label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
 
         {status === 'active' && (
           <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2">
@@ -75,13 +118,13 @@ export function SettingsIntegrationsTab() {
 
         <div className="space-y-2">
           <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-            {status === 'active' ? 'Replace key' : 'API key'}
+            {status === 'active' ? 'Replace key' : `${meta.label} API key`}
           </label>
           <div className="flex flex-col gap-2 sm:flex-row">
             <Input
               type="password"
               autoComplete="off"
-              placeholder="sk-ant-..."
+              placeholder={meta.placeholder}
               value={rawKey}
               onChange={(e) => setRawKey(e.target.value)}
               className="flex-1 font-mono"
@@ -93,36 +136,38 @@ export function SettingsIntegrationsTab() {
           <p className="text-[11px] text-zinc-500">
             Get a key at{' '}
             <a
-              href="https://console.anthropic.com/settings/keys"
+              href={meta.consoleUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="underline hover:text-zinc-700"
             >
-              console.anthropic.com
+              {meta.consoleUrl.replace(/^https?:\/\//, '')}
             </a>
             .
           </p>
         </div>
       </GlassCard>
 
-      <GlassCard padded>
-        <SectionHeader title="Token usage" />
-        <div className="space-y-2">
-          <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-semibold text-zinc-900">{tokensUsed.toLocaleString()}</span>
-            <span className="text-xs text-zinc-500">
-              of {tokensLimit.toLocaleString()} this month ({tokenPct}%)
-            </span>
+      {status === 'active' && (
+        <GlassCard padded>
+          <SectionHeader title="Token usage" />
+          <div className="space-y-2">
+            <div className="flex items-baseline justify-between">
+              <span className="text-2xl font-semibold text-zinc-900">{tokensUsed.toLocaleString()}</span>
+              <span className="text-xs text-zinc-500">
+                of {tokensLimit.toLocaleString()} this month ({tokenPct}%)
+              </span>
+            </div>
+            <div className="h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+              <div className="h-full bg-[#f2cc0d] transition-all" style={{ width: `${tokenPct}%` }} />
+            </div>
+            <p className="text-[11px] text-zinc-500">
+              Usage resets on the first day of each month. With BYOK active, charges go directly to your{' '}
+              {PROVIDER_META[savedProvider].label} account.
+            </p>
           </div>
-          <div className="h-1.5 bg-zinc-100 rounded-full overflow-hidden">
-            <div className="h-full bg-[#f2cc0d] transition-all" style={{ width: `${tokenPct}%` }} />
-          </div>
-          <p className="text-[11px] text-zinc-500">
-            Usage resets on the first day of each month. With BYOK active, charges go directly to your Anthropic
-            account.
-          </p>
-        </div>
-      </GlassCard>
+        </GlassCard>
+      )}
     </div>
   )
 }

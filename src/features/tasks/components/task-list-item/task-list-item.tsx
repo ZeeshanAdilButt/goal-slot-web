@@ -44,18 +44,14 @@ export function TaskListItem({ task, onComplete, onEdit }: TaskListItemProps) {
   return (
     <div
       className={cn(
-        'rounded-xl border border-zinc-200 bg-white p-4 shadow-sm relative h-full overflow-hidden p-3 transition-all duration-150 sm:p-4 md:p-5',
-        'hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-sm',
+        'rounded-xl border border-l-4 border-zinc-200 bg-white p-4 shadow-sm relative h-full overflow-hidden p-3 transition-all duration-150 sm:p-4 md:p-5',
+        statusStyle.border,
+        'hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-sm',
         task.status === 'DONE' ? 'opacity-90' : '',
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div
-        aria-hidden
-        className={cn('pointer-events-none absolute inset-0 bg-gradient-to-br opacity-80', statusStyle.glow)}
-      />
-
       <div className="relative flex h-full flex-col gap-2 sm:gap-3">
         <div className="flex-1 space-y-2 sm:space-y-3">
           {/* Mobile: Full-width title, then actions below */}
