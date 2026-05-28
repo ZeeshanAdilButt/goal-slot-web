@@ -1,25 +1,21 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 
 import { useTimeTrackerData } from '@/features/time-tracker/hooks/use-time-tracker-queries'
 import { findScheduleBlockForDateTime } from '@/features/time-tracker/utils/schedule'
-import { Target } from 'lucide-react'
+import { ArrowRight, Target } from 'lucide-react'
 
 import { formatTime12h } from '@/lib/utils'
 
-interface FocusNowBarProps {
-  className?: string
-}
-
 /**
- * Inline strip showing what schedule block (and therefore goal) is active
- * right now, with a countdown to the end of the block. Renders nothing when
- * no block is currently active. Used inside the persistent header banner
- * when the timer is stopped, so the user always sees the answer to
- * "what should I be doing right now?".
+ * Standalone strip rendered under the persistent header bar telling the
+ * user what schedule block is active right now, with the linked goal and
+ * minutes remaining. Includes a "View Schedule" link to jump straight in.
+ * Renders nothing during free time so the chrome stays clean.
  */
-export function FocusNowBar({ className }: FocusNowBarProps) {
+export function FocusNowBar() {
   const { weeklySchedule } = useTimeTrackerData()
   const [now, setNow] = useState(() => new Date())
 
@@ -35,7 +31,6 @@ export function FocusNowBar({ className }: FocusNowBarProps) {
 
   if (!activeBlock) return null
 
-  // Calculate minutes remaining in the block.
   const [endH, endM] = (activeBlock.endTime || '').split(':').map(Number)
   const endMinutes = endH * 60 + endM
   const nowMinutes = now.getHours() * 60 + now.getMinutes()
@@ -46,26 +41,34 @@ export function FocusNowBar({ className }: FocusNowBarProps) {
       : `${minutesLeft}m left`
 
   return (
-    <div
-      className={className}
-      title={`On schedule: ${activeBlock.title} (${formatTime12h(activeBlock.startTime)} to ${formatTime12h(activeBlock.endTime)})`}
-    >
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-[#f2cc0d]/40 bg-[#fffbea] px-2.5 py-0.5 text-[11px] font-medium text-[#8a7307]">
-        <span className="relative flex h-1.5 w-1.5">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#f2cc0d] opacity-60" />
-          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#f2cc0d]" />
+    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-[#f2cc0d]/30 bg-[#fffbea] px-4 py-1.5 text-xs">
+      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-[#8a7307]">
+        <span className="inline-flex items-center gap-1.5">
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#f2cc0d] opacity-60" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#f2cc0d]" />
+          </span>
+          <span className="font-semibold uppercase tracking-wider text-[10px]">Focus now</span>
         </span>
-        <span className="truncate">
-          <span className="font-semibold">Focus now:</span> {activeBlock.title}
-        </span>
+        <span className="truncate font-semibold text-zinc-900">{activeBlock.title}</span>
         {activeBlock.goal?.title && (
-          <span className="hidden items-center gap-1 text-[10px] text-[#8a7307]/80 sm:inline-flex">
+          <span className="inline-flex items-center gap-1 text-[#8a7307]/80">
             <Target className="h-3 w-3" />
             {activeBlock.goal.title}
           </span>
         )}
-        <span className="text-[10px] text-[#8a7307]/80">· {remaining}</span>
-      </span>
+        <span className="text-[#8a7307]/80">
+          · {formatTime12h(activeBlock.startTime)} to {formatTime12h(activeBlock.endTime)}
+        </span>
+        <span className="text-[#8a7307]/80">· {remaining}</span>
+      </div>
+      <Link
+        href="/dashboard/schedule"
+        className="inline-flex shrink-0 items-center gap-1 text-[11px] font-semibold text-[#8a7307] hover:text-[#6b5905]"
+      >
+        View Schedule
+        <ArrowRight className="h-3 w-3" />
+      </Link>
     </div>
   )
 }

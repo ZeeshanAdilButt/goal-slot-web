@@ -10,6 +10,7 @@ import { useAuthStore } from '@/lib/store'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { GoalSlotSpinner } from '@/components/goalslot-logo'
+import { FocusNowBar } from '@/components/focus-now-bar'
 import { TimeEntryBanner } from '@/components/time-entry-banner'
 
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
@@ -53,6 +54,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           <SidebarTrigger className="h-9 w-9 rounded-md hover:bg-zinc-100 text-zinc-700" />
         </div>
         <TimeEntryBanner />
+        <FocusNowBar />
         <ReleaseNoteBanner />
         <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
       </SidebarInset>

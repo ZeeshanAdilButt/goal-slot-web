@@ -71,10 +71,9 @@ export function TimeEntryBanner() {
     // or capture a note from any dashboard page without navigating first.
     return (
       <div className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 bg-white px-4 py-2">
-        <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-zinc-500">
-          <Clock3 className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
+        <div className="flex items-center gap-2 text-xs text-zinc-500">
+          <Clock3 className="h-3.5 w-3.5 text-zinc-400" />
           <span className="font-medium text-zinc-700">Not tracking</span>
-          <FocusNowBar />
         </div>
         <div className="flex items-center gap-2">
           <Link href="/dashboard/notes?action=new">
