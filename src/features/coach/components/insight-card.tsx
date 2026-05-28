@@ -16,11 +16,15 @@ const KIND_LABEL: Record<CoachInsightKindEnum, string> = {
   MEDIA_PROMPT: 'Media',
 }
 
+// Kind pills all share the brand vocabulary: the high-signal ones
+// (SUGGESTION, EXPERIMENT, MEDIA_PROMPT) use the dark brand pill so the
+// Coach surface reads as one product instead of a rainbow of accents;
+// OBSERVATION is the quieter neutral pill since it isn't actionable.
 const KIND_CLASSES: Record<CoachInsightKindEnum, string> = {
   OBSERVATION: 'border-zinc-200 bg-zinc-50 text-zinc-700',
-  SUGGESTION: 'border-yellow-400/30 bg-yellow-400/10 text-yellow-800',
-  EXPERIMENT: 'border-amber-200 bg-amber-50 text-amber-700',
-  MEDIA_PROMPT: 'border-violet-200 bg-violet-50 text-violet-700',
+  SUGGESTION: 'border-zinc-900 bg-zinc-900 text-[#f2cc0d]',
+  EXPERIMENT: 'border-zinc-900 bg-zinc-900 text-[#f2cc0d]',
+  MEDIA_PROMPT: 'border-zinc-900 bg-zinc-900 text-[#f2cc0d]',
 }
 
 interface InsightCardProps {
@@ -126,7 +130,7 @@ export function InsightCard({ insight, onUpdate, onDelete }: InsightCardProps) {
             {KIND_LABEL[insight.kind]}
           </span>
           {insight.kind === 'MEDIA_PROMPT' && (insight.mediaSlot || insight.mediaTopic) && (
-            <span className="inline-flex items-center rounded-full border border-violet-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-violet-700">
+            <span className="inline-flex items-center rounded-full border border-zinc-300 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-700">
               {[insight.mediaSlot, insight.mediaTopic].filter(Boolean).join(' · ')}
             </span>
           )}
