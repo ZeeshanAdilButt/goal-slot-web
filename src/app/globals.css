@@ -100,10 +100,12 @@
 /* Journal night mode bleeds into the surrounding dashboard chrome so
    the whole app dims when the user turns on the journal lamp. The
    journal page sets [data-journal-night="true"] on <html> while
-   mounted + lamp on, and clears it on unmount or lamp off. We avoid
-   touching journal-page elements here — those already manage their
-   own dark state via JSX. These rules target the dashboard layout
-   shell + sidebars only. */
+   mounted + lamp on, and clears it on unmount or lamp off. The journal
+   page itself manages its own dark state via JSX; these rules invert
+   every other surface — dashboard shell, sidebars, page headers,
+   cards, banners, modals, popovers — so the entire app reads as
+   night. Brand-yellow tints (#f2cc0d / #fffbea / #fff7d1 / #fff3a8 /
+   #8a7307) are explicitly preserved as the warm light source. */
 html[data-journal-night='true'] body,
 html[data-journal-night='true'] [data-sidebar='sidebar'],
 html[data-journal-night='true'] [data-sidebar='inset'] {
@@ -121,6 +123,121 @@ html[data-journal-night='true'] [data-sidebar='sidebar'] button {
 html[data-journal-night='true'] [data-sidebar='sidebar'] a:hover,
 html[data-journal-night='true'] [data-sidebar='sidebar'] button:hover {
   background-color: #18181b;
+}
+
+/* Broad surface inversion. Tailwind utility classes (.bg-white,
+   .text-zinc-900, etc.) end up as literal classnames in the compiled
+   CSS, so we can target them directly here. !important is required to
+   beat component-level utility specificity. The brand-yellow family
+   is intentionally NOT inverted — the lamp glow should remain the
+   only warm light source against the cold night chrome. */
+
+/* Surfaces */
+html[data-journal-night='true'] .bg-white,
+html[data-journal-night='true'] [data-radix-popper-content-wrapper] .bg-white {
+  background-color: #09090b !important;
+}
+html[data-journal-night='true'] .bg-zinc-50,
+html[data-journal-night='true'] [data-radix-popper-content-wrapper] .bg-zinc-50 {
+  background-color: #18181b !important;
+}
+html[data-journal-night='true'] .bg-zinc-100,
+html[data-journal-night='true'] [data-radix-popper-content-wrapper] .bg-zinc-100 {
+  background-color: #27272a !important;
+}
+html[data-journal-night='true'] .bg-\[\#fafafa\] {
+  background-color: #09090b !important;
+}
+
+/* Translucent whites used for glassy overlays */
+html[data-journal-night='true'] .bg-white\/95,
+html[data-journal-night='true'] .bg-white\/90,
+html[data-journal-night='true'] .bg-white\/80,
+html[data-journal-night='true'] .bg-white\/70,
+html[data-journal-night='true'] .bg-white\/60,
+html[data-journal-night='true'] .bg-white\/50 {
+  background-color: rgba(9, 9, 11, 0.9) !important;
+}
+
+/* Text */
+html[data-journal-night='true'] .text-zinc-900,
+html[data-journal-night='true'] [data-radix-popper-content-wrapper] .text-zinc-900 {
+  color: #f4f4f5 !important;
+}
+html[data-journal-night='true'] .text-zinc-800,
+html[data-journal-night='true'] [data-radix-popper-content-wrapper] .text-zinc-800 {
+  color: #e4e4e7 !important;
+}
+html[data-journal-night='true'] .text-zinc-700,
+html[data-journal-night='true'] [data-radix-popper-content-wrapper] .text-zinc-700 {
+  color: #e4e4e7 !important;
+}
+html[data-journal-night='true'] .text-zinc-600,
+html[data-journal-night='true'] [data-radix-popper-content-wrapper] .text-zinc-600 {
+  color: #d4d4d8 !important;
+}
+html[data-journal-night='true'] .text-zinc-500,
+html[data-journal-night='true'] [data-radix-popper-content-wrapper] .text-zinc-500 {
+  color: #a1a1aa !important;
+}
+
+/* Borders */
+html[data-journal-night='true'] .border-zinc-200,
+html[data-journal-night='true'] [data-radix-popper-content-wrapper] .border-zinc-200 {
+  border-color: #27272a !important;
+}
+html[data-journal-night='true'] .border-zinc-100,
+html[data-journal-night='true'] [data-radix-popper-content-wrapper] .border-zinc-100 {
+  border-color: #18181b !important;
+}
+html[data-journal-night='true'] .border-zinc-300 {
+  border-color: #3f3f46 !important;
+}
+html[data-journal-night='true'] .divide-zinc-200 > * + * {
+  border-color: #27272a !important;
+}
+html[data-journal-night='true'] .divide-zinc-100 > * + * {
+  border-color: #18181b !important;
+}
+
+/* Drop shadows look wrong on a dark background — flatten them so cards
+   read as floating panels by their borders, not their shadow. */
+html[data-journal-night='true'] .shadow-sm,
+html[data-journal-night='true'] .shadow,
+html[data-journal-night='true'] .shadow-md,
+html[data-journal-night='true'] .shadow-lg,
+html[data-journal-night='true'] .shadow-xl {
+  box-shadow: none !important;
+}
+
+/* Popover / dropdown surfaces (Radix portals these outside the normal
+   tree, so component-scoped styling can't reach them). */
+html[data-journal-night='true'] [data-radix-popper-content-wrapper] [role='menu'],
+html[data-journal-night='true'] [data-radix-popper-content-wrapper] [role='listbox'],
+html[data-journal-night='true'] [data-radix-popper-content-wrapper] [role='dialog'] {
+  background-color: #09090b !important;
+  color: #f4f4f5 !important;
+  border-color: #27272a !important;
+}
+
+/* Brand-yellow safeguards: even though we don't target these classes
+   above, some compound selectors (e.g. .bg-white inside a yellow
+   container) could still flip them. Re-assert the warm tints so the
+   lamp glow, banners, and pill chips stay yellow. */
+html[data-journal-night='true'] .bg-\[\#f2cc0d\] {
+  background-color: #f2cc0d !important;
+}
+html[data-journal-night='true'] .bg-\[\#fffbea\] {
+  background-color: #fffbea !important;
+}
+html[data-journal-night='true'] .bg-\[\#fff7d1\] {
+  background-color: #fff7d1 !important;
+}
+html[data-journal-night='true'] .bg-\[\#fff3a8\] {
+  background-color: #fff3a8 !important;
+}
+html[data-journal-night='true'] .text-\[\#8a7307\] {
+  color: #8a7307 !important;
 }
 /* CoachIcon is a fixed-colour <img> (brand square logo) — it can't be
    re-tinted via currentColor. Invert it under night mode so the dark
