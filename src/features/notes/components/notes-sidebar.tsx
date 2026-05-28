@@ -29,7 +29,6 @@ import {
   ChevronRight,
   FileText,
   FolderPlus,
-  GripVertical,
   MoreHorizontal,
   Pencil,
   Plus,
@@ -336,12 +335,6 @@ function NoteItem({
 
   const elementRef = useRef<HTMLDivElement | null>(null)
 
-  // Combine refs
-  const setRef = (node: HTMLDivElement | null) => {
-    setDroppableRef(node)
-    elementRef.current = node
-  }
-
   // Drop zone for THIS row is whatever the parent resolved from rects.
   // Falls back to `inside` for the legacy ring style when the parent
   // hasn't resolved a zone yet but dnd-kit reports the row as hovered.
@@ -368,23 +361,29 @@ function NoteItem({
     preview?.position ??
     (preview?.kind === 'sub-note' || preview?.kind === 'reparent' ? 'inside' : 'bottom')
 
-  // The draggable node is a tiny grip handle; the row itself is just
-  // the droppable target. This keeps clicks near the chevron or action
-  // buttons from accidentally starting a drag on the parent row and
-  // also stops dnd-kit from intercepting the standard click that opens
-  // the note.
-  const setDraggableNode = (node: HTMLElement | null) => setNodeRef(node)
+  // The entire row owns the drag listeners + droppable. User wants the
+  // cross-arrow move cursor on the whole row and to grab from anywhere
+  // — no dedicated handle. Click still selects (axis-lock + 4px
+  // activator constraint together keep tiny clicks from registering as
+  // drags).
+  const setRowRef = (node: HTMLDivElement | null) => {
+    setNodeRef(node)
+    setDroppableRef(node)
+    elementRef.current = node
+  }
 
   return (
     <div className={className}>
       <div
-        ref={setRef}
+        ref={setRowRef}
+        {...attributes}
+        {...listeners}
         style={{
           paddingLeft: `${depth * 12 + 8}px`,
           ...style,
         }}
         className={cn(
-          'group relative flex items-center gap-1 rounded-md px-2 py-1.5 text-sm transition-[background-color,box-shadow,transform] duration-150 select-none',
+          'group relative flex items-center gap-1 rounded-md px-2 py-1.5 text-sm transition-[background-color,box-shadow,transform] duration-150 select-none cursor-move',
           isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-zinc-50',
           // Multi-select highlight (ctrl/cmd-click): brand-yellow tint
           // + ring so the marked-for-action notes are obvious without
@@ -455,29 +454,6 @@ function NoteItem({
         ) : (
           <span aria-hidden className="block h-5 w-5 shrink-0" />
         )}
-
-        {/* Drag handle — the only element that owns dnd-kit listeners.
-            Moves the entire row when grabbed. Hidden until hover so it
-            doesn't clutter the resting state; cursor-grab signals
-            affordance. Stops click bubbling so grabbing it never
-            doubles as a row-select. */}
-        <span
-          ref={setDraggableNode}
-          {...attributes}
-          {...listeners}
-          role="button"
-          tabIndex={-1}
-          aria-label="Drag to reorder"
-          title="Drag to reorder"
-          onClick={(e) => e.stopPropagation()}
-          className={cn(
-            'flex h-5 w-3 shrink-0 items-center justify-center rounded text-zinc-400 opacity-0 transition-opacity cursor-grab active:cursor-grabbing group-hover:opacity-100',
-            isDragging && 'opacity-100',
-            isSelected && 'text-primary-foreground/70',
-          )}
-        >
-          <GripVertical className="h-3.5 w-3.5" />
-        </span>
 
         {/* Icon — only render when the user picked a custom one. The
             default 📄 fallback was just visual noise on every row. */}
