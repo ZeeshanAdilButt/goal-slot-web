@@ -12,6 +12,7 @@ export interface Preset {
 
 export const PRESETS: Preset[] = [
   { name: 'last7', label: 'Last week' },
+  { name: 'thisMonth', label: 'This month' },
   { name: 'last30', label: 'Last month' },
   { name: 'last3Months', label: 'Last 3 months' },
   { name: 'last6Months', label: 'Last 6 months' },
@@ -91,6 +92,9 @@ export const getPresetRange = (name: string): InternalRange => {
   switch (name) {
     case 'last7':
       start.setDate(start.getDate() - 6)
+      break
+    case 'thisMonth':
+      start.setDate(1)
       break
     case 'last30':
       start.setDate(start.getDate() - 29)

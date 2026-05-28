@@ -96,3 +96,17 @@
     transform: scale(1) translateY(0);
   }
 }
+
+/* Soft brand-yellow pulse for the Journal sidebar icon. Stays subtle —
+   the glow expands and softens slightly to feel "magical", not flashy. */
+@keyframes journal-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 3px rgba(242, 204, 13, 0.55))
+      drop-shadow(0 0 8px rgba(242, 204, 13, 0.25));
+  }
+  50% {
+    filter: drop-shadow(0 0 6px rgba(242, 204, 13, 0.85))
+      drop-shadow(0 0 14px rgba(242, 204, 13, 0.5));
+  }
+}

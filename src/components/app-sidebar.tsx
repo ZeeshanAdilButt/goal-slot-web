@@ -6,7 +6,6 @@ import { usePathname, useRouter } from 'next/navigation'
 
 import {
   BarChart3,
-  BookOpen,
   Calendar,
   CheckSquare,
   Clock,
@@ -22,6 +21,7 @@ import {
 } from 'lucide-react'
 
 import { CoachIcon } from '@/components/icons/coach-icon'
+import { FeatherPenIcon } from '@/components/icons/feather-pen-icon'
 
 import { useAuthStore, useIsAdmin } from '@/lib/store'
 import { cn } from '@/lib/utils'
@@ -54,7 +54,7 @@ const navItems = [
   { href: '/dashboard/tasks', label: 'Tasks', icon: CheckSquare },
   { href: '/dashboard/time-tracker', label: 'Time Tracker', icon: Clock },
   // Reflection pair: Journal + Coach. Write your day, let the Coach analyse + remind.
-  { href: '/dashboard/journal', label: 'Journal', icon: BookOpen },
+  { href: '/dashboard/journal', label: 'Journal', icon: FeatherPenIcon },
   { href: '/dashboard/coach', label: 'Coach', icon: CoachIcon },
   // Auxiliary surfaces.
   { href: '/dashboard/notes', label: 'Notes', icon: FileText },
@@ -116,6 +116,7 @@ export function AppSidebar() {
               {navItems.map((item) => {
                 const isActive = item.href === activeNavHref
                 const showCoachBadge = item.href === '/dashboard/coach' && proposedCount > 0
+                const isJournal = item.href === '/dashboard/journal'
 
                 return (
                   <SidebarMenuItem key={item.href}>
@@ -130,6 +131,11 @@ export function AppSidebar() {
                           className={cn(
                             'h-4 w-4 group-data-[collapsible=icon]:-ml-1 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5',
                             isActive && 'text-[#f2cc0d]',
+                            // Journal gets a soft brand-yellow glow + slow
+                            // pulse to nudge daily journaling. Keep visible
+                            // even when not active so the habit is the focus.
+                            isJournal &&
+                              'text-[#f2cc0d] [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.7))_drop-shadow(0_0_10px_rgba(242,204,13,0.35))] motion-safe:animate-[journal-glow_2.4s_ease-in-out_infinite]',
                           )}
                         />
                         <span className="text-sm group-data-[collapsible=icon]:hidden">{item.label}</span>
