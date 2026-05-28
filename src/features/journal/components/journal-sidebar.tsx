@@ -106,10 +106,18 @@ export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSideb
   // Quick presets the user can click to set a common date range on the
   // calendar without having to click two days. Each computes [from, to]
   // for week (Sun-today), month-to-date, quarter-to-date, year-to-date.
-  const presets: { key: string; label: string; build: () => DateRange }[] = [
+  // Short labels so the 4 chips fit comfortably in the narrow sidebar
+  // even at 240px wide. Full names live in `title` for hover discoverability.
+  const presets: {
+    key: string
+    label: string
+    full: string
+    build: () => DateRange
+  }[] = [
     {
       key: 'week',
-      label: 'Week',
+      label: 'Wk',
+      full: 'This week',
       build: () => {
         const from = new Date(todayObj)
         from.setDate(todayObj.getDate() - todayObj.getDay())
@@ -118,7 +126,8 @@ export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSideb
     },
     {
       key: 'month',
-      label: 'Month',
+      label: 'Mo',
+      full: 'This month',
       build: () => ({
         from: new Date(todayObj.getFullYear(), todayObj.getMonth(), 1),
         to: todayObj,
@@ -126,7 +135,8 @@ export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSideb
     },
     {
       key: 'quarter',
-      label: 'Quarter',
+      label: 'Qtr',
+      full: 'This quarter',
       build: () => {
         const startMonth = Math.floor(todayObj.getMonth() / 3) * 3
         return {
@@ -137,7 +147,8 @@ export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSideb
     },
     {
       key: 'year',
-      label: 'Year',
+      label: 'Yr',
+      full: 'This year',
       build: () => ({
         from: new Date(todayObj.getFullYear(), 0, 1),
         to: todayObj,
@@ -178,19 +189,20 @@ export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSideb
     <div className="space-y-3">
       {/* Inline calendar pinned to the top with explicit month nav. */}
       <div className="rounded-lg border border-zinc-200 bg-white p-2">
-        {/* Quick range presets: segmented pill row with explicit gaps and a
-            white selected pill so the four buttons read as distinct
-            controls, not a merged blob. */}
-        <div className="mb-2 inline-flex w-full rounded-lg border border-zinc-200 bg-zinc-100 p-1">
+        {/* Compact segmented preset row — short labels (Wk / Mo / Qtr / Yr)
+            so the four chips fit cleanly in a narrow sidebar without
+            overflowing. Full names available on hover via title. */}
+        <div className="mb-2 grid grid-cols-4 gap-0.5 rounded-lg border border-zinc-200 bg-zinc-100 p-0.5">
           {presets.map((p) => {
             const isActive = activePresetKey === p.key
             return (
               <button
                 key={p.key}
                 type="button"
+                title={p.full}
                 onClick={() => handleRangeChange(p.build())}
                 className={cn(
-                  'flex-1 rounded-md px-2 py-1 text-[11px] font-semibold transition-all',
+                  'rounded-md px-1 py-1 text-[10px] font-bold uppercase tracking-wider transition-all',
                   isActive
                     ? 'bg-white text-zinc-900 shadow-sm ring-1 ring-zinc-200'
                     : 'text-zinc-500 hover:text-zinc-900',
