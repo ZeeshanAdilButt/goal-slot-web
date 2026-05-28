@@ -148,7 +148,7 @@ export function AppSidebar() {
                           <span className="relative inline-flex h-6 w-6 items-center justify-center group-data-[collapsible=icon]:-ml-1 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
                             <item.icon
                               className={cn(
-                                'h-6 w-6 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7 [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.6))] motion-safe:animate-[coach-spin-pause_2s_ease-in-out_infinite]',
+                                'h-6 w-6 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7 [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.6))]',
                               )}
                             />
                             <JournalSpark className="absolute -right-1 -top-1 h-2 w-2 motion-safe:animate-[journal-spark_3s_ease-in-out_infinite]" />

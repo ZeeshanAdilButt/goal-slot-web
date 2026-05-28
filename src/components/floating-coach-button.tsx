@@ -55,7 +55,7 @@ function FloatingCoachButtonInner() {
           <MessageCircle className="h-5 w-5" />
         ) : (
           <span className="relative inline-flex h-9 w-9 items-center justify-center">
-            <CoachIcon className="h-8 w-8 [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.6))] motion-safe:animate-[coach-spin-pause_2s_ease-in-out_infinite]" />
+            <CoachIcon className="h-8 w-8 [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.6))]" />
             <JournalSpark className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 motion-safe:animate-[journal-spark_3s_ease-in-out_infinite]" />
             <JournalSpark
               className="absolute -left-0.5 top-1 h-2 w-2 motion-safe:animate-[journal-spark_3s_ease-in-out_infinite]"
