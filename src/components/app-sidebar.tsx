@@ -55,7 +55,7 @@ const navItems = [
   { href: '/dashboard/time-tracker', label: 'Time Tracker', icon: Clock },
   // Reflection pair: Journal + Coach. Write your day, let the Coach analyse + remind.
   { href: '/dashboard/journal', label: 'Journal', icon: FeatherPenIcon },
-  { href: '/dashboard/coach', label: 'Coach', icon: CoachIcon },
+  { href: '/dashboard/coach', label: 'GoalSlot AI', icon: CoachIcon },
   // Auxiliary surfaces.
   { href: '/dashboard/notes', label: 'Notes', icon: FileText },
   { href: '/dashboard/reports', label: 'Reports', icon: BarChart3 },
@@ -117,6 +117,7 @@ export function AppSidebar() {
                 const isActive = item.href === activeNavHref
                 const showCoachBadge = item.href === '/dashboard/coach' && proposedCount > 0
                 const isJournal = item.href === '/dashboard/journal'
+                const isCoach = item.href === '/dashboard/coach'
 
                 return (
                   <SidebarMenuItem key={item.href}>
@@ -136,6 +137,11 @@ export function AppSidebar() {
                             // even when not active so the habit is the focus.
                             isJournal &&
                               'text-[#f2cc0d] [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.7))_drop-shadow(0_0_10px_rgba(242,204,13,0.35))] motion-safe:animate-[journal-glow_2.4s_ease-in-out_infinite]',
+                            // GoalSlot AI gets a faster, "twinkling" sparkle
+                            // glow so it reads as alive/active rather than
+                            // the journal's slow contemplative pulse.
+                            isCoach &&
+                              '[filter:drop-shadow(0_0_3px_rgba(242,204,13,0.6))] motion-safe:animate-[coach-twinkle_3.6s_ease-in-out_infinite]',
                           )}
                         />
                         <span className="text-sm group-data-[collapsible=icon]:hidden">{item.label}</span>

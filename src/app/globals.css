@@ -110,3 +110,32 @@
       drop-shadow(0 0 14px rgba(242, 204, 13, 0.5));
   }
 }
+
+/* Twinkle for the GoalSlot AI (Coach) sidebar icon: two sharp
+   highlight beats per cycle on top of a dim base — reads as
+   "thinking / alive" rather than a single slow breath. */
+@keyframes coach-twinkle {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px rgba(242, 204, 13, 0.45));
+    transform: scale(1);
+  }
+  18% {
+    filter: drop-shadow(0 0 5px rgba(242, 204, 13, 0.95))
+      drop-shadow(0 0 9px rgba(255, 228, 90, 0.55));
+    transform: scale(1.08);
+  }
+  28% {
+    filter: drop-shadow(0 0 2px rgba(242, 204, 13, 0.45));
+    transform: scale(1);
+  }
+  58% {
+    filter: drop-shadow(0 0 4px rgba(242, 204, 13, 0.7))
+      drop-shadow(0 0 8px rgba(255, 228, 90, 0.35));
+    transform: scale(1.04);
+  }
+  72% {
+    filter: drop-shadow(0 0 2px rgba(242, 204, 13, 0.45));
+    transform: scale(1);
+  }
+}
