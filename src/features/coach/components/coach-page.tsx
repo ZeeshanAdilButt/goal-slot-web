@@ -421,7 +421,7 @@ function ChatMessageRow({
         )}
         {isPersisted &&
           (isSaved ? (
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700">
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#8a7307]">
               <BookmarkCheck className="h-3.5 w-3.5" />
               Saved
             </span>
@@ -842,7 +842,7 @@ export function CoachPage() {
           on-screen at the same height. */}
       {hasKey && (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
             Context
           </span>
           <div className="inline-flex rounded-md border border-zinc-200 bg-white p-0.5 shadow-sm">
