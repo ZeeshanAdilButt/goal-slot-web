@@ -646,9 +646,20 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
                   )}
                   onClick={() => onSelectNote(note)}
                 >
-                  <span className="text-base">{note.icon || '📄'}</span>
+                  {note.icon && <span className="text-base">{note.icon}</span>}
                   <span className="flex-1 truncate">{note.title || 'Untitled'}</span>
-                  <Star className="h-3.5 w-3.5 shrink-0 fill-current text-yellow-500" />
+                  <button
+                    type="button"
+                    title="Remove from favorites"
+                    aria-label="Remove from favorites"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleToggleFavorite(note)
+                    }}
+                    className="flex h-5 w-5 shrink-0 items-center justify-center rounded transition-colors hover:bg-[#fff7d1]"
+                  >
+                    <Star className="h-3.5 w-3.5 fill-current text-yellow-500" />
+                  </button>
                 </div>
               ))}
             </div>
@@ -671,7 +682,7 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
                     )}
                     onClick={() => onSelectNote(note)}
                   >
-                    <span className="text-base">{note.icon || '📄'}</span>
+                    {note.icon && <span className="text-base">{note.icon}</span>}
                     <span className="flex-1 truncate">{note.title || 'Untitled'}</span>
                   </div>
                 ))
@@ -693,7 +704,7 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
         <DragOverlay dropAnimation={{ duration: 180, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
           {activeNote ? (
             <div className="flex max-w-[14rem] cursor-grabbing items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-sm font-medium text-zinc-900 shadow-[0_10px_30px_rgba(0,0,0,0.15),0_0_0_2px_rgba(242,204,13,0.4)]">
-              <span className="shrink-0 text-base">{activeNote.icon || '📄'}</span>
+              {activeNote.icon && <span className="shrink-0 text-base">{activeNote.icon}</span>}
               <span className="flex-1 truncate">{activeNote.title || 'Untitled'}</span>
             </div>
           ) : null}
