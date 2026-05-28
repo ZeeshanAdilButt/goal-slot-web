@@ -74,14 +74,9 @@ function SortableGoalItem({
         </div>
         <span className="inline-block h-2 w-2 flex-shrink-0 rounded-full" style={{ background: goal.color }} />
         <span className="flex-1 truncate">{goal.title}</span>
-        {isActiveNow && (
-          <span
-            className="rounded bg-emerald-100 px-1 py-[1px] text-[8px] font-bold uppercase tracking-wider text-emerald-700"
-            title="Has schedule blocks this week"
-          >
-            On
-          </span>
-        )}
+        {/* "On" pill removed: when most goals have daily-recurring blocks it
+            tagged everything, adding noise. Re-introduce with a tighter rule
+            (e.g. block currently active) if needed. */}
         <button
           onClick={(e) => {
             e.stopPropagation()

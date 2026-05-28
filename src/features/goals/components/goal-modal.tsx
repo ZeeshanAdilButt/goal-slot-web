@@ -18,6 +18,7 @@ import { COLOR_OPTIONS } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { SearchableSelect } from '@/components/ui/searchable-select'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { TiptapEditor } from '@/components/tiptap-editor/tiptap-editor'
 import { WeeklyReflectionModal } from '@/features/goals/components/weekly-reflection-modal'
@@ -245,18 +246,17 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                 {/* Category */}
                 <div>
                   <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Category</label>
-                  <Select value={form.category} onValueChange={(value) => updateField('category', value)}>
-                    <SelectTrigger className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat.value} value={cat.value}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SearchableSelect
+                    value={form.category}
+                    onChange={(value) => updateField('category', value)}
+                    placeholder="Select category"
+                    options={categories.map((cat) => ({
+                      value: cat.value,
+                      label: cat.name,
+                      hint: cat.value,
+                      color: cat.color || undefined,
+                    }))}
+                  />
                 </div>
 
                 {/* Target Hours & Deadline row */}
