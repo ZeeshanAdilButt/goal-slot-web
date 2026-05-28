@@ -58,14 +58,19 @@ export function TasksPage() {
     false,
   )
 
-  // Set of goal ids that have at least one schedule block (across the week).
-  // Surfaced in the sidebar so the user can jump to what they're actively
-  // working on this week without scrolling all goals.
+  // Set of goal ids that have at least one schedule block landing TODAY.
+  // Earlier this was "any block this week" but schedule blocks are weekly
+  // recurring, so once you'd linked every goal once they all showed ON.
+  // Today-only is the actually-useful signal: "this is what's on your plate
+  // right now, jump to it."
   const activeGoalIdsThisWeek = useMemo(() => {
     const ids = new Set<string>()
-    ;(scheduleBlocks ?? []).forEach((b: { goalId?: string | null }) => {
-      if (b.goalId) ids.add(b.goalId)
-    })
+    const todayDow = new Date().getDay()
+    ;(scheduleBlocks ?? []).forEach(
+      (b: { goalId?: string | null; dayOfWeek?: number | null }) => {
+        if (b.goalId && b.dayOfWeek === todayDow) ids.add(b.goalId)
+      },
+    )
     return ids
   }, [scheduleBlocks])
 
