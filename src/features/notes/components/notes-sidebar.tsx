@@ -434,8 +434,45 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
+    const { active, over, delta } = event
     setActiveNote(null)
+
+    // Horizontal promote / demote: if the user dragged left or right
+    // past a threshold without landing on another row, treat it as a
+    // depth change. Right ≥ 40px = demote (become child of previous
+    // sibling). Left ≤ -40px = promote (move out one level, becoming
+    // a sibling of the current parent). This mirrors the OneNote
+    // expectation of "drag sideways to indent / outdent". Children of
+    // the dragged note travel with it automatically because we only
+    // rewrite this note's parentId.
+    const horizontalSwipe = Math.abs(delta?.x ?? 0) >= 40
+    const noteId = active.id as string
+    const draggedNote = notes.find((n: Note) => n.id === noteId)
+
+    if (horizontalSwipe && draggedNote && (!over || over.id === active.id)) {
+      const goingRight = (delta?.x ?? 0) >= 40
+      const siblings = notes
+        .filter((n: Note) => n.parentId === (draggedNote.parentId ?? null))
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      const idx = siblings.findIndex((n) => n.id === noteId)
+      if (goingRight) {
+        const prev = idx > 0 ? siblings[idx - 1] : null
+        if (prev) {
+          reorderMutation.mutate([{ noteId, parentId: prev.id, order: 99999 }])
+          return
+        }
+      } else {
+        const parent = draggedNote.parentId
+          ? notes.find((n: Note) => n.id === draggedNote.parentId)
+          : null
+        if (parent) {
+          reorderMutation.mutate([
+            { noteId, parentId: parent.parentId ?? null, order: 99999 },
+          ])
+          return
+        }
+      }
+    }
 
     if (!over || active.id === over.id) return
 
@@ -460,7 +497,6 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
     }
 
     // Handle position-based drag and drop
-    const noteId = active.id as string
     const targetId = over.id as string
     const targetNote = notes.find((n: Note) => n.id === targetId)
 
