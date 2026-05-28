@@ -54,7 +54,7 @@ export function GoalsList({ goals, isLoading, filter, onEdit, onCreateClick }: G
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {goals.map((goal, i) => {
         // For active goals, lock only when limit exists and user is not unlimited
         const isLocked = filter === 'ACTIVE' && !isUnlimited && i >= maxGoals

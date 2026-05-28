@@ -122,13 +122,13 @@ export function TaskSelector({
   const isDisabled = timerState !== 'STOPPED'
 
   return (
-    <div className="relative mb-6 text-left" ref={dropdownRef}>
-      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-zinc-500">
+    <div className="relative mb-4 text-left" ref={dropdownRef}>
+      <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
         What are you working on?
       </label>
 
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+        <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400" />
         <input
           ref={inputRef}
           type="text"
@@ -141,7 +141,7 @@ export function TaskSelector({
           }}
           placeholder="Type a task name, or pick one below..."
           disabled={isDisabled}
-          className="h-11 w-full rounded-lg border border-zinc-200 bg-white pl-10 pr-4 text-base text-zinc-900 transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] disabled:cursor-not-allowed disabled:opacity-50"
+          className="h-9 w-full rounded-lg border border-zinc-200 bg-white pl-8 pr-3 text-sm text-zinc-900 transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] disabled:cursor-not-allowed disabled:opacity-50"
         />
       </div>
 

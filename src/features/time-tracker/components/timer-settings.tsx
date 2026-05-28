@@ -15,9 +15,9 @@ interface TimerSettingsProps {
   onGoalIdChange: (goalId: string) => void
 }
 
-const LABEL_CLASS = 'block text-xs font-semibold uppercase tracking-wider text-zinc-500'
+const LABEL_CLASS = 'block text-[10px] font-semibold uppercase tracking-wider text-zinc-500'
 const SELECT_TRIGGER_CLASS =
-  'h-auto w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 transition-colors hover:border-zinc-300 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] disabled:cursor-not-allowed disabled:opacity-50 data-[state=open]:border-[#f2cc0d]'
+  'h-9 w-full rounded-lg border border-zinc-200 bg-white px-2.5 text-xs text-zinc-900 transition-colors hover:border-zinc-300 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] disabled:cursor-not-allowed disabled:opacity-50 data-[state=open]:border-[#f2cc0d]'
 
 export function TimerSettings({
   goals,
