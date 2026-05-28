@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 
-import { type QueryClient, useQueryClient } from '@tanstack/react-query'
+import { type QueryClient, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   AlertTriangle,
   CalendarPlus,
@@ -17,6 +17,8 @@ import { toast } from 'react-hot-toast'
 
 import {
   coachApi,
+  goalsApi,
+  scheduleApi,
   type CoachProposalAction,
   type CoachProposalActionType,
   type CoachProposalBlock,
@@ -225,6 +227,21 @@ interface CoachProposalCardProps {
 
 export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardProps) {
   const queryClient = useQueryClient()
+
+  // Eagerly populate the schedule + goals caches so describeAction can resolve
+  // ids to "Qur'an Reading, Sun, 6:00 AM to 6:30 AM" even when the user hasn't
+  // visited the Schedule or Goals page yet in this session. Both queries are
+  // staleTime: long so they don't refetch on every card mount.
+  useQuery({
+    queryKey: ['schedule', 'weekly'],
+    queryFn: async () => (await scheduleApi.getWeekly()).data,
+    staleTime: 60_000,
+  })
+  useQuery({
+    queryKey: ['goals', 'list', undefined],
+    queryFn: async () => (await goalsApi.getAll({})).data,
+    staleTime: 60_000,
+  })
   const [selected, setSelected] = useState<Set<number>>(
     () => new Set(block.actions.map((_, i) => i)),
   )
