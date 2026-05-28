@@ -33,6 +33,7 @@ import { SectionHeader } from '@/components/ui/section-header'
 import { SocraticQuote } from '@/components/ui/socratic-quote'
 
 const EXAMPLE_PROMPTS = [
+  'Suggest an active practice',
   'Why was Wednesday bad?',
   "Suggest next week's schedule",
   'Where am I leaking time?',
