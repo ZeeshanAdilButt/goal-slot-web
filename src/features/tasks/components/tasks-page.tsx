@@ -58,17 +58,33 @@ export function TasksPage() {
     false,
   )
 
-  // Set of goal ids that have at least one schedule block landing TODAY.
-  // Earlier this was "any block this week" but schedule blocks are weekly
-  // recurring, so once you'd linked every goal once they all showed ON.
-  // Today-only is the actually-useful signal: "this is what's on your plate
-  // right now, jump to it."
+  // Set of goal ids that have a schedule block ACTIVE RIGHT NOW (today's
+  // dayOfWeek AND current time within [startTime, endTime]). Tight rule so
+  // the "On now" pill only flags the goal you're literally supposed to be
+  // working on this minute, not every goal with a daily-recurring block.
   const activeGoalIdsThisWeek = useMemo(() => {
     const ids = new Set<string>()
-    const todayDow = new Date().getDay()
+    const now = new Date()
+    const todayDow = now.getDay()
+    const nowMinutes = now.getHours() * 60 + now.getMinutes()
+    const parseHM = (s: string | null | undefined): number | null => {
+      if (!s) return null
+      const [h, m] = s.split(':').map(Number)
+      if (Number.isNaN(h) || Number.isNaN(m)) return null
+      return h * 60 + m
+    }
     ;(scheduleBlocks ?? []).forEach(
-      (b: { goalId?: string | null; dayOfWeek?: number | null }) => {
-        if (b.goalId && b.dayOfWeek === todayDow) ids.add(b.goalId)
+      (b: {
+        goalId?: string | null
+        dayOfWeek?: number | null
+        startTime?: string | null
+        endTime?: string | null
+      }) => {
+        if (!b.goalId || b.dayOfWeek !== todayDow) return
+        const start = parseHM(b.startTime)
+        const end = parseHM(b.endTime)
+        if (start == null || end == null) return
+        if (nowMinutes >= start && nowMinutes < end) ids.add(b.goalId)
       },
     )
     return ids

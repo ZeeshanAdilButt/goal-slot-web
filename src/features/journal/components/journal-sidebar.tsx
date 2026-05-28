@@ -1,8 +1,9 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
 import { JournalEntry } from '@/features/journal/hooks/use-journal-entries'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { DayPicker } from 'react-day-picker'
 
 import { cn } from '@/lib/utils'
@@ -32,6 +33,13 @@ function formatChip(date: string, today: string): string {
 
 export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSidebarProps) {
   const today = todayKey()
+  const todayObj = useMemo(() => new Date(), [])
+  // The month currently shown in the calendar. Defaults to the month of the
+  // selected entry, or today's month. Prev/next chevrons mutate it so the
+  // user can navigate any month they've journaled in.
+  const [viewMonth, setViewMonth] = useState<Date>(() =>
+    selectedDate ? new Date(`${selectedDate}T00:00:00`) : new Date(),
+  )
 
   // Ensure "Today" appears first as a tappable chip even when no entry exists yet.
   const list = useMemo(() => {
@@ -50,6 +58,19 @@ export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSideb
     [entries],
   )
 
+  // Highlight the current week (Sun-Sat) on the calendar so the user
+  // sees their journaling window at a glance.
+  const thisWeekDates = useMemo(() => {
+    const dow = todayObj.getDay()
+    const start = new Date(todayObj)
+    start.setDate(todayObj.getDate() - dow)
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(start)
+      d.setDate(start.getDate() + i)
+      return d
+    })
+  }, [todayObj])
+
   const selectedDateObj = selectedDate ? new Date(`${selectedDate}T00:00:00`) : undefined
 
   const handlePickDay = (day: Date | undefined) => {
@@ -58,35 +79,70 @@ export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSideb
     onSelect(key)
   }
 
+  const shiftMonth = (delta: number) => {
+    setViewMonth((prev) => {
+      const next = new Date(prev)
+      next.setMonth(prev.getMonth() + delta)
+      return next
+    })
+  }
+
+  const monthLabel = viewMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+
   return (
     <div className="space-y-3">
-      {/* Inline calendar pinned to the top — click any day to jump to it. */}
+      {/* Inline calendar pinned to the top with explicit month nav. */}
       <div className="rounded-lg border border-zinc-200 bg-white p-2">
+        <div className="mb-1 flex items-center justify-between gap-2 px-1">
+          <button
+            type="button"
+            onClick={() => shiftMonth(-1)}
+            aria-label="Previous month"
+            className="inline-flex h-6 w-6 items-center justify-center rounded text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+          >
+            <ChevronLeft className="h-3.5 w-3.5" />
+          </button>
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-700">
+            {monthLabel}
+          </span>
+          <button
+            type="button"
+            onClick={() => shiftMonth(1)}
+            aria-label="Next month"
+            className="inline-flex h-6 w-6 items-center justify-center rounded text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+          >
+            <ChevronRight className="h-3.5 w-3.5" />
+          </button>
+        </div>
         <DayPicker
           mode="single"
+          month={viewMonth}
+          onMonthChange={setViewMonth}
           selected={selectedDateObj}
           onSelect={handlePickDay}
           disabled={{ after: new Date() }}
-          modifiers={{ hasEntry: entryDates }}
+          modifiers={{ hasEntry: entryDates, thisWeek: thisWeekDates }}
           modifiersClassNames={{
-            hasEntry: 'after:absolute after:bottom-0.5 after:left-1/2 after:h-1 after:w-1 after:-translate-x-1/2 after:rounded-full after:bg-[#f2cc0d] relative',
+            hasEntry:
+              'relative after:absolute after:bottom-0.5 after:left-1/2 after:h-1 after:w-1 after:-translate-x-1/2 after:rounded-full after:bg-[#f2cc0d]',
+            thisWeek: 'bg-[#fffbea]',
           }}
           showOutsideDays={false}
           classNames={{
             root: 'text-xs',
             months: 'flex flex-col',
-            month: 'space-y-1',
-            month_caption: 'flex justify-center font-semibold text-[11px] uppercase tracking-wider text-zinc-600',
-            nav: 'flex items-center justify-between absolute right-1 top-1 z-10',
-            button_previous: 'h-6 w-6 rounded hover:bg-zinc-100 inline-flex items-center justify-center text-zinc-500',
-            button_next: 'h-6 w-6 rounded hover:bg-zinc-100 inline-flex items-center justify-center text-zinc-500',
-            month_grid: 'w-full border-collapse mt-1',
+            month: 'space-y-0',
+            month_caption: 'hidden',
+            nav: 'hidden',
+            month_grid: 'w-full border-collapse',
             weekdays: 'flex',
-            weekday: 'flex-1 text-center text-[9px] font-semibold uppercase tracking-wider text-zinc-400 py-0.5',
+            weekday:
+              'flex-1 text-center text-[9px] font-semibold uppercase tracking-wider text-zinc-400 py-0.5',
             weeks: 'flex flex-col',
             week: 'flex w-full',
             day: 'flex-1 p-0 text-center',
-            day_button: 'h-6 w-full rounded text-[11px] font-medium text-zinc-700 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40',
+            day_button:
+              'h-7 w-full rounded text-[11px] font-medium text-zinc-700 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40',
             today: 'font-bold text-[#8a7307]',
             selected: '[&_button]:!bg-[#f2cc0d] [&_button]:!text-zinc-900',
           }}
