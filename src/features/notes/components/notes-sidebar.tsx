@@ -694,24 +694,15 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
         </div>
       </div>
 
-      {/* New Note button */}
+      {/* New Note button — optimistic, no disabled state. The new row
+          shows up in the tree instantly via the mutation's onMutate. */}
       <div className="px-3 pb-2">
         <button
           onClick={() => handleCreateNote()}
-          disabled={createMutation.isPending}
-          className="flex w-full items-center justify-center gap-2 rounded-md border-2 border-dashed border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-primary hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 rounded-md border-2 border-dashed border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-primary hover:bg-muted hover:text-foreground"
         >
-          {createMutation.isPending ? (
-            <>
-              <Loading size="sm" />
-              Creating...
-            </>
-          ) : (
-            <>
-              <Plus className="h-4 w-4" />
-              New Note
-            </>
-          )}
+          <Plus className="h-4 w-4" />
+          New Note
         </button>
       </div>
 
