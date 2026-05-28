@@ -36,6 +36,35 @@ export function showCoachStreamError(status: number | undefined, message: string
   toast.error(message)
 }
 
+/**
+ * Inline error fragment so persistent error text under the chat input / under
+ * the narrative card carries the same "Increase budget" link as the toast.
+ * Falls back to plain text for any non-budget error.
+ */
+export function CoachErrorText({
+  message,
+  className,
+}: {
+  message: string
+  className?: string
+}) {
+  const isBudget = /token budget|budget exceeded/i.test(message)
+  if (!isBudget) {
+    return <span className={className}>{message}</span>
+  }
+  return (
+    <span className={className}>
+      Monthly token budget exceeded.{' '}
+      <Link
+        href="/dashboard/settings?tab=integrations"
+        className="font-semibold text-[#8a7307] underline underline-offset-2 hover:text-[#6b5905]"
+      >
+        Increase budget
+      </Link>
+    </span>
+  )
+}
+
 export function statusOf(err: unknown): number | undefined {
   if (err && typeof err === 'object' && 'status' in err) {
     const s = (err as { status?: unknown }).status

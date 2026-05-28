@@ -94,7 +94,7 @@ function statusOf(err: unknown): number | undefined {
   return undefined
 }
 
-import { showCoachStreamError } from '@/features/coach/utils/stream-error-toast'
+import { CoachErrorText, showCoachStreamError } from '@/features/coach/utils/stream-error-toast'
 
 function handleStreamError(status: number | undefined, message: string) {
   showCoachStreamError(status, message)
@@ -260,9 +260,9 @@ export function NarrativeSection({ scopeKey }: NarrativeSectionProps) {
       )}
 
       {streamError && (
-        <Badge variant="destructive" className="normal-case">
-          {streamError}
-        </Badge>
+        <div className="inline-flex items-center gap-1 rounded-md border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs text-rose-700">
+          <CoachErrorText message={streamError} />
+        </div>
       )}
 
       {hasContent && (
@@ -679,7 +679,7 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
 
       {error && (
         <p className="text-xs text-rose-600" role="alert">
-          {error}
+          <CoachErrorText message={error} />
         </p>
       )}
 

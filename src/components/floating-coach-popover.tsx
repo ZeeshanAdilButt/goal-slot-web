@@ -24,7 +24,7 @@ import {
 import { cn } from '@/lib/utils'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { CoachMarkdown } from '@/features/coach/components/coach-markdown'
-import { showCoachStreamError, statusOf } from '@/features/coach/utils/stream-error-toast'
+import { CoachErrorText, showCoachStreamError, statusOf } from '@/features/coach/utils/stream-error-toast'
 import {
   CoachProposalCard,
   extractCoachProposals,
@@ -249,7 +249,7 @@ export function FloatingCoachPopover({ open, onClose }: FloatingCoachPopoverProp
         )}
         {error && (
           <div className="rounded-md border border-rose-200 bg-rose-50 p-2 text-xs text-rose-700">
-            {error}
+            <CoachErrorText message={error} />
           </div>
         )}
       </div>
