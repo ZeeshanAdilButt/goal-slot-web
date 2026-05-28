@@ -25,20 +25,28 @@ export function findScheduleBlockForDateTime(
   )
 }
 
+export interface UpcomingScheduleBlock {
+  block: ScheduleBlock
+  startsAt: Date
+}
+
 /**
- * Find the next upcoming schedule block after `date`. Looks at the rest of
- * today first, then walks forward up to 7 days. Returns the block plus the
- * absolute Date its start represents so callers can format "in 25 min" or
- * "Tomorrow, 9 AM" without re-deriving day math.
+ * Walk forward from `date` and collect the next `count` upcoming blocks
+ * across up to 7 days. Used by the FocusNowBar to show a small queue of
+ * what's coming up — current behaviour returns just the immediate next
+ * via findNextScheduleBlock (kept as a thin wrapper for callers that
+ * only want one).
  */
-export function findNextScheduleBlock(
+export function findUpcomingScheduleBlocks(
   weekSchedule: WeekSchedule | undefined,
   date: Date,
-): { block: ScheduleBlock; startsAt: Date } | null {
-  if (!weekSchedule) return null
+  count: number,
+): UpcomingScheduleBlock[] {
+  if (!weekSchedule || count <= 0) return []
   const minutes = date.getHours() * 60 + date.getMinutes()
+  const out: UpcomingScheduleBlock[] = []
 
-  for (let offset = 0; offset < 7; offset++) {
+  for (let offset = 0; offset < 7 && out.length < count; offset++) {
     const day = (date.getDay() + offset) % 7
     const blocks = (weekSchedule[day] || []).slice().sort((a, b) => {
       return timeToMinutes(a.startTime) - timeToMinutes(b.startTime)
@@ -50,8 +58,16 @@ export function findNextScheduleBlock(
       startsAt.setDate(startsAt.getDate() + offset)
       const [h, m] = block.startTime.split(':').map(Number)
       startsAt.setHours(h, m, 0, 0)
-      return { block, startsAt }
+      out.push({ block, startsAt })
+      if (out.length >= count) break
     }
   }
-  return null
+  return out
+}
+
+export function findNextScheduleBlock(
+  weekSchedule: WeekSchedule | undefined,
+  date: Date,
+): UpcomingScheduleBlock | null {
+  return findUpcomingScheduleBlocks(weekSchedule, date, 1)[0] ?? null
 }

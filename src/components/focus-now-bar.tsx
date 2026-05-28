@@ -5,8 +5,8 @@ import Link from 'next/link'
 
 import { useTimeTrackerData } from '@/features/time-tracker/hooks/use-time-tracker-queries'
 import {
-  findNextScheduleBlock,
   findScheduleBlockForDateTime,
+  findUpcomingScheduleBlocks,
 } from '@/features/time-tracker/utils/schedule'
 import { ArrowRight, ChevronDown, Clock } from 'lucide-react'
 
@@ -65,10 +65,11 @@ export function FocusNowBar() {
     return findScheduleBlockForDateTime(weeklySchedule, now)
   }, [weeklySchedule, now])
 
-  const upcoming = useMemo(() => {
-    if (!weeklySchedule) return null
-    return findNextScheduleBlock(weeklySchedule, now)
+  const upcomingList = useMemo(() => {
+    if (!weeklySchedule) return []
+    return findUpcomingScheduleBlocks(weeklySchedule, now, 4)
   }, [weeklySchedule, now])
+  const upcoming = upcomingList[0] ?? null
 
   if (!activeBlock) return null
 
@@ -129,18 +130,14 @@ export function FocusNowBar() {
               type="button"
               onClick={() => setExpanded((v) => !v)}
               aria-expanded={expanded}
-              className={cn(
-                'inline-flex items-center gap-1 rounded-md border border-zinc-900 bg-zinc-900 px-2 py-0.5 text-[11px] font-semibold tracking-tight text-white transition-colors hover:bg-zinc-800',
-              )}
-              title="Up next"
+              className="inline-flex items-center gap-1.5 rounded-md border border-zinc-900 bg-zinc-900 px-2.5 py-1 text-[11px] font-semibold tracking-tight text-white transition-colors hover:bg-zinc-800"
+              title={`Up next: ${upcoming.block.title}`}
             >
               <span className="text-[#f2cc0d]">Up next</span>
-              <span className="text-zinc-400" aria-hidden>·</span>
-              <span className="truncate max-w-[140px]">{upcoming.block.title}</span>
-              <span className="text-zinc-300" aria-hidden>·</span>
-              <span className="tabular-nums text-zinc-300">{upcomingLabel}</span>
+              <span aria-hidden className="h-3 w-px bg-zinc-700" />
+              <span className="tabular-nums text-zinc-200">{upcomingLabel}</span>
               <ChevronDown
-                className={cn('h-3 w-3 transition-transform', expanded && 'rotate-180')}
+                className={cn('h-3 w-3 text-zinc-400 transition-transform', expanded && 'rotate-180')}
                 aria-hidden
               />
             </button>
@@ -155,41 +152,73 @@ export function FocusNowBar() {
         </div>
       </div>
 
-      {/* Up next details — drops down under the strip when expanded. Same
-          visual register as the floating Start tracking surface: dark pill,
-          brand-yellow accents, condensed body. */}
-      {expanded && upcoming && (
-        <div className="border-t border-[#f2cc0d]/30 bg-white/80 px-4 py-3">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-0 flex-1 space-y-1">
-              <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#8a7307]">
-                Up next
-              </div>
-              <div className="flex items-baseline gap-2">
-                <span className="truncate text-sm font-bold text-zinc-900">
-                  {upcoming.block.title}
+      {/* Up next panel — right-aligned, fixed-width, distinct dark card
+          so it visually separates from the yellow ticker above. Shows the
+          next 4 upcoming blocks with day/time + goal + a deep link into
+          the schedule. Closed by clicking the Up next pill again or any
+          schedule link inside. */}
+      {expanded && upcomingList.length > 0 && (
+        <div className="border-t border-[#f2cc0d]/30 bg-transparent px-4 py-3">
+          <div className="ml-auto w-full max-w-md overflow-hidden rounded-xl border border-zinc-900 bg-zinc-950 text-white shadow-xl ring-1 ring-zinc-800">
+            <div className="flex items-center justify-between border-b border-zinc-800 px-3 py-2">
+              <div className="flex items-center gap-2">
+                <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[#f2cc0d]" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#f2cc0d]">
+                  Up next
                 </span>
-                <span className="text-[11px] text-zinc-500">{upcomingLabel}</span>
+                <span className="text-[10px] text-zinc-500">
+                  next {upcomingList.length}
+                </span>
               </div>
-              {upcoming.block.goal?.title && (
-                <div className="inline-flex items-center gap-1 text-xs text-zinc-600">
-                  <GoalFlagIcon className="h-3 w-3 shrink-0 text-[#8a7307]" />
-                  <span className="truncate">{upcoming.block.goal.title}</span>
-                </div>
-              )}
-              <div className="inline-flex items-center gap-1 rounded-md border border-zinc-200 bg-white px-2 py-0.5 text-[11px] font-medium text-zinc-700">
-                <Clock className="h-3 w-3 text-zinc-500" />
-                {fmtShort(upcoming.block.startTime)} - {fmtShort(upcoming.block.endTime)}
-              </div>
+              <Link
+                href="/dashboard/schedule"
+                onClick={() => setExpanded(false)}
+                className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-[#f2cc0d] transition-colors hover:bg-zinc-800"
+                title="Open schedule"
+              >
+                Open schedule
+                <ArrowRight className="h-3 w-3" />
+              </Link>
             </div>
-            <Link
-              href="/dashboard/schedule"
-              onClick={() => setExpanded(false)}
-              className="inline-flex shrink-0 items-center gap-1 rounded-md border border-zinc-900 bg-zinc-900 px-2.5 py-1 text-[11px] font-semibold text-white transition-colors hover:bg-zinc-800"
-            >
-              Open in schedule
-              <ArrowRight className="h-3 w-3" />
-            </Link>
+            <ul className="divide-y divide-zinc-800">
+              {upcomingList.map(({ block, startsAt }, idx) => {
+                const label = describeUpcoming(now, startsAt)
+                return (
+                  <li
+                    key={`${block.id}-${idx}`}
+                    className="flex items-center gap-3 px-3 py-2.5"
+                  >
+                    <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-zinc-800 text-[10px] font-bold text-[#f2cc0d] tabular-nums">
+                      {idx + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-baseline gap-2">
+                        <span className="truncate text-sm font-semibold text-white">
+                          {block.title}
+                        </span>
+                      </div>
+                      <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-zinc-400">
+                        <span className="inline-flex items-center gap-1 tabular-nums">
+                          <Clock className="h-3 w-3 text-zinc-500" />
+                          {fmtShort(block.startTime)} - {fmtShort(block.endTime)}
+                        </span>
+                        <span aria-hidden className="text-zinc-700">·</span>
+                        <span className="text-[#f2cc0d]">{label}</span>
+                        {block.goal?.title && (
+                          <>
+                            <span aria-hidden className="text-zinc-700">·</span>
+                            <span className="inline-flex items-center gap-1 truncate text-zinc-400">
+                              <GoalFlagIcon className="h-3 w-3 shrink-0 text-[#f2cc0d]/80" />
+                              <span className="truncate">{block.goal.title}</span>
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
           </div>
         </div>
       )}

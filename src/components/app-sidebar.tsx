@@ -130,13 +130,13 @@ export function AppSidebar() {
                     >
                       <Link href={item.href}>
                         {isJournal ? (
-                          // Journal pen sweeps left then right (-40° → 0 →
-                          // +40° → 0) on a 2s loop — a quietly playful nudge
-                          // toward writing. No aura ring; the motion does
-                          // the work.
+                          // Journal pen: brand-yellow glow that pulses on
+                          // a slow 2.4s beat (journal-glow), with an
+                          // asymmetric -30° / +15° sweep on top — a calming
+                          // but quietly playful nudge toward writing.
                           <item.icon
                             className={cn(
-                              'h-4 w-4 origin-bottom-left motion-safe:animate-[pen-tilt_2s_ease-in-out_infinite] group-data-[collapsible=icon]:-ml-1 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5',
+                              'h-4 w-4 origin-bottom-left text-[#f2cc0d] motion-safe:animate-[pen-tilt_2.6s_ease-in-out_infinite] [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.7))_drop-shadow(0_0_10px_rgba(242,204,13,0.35))] group-data-[collapsible=icon]:-ml-1 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5',
                               isActive && 'text-[#f2cc0d]',
                             )}
                           />

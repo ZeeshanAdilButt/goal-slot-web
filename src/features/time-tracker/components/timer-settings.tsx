@@ -38,7 +38,7 @@ export function TimerSettings({
   const canClearAll = timerState === 'STOPPED' && (!!currentGoalId || !!currentCategory)
 
   return (
-    <div className="mb-4 space-y-3 text-left">
+    <div className="mx-auto mb-4 max-w-lg space-y-3 text-left">
       <div>
         <label className={`${LABEL_CLASS} mb-1`}>Reminder</label>
         <div className="flex flex-wrap items-center gap-2">
@@ -77,47 +77,10 @@ export function TimerSettings({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div>
-          <div className="mb-1.5 flex items-baseline justify-between gap-2">
-            <label className={LABEL_CLASS}>
-              Link to goal
-              {isTaskSelected && currentGoalId && (
-                <span className="ml-1 text-[10px] font-normal normal-case text-zinc-400">(from task)</span>
-              )}
-            </label>
-          </div>
-          <div className="relative">
-            {currentGoalId && timerState === 'STOPPED' && (
-              <button
-                type="button"
-                onClick={() => onGoalIdChange('')}
-                className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full p-1 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
-                aria-label="Clear goal"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            )}
-            <Select
-              value={currentGoalId || 'no_goal'}
-              onValueChange={(val) => onGoalIdChange(val === 'no_goal' ? '' : val)}
-              disabled={timerState !== 'STOPPED'}
-            >
-              <SelectTrigger className={`${SELECT_TRIGGER_CLASS} pr-8`}>
-                <SelectValue placeholder="Select goal" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="no_goal">No goal</SelectItem>
-                {goals.map((goal) => (
-                  <SelectItem key={goal.id} value={goal.id}>
-                    {goal.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
+      {/* Category sits above Goal — categorise first ("what kind of work
+          is this?"), then drill into the specific goal. Stacked single
+          column so the eye reads top-to-bottom instead of left-to-right. */}
+      <div className="space-y-3">
         <div>
           <div className="mb-1.5 flex items-baseline justify-between gap-2">
             <label className={LABEL_CLASS}>
@@ -151,6 +114,46 @@ export function TimerSettings({
                 {categories.map((cat) => (
                   <SelectItem key={cat.value} value={cat.value}>
                     {cat.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div>
+          <div className="mb-1.5 flex items-baseline justify-between gap-2">
+            <label className={LABEL_CLASS}>
+              Link to goal
+              {isTaskSelected && currentGoalId && (
+                <span className="ml-1 text-[10px] font-normal normal-case text-zinc-400">(from task)</span>
+              )}
+            </label>
+          </div>
+          <div className="relative">
+            {currentGoalId && timerState === 'STOPPED' && (
+              <button
+                type="button"
+                onClick={() => onGoalIdChange('')}
+                className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full p-1 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
+                aria-label="Clear goal"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+            <Select
+              value={currentGoalId || 'no_goal'}
+              onValueChange={(val) => onGoalIdChange(val === 'no_goal' ? '' : val)}
+              disabled={timerState !== 'STOPPED'}
+            >
+              <SelectTrigger className={`${SELECT_TRIGGER_CLASS} pr-8`}>
+                <SelectValue placeholder="Select goal" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="no_goal">No goal</SelectItem>
+                {goals.map((goal) => (
+                  <SelectItem key={goal.id} value={goal.id}>
+                    {goal.title}
                   </SelectItem>
                 ))}
               </SelectContent>

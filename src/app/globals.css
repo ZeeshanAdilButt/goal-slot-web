@@ -111,22 +111,27 @@
   }
 }
 
-/* Wide "writing" sweep for the Journal feather pen — tilts to the left
-   40°, back to neutral, then to the right 40°, then back. Pivots on the
-   nib (bottom-left) so it reads like a hand sketching on a page. 2s loop. */
+/* Journal feather pen "writing" sweep. Asymmetric on purpose — the big
+   left swing (-30°) reads as the windup, the smaller right swing (+15°)
+   as the follow-through. Pivots on the nib so it looks like a hand
+   sketching on the page. 2.6s loop, with pauses at neutral so the motion
+   never feels frantic. */
 @keyframes pen-tilt {
-  0%,
+  0% {
+    transform: rotate(0deg);
+  }
+  20% {
+    transform: rotate(-30deg);
+  }
+  40% {
+    transform: rotate(0deg);
+  }
+  55% {
+    transform: rotate(15deg);
+  }
+  70%,
   100% {
     transform: rotate(0deg);
-  }
-  25% {
-    transform: rotate(-40deg);
-  }
-  50% {
-    transform: rotate(0deg);
-  }
-  75% {
-    transform: rotate(40deg);
   }
 }
 

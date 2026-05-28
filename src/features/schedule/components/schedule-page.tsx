@@ -50,6 +50,16 @@ export function SchedulePage() {
     () => findScheduleBlockForDateTime(weekSchedule, now),
     [weekSchedule, now],
   )
+
+  const scrollToBlock = (blockId: string) => {
+    const el = document.getElementById(`schedule-block-${blockId}`)
+    if (!el) return
+    el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' })
+    // Flash a brand-yellow ring on the block for a couple of seconds so
+    // the eye lands on it after the scroll finishes.
+    el.setAttribute('data-flash', 'true')
+    setTimeout(() => el.removeAttribute('data-flash'), 2200)
+  }
   const seriesBlockCount = useMemo(() => {
     if (!editingBlock) return 0
     const allBlocks = Object.values(weekSchedule || {}).flat()
@@ -148,7 +158,7 @@ export function SchedulePage() {
                 type="button"
                 variant="secondary"
                 size="sm"
-                onClick={() => handleViewDetail(activeBlock)}
+                onClick={() => scrollToBlock(activeBlock.id)}
               >
                 <Eye className="h-3.5 w-3.5" />
                 View

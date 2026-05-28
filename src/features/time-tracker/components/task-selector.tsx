@@ -122,7 +122,7 @@ export function TaskSelector({
   const isDisabled = timerState !== 'STOPPED'
 
   return (
-    <div className="relative mb-4 text-left" ref={dropdownRef}>
+    <div className="relative mx-auto mb-4 max-w-lg text-left" ref={dropdownRef}>
       <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
         What are you working on?
       </label>
