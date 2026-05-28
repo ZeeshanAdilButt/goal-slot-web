@@ -711,6 +711,20 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
         </div>
       )}
       <form onSubmit={onSubmit} className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        {(persistedMessages.length > 0 || optimistic.length > 0) && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={handleClearChat}
+            disabled={streaming}
+            title="Start a new chat (clears this week's history)"
+            aria-label="Start a new chat"
+            className="shrink-0 text-zinc-500 hover:text-[#8a7307]"
+          >
+            <RotateCcw className="h-4 w-4" />
+          </Button>
+        )}
         <Input
           ref={inputRef}
           value={input}
