@@ -83,6 +83,17 @@ function fmtTimeRange(start: unknown, end: unknown): string | undefined {
   return `${formatTime12h(start)} to ${formatTime12h(end)}`
 }
 
+/**
+ * Coach often emits deadlines as full ISO strings (2026-08-28T00:00:00.000Z),
+ * sometimes as plain YYYY-MM-DD. Render as "Aug 28, 2026" either way.
+ */
+function fmtDeadline(d: unknown): string | undefined {
+  if (typeof d !== 'string') return undefined
+  const parsed = new Date(d)
+  if (Number.isNaN(parsed.getTime())) return d
+  return parsed.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
 interface DescribedAction {
   /** First line: the entity / subject of the action ("Arabic & Family"). */
   subject?: string
@@ -142,7 +153,7 @@ function describeAction(
       if (typeof p.title === 'string') patchBits.push(`title to "${p.title}"`)
       if (typeof p.description === 'string') patchBits.push('description')
       if (typeof p.targetHours === 'number') patchBits.push(`target to ${p.targetHours}h`)
-      if (typeof p.deadline === 'string') patchBits.push(`deadline to ${p.deadline}`)
+      if (typeof p.deadline === 'string') patchBits.push(`deadline to ${fmtDeadline(p.deadline)}`)
       if (typeof p.category === 'string') patchBits.push(`category to ${p.category}`)
       const detail = patchBits.length ? `Change ${patchBits.join(', ')}.` : 'Update this goal.'
       return { subject, detail }
@@ -150,9 +161,10 @@ function describeAction(
 
     case 'CREATE_GOAL': {
       const title = typeof p.title === 'string' ? `"${p.title}"` : 'New goal'
+      const deadlineLabel = fmtDeadline(p.deadline)
       const meta = [
         typeof p.targetHours === 'number' ? `${p.targetHours}h target` : null,
-        typeof p.deadline === 'string' ? `by ${p.deadline}` : null,
+        deadlineLabel ? `by ${deadlineLabel}` : null,
         typeof p.category === 'string' ? p.category : null,
       ].filter(Boolean) as string[]
       return { subject: title, detail: meta.length ? meta.join(', ') : 'Create this goal.' }
