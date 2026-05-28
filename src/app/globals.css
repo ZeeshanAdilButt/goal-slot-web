@@ -97,6 +97,32 @@
   }
 }
 
+/* Journal night mode bleeds into the surrounding dashboard chrome so
+   the whole app dims when the user turns on the journal lamp. The
+   journal page sets [data-journal-night="true"] on <html> while
+   mounted + lamp on, and clears it on unmount or lamp off. We avoid
+   touching journal-page elements here — those already manage their
+   own dark state via JSX. These rules target the dashboard layout
+   shell + sidebars only. */
+html[data-journal-night='true'] body,
+html[data-journal-night='true'] [data-sidebar='sidebar'],
+html[data-journal-night='true'] [data-sidebar='inset'] {
+  background-color: #09090b !important;
+  color: #e4e4e7;
+  transition: background-color 0.6s ease, color 0.6s ease;
+}
+html[data-journal-night='true'] [data-sidebar='sidebar'] {
+  border-right-color: #18181b !important;
+}
+html[data-journal-night='true'] [data-sidebar='sidebar'] a,
+html[data-journal-night='true'] [data-sidebar='sidebar'] button {
+  color: #d4d4d8;
+}
+html[data-journal-night='true'] [data-sidebar='sidebar'] a:hover,
+html[data-journal-night='true'] [data-sidebar='sidebar'] button:hover {
+  background-color: #18181b;
+}
+
 /* Soft brand-yellow pulse for the Journal sidebar icon. Stays subtle —
    the glow expands and softens slightly to feel "magical", not flashy. */
 @keyframes journal-glow {

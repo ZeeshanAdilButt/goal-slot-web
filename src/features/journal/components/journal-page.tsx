@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { JournalAffirmations } from '@/features/journal/components/journal-affirmations'
 import { JournalEntryEditor } from '@/features/journal/components/journal-entry-editor'
@@ -37,6 +37,24 @@ export function JournalPage() {
   // the lamp on flips the surface to a night theme — the lamp's pool
   // of warm light becomes the only thing illuminating the page.
   const [lampOn, setLampOn] = useState(false)
+
+  // Mirror the lamp state onto the <html> element so the surrounding
+  // dashboard chrome (sidebar, top bars, focus strip) can dim with the
+  // journal — gives the whole app the "writing late at night" feel
+  // the user wanted. CSS rules live in globals.css under the
+  // [data-journal-night="true"] selector. Cleaned up on unmount so
+  // leaving the journal restores the regular day chrome.
+  useEffect(() => {
+    const root = document.documentElement
+    if (lampOn) {
+      root.setAttribute('data-journal-night', 'true')
+    } else {
+      root.removeAttribute('data-journal-night')
+    }
+    return () => {
+      root.removeAttribute('data-journal-night')
+    }
+  }, [lampOn])
   const today = todayKey()
 
   const handleSelect = (date: string) => {

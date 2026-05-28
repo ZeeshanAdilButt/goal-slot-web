@@ -10,7 +10,6 @@ import {
   CheckSquare,
   Clock,
   Download,
-  FileText,
   LayoutDashboard,
   Megaphone,
   MessageSquare,
@@ -23,6 +22,7 @@ import {
 import { CoachIcon } from '@/components/icons/coach-icon'
 import { FeatherPenIcon } from '@/components/icons/feather-pen-icon'
 import { JournalSpark } from '@/components/icons/journal-spark'
+import { NotebookIcon } from '@/components/icons/notebook-icon'
 
 import { useAuthStore, useIsAdmin } from '@/lib/store'
 import { cn } from '@/lib/utils'
@@ -58,7 +58,7 @@ const navItems = [
   { href: '/dashboard/journal', label: 'Journal', icon: FeatherPenIcon },
   { href: '/dashboard/coach', label: 'GoalSlot AI', icon: CoachIcon },
   // Auxiliary surfaces.
-  { href: '/dashboard/notes', label: 'Notes', icon: FileText },
+  { href: '/dashboard/notes', label: 'Notes', icon: NotebookIcon },
   { href: '/dashboard/reports', label: 'Reports', icon: BarChart3 },
   { href: '/dashboard/reports/export', label: 'Export Reports', icon: Download },
   { href: '/dashboard/sharing', label: 'Sharing', icon: Share2 },

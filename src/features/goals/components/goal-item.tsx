@@ -52,7 +52,7 @@ export function GoalItem({ goal, index, onEdit, isLocked = false }: GoalItemProp
       className="group h-full"
     >
       <GlassCard
-        className={cn('relative flex h-full flex-col gap-4 border-l-[6px] p-5', isLocked && 'opacity-60')}
+        className={cn('relative flex h-full flex-col gap-3 border-l-[5px] p-4', isLocked && 'opacity-60')}
         style={{ borderLeftColor: goal.color }}
       >
         {isLocked && (
@@ -79,7 +79,7 @@ export function GoalItem({ goal, index, onEdit, isLocked = false }: GoalItemProp
                 <Badge variant="warning" className="text-[9px]">LOCKED</Badge>
               )}
             </div>
-            <h3 className="mt-1.5 line-clamp-2 text-base font-semibold leading-snug text-zinc-900">
+            <h3 className="mt-1 line-clamp-2 text-sm font-semibold leading-snug text-zinc-900">
               {goal.title}
             </h3>
           </div>
@@ -131,25 +131,25 @@ export function GoalItem({ goal, index, onEdit, isLocked = false }: GoalItemProp
         )}
 
         {/* Progress section pinned to bottom for consistent card heights. */}
-        <div className="mt-auto space-y-2 pt-1">
-          <div className="flex items-baseline justify-between text-[12px]">
+        <div className="mt-auto space-y-1.5 pt-1">
+          <div className="flex items-baseline justify-between text-[11px]">
             <span className="font-semibold tabular-nums text-zinc-900">
               {goal.loggedHours.toFixed(1)}h
               <span className="ml-1 font-normal text-zinc-400">/ {goal.targetHours}h</span>
             </span>
-            <span className="text-[18px] font-bold tabular-nums text-zinc-900">
+            <span className="text-[16px] font-bold tabular-nums text-zinc-900">
               {progress}
-              <span className="text-[11px] font-semibold text-zinc-400">%</span>
+              <span className="text-[10px] font-semibold text-zinc-400">%</span>
             </span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-zinc-100">
+          <div className="h-1.5 overflow-hidden rounded-full bg-zinc-100">
             <div
               className="h-full rounded-full bg-[#f2cc0d] transition-[width] duration-500"
               style={{ width: `${progress}%` }}
             />
           </div>
           {goal.deadline && (
-            <div className="text-[11px] text-zinc-500">
+            <div className="text-[10px] text-zinc-500">
               Deadline · {format(new Date(goal.deadline), 'MMM d, yyyy')}
             </div>
           )}
