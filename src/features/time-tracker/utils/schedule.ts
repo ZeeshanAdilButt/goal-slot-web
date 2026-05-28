@@ -24,3 +24,34 @@ export function findScheduleBlockForDateTime(
     }) || null
   )
 }
+
+/**
+ * Find the next upcoming schedule block after `date`. Looks at the rest of
+ * today first, then walks forward up to 7 days. Returns the block plus the
+ * absolute Date its start represents so callers can format "in 25 min" or
+ * "Tomorrow, 9 AM" without re-deriving day math.
+ */
+export function findNextScheduleBlock(
+  weekSchedule: WeekSchedule | undefined,
+  date: Date,
+): { block: ScheduleBlock; startsAt: Date } | null {
+  if (!weekSchedule) return null
+  const minutes = date.getHours() * 60 + date.getMinutes()
+
+  for (let offset = 0; offset < 7; offset++) {
+    const day = (date.getDay() + offset) % 7
+    const blocks = (weekSchedule[day] || []).slice().sort((a, b) => {
+      return timeToMinutes(a.startTime) - timeToMinutes(b.startTime)
+    })
+    for (const block of blocks) {
+      const blockStart = timeToMinutes(block.startTime)
+      if (offset === 0 && blockStart <= minutes) continue
+      const startsAt = new Date(date)
+      startsAt.setDate(startsAt.getDate() + offset)
+      const [h, m] = block.startTime.split(':').map(Number)
+      startsAt.setHours(h, m, 0, 0)
+      return { block, startsAt }
+    }
+  }
+  return null
+}

@@ -111,16 +111,22 @@
   }
 }
 
-/* Gentle "nib lifts off the page" tilt for the Journal feather pen.
-   Pivots around the nib (bottom-left), tilts up a few degrees, settles
-   back. 2s loop. Calming, but a subtle nudge toward writing. */
+/* Wide "writing" sweep for the Journal feather pen — tilts to the left
+   40°, back to neutral, then to the right 40°, then back. Pivots on the
+   nib (bottom-left) so it reads like a hand sketching on a page. 2s loop. */
 @keyframes pen-tilt {
   0%,
   100% {
     transform: rotate(0deg);
   }
+  25% {
+    transform: rotate(-40deg);
+  }
   50% {
-    transform: rotate(-9deg);
+    transform: rotate(0deg);
+  }
+  75% {
+    transform: rotate(40deg);
   }
 }
 
