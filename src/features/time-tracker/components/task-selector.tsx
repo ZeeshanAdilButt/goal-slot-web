@@ -122,15 +122,13 @@ export function TaskSelector({
   const isDisabled = timerState !== 'STOPPED'
 
   return (
-    <div className="relative mb-6" ref={dropdownRef}>
-      <label className="mb-2 block text-sm font-bold uppercase opacity-75">What are you working on?</label>
+    <div className="relative mb-6 text-left" ref={dropdownRef}>
+      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-zinc-500">
+        What are you working on?
+      </label>
 
       <div className="relative">
-        <Search
-          className={`absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 ${
-            variant === 'dark' ? 'text-white/50' : 'text-black/40'
-          }`}
-        />
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
         <input
           ref={inputRef}
           type="text"
@@ -141,25 +139,20 @@ export function TaskSelector({
               setIsOpen(true)
             }
           }}
-          placeholder="Type to search or create a task..."
+          placeholder="Type a task name, or pick one below..."
           disabled={isDisabled}
-          className={`w-full border py-3 pl-10 pr-4 text-lg font-bold focus:border-primary focus:outline-none disabled:opacity-50 ${
-            variant === 'dark'
-              ? 'border-white/30 bg-white/10 text-white placeholder-white/50'
-              : 'border-black/20 bg-white text-black placeholder-black/40'
-          }`}
+          className="h-11 w-full rounded-lg border border-zinc-200 bg-white pl-10 pr-4 text-base text-zinc-900 transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] disabled:cursor-not-allowed disabled:opacity-50"
         />
       </div>
 
       {/* Dropdown */}
       {isOpen && !isDisabled && (
         <AnimateChangeInHeight className="absolute z-50 mt-1 w-full">
-          <div className="border border-zinc-200 bg-white shadow-sm">
-            {/* Existing tasks */}
+          <div className="rounded-lg border border-zinc-200 bg-white shadow-lg">
             <div className="max-h-80 overflow-auto">
               {groupedTasks.map((group) => (
                 <div key={group.label}>
-                  <div className="sticky top-0 border-b border-gray-200 bg-gray-300 px-4 py-2 text-xs font-bold uppercase text-gray-700">
+                  <div className="sticky top-0 z-10 border-b border-zinc-100 bg-zinc-50 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
                     {group.label}
                   </div>
                   {group.tasks.map((task) => (
@@ -167,24 +160,25 @@ export function TaskSelector({
                       key={task.id}
                       type="button"
                       onClick={() => handleSelectTask(task)}
-                      className={`w-full px-4 py-3 text-left transition-colors hover:bg-gray-100 ${
-                        currentTaskId === task.id ? 'bg-primary/20 font-bold' : ''
+                      className={`flex w-full flex-col gap-0.5 border-b border-zinc-50 px-3 py-2.5 text-left transition-colors last:border-b-0 hover:bg-zinc-50 ${
+                        currentTaskId === task.id ? 'bg-[#f2cc0d]/10' : ''
                       }`}
                     >
-                      <span className="block font-medium text-black">{task.title}</span>
-                      {task.goal?.title && <span className="block text-xs text-gray-500">Goal: {task.goal.title}</span>}
+                      <span className="text-sm font-medium text-zinc-900">{task.title}</span>
+                      {task.goal?.title && (
+                        <span className="text-[11px] text-zinc-500">{task.goal.title}</span>
+                      )}
                       {task.category && !task.goal?.title && (
-                        <span className="block text-xs text-gray-500">{task.category}</span>
+                        <span className="text-[11px] text-zinc-500">{task.category}</span>
                       )}
                     </button>
                   ))}
                 </div>
               ))}
 
-              {/* No results message */}
               {filteredTasks.length === 0 && !showCreateOption && (
-                <div className="px-4 py-3 text-center text-gray-500">
-                  {tasks.length === 0 ? 'No tasks yet - type to create one' : 'No tasks found'}
+                <div className="px-3 py-3 text-center text-sm text-zinc-500">
+                  {tasks.length === 0 ? 'No tasks yet, type to create one.' : 'No tasks found.'}
                 </div>
               )}
             </div>
@@ -195,11 +189,15 @@ export function TaskSelector({
                 type="button"
                 onClick={handleCreateNew}
                 disabled={isCreating}
-                className="flex w-full items-center gap-2 border-t-2 border-gray-200 px-4 py-3 text-left transition-colors hover:bg-emerald-100/20"
+                className="flex w-full items-center gap-2 border-t border-zinc-100 px-3 py-2.5 text-left text-sm text-zinc-700 transition-colors hover:bg-emerald-50"
               >
                 <Plus className="h-4 w-4 text-emerald-600" />
-                <span className="font-medium text-black">
-                  {isCreating ? 'Creating...' : `Create "${searchValue.trim()}"`}
+                <span className="font-medium">
+                  {isCreating ? 'Creating...' : (
+                    <>
+                      Create <span className="font-semibold text-zinc-900">"{searchValue.trim()}"</span>
+                    </>
+                  )}
                 </span>
               </button>
             )}

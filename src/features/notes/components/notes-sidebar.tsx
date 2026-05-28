@@ -160,7 +160,7 @@ function NoteItem({
         )}
         onClick={() => onSelect(note)}
       >
-        {/* Drop Indicators — animated yellow bar for top/bottom inserts */}
+        {/* Drop Indicators, animated yellow bar for top/bottom inserts */}
         <div
           className={cn(
             'pointer-events-none absolute left-1 right-1 top-0 z-50 h-[3px] rounded-full bg-[#f2cc0d] shadow-[0_0_6px_rgba(242,204,13,0.6)] transition-opacity duration-100',

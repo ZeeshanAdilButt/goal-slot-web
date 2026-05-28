@@ -65,12 +65,12 @@ export function SettingsIntegrationsTab() {
           title={
             <span className="inline-flex items-center gap-2">
               <KeyRound className="h-4 w-4" />
-              BYOK — Bring your own key
+              BYOK - Bring your own key
             </span>
           }
           action={
             status === 'active' ? (
-              <Badge variant="success">{PROVIDER_META[savedProvider].label} · Active</Badge>
+              <Badge variant="success">{PROVIDER_META[savedProvider].label} - Active</Badge>
             ) : (
               <Badge variant="default">Not Configured</Badge>
             )
@@ -79,7 +79,7 @@ export function SettingsIntegrationsTab() {
 
         <p className="text-sm text-zinc-600 mb-4">
           Use your own API key to power the Coach. We send it to our server only to encrypt it (AES-GCM)
-          and store it for your future requests — it is never logged, never shared, and you can rotate
+          and store it for your future requests. It is never logged, never shared, and you can rotate
           or remove it at any time. Charges go directly to your provider account.
         </p>
 

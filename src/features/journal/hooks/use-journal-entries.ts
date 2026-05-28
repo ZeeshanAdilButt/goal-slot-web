@@ -136,7 +136,7 @@ export function useJournalEntries() {
         return
       }
       // Optimistically insert a stub entry into the cache so selectedEntry is
-      // non-null immediately — no flicker to the "select an entry" empty state.
+      // non-null immediately, no flicker to the "select an entry" empty state.
       const stub: JournalEntry = {
         id: `tmp_${date}`,
         date,

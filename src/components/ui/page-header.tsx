@@ -14,20 +14,20 @@ export interface PageHeaderProps {
 
 function PageHeader({ title, eyebrow, description, actions, live, className }: PageHeaderProps) {
   return (
-    <header className={cn('flex flex-col gap-4 md:flex-row md:items-start md:justify-between', className)}>
-      <div className="flex flex-col gap-2 min-w-0">
+    <header className={cn('flex flex-col gap-2 md:flex-row md:items-start md:justify-between', className)}>
+      <div className="flex min-w-0 flex-col gap-0.5">
         {eyebrow && (
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{eyebrow}</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">{eyebrow}</span>
         )}
-        <div className="flex items-center gap-3">
-          <h1 className="text-3xl md:text-4xl font-black text-zinc-900 leading-tight tracking-tight">{title}</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-xl font-bold leading-tight tracking-tight text-zinc-900 md:text-2xl">{title}</h1>
           {live && (
             <StatusPill variant="live" dot>
               {live.label}
             </StatusPill>
           )}
         </div>
-        {description && <p className="text-sm text-zinc-500 max-w-2xl">{description}</p>}
+        {description && <p className="max-w-2xl text-xs leading-snug text-zinc-500 md:text-sm">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2 shrink-0">{actions}</div>}
     </header>

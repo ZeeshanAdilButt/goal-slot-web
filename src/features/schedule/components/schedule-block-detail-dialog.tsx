@@ -6,7 +6,7 @@ import { useCategoriesQuery } from '@/features/categories'
 import { ScheduleBlock } from '@/features/schedule/utils/types'
 import { Pencil, Trash2 } from 'lucide-react'
 
-import { DAYS_OF_WEEK_FULL } from '@/lib/utils'
+import { DAYS_OF_WEEK_FULL, formatTime12h } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { ConfirmDialog } from '@/components/confirm-dialog'
@@ -93,7 +93,7 @@ export function ScheduleBlockDetailDialog({
           <div className="space-y-1">
             <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Time</div>
             <div className="text-sm font-semibold text-zinc-900">
-              {block.startTime} - {block.endTime}
+              {formatTime12h(block.startTime)} – {formatTime12h(block.endTime)}
             </div>
           </div>
 

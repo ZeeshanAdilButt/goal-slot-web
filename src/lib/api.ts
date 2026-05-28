@@ -568,6 +568,41 @@ export interface CoachStreamChunk {
   error?: string
 }
 
+export type CoachProposalActionType =
+  | 'RENAME_GOAL'
+  | 'UPDATE_GOAL'
+  | 'CREATE_GOAL'
+  | 'DELETE_GOAL'
+  | 'CREATE_SCHEDULE_BLOCK'
+  | 'UPDATE_SCHEDULE_BLOCK'
+  | 'DELETE_SCHEDULE_BLOCK'
+  | 'CREATE_TIME_ENTRY'
+  | 'UPDATE_TIME_ENTRY'
+  | 'DELETE_TIME_ENTRY'
+  | 'CREATE_TASK'
+  | 'UPDATE_TASK'
+  | 'DELETE_TASK'
+  | 'CREATE_PRACTICE'
+
+export interface CoachProposalAction {
+  type: CoachProposalActionType
+  id?: string
+  payload?: Record<string, unknown>
+}
+
+export interface CoachProposalResult {
+  index: number
+  type: CoachProposalActionType
+  ok: boolean
+  resultId?: string
+  error?: string
+}
+
+export interface CoachProposalBlock {
+  summary?: string
+  actions: CoachProposalAction[]
+}
+
 const API_BASE_URL = `${API_URL}/api`
 
 function getAuthToken(): string | null {
@@ -779,6 +814,16 @@ export const coachApi = {
     ),
   streamChat: (scopeKey: string, content: string, opts?: { signal?: AbortSignal }) =>
     postCoachStream(`/coach/chat/${scopeKey}`, { content }, opts?.signal),
+
+  // Coach Proposals — apply Coach-emitted structured action batches
+  applyProposals: (
+    actions: CoachProposalAction[],
+    sourceMessageId?: string,
+  ) =>
+    api.post<{ results: CoachProposalResult[] }>('/coach/proposals/apply', {
+      actions,
+      ...(sourceMessageId ? { sourceMessageId } : {}),
+    }),
 
   // Coach Insights
   listInsights: (status?: CoachInsightStatusFilter) =>

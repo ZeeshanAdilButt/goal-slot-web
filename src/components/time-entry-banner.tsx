@@ -71,7 +71,7 @@ export function TimeEntryBanner() {
         <div className="flex items-center gap-2 text-xs text-zinc-500">
           <Clock3 className="h-3.5 w-3.5 text-zinc-400" />
           <span className="font-medium text-zinc-700">Not tracking</span>
-          <span className="hidden sm:inline">— start a timer, log past time, or jot a note.</span>
+          <span className="hidden sm:inline">- start a timer, log past time, or jot a note.</span>
         </div>
         <div className="flex items-center gap-2">
           <Link href="/dashboard/notes?action=new">

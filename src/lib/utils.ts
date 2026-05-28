@@ -68,6 +68,20 @@ export function minutesToTime(minutes: number): string {
   return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`
 }
 
+/**
+ * Convert "HH:mm" (24h) into "h:mm AM/PM". Used in user-facing surfaces;
+ * keep storage and APIs in HH:mm.
+ */
+export function formatTime12h(time: string): string {
+  const [hStr, mStr] = time.split(':')
+  const h = Number(hStr)
+  const m = Number(mStr)
+  if (Number.isNaN(h) || Number.isNaN(m)) return time
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  const displayHour = h === 0 ? 12 : h > 12 ? h - 12 : h
+  return `${displayHour}:${m.toString().padStart(2, '0')} ${ampm}`
+}
+
 export const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 export const DAYS_OF_WEEK_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 

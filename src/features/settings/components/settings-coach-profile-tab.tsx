@@ -87,7 +87,7 @@ export function SettingsCoachProfileTab() {
       <GlassCard padded>
         <SectionHeader title="Train the Coach" />
         <p className="text-sm text-zinc-600 mb-3">
-          The Coach reads these whenever it talks to you. Keep it short and honest — the more
+          The Coach reads these whenever it talks to you. Keep it short and honest. The more
           accurate, the better the narratives and suggestions it gives back.
         </p>
 
@@ -134,7 +134,7 @@ export function SettingsCoachProfileTab() {
               </label>
               <Textarea
                 rows={3}
-                placeholder="Anything specific you'd like the Coach to be aware of — e.g. praying 5x/day, dhikr habits, fasting."
+                placeholder="Anything specific you'd like the Coach to be aware of, e.g. praying 5x/day, dhikr habits, fasting."
                 value={form.spiritualNotes}
                 onChange={(e) => update('spiritualNotes', e.target.value)}
                 onBlur={handleSpiritualNotesBlur}

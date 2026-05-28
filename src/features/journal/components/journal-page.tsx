@@ -15,12 +15,16 @@ export function JournalPage() {
       <PageHeader
         eyebrow="Reflect"
         title="Journal"
-        description="One free-form entry per day. The coach reads these when analyzing your week."
+        description="One free-form entry per day. Just start typing. It autosaves, and the Coach uses it when reading your week."
       />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
-        <JournalSidebar entries={entries} selectedDate={selectedDate} onSelect={selectDate} />
-        <div className="min-w-0 overflow-hidden">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[15rem_minmax(0,1fr)]">
+        <aside className="order-2 lg:order-1">
+          <div className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm">
+            <JournalSidebar entries={entries} selectedDate={selectedDate} onSelect={selectDate} />
+          </div>
+        </aside>
+        <div className="order-1 min-w-0 lg:order-2">
           <JournalEntryEditor entry={selectedEntry} onSaveContent={upsertContent} />
         </div>
       </div>

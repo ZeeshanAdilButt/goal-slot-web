@@ -42,14 +42,14 @@ interface ScaleRowProps {
 function ScaleRow({ dial, value, onChange }: ScaleRowProps) {
   const { label, hint, emojis } = DIALS[dial]
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">{label}</span>
+    <div>
+      <div className="mb-1 flex items-baseline gap-2">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-600">{label}</span>
         <span className="text-[10px] text-zinc-400">
-          {hint[0]} ↔ {hint[1]}
+          {hint[0]} to {hint[1]}
         </span>
       </div>
-      <div className="grid grid-cols-5 gap-2">
+      <div className="grid grid-cols-5 gap-1.5">
         {emojis.map((emoji, idx) => {
           const n = idx + 1
           const selected = value === n
@@ -59,23 +59,15 @@ function ScaleRow({ dial, value, onChange }: ScaleRowProps) {
               type="button"
               onClick={() => onChange(n)}
               aria-pressed={selected}
-              aria-label={`${label} ${n} — ${idx === 0 ? hint[0] : idx === 4 ? hint[1] : ''}`}
+              aria-label={`${label} ${n} of 5`}
               className={cn(
-                'group inline-flex h-16 flex-col items-center justify-center gap-0.5 rounded-xl border text-2xl transition-all',
+                'inline-flex h-11 items-center justify-center rounded-lg text-2xl transition-all',
                 selected
-                  ? 'bg-[#f2cc0d]/10 border-[#f2cc0d] ring-2 ring-[#f2cc0d]/40 scale-[1.04]'
-                  : 'bg-zinc-50 border-zinc-200 hover:bg-zinc-100 hover:border-zinc-300 hover:scale-[1.02] grayscale-[40%] hover:grayscale-0',
+                  ? 'bg-[#fff7d1] ring-2 ring-[#f2cc0d] scale-[1.06]'
+                  : 'bg-transparent hover:bg-zinc-50 hover:scale-105',
               )}
             >
-              <span className={cn('leading-none transition-transform', selected && 'grayscale-0')}>{emoji}</span>
-              <span
-                className={cn(
-                  'text-[9px] font-semibold tabular-nums',
-                  selected ? 'text-zinc-900' : 'text-zinc-400',
-                )}
-              >
-                {n}
-              </span>
+              <span className="leading-none">{emoji}</span>
             </button>
           )
         })}
@@ -140,53 +132,52 @@ export function DailyCheckinCard() {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[90vh] w-[95vw] overflow-y-auto sm:max-w-2xl lg:max-w-3xl">
+        <DialogContent className="max-h-[90vh] w-[95vw] overflow-y-auto sm:max-w-xl lg:max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-xl">How did today land?</DialogTitle>
-            <DialogDescription>
-              Tap an emoji per dial. Then say one thing that helped and one that got in the way.
-              Notes are optional — write as much or as little as you want.
+            <DialogTitle className="text-lg">How did today land?</DialogTitle>
+            <DialogDescription className="text-sm">
+              Pick an emoji for each dial. Notes are optional.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6 pt-2">
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+          <div className="space-y-5 pt-1">
+            <div className="space-y-3">
               <ScaleRow dial="mood" value={mood} onChange={setMood} />
               <ScaleRow dial="energy" value={energy} onChange={setEnergy} />
               <ScaleRow dial="focus" value={focus} onChange={setFocus} />
             </div>
 
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="checkin-worked" className="text-sm normal-case tracking-normal">
-                  ✨ What worked?
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label htmlFor="checkin-worked" className="text-xs normal-case tracking-normal text-zinc-700">
+                  What worked?
                 </Label>
                 <Textarea
                   id="checkin-worked"
-                  rows={7}
-                  placeholder="What made today move? A block of deep work, a walk, sleep, talking to someone, a clear next step…"
+                  rows={4}
+                  placeholder="A block of deep work, a walk, sleep, a clear next step…"
                   value={worked}
                   onChange={(e) => setWorked(e.target.value)}
-                  className="min-h-[160px] resize-y text-[15px] leading-relaxed"
+                  className="min-h-[96px] resize-y text-sm leading-relaxed"
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="checkin-blocked" className="text-sm normal-case tracking-normal">
-                  🪨 What blocked you?
+              <div className="space-y-1">
+                <Label htmlFor="checkin-blocked" className="text-xs normal-case tracking-normal text-zinc-700">
+                  What got in the way?
                 </Label>
                 <Textarea
                   id="checkin-blocked"
-                  rows={7}
-                  placeholder="What got in the way? Phone, low energy, an unclear next step, a meeting that drained you, something on your mind…"
+                  rows={4}
+                  placeholder="Phone, low energy, unclear next step, something on your mind…"
                   value={blocked}
                   onChange={(e) => setBlocked(e.target.value)}
-                  className="min-h-[160px] resize-y text-[15px] leading-relaxed"
+                  className="min-h-[96px] resize-y text-sm leading-relaxed"
                 />
               </div>
             </div>
           </div>
 
-          <DialogFooter className="pt-3">
+          <DialogFooter className="pt-2">
             <Button variant="secondary" onClick={() => setOpen(false)}>
               Later
             </Button>

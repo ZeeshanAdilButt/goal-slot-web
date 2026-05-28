@@ -113,7 +113,7 @@ const DateRangePickerPanel: React.FC<DateRangePickerPanelProps> = ({
                       onRangeChange({ from: date, to: nextTo })
                     }}
                   />
-                  <span className="hidden text-gray-400 sm:inline">—</span>
+                  <span className="hidden text-gray-400 sm:inline">to</span>
                   <DateInput
                     aria-label="To date"
                     className="w-full sm:w-36"
@@ -155,7 +155,7 @@ const DateRangePickerPanel: React.FC<DateRangePickerPanelProps> = ({
                       onRangeCompareChange({ from: date, to: nextTo })
                     }}
                   />
-                  <span className="hidden text-gray-400 sm:inline">—</span>
+                  <span className="hidden text-gray-400 sm:inline">to</span>
                   <DateInput
                     aria-label="Compare to date"
                     className="w-full sm:w-36"

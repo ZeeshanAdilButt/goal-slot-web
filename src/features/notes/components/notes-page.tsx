@@ -85,7 +85,7 @@ export function NotesPage({ initialNoteId }: NotesPageProps = {}) {
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white">
-      {/* Chrome row (toolbar) — adapts to mobile/desktop */}
+      {/* Chrome row (toolbar), adapts to mobile/desktop */}
       <div className="flex h-12 shrink-0 items-center justify-between border-b border-zinc-200 bg-white px-2 sm:h-10">
         <div className="flex min-w-0 items-center gap-2">
           {isMobile ? (
@@ -118,7 +118,7 @@ export function NotesPage({ initialNoteId }: NotesPageProps = {}) {
 
         <Button variant="ghost" size="sm" onClick={createNote} disabled={isCreating}>
           {isCreating ? <Loading size="sm" /> : <Plus className="h-4 w-4" />}
-          <span className="text-xs">{isCreating ? 'Creating…' : 'New note'}</span>
+          <span className="text-xs">{isCreating ? 'Creating...' : 'New note'}</span>
         </Button>
       </div>
 
@@ -193,7 +193,7 @@ export function NotesPage({ initialNoteId }: NotesPageProps = {}) {
               </div>
               <Button variant="brand" onClick={createNote} disabled={isCreating}>
                 {isCreating ? <Loading size="sm" /> : <Plus className="h-4 w-4" />}
-                {isCreating ? 'Creating…' : 'Create note'}
+                {isCreating ? 'Creating...' : 'Create note'}
               </Button>
             </div>
           )}

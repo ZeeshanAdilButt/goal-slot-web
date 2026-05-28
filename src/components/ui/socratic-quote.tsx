@@ -10,7 +10,7 @@ function SocraticQuote({ className, children, ...props }: SocraticQuoteProps) {
   return (
     <blockquote
       className={cn(
-        'border-l-4 border-[#f2cc0d] bg-yellow-50/40 pl-4 pr-3 py-3 rounded-r-md text-sm italic text-zinc-700 leading-relaxed',
+        'rounded-r-md border-l-4 border-[#f2cc0d] bg-yellow-50/40 py-3 pl-4 pr-3 text-sm leading-relaxed text-zinc-700',
         className,
       )}
       {...props}

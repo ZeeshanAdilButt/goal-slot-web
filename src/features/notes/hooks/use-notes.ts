@@ -51,7 +51,7 @@ export function useCreateNoteMutation() {
   })
 }
 
-// Update note mutation
+// Update note mutation, optimistic so toggles (favorite, expand) feel instant.
 export function useUpdateNoteMutation() {
   const queryClient = useQueryClient()
 
@@ -60,11 +60,25 @@ export function useUpdateNoteMutation() {
       const response = await notesApi.update(id, data)
       return response.data as Note
     },
-    onSuccess: (updatedNote) => {
-      queryClient.invalidateQueries({ queryKey: NOTES_QUERY_KEY })
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: NOTES_QUERY_KEY })
+      const previous = queryClient.getQueryData<Note[]>(NOTES_QUERY_KEY)
+      queryClient.setQueryData<Note[]>(NOTES_QUERY_KEY, (prev) => {
+        if (!prev) return prev
+        return prev.map((n) => (n.id === id ? { ...n, ...data } : n))
+      })
+      return { previous }
     },
-    onError: (error: any) => {
+    onError: (error: any, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(NOTES_QUERY_KEY, context.previous)
       toast.error(error.response?.data?.message || 'Failed to update note')
+    },
+    // No invalidate on success, the optimistic patch is already correct.
+    // Server can drift only on serialized fields the user can't see (createdAt updates etc).
+    onSettled: () => {
+      // Background refetch so the cache eventually reconciles, but the UI does
+      // not block on it.
+      queryClient.invalidateQueries({ queryKey: NOTES_QUERY_KEY, refetchType: 'inactive' })
     },
   })
 }

@@ -122,11 +122,11 @@ export function FocusTimeGridCard({ view, filters, reportUserId }: FocusTimeGrid
               <span className="font-mono text-zinc-500">INTENSITY:</span>
               <div className="flex items-center gap-2">
                 <div className="h-4 w-4 rounded-[2px] border border-zinc-200 bg-sky-200" />
-                <span className="font-mono uppercase text-zinc-600">1–20m</span>
+                <span className="font-mono uppercase text-zinc-600">1-20m</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="h-4 w-4 rounded-[2px] border border-zinc-200 bg-sky-400" />
-                <span className="font-mono uppercase text-zinc-600">21–40m</span>
+                <span className="font-mono uppercase text-zinc-600">21-40m</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="h-4 w-4 rounded-[2px] border border-zinc-200 bg-sky-600" />
@@ -188,7 +188,7 @@ export function FocusTimeGridCard({ view, filters, reportUserId }: FocusTimeGrid
                               'group relative h-12 w-full rounded-[2px] transition-all hover:z-20',
                             )}
                           >
-                            {/* Background — colored by dominant goal OR sky-intensity fallback */}
+                            {/* Background, colored by dominant goal OR sky-intensity fallback */}
                             <div
                               className={cn(
                                 'absolute inset-0 rounded-[2px] transition-[transform,filter] duration-150 group-hover:brightness-95 group-hover:scale-[1.04]',
@@ -215,7 +215,7 @@ export function FocusTimeGridCard({ view, filters, reportUserId }: FocusTimeGrid
                               <div className="pointer-events-none invisible absolute left-1/2 top-full z-40 mt-1 w-56 -translate-x-1/2 rounded-lg border border-zinc-200 bg-white p-3 text-left shadow-lg opacity-0 transition-opacity duration-100 group-hover:visible group-hover:opacity-100">
                                 <div className="mb-1 flex items-baseline justify-between gap-2">
                                   <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-500">
-                                    {format(parseISO(day), 'MMM d')} · {formatHourLabel(hour)}
+                                    {format(parseISO(day), 'MMM d')} - {formatHourLabel(hour)}
                                   </span>
                                   <span className="font-mono text-xs font-semibold text-zinc-900">
                                     {formatDuration(minutes)}

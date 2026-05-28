@@ -72,7 +72,7 @@ export function useDailyCheckin() {
   const submit = useCallback(
     (payload: Omit<DailyCheckin, 'date' | 'submittedAt'>) => {
       mutation.mutate(payload)
-      // Return an optimistic shape — components that read this discard the value today.
+      // Return an optimistic shape, components that read this discard the value today.
       const date = todayKey()
       return {
         ...payload,

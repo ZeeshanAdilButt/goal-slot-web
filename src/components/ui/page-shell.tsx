@@ -9,7 +9,7 @@ export interface PageShellProps extends React.HTMLAttributes<HTMLElement> {
 function PageShell({ className, children, ...props }: PageShellProps) {
   return (
     <section
-      className={cn('max-w-6xl mx-auto px-6 md:px-12 py-10 space-y-10 screen-enter', className)}
+      className={cn('mx-auto max-w-6xl space-y-6 px-4 py-6 md:px-8 md:py-7 screen-enter', className)}
       {...props}
     >
       {children}

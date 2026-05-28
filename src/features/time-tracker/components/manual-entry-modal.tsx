@@ -46,7 +46,7 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
   const createEntry = useCreateTimeEntry()
   const queryClient = useQueryClient()
   const { data: categories = [] } = useCategoriesQuery()
-  // Show ALL tasks for the selected goal — sorting puts the category-matching
+  // Show ALL tasks for the selected goal, sorting puts the category-matching
   // ones first but doesn't exclude others (a goal can have multiple DOING tasks
   // across categories).
   const visibleTasks = goalId
@@ -78,7 +78,7 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
   }, [isOpen])
 
   // Schedule auto-bind: prefill goal/category/title from the schedule block
-  // covering the chosen date+time — BUT only while the user hasn't made any
+  // covering the chosen date+time, BUT only while the user hasn't made any
   // explicit choice yet. Once they override, we never snap back.
   useEffect(() => {
     if (!isOpen) {
@@ -253,7 +253,7 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
                 setCategory(value)
                 const linkedGoal = getGoalIdFromCategory(value, goals)
                 if (linkedGoal) setGoalId(linkedGoal)
-                // Intentionally do NOT auto-pick a task — let the user choose
+                // Intentionally do NOT auto-pick a task, let the user choose
                 // from the (possibly multiple) DOING tasks for the goal.
               }}
               disabled={!!taskId}
@@ -286,7 +286,7 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
                 if (derivedCategory) {
                   setCategory(derivedCategory)
                 }
-                // Intentionally do NOT auto-pick a task — let the user choose
+                // Intentionally do NOT auto-pick a task, let the user choose
                 // from the (possibly multiple) DOING tasks for the goal.
               }}
               disabled={!!taskId}

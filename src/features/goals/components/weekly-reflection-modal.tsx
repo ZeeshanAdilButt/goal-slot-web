@@ -30,7 +30,7 @@ function humanWeekLabel(weekKey: string | null): string {
   sunday.setUTCDate(monday.getUTCDate() + 6)
   const fmt = (d: Date) =>
     d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-  return `This week · ${fmt(monday)} – ${fmt(sunday)}`
+  return `This week - ${fmt(monday)} - ${fmt(sunday)}`
 }
 
 interface WeeklyReflectionModalProps {
@@ -77,7 +77,7 @@ export function WeeklyReflectionModal({ goal, open, onOpenChange }: WeeklyReflec
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>Weekly reflection — {goal.title}</DialogTitle>
+          <DialogTitle>Weekly reflection - {goal.title}</DialogTitle>
           {weekKey && (
             <p className="text-xs text-zinc-500">{humanWeekLabel(weekKey)}</p>
           )}

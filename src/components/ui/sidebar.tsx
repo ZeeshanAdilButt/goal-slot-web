@@ -57,6 +57,26 @@ const SidebarProvider = React.forwardRef<
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
   const [_open, _setOpen] = React.useState(defaultOpen)
+
+  // Hydrate from the sidebar_state cookie on mount so the collapsed/expanded
+  // choice survives a refresh. Done in a useEffect (post-hydration) to avoid
+  // SSR/client mismatch — accepts one extra paint as the trade-off.
+  const hydratedRef = React.useRef(false)
+  React.useEffect(() => {
+    if (hydratedRef.current) return
+    hydratedRef.current = true
+    if (typeof document === 'undefined') return
+    const match = document.cookie
+      .split('; ')
+      .find((c) => c.startsWith(`${SIDEBAR_COOKIE_NAME}=`))
+    if (!match) return
+    const value = match.split('=')[1]
+    if (value === 'true' || value === 'false') {
+      const next = value === 'true'
+      _setOpen(next)
+    }
+  }, [])
+
   const open = openProp ?? _open
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
@@ -417,7 +437,7 @@ const SidebarMenuItem = React.forwardRef<HTMLLIElement, React.ComponentProps<'li
 SidebarMenuItem.displayName = 'SidebarMenuItem'
 
 const sidebarMenuButtonVariants = cva(
-  'peer/menu-button flex w-full items-center gap-3 overflow-hidden rounded-md px-3 py-2 text-left text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-950 hover:bg-zinc-100 outline-none focus-visible:ring-2 focus-visible:ring-[#f2cc0d] disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-zinc-100 data-[active=true]:text-zinc-900 data-[active=true]:font-semibold data-[active=true]:border data-[active=true]:border-zinc-200 group-data-[collapsible=icon]:!size-12 group-data-[collapsible=icon]:!p-3 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0',
+  'peer/menu-button flex w-full items-center gap-3 overflow-hidden rounded-md px-3 py-2 text-left text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-950 hover:bg-zinc-100 outline-none focus-visible:ring-2 focus-visible:ring-[#f2cc0d] disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-zinc-100 data-[active=true]:text-zinc-900 data-[active=true]:font-semibold data-[active=true]:border data-[active=true]:border-zinc-200 group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0',
   {
     variants: {
       variant: {
@@ -428,7 +448,7 @@ const sidebarMenuButtonVariants = cva(
       size: {
         default: 'h-9 text-sm',
         sm: 'h-8 text-xs',
-        lg: 'h-12 text-sm group-data-[collapsible=icon]:!h-12 group-data-[collapsible=icon]:!w-12 group-data-[collapsible=icon]:!p-3',
+        lg: 'h-12 text-sm group-data-[collapsible=icon]:!h-9 group-data-[collapsible=icon]:!w-9 group-data-[collapsible=icon]:!p-2',
       },
     },
     defaultVariants: {

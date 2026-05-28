@@ -64,10 +64,11 @@ export function ActivePracticeSection() {
           </span>
         }
       />
-      <p className="text-sm text-zinc-600 mb-3">
-        The insights you've accepted or saved. Mark them done as the habit lands, pause if they
-        need to wait, dismiss the ones that don't fit.
-      </p>
+      <div className="mb-3 rounded-xl border border-[#f2cc0d]/30 bg-[#fffbea] p-3 text-sm leading-relaxed text-zinc-700">
+        These are the practices you said yes to. Keep them in view, mark one done when the habit
+        actually lands in your week, and pause anything you're not ready to carry yet. Nothing here
+        is a homework list. It's a conversation with the version of yourself you're trying to build.
+      </div>
 
       <div className="mb-4 flex flex-wrap gap-2">
         {FILTER_PILLS.map((pill) => {
@@ -91,7 +92,7 @@ export function ActivePracticeSection() {
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-zinc-500">Loading insights…</p>
+        <p className="text-sm text-zinc-500">Loading insights...</p>
       ) : insights.length === 0 ? (
         <div className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50/50 p-6 text-center text-sm text-zinc-500">
           Nothing here yet. Generate this week's narrative or save a Coach reply from the chat

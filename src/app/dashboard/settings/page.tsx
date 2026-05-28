@@ -115,10 +115,55 @@ function ProfileSettings() {
     }
   }
 
+  const role = user?.role || 'USER'
+  const plan = (user?.plan ?? 'FREE') as 'FREE' | 'BASIC' | 'PRO'
+  const isPro = plan === 'PRO' || user?.unlimitedAccess
+
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-6 text-xl font-bold uppercase">Profile Information</h2>
+        <h2 className="mb-1 text-xl font-bold uppercase">Profile Information</h2>
+        <p className="mb-5 text-xs text-zinc-500">Your account, role, and plan at a glance.</p>
+
+        <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">User type</div>
+            <div className="mt-1 text-sm font-semibold text-zinc-900">
+              {role === 'SUPER_ADMIN' ? 'Super Admin' : role === 'ADMIN' ? 'Admin' : 'User'}
+            </div>
+            <div className="text-[11px] text-zinc-500">
+              {user?.userType === 'SSO' && 'Signed in via SSO'}
+              {user?.userType === 'INTERNAL' && 'Internal account'}
+              {user?.userType === 'EXTERNAL' && 'External account'}
+            </div>
+          </div>
+          <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Subscription</div>
+            <div className="mt-1 flex items-center gap-1.5">
+              <span
+                className={cn(
+                  'rounded px-1.5 py-[1px] text-[10px] font-bold uppercase tracking-wider',
+                  isPro ? 'bg-[#fff7d1] text-[#8a7307]' : plan === 'BASIC' ? 'bg-sky-100 text-sky-800' : 'bg-zinc-200 text-zinc-700',
+                )}
+              >
+                {plan}
+              </span>
+              {user?.unlimitedAccess && (
+                <span className="rounded bg-emerald-100 px-1.5 py-[1px] text-[10px] font-bold uppercase text-emerald-700">Unlimited</span>
+              )}
+            </div>
+            <div className="text-[11px] text-zinc-500">
+              {isPro ? 'Full access' : plan === 'BASIC' ? 'Mid tier' : 'Free tier'}
+            </div>
+          </div>
+          <div className="col-span-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 sm:col-span-1">
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Auth</div>
+            <div className="mt-1 text-sm font-semibold text-zinc-900">
+              {user?.userType === 'SSO' ? 'Single sign-on' : 'Email + password'}
+            </div>
+            <div className="text-[11px] text-zinc-500 truncate">{user?.email || ''}</div>
+          </div>
+        </div>
 
         <div className="space-y-4">
           <div>
@@ -259,7 +304,7 @@ function BillingSettings() {
           >
             support@goalslot.com
           </a>
-          {' '}— include the plan you want and we'll set it up.
+          {' '}- include the plan you want and we'll set it up.
         </div>
       </div>
 

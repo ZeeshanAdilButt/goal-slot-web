@@ -36,7 +36,7 @@ function DayCell({ day, hasSchedule }: { day: ScheduleDayData; hasSchedule: bool
   if (!hasSchedule) {
     return (
       <div className="flex h-full items-center justify-center bg-slate-50 p-2">
-        <span className="text-xs text-slate-300">—</span>
+        <span className="text-xs text-slate-300">-</span>
       </div>
     )
   }
@@ -137,7 +137,7 @@ function ScheduleRow({ row, days }: { row: ScheduleReportRow; days: ScheduleRepo
               <DayCell day={dayData} hasSchedule={hasSchedule} />
             ) : (
               <div className="flex h-full items-center justify-center bg-slate-50 p-2">
-                <span className="text-xs text-slate-300">—</span>
+                <span className="text-xs text-slate-300">-</span>
               </div>
             )}
           </div>

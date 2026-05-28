@@ -5,7 +5,7 @@ import Link from 'next/link'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
-import { Bookmark, BookmarkCheck, KeyRound, MessageCircle, RotateCcw, Send, Settings as SettingsIcon, Sparkles, Trash2 } from 'lucide-react'
+import { Bookmark, BookmarkCheck, KeyRound, MessageCircle, Pencil, RotateCcw, Send, Settings as SettingsIcon, Sparkles, Square, Trash2 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { coachApi, type CoachMessageDto, type CoachStreamChunk } from '@/lib/api'
@@ -13,10 +13,17 @@ import { cn } from '@/lib/utils'
 import { PROVIDER_META, useByokKey } from '@/features/settings/hooks/use-byok-key'
 import { useCoachInsights } from '@/features/coach/hooks/use-coach-insights'
 import { ActivePracticeSection } from '@/features/coach/components/active-practice-section'
+import { CoachMarkdown } from '@/features/coach/components/coach-markdown'
+import { CoachOverviewTiles } from '@/features/coach/components/coach-overview-tiles'
+import {
+  CoachProposalCard,
+  extractCoachProposals,
+} from '@/features/coach/components/coach-proposal-card'
 import { InsightCard } from '@/features/coach/components/insight-card'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { EmptyState } from '@/components/ui/empty-state'
 import { GlassCard } from '@/components/ui/glass-card'
 import { Input } from '@/components/ui/input'
@@ -68,7 +75,7 @@ function humanScopeLabel(scopeKey: string): string {
     d.getUTCMonth() === monday.getUTCMonth() ? String(d.getUTCDate()) : fmtDay(d)
   const isCurrent = scopeKey === currentScopeKey()
   const prefix = isCurrent ? 'This week · ' : ''
-  return `${prefix}${fmtDay(monday)} – ${fmtSundayDay(sunday)}`
+  return `${prefix}${fmtDay(monday)} - ${fmtSundayDay(sunday)}`
 }
 
 function isAxios404(err: unknown): boolean {
@@ -88,7 +95,7 @@ function handleStreamError(status: number | undefined, message: string) {
   if (status === 412) {
     toast.error('Your API key was removed. Reconnect it in Integrations.')
   } else if (status === 429) {
-    toast.error('Rate limit hit — try again later or check your token budget.')
+    toast.error('Rate limit hit, try again later or check your token budget.')
   } else {
     toast.error(message)
   }
@@ -101,7 +108,7 @@ interface NarrativeSectionProps {
   scopeKey: string
 }
 
-function NarrativeSection({ scopeKey }: NarrativeSectionProps) {
+export function NarrativeSection({ scopeKey }: NarrativeSectionProps) {
   const queryClient = useQueryClient()
 
   const [streamingText, setStreamingText] = useState('')
@@ -216,13 +223,13 @@ function NarrativeSection({ scopeKey }: NarrativeSectionProps) {
         action={
           <div className="flex items-center gap-2">
             <Badge variant="default">{humanScopeLabel(scopeKey)}</Badge>
-            {isStreaming && <Badge variant="brand">Streaming…</Badge>}
+            {isStreaming && <Badge variant="brand">Streaming...</Badge>}
           </div>
         }
       />
 
       {isLoadingCache && !hasContent && (
-        <p className="text-sm text-zinc-500">Loading the latest narrative…</p>
+        <p className="text-sm text-zinc-500">Loading the latest narrative...</p>
       )}
 
       {!isLoadingCache && !hasContent && !isStreaming && !streamError && (
@@ -240,8 +247,10 @@ function NarrativeSection({ scopeKey }: NarrativeSectionProps) {
 
       {hasContent && (
         <SocraticQuote>
-          <span className="whitespace-pre-wrap not-italic text-zinc-800">{displayText}</span>
-          {isStreaming && <span className="ml-1 animate-pulse text-zinc-400">▍</span>}
+          <div className="not-italic text-zinc-800">
+            <CoachMarkdown content={displayText} className="text-[15px] text-zinc-800" />
+            {isStreaming && <span className="ml-1 animate-pulse text-zinc-400">▍</span>}
+          </div>
         </SocraticQuote>
       )}
 
@@ -331,11 +340,13 @@ function ChatMessageRow({
   scopeKey,
   savedIds,
   onSaved,
+  onEdit,
 }: {
   message: ChatMessageView
   scopeKey: string
   savedIds: Set<string>
   onSaved: (id: string) => void
+  onEdit?: (content: string) => void
 }) {
   const queryClient = useQueryClient()
   const [saving, setSaving] = useState(false)
@@ -359,12 +370,24 @@ function ChatMessageRow({
     }
   }, [isPersisted, isSaved, message.id, onSaved, queryClient, saving, scopeKey])
 
+  const isUser = message.role === 'USER'
   return (
     <div className="group space-y-1">
       <div className="flex items-center justify-between gap-2">
         <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-zinc-400">
-          {message.role === 'USER' ? 'You' : 'Coach'}
+          {isUser ? 'You' : 'Coach'}
         </span>
+        {isUser && onEdit && !message.pending && (
+          <button
+            type="button"
+            onClick={() => onEdit(message.content)}
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-400 opacity-0 transition-opacity hover:text-[#8a7307] group-hover:opacity-100 focus-visible:opacity-100"
+            title="Edit and resend"
+          >
+            <Pencil className="h-3 w-3" />
+            Edit
+          </button>
+        )}
         {isPersisted &&
           (isSaved ? (
             <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700">
@@ -380,21 +403,40 @@ function ChatMessageRow({
               title="Save this reply as a reminder"
             >
               <Bookmark className="h-3.5 w-3.5" />
-              {saving ? 'Saving…' : 'Save as reminder'}
+              {saving ? 'Saving...' : 'Save as reminder'}
             </button>
           ))}
       </div>
-      <div
-        className={cn(
-          'whitespace-pre-wrap text-[15px] leading-relaxed',
-          message.role === 'USER' ? 'text-zinc-700' : 'text-zinc-900',
-        )}
-      >
-        {message.content}
-        {message.pending && message.role === 'ASSISTANT' && (
-          <span className="ml-1 animate-pulse text-zinc-400">▍</span>
-        )}
-      </div>
+      {message.role === 'ASSISTANT' ? (
+        (() => {
+          const { cleaned, proposals, pending } = extractCoachProposals(message.content || '')
+          return (
+            <div className="text-[15px] leading-relaxed text-zinc-900">
+              {cleaned && <CoachMarkdown content={cleaned} />}
+              {proposals.map((block, idx) => (
+                <CoachProposalCard
+                  key={`${message.id}-prop-${idx}`}
+                  block={block}
+                  sourceMessageId={message.id}
+                />
+              ))}
+              {pending && (
+                <div className="my-3 flex items-center gap-2 rounded-lg border border-[#f2cc0d]/40 bg-[#fffbea] px-3 py-2 text-xs text-[#8a7307]">
+                  <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-[#f2cc0d]" />
+                  Coach is preparing a proposed change...
+                </div>
+              )}
+              {message.pending && !pending && (
+                <span className="ml-1 inline-block animate-pulse text-zinc-400">▍</span>
+              )}
+            </div>
+          )
+        })()
+      ) : (
+        <div className="whitespace-pre-wrap text-[15px] leading-relaxed text-zinc-700">
+          {message.content}
+        </div>
+      )}
     </div>
   )
 }
@@ -420,8 +462,10 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
   const [streamingReply, setStreamingReply] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set())
+  const [confirmClear, setConfirmClear] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
   const scrollRef = useRef<HTMLDivElement | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   // Filter chat-relevant messages (exclude narratives so the chat thread is clean).
   const persistedMessages = useMemo<ChatMessageView[]>(() => {
@@ -435,7 +479,7 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
     if (streaming && streamingReply) {
       list.push({ id: 'streaming-assistant', role: 'ASSISTANT', content: streamingReply, pending: true })
     } else if (streaming) {
-      list.push({ id: 'streaming-assistant', role: 'ASSISTANT', content: '…', pending: true })
+      list.push({ id: 'streaming-assistant', role: 'ASSISTANT', content: '...', pending: true })
     }
     return list
   }, [persistedMessages, optimistic, streaming, streamingReply])
@@ -446,8 +490,15 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
     }
   }, [allMessages.length, streamingReply])
 
-  useEffect(() => {
-    return () => abortRef.current?.abort()
+  // Do NOT abort the SSE on unmount. If the user navigates away mid-reply we
+  // want the server to finish and persist the message, so the next visit just
+  // shows the answer. Only the explicit Stop button aborts.
+
+  const handleEditMessage = useCallback((content: string) => {
+    setInput(content)
+    inputRef.current?.focus()
+    // Scroll input into view on mobile.
+    inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [])
 
   const handleSend = useCallback(
@@ -501,18 +552,7 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
     void handleSend(input)
   }
 
-  const handleClearChat = useCallback(async () => {
-    if (streaming) return
-    const hasMessages = persistedMessages.length > 0 || optimistic.length > 0
-    if (
-      hasMessages &&
-      typeof window !== 'undefined' &&
-      !window.confirm(
-        'Start a new conversation? Your chat history for this week will be cleared. Accepted insights + narrative stay.',
-      )
-    ) {
-      return
-    }
+  const performClearChat = useCallback(async () => {
     try {
       await coachApi.clearChatHistory(scopeKey)
       setOptimistic([])
@@ -520,12 +560,22 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
       setError(null)
       queryClient.setQueryData<CoachMessageDto[]>(['coach', 'chat', scopeKey], [])
       await queryClient.invalidateQueries({ queryKey: ['coach', 'chat', scopeKey] })
-      toast.success('New conversation. The Coach still remembers your data + accepted insights.')
+      toast.success('New conversation. The Coach still remembers your data and accepted insights.')
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Could not clear chat'
       toast.error(message)
     }
-  }, [optimistic.length, persistedMessages.length, queryClient, scopeKey, streaming])
+  }, [queryClient, scopeKey])
+
+  const handleClearChat = useCallback(() => {
+    if (streaming) return
+    const hasMessages = persistedMessages.length > 0 || optimistic.length > 0
+    if (hasMessages) {
+      setConfirmClear(true)
+    } else {
+      void performClearChat()
+    }
+  }, [optimistic.length, performClearChat, persistedMessages.length, streaming])
 
   return (
     <GlassCard padded className="space-y-3">
@@ -561,10 +611,10 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
         className="max-h-[420px] min-h-[180px] space-y-3 overflow-y-auto rounded-lg border border-zinc-100 bg-white/40 p-3"
       >
         {historyQuery.isLoading && allMessages.length === 0 ? (
-          <p className="text-sm text-zinc-500">Loading conversation…</p>
+          <p className="text-sm text-zinc-500">Loading conversation...</p>
         ) : allMessages.length === 0 ? (
           <p className="text-sm text-zinc-500">
-            Nothing here yet. Ask what you actually want to know — about your week, your sleep,
+            Nothing here yet. Ask what you actually want to know, about your week, your sleep,
             why something is hard, or what to try next.
           </p>
         ) : (
@@ -576,6 +626,7 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
                 scopeKey={scopeKey}
                 savedIds={savedIds}
                 onSaved={(id) => setSavedIds((prev) => new Set(prev).add(id))}
+                onEdit={handleEditMessage}
               />
             ))}
           </div>
@@ -598,16 +649,33 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
 
       <form onSubmit={onSubmit} className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <Input
+          ref={inputRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask the Coach a question…"
+          placeholder="Ask the Coach a question..."
           disabled={streaming}
           className="flex-1"
         />
-        <Button type="submit" variant="brand" disabled={streaming || !input.trim()}>
-          <Send className="h-3.5 w-3.5" />
-          {streaming ? 'Thinking…' : 'Send'}
-        </Button>
+        {streaming ? (
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              abortRef.current?.abort()
+              abortRef.current = null
+              setStreaming(false)
+            }}
+            title="Stop the Coach mid-reply"
+          >
+            <Square className="h-3.5 w-3.5" />
+            Stop
+          </Button>
+        ) : (
+          <Button type="submit" variant="brand" disabled={!input.trim()}>
+            <Send className="h-3.5 w-3.5" />
+            Send
+          </Button>
+        )}
       </form>
 
       {error && (
@@ -615,6 +683,16 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
           {error}
         </p>
       )}
+
+      <ConfirmDialog
+        open={confirmClear}
+        onOpenChange={setConfirmClear}
+        title="Start a new chat?"
+        description="This clears this week's chat history. Your accepted practices and narrative stay."
+        confirmButtonText="Start new chat"
+        cancelButtonText="Keep chat"
+        onConfirm={performClearChat}
+      />
     </GlassCard>
   )
 }
@@ -637,11 +715,11 @@ export function CoachPage() {
       <PageHeader
         title="Coach"
         eyebrow="Insights"
-        description="Your Socratic productivity coach — reads your goals, time, schedule, check-ins, journal, and Habits Profile to surface patterns and ask the questions that matter."
+        description="Your Socratic productivity coach. Reads your goals, time, schedule, check-ins, journal, and Habits Profile to surface patterns and ask the questions that matter."
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {hasKey ? (
-              <Badge variant="success">{providerLabel} · Connected</Badge>
+              <Badge variant="success">{providerLabel} - Connected</Badge>
             ) : (
               <Badge variant="default">Not configured</Badge>
             )}
@@ -655,48 +733,8 @@ export function CoachPage() {
         }
       />
 
-      {/* What the Coach can do — quick capability primer at the top of every visit. */}
-      <GlassCard padded>
-        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-zinc-500">
-          What the Coach can do
-        </h2>
-        <ul className="grid grid-cols-1 gap-x-6 gap-y-1.5 text-sm text-zinc-700 sm:grid-cols-2">
-          <li className="flex items-start gap-2">
-            <span aria-hidden className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f2cc0d]" />
-            <span>Read your week (time entries, schedule, check-ins, journal, goals) and write you a plain-English narrative.</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span aria-hidden className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f2cc0d]" />
-            <span>Surface 1–5 concrete suggestions from each narrative — observations, experiments, media to consume.</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span aria-hidden className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f2cc0d]" />
-            <span>Remember the suggestions you accept and reference them by name in future narratives + chats.</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span aria-hidden className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f2cc0d]" />
-            <span>Answer questions with citations from <em>your</em> data — never generic productivity advice.</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span aria-hidden className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f2cc0d]" />
-            <span>Save any chat reply as a tracked reminder (Bookmark icon in the conversation).</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span aria-hidden className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
-            <span>
-              Runs on <span className="font-medium text-zinc-900">your</span> OpenAI or Anthropic key —
-              we encrypt it server-side with AES-256-GCM, never log it, never share it, and you can
-              remove it anytime from Settings → Integrations.
-            </span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span aria-hidden className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-300" />
-            <span className="text-zinc-500">
-              <span className="font-medium text-zinc-600">Coming soon:</span> propose schedule + goal edits for your approval (you stay in control of every change).
-            </span>
-          </li>
-        </ul>
-      </GlassCard>
+      {/* Compact tiles row: capabilities, narrative, active practice — collapsed by default to keep chat front-and-center. */}
+      {hasKey && scopeKey && <CoachOverviewTiles scopeKey={scopeKey} />}
 
       {!hasKey && (
         <GlassCard padded>
@@ -706,13 +744,13 @@ export function CoachPage() {
             description={
               <>
                 The Coach runs on your own OpenAI or Anthropic API key. We encrypt it server-side and
-                use it only for your requests — charges go straight to your provider. Add a key in
-                Settings → Integrations to start.
+                use it only for your requests. Charges go straight to your provider. Add a key in
+                Settings, Integrations to start.
               </>
             }
             action={
               <Link href="/dashboard/settings?tab=integrations">
-                <Button variant="brand">Open Integrations →</Button>
+                <Button variant="brand">Open Integrations</Button>
               </Link>
             }
           />
@@ -721,9 +759,7 @@ export function CoachPage() {
 
       {hasKey && scopeKey && (
         <>
-          <NarrativeSection scopeKey={scopeKey} />
           <NewSuggestionsSection scopeKey={scopeKey} />
-          <ActivePracticeSection />
           <ChatSection scopeKey={scopeKey} />
         </>
       )}

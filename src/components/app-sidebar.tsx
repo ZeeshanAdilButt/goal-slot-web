@@ -46,13 +46,13 @@ import { SidebarFooterContent } from '@/components/sidebar-footer-content'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  // Planning pair — Goals + Schedule. Decide what matters, allocate time for it.
+  // Planning pair: Goals + Schedule. Decide what matters, allocate time for it.
   { href: '/dashboard/goals', label: 'Goals', icon: Target },
   { href: '/dashboard/schedule', label: 'Schedule', icon: Calendar },
-  // Execution pair — Tasks + Time Tracker. Do the work, measure it.
+  // Execution pair: Tasks + Time Tracker. Do the work, measure it.
   { href: '/dashboard/tasks', label: 'Tasks', icon: CheckSquare },
   { href: '/dashboard/time-tracker', label: 'Time Tracker', icon: Clock },
-  // Reflection pair — Journal + Coach. Write your day, let the Coach analyse + remind.
+  // Reflection pair: Journal + Coach. Write your day, let the Coach analyse + remind.
   { href: '/dashboard/journal', label: 'Journal', icon: BookOpen },
   { href: '/dashboard/coach', label: 'Coach', icon: Sparkles },
   // Auxiliary surfaces.
@@ -108,10 +108,10 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="flex-1 overflow-y-auto p-4 group-data-[collapsible=icon]:p-2">
-        <SidebarGroup>
+      <SidebarContent className="flex-1 overflow-y-auto px-2 py-2 group-data-[collapsible=icon]:p-2">
+        <SidebarGroup className="py-1">
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-0.5">
               {navItems.map((item) => {
                 const isActive = item.href === activeNavHref
                 const showCoachBadge = item.href === '/dashboard/coach' && proposedCount > 0
@@ -121,21 +121,21 @@ export function AppSidebar() {
                     <SidebarMenuButton
                       asChild
                       isActive={isActive}
-                      size="lg"
                       tooltip={item.label}
+                      className="h-8"
                     >
                       <Link href={item.href}>
                         <item.icon
                           className={cn(
-                            'h-6 w-6 group-data-[collapsible=icon]:-ml-1 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5',
+                            'h-4 w-4 group-data-[collapsible=icon]:-ml-1 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5',
                             isActive && 'text-[#f2cc0d]',
                           )}
                         />
-                        <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
+                        <span className="text-sm group-data-[collapsible=icon]:hidden">{item.label}</span>
                         {showCoachBadge && (
                           <Badge
                             variant="brand"
-                            className="ml-auto group-data-[collapsible=icon]:hidden"
+                            className="ml-auto h-4 text-[10px] group-data-[collapsible=icon]:hidden"
                           >
                             {proposedCount}
                           </Badge>
@@ -151,13 +151,13 @@ export function AppSidebar() {
 
         {/* Admin Section */}
         {isAdmin && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="flex items-center gap-2 px-4 text-xs font-bold uppercase text-gray-500 group-data-[collapsible=icon]:hidden">
-              <Shield className="h-4 w-4" />
+          <SidebarGroup className="py-1">
+            <SidebarGroupLabel className="flex items-center gap-1.5 px-2 text-[10px] font-bold uppercase tracking-wider text-zinc-400 group-data-[collapsible=icon]:hidden">
+              <Shield className="h-3 w-3" />
               Admin
             </SidebarGroupLabel>
             <SidebarGroupContent>
-              <SidebarMenu>
+              <SidebarMenu className="gap-0.5">
                 {adminNavItems.map((item) => {
                   const isActive = pathname.startsWith(item.href)
                   return (
@@ -165,17 +165,17 @@ export function AppSidebar() {
                       <SidebarMenuButton
                         asChild
                         isActive={isActive}
-                        size="lg"
                         tooltip={item.label}
+                        className="h-8"
                       >
                         <Link href={item.href}>
                           <item.icon
                             className={cn(
-                              'h-5 w-5 group-data-[collapsible=icon]:h-6 group-data-[collapsible=icon]:w-6',
+                              'h-4 w-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5',
                               isActive && 'text-[#f2cc0d]',
                             )}
                           />
-                          <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
+                          <span className="text-sm group-data-[collapsible=icon]:hidden">{item.label}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>

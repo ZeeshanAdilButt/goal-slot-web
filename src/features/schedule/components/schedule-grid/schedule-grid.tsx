@@ -134,16 +134,18 @@ export function ScheduleGrid({
         <ScheduleGridDragLayer onDragStart={handleDragStart} onDragMove={handleDragMove} onDragEnd={handleDragEnd}>
           <div className="flex overflow-y-hidden border-t border-zinc-200">
             <div className="relative w-16 border-r border-zinc-200" style={{ height: COLUMN_HEIGHT }}>
-              {Array.from({ length: 17 }, (_, hourIndex) => {
-                const hour = hourIndex + 6
+              {Array.from({ length: 24 }, (_, hour) => {
                 const top = (hour * 60 - DAY_START_MIN) * PX_PER_MIN
+                const ampm = hour >= 12 ? 'PM' : 'AM'
+                const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
                 return (
                   <div
                     key={hour}
-                    className="absolute left-0 right-0 pr-1 text-right font-mono text-xs text-gray-600"
+                    className="absolute left-0 right-0 pr-1 text-right text-xs text-zinc-500"
                     style={{ top }}
                   >
-                    {hour.toString().padStart(2, '0')}:00
+                    <span className="font-medium text-zinc-700">{displayHour}</span>
+                    <span className="ml-0.5 text-[10px] uppercase tracking-wider">{ampm}</span>
                   </div>
                 )
               })}

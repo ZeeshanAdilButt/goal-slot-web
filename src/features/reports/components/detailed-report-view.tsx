@@ -144,7 +144,7 @@ export function DetailedReportView({
                 {format(parseISO(day.date), 'EEEE, MMMM d, yyyy')}
               </span>
               <span className="ml-auto font-mono text-sm text-gray-600">
-                {day.entries.length} {day.entries.length === 1 ? 'entry' : 'entries'} •{' '}
+                {day.entries.length} {day.entries.length === 1 ? 'entry' : 'entries'} -{' '}
                 <span className="font-semibold text-zinc-900">{day.totalFormatted}</span>
               </span>
             </button>
@@ -181,8 +181,8 @@ export function DetailedReportView({
 }
 
 function EntryRow({ entry, showScheduleContext, includeTaskNotes }: { entry: DetailedTimeEntry; showScheduleContext: boolean; includeTaskNotes?: boolean }) {
-  const startTime = entry.startedAt ? format(parseISO(entry.startedAt), 'h:mm a') : '—'
-  const endTime = entry.endedAt ? format(parseISO(entry.endedAt), 'h:mm a') : '—'
+  const startTime = entry.startedAt ? format(parseISO(entry.startedAt), 'h:mm a') : '-'
+  const endTime = entry.endedAt ? format(parseISO(entry.endedAt), 'h:mm a') : '-'
   const hasScheduleBlock = showScheduleContext && entry.scheduleBlock && entry.scheduleBlock.title
 
   return (
@@ -191,7 +191,7 @@ function EntryRow({ entry, showScheduleContext, includeTaskNotes }: { entry: Det
       <div className="col-span-2 flex items-center gap-1 font-mono text-sm text-gray-600">
         <Clock className="h-3 w-3 sm:hidden" />
         <span>{startTime}</span>
-        <span className="text-gray-400">–</span>
+        <span className="text-gray-400">-</span>
         <span>{endTime}</span>
       </div>
 
@@ -214,7 +214,7 @@ function EntryRow({ entry, showScheduleContext, includeTaskNotes }: { entry: Det
               {entry.scheduleBlock?.title}
             </span>
             <span className="text-gray-500">
-              {entry.scheduleBlock?.startTime}–{entry.scheduleBlock?.endTime}
+              {entry.scheduleBlock?.startTime} to {entry.scheduleBlock?.endTime}
             </span>
           </div>
         )}

@@ -2,7 +2,7 @@ import { TaskStatus } from '@/features/tasks/utils/types'
 
 // Uses real Tailwind tokens that exist in the v2 design system.
 // (The previous version referenced `bg-accent-*` aliases that were removed
-// when the brutalist tokens were dropped — leaving badges with no bg and
+// when the brutalist tokens were dropped, leaving badges with no bg and
 // the card "glow" overlay invisible while still dimming text contrast.)
 
 export const taskStatusStyles: Record<
