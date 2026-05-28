@@ -7,6 +7,7 @@ import { NotificationsButton } from '@/features/notifications/components/notific
 import { Toaster } from 'react-hot-toast'
 
 import { ReactQueryProvider } from '@/lib/react-query-provider'
+import { FloatingCheckinButton } from '@/components/floating-checkin-button'
 import { FloatingCoachButton } from '@/components/floating-coach-button'
 import PostHogAuth from '@/components/posthog-auth'
 
@@ -50,6 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <PostHogAuth />
           {children}
           <div className="fixed bottom-6 right-6 z-50 flex flex-row items-end gap-2">
+            <FloatingCheckinButton />
             <FloatingCoachButton />
             <NotificationsButton />
             <Feedback label="Feedback" />
