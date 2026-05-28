@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 
 import { useNotesSelection } from '@/features/notes/hooks/use-notes-selection'
 import { FileText, PanelLeft, PanelLeftClose, Plus, X } from 'lucide-react'
@@ -41,6 +42,25 @@ export function NotesPage({ initialNoteId }: NotesPageProps = {}) {
     if (isMobile && isMobileSidebarOpen && selectedNote) setIsMobileSidebarOpen(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedNote?.id])
+
+  // Auto-create a new note when arriving with ?action=new (from the persistent
+  // header "+ Note" shortcut). Fires once per param, then strips the param so
+  // refreshing the page doesn't keep spawning notes.
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+  const handledActionRef = useRef(false)
+  useEffect(() => {
+    if (handledActionRef.current) return
+    if (searchParams?.get('action') !== 'new') return
+    handledActionRef.current = true
+    createNote()
+    // Strip the param so the user can refresh without spawning more notes.
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete('action')
+    const next = params.toString()
+    router.replace(next ? `${pathname}?${next}` : pathname)
+  }, [createNote, pathname, router, searchParams])
 
   const handleSelectNote = (note: Parameters<typeof selectNote>[0]) => {
     selectNote(note)

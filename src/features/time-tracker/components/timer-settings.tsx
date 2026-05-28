@@ -15,6 +15,10 @@ interface TimerSettingsProps {
   onGoalIdChange: (goalId: string) => void
 }
 
+const LABEL_CLASS = 'block text-xs font-semibold uppercase tracking-wider text-zinc-500'
+const SELECT_TRIGGER_CLASS =
+  'h-auto w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 transition-colors hover:border-zinc-300 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] disabled:cursor-not-allowed disabled:opacity-50 data-[state=open]:border-[#f2cc0d]'
+
 export function TimerSettings({
   goals,
   currentCategory,
@@ -27,58 +31,61 @@ export function TimerSettings({
   const { data: categories = [] } = useCategoriesQuery()
   const REMINDER_OPTIONS = [5, 10, 15, 20, 30, 45, 60]
   const { reminderInterval, setReminderInterval } = useTimerStore((state) => ({
-      reminderInterval: state.reminderInterval || 15,
-      setReminderInterval: state.setReminderInterval
+    reminderInterval: state.reminderInterval || 15,
+    setReminderInterval: state.setReminderInterval,
   }))
 
   const canClearAll = timerState === 'STOPPED' && (!!currentGoalId || !!currentCategory)
 
   return (
-    <div className="mb-6">
-      <div className="mb-4">
-        <label className="mb-2 block text-sm font-bold uppercase opacity-75">
-            Reminder Frequency (Minutes)
-        </label>
+    <div className="mb-6 space-y-4 text-left">
+      <div>
+        <label className={`${LABEL_CLASS} mb-1.5`}>Reminder frequency</label>
         <Select
-            value={reminderInterval.toString()}
-            onValueChange={(val) => setReminderInterval(Number(val))}
-            disabled={timerState === 'RUNNING'}
+          value={reminderInterval.toString()}
+          onValueChange={(val) => setReminderInterval(Number(val))}
+          disabled={timerState === 'RUNNING'}
         >
-            <SelectTrigger className="w-full border-2 border-white/30 bg-white/10 px-4 py-2 text-white shadow-none hover:border-white/50 hover:bg-white/20 hover:text-white hover:shadow-none focus:border-primary focus:ring-0 disabled:opacity-50 data-[state=open]:bg-white/20 data-[state=open]:text-white">
-                <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    <SelectValue />
-                </div>
-            </SelectTrigger>
-            <SelectContent>
-                {REMINDER_OPTIONS.map((min) => (
-                    <SelectItem key={min} value={min.toString()}>
-                        Every {min} minutes
-                    </SelectItem>
-                ))}
-            </SelectContent>
+          <SelectTrigger className={`${SELECT_TRIGGER_CLASS} sm:w-72`}>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-zinc-500" />
+              <SelectValue />
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            {REMINDER_OPTIONS.map((min) => (
+              <SelectItem key={min} value={min.toString()}>
+                Every {min} minutes
+              </SelectItem>
+            ))}
+          </SelectContent>
         </Select>
       </div>
 
       {canClearAll && (
-        <div className="mb-3 flex justify-end">
+        <div className="flex justify-end">
           <button
             type="button"
             onClick={() => {
               onGoalIdChange('')
               onCategoryChange('')
             }}
-            className="flex items-center gap-2 rounded-full border border-white/20 px-3 py-1 text-xs font-semibold uppercase text-white/80 transition hover:border-white/40 hover:bg-white/10 hover:text-white"
+            className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-medium text-zinc-600 transition-colors hover:border-zinc-300 hover:text-zinc-900"
           >
-            <X className="h-3.5 w-3.5" /> Clear Goal & Category
+            <X className="h-3.5 w-3.5" />
+            Clear goal & category
           </button>
         </div>
       )}
-      <div className="grid grid-cols-2 gap-4">
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <label className="block text-sm font-bold uppercase opacity-75">
-              Link to Goal {isTaskSelected && currentGoalId && <span className="text-xs opacity-70">(From Task)</span>}
+          <div className="mb-1.5 flex items-baseline justify-between gap-2">
+            <label className={LABEL_CLASS}>
+              Link to goal
+              {isTaskSelected && currentGoalId && (
+                <span className="ml-1 text-[10px] font-normal normal-case text-zinc-400">(from task)</span>
+              )}
             </label>
           </div>
           <div className="relative">
@@ -86,10 +93,10 @@ export function TimerSettings({
               <button
                 type="button"
                 onClick={() => onGoalIdChange('')}
-                className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full p-1 text-white/80 transition hover:bg-white/10 hover:text-white"
+                className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full p-1 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
                 aria-label="Clear goal"
               >
-                <X className="h-4 w-4" />
+                <X className="h-3.5 w-3.5" />
               </button>
             )}
             <Select
@@ -97,11 +104,11 @@ export function TimerSettings({
               onValueChange={(val) => onGoalIdChange(val === 'no_goal' ? '' : val)}
               disabled={timerState !== 'STOPPED'}
             >
-              <SelectTrigger className="h-auto w-full border-2 border-white/30 bg-white/10 px-4 py-2 pr-10 text-white shadow-none hover:border-white/50 hover:bg-white/20 hover:text-white hover:shadow-none focus:border-primary focus:ring-0 disabled:opacity-50 data-[state=open]:bg-white/20 data-[state=open]:text-white">
+              <SelectTrigger className={`${SELECT_TRIGGER_CLASS} pr-8`}>
                 <SelectValue placeholder="Select goal" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="no_goal">No Goal</SelectItem>
+                <SelectItem value="no_goal">No goal</SelectItem>
                 {goals.map((goal) => (
                   <SelectItem key={goal.id} value={goal.id}>
                     {goal.title}
@@ -111,10 +118,14 @@ export function TimerSettings({
             </Select>
           </div>
         </div>
+
         <div>
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <label className="block text-sm font-bold uppercase opacity-75">
-              Category {isTaskSelected && <span className="text-xs opacity-70">(From Task)</span>}
+          <div className="mb-1.5 flex items-baseline justify-between gap-2">
+            <label className={LABEL_CLASS}>
+              Category
+              {isTaskSelected && (
+                <span className="ml-1 text-[10px] font-normal normal-case text-zinc-400">(from task)</span>
+              )}
             </label>
           </div>
           <div className="relative">
@@ -122,10 +133,10 @@ export function TimerSettings({
               <button
                 type="button"
                 onClick={() => onCategoryChange('')}
-                className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full p-1 text-white/80 transition hover:bg-white/10 hover:text-white"
+                className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full p-1 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
                 aria-label="Clear category"
               >
-                <X className="h-4 w-4" />
+                <X className="h-3.5 w-3.5" />
               </button>
             )}
             <Select
@@ -133,11 +144,11 @@ export function TimerSettings({
               onValueChange={(val) => onCategoryChange(val === 'no_category' ? '' : val)}
               disabled={timerState !== 'STOPPED'}
             >
-              <SelectTrigger className="h-auto w-full border-2 border-white/30 bg-white/10 px-4 py-2 pr-10 text-white shadow-none hover:border-white/50 hover:bg-white/20 hover:text-white hover:shadow-none focus:border-primary focus:ring-0 disabled:opacity-50 data-[state=open]:bg-white/20 data-[state=open]:text-white">
+              <SelectTrigger className={`${SELECT_TRIGGER_CLASS} pr-8`}>
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="no_category">No Category</SelectItem>
+                <SelectItem value="no_category">No category</SelectItem>
                 {categories.map((cat) => (
                   <SelectItem key={cat.value} value={cat.value}>
                     {cat.name}

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
-import { Clock3, Pause, Timer, Bell, Square, Play } from 'lucide-react'
+import { Clock3, Pause, Timer, Bell, Square, Play, FileText } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { useTimerStore } from '@/lib/use-timer-store'
@@ -64,18 +64,25 @@ export function TimeEntryBanner() {
   }, [timerState, startTimestamp, pausedElapsedTime])
 
   if (timerState === 'STOPPED') {
-    // Always-on quick shortcut bar so users can start tracking from any
-    // dashboard page without first navigating to /dashboard/time-tracker.
+    // Always-on quick shortcut bar so users can start tracking, log time,
+    // or capture a note from any dashboard page without navigating first.
     return (
-      <div className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-zinc-200 bg-white px-4 py-2">
+      <div className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 bg-white px-4 py-2">
         <div className="flex items-center gap-2 text-xs text-zinc-500">
           <Clock3 className="h-3.5 w-3.5 text-zinc-400" />
           <span className="font-medium text-zinc-700">Not tracking</span>
-          <span className="hidden sm:inline">— start a timer when you're ready.</span>
+          <span className="hidden sm:inline">— start a timer, log past time, or jot a note.</span>
         </div>
         <div className="flex items-center gap-2">
+          <Link href="/dashboard/notes?action=new">
+            <Button variant="ghost" size="sm">
+              <FileText className="h-3.5 w-3.5" />
+              + Note
+            </Button>
+          </Link>
           <Link href="/dashboard/time-tracker?action=manual">
             <Button variant="ghost" size="sm">
+              <Clock3 className="h-3.5 w-3.5" />
               + Log time
             </Button>
           </Link>

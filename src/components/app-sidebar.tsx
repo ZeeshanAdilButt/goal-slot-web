@@ -46,16 +46,17 @@ import { SidebarFooterContent } from '@/components/sidebar-footer-content'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  // Reflection trio — kept adjacent so Goals → Journal → Coach reads as one loop:
-  // set a goal, write your day, let the Coach analyse + remind.
+  // Planning pair — Goals + Schedule. Decide what matters, allocate time for it.
   { href: '/dashboard/goals', label: 'Goals', icon: Target },
+  { href: '/dashboard/schedule', label: 'Schedule', icon: Calendar },
+  // Execution pair — Tasks + Time Tracker. Do the work, measure it.
+  { href: '/dashboard/tasks', label: 'Tasks', icon: CheckSquare },
+  { href: '/dashboard/time-tracker', label: 'Time Tracker', icon: Clock },
+  // Reflection pair — Journal + Coach. Write your day, let the Coach analyse + remind.
   { href: '/dashboard/journal', label: 'Journal', icon: BookOpen },
   { href: '/dashboard/coach', label: 'Coach', icon: Sparkles },
-  // Execution surfaces.
-  { href: '/dashboard/schedule', label: 'Schedule', icon: Calendar },
-  { href: '/dashboard/tasks', label: 'Tasks', icon: CheckSquare },
+  // Auxiliary surfaces.
   { href: '/dashboard/notes', label: 'Notes', icon: FileText },
-  { href: '/dashboard/time-tracker', label: 'Time Tracker', icon: Clock },
   { href: '/dashboard/reports', label: 'Reports', icon: BarChart3 },
   { href: '/dashboard/reports/export', label: 'Export Reports', icon: Download },
   { href: '/dashboard/sharing', label: 'Sharing', icon: Share2 },

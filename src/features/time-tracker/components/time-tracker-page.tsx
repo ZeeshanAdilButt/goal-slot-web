@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 
 import { ManualEntryModal } from '@/features/time-tracker/components/manual-entry-modal'
 import { RecentEntries } from '@/features/time-tracker/components/recent-entries'
@@ -62,6 +63,15 @@ export function TimeTrackerPage() {
   const [manualCategory, setManualCategory] = useState(false)
   const [manualGoal, setManualGoal] = useState(false)
   const [manualSchedule, setManualSchedule] = useState(false)
+
+  // Open the Manual Entry modal directly when the user clicked "+ Log time"
+  // from the persistent header shortcut (which navigates here with ?action=manual).
+  const searchParams = useSearchParams()
+  useEffect(() => {
+    if (searchParams?.get('action') === 'manual') {
+      setShowManualEntry(true)
+    }
+  }, [searchParams])
 
   useEffect(() => {
     if (!weeklySchedule) return

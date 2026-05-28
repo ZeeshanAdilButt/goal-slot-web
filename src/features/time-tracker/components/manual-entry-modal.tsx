@@ -164,7 +164,7 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className=" max-w-md">
+      <DialogContent className="max-h-[90vh] w-[95vw] overflow-y-auto sm:max-w-2xl lg:max-w-3xl">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold uppercase">Manual Time Entry</DialogTitle>
         </DialogHeader>

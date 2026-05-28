@@ -376,7 +376,7 @@ function ChatMessageRow({
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-500 opacity-0 transition-opacity hover:text-[#8a7307] focus-visible:opacity-100 group-hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-500 opacity-70 transition-opacity hover:text-[#8a7307] hover:opacity-100 focus-visible:opacity-100 disabled:cursor-not-allowed disabled:opacity-50"
               title="Save this reply as a reminder"
             >
               <Bookmark className="h-3.5 w-3.5" />
@@ -654,6 +654,49 @@ export function CoachPage() {
           </div>
         }
       />
+
+      {/* What the Coach can do — quick capability primer at the top of every visit. */}
+      <GlassCard padded>
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-zinc-500">
+          What the Coach can do
+        </h2>
+        <ul className="grid grid-cols-1 gap-x-6 gap-y-1.5 text-sm text-zinc-700 sm:grid-cols-2">
+          <li className="flex items-start gap-2">
+            <span aria-hidden className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f2cc0d]" />
+            <span>Read your week (time entries, schedule, check-ins, journal, goals) and write you a plain-English narrative.</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span aria-hidden className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f2cc0d]" />
+            <span>Surface 1–5 concrete suggestions from each narrative — observations, experiments, media to consume.</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span aria-hidden className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f2cc0d]" />
+            <span>Remember the suggestions you accept and reference them by name in future narratives + chats.</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span aria-hidden className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f2cc0d]" />
+            <span>Answer questions with citations from <em>your</em> data — never generic productivity advice.</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span aria-hidden className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f2cc0d]" />
+            <span>Save any chat reply as a tracked reminder (Bookmark icon in the conversation).</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span aria-hidden className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+            <span>
+              Runs on <span className="font-medium text-zinc-900">your</span> OpenAI or Anthropic key —
+              we encrypt it server-side with AES-256-GCM, never log it, never share it, and you can
+              remove it anytime from Settings → Integrations.
+            </span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span aria-hidden className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-300" />
+            <span className="text-zinc-500">
+              <span className="font-medium text-zinc-600">Coming soon:</span> propose schedule + goal edits for your approval (you stay in control of every change).
+            </span>
+          </li>
+        </ul>
+      </GlassCard>
 
       {!hasKey && (
         <GlassCard padded>
