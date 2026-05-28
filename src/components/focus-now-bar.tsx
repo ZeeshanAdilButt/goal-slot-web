@@ -116,8 +116,13 @@ export function FocusNowBar() {
           )}
         </div>
 
-        {/* Time window + countdown + up-next + link */}
-        <div className="flex shrink-0 flex-wrap items-center gap-1.5">
+        {/* Time window + countdown + up-next + link. Drop shrink-0 so
+            the group can wrap onto a second row on narrow viewports
+            (the link was overflowing the right edge of the screen on
+            mobile because shrink-0 prevented the group from collapsing
+            into the outer flex-wrap). Min-w-0 lets inner chips
+            participate in shrinking too. */}
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
           <span className="inline-flex items-center gap-1 rounded-md border border-[#f2cc0d]/40 bg-white/70 px-2 py-0.5 text-[11px] font-medium text-zinc-700">
             <Clock className="h-3 w-3 text-[#8a7307]" />
             {fmtShort(activeBlock.startTime)} - {fmtShort(activeBlock.endTime)}
@@ -144,9 +149,14 @@ export function FocusNowBar() {
           )}
           <Link
             href="/dashboard/schedule"
+            title="View schedule"
+            aria-label="View schedule"
             className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-semibold text-[#8a7307] transition-colors hover:bg-[#fff7d1] hover:text-[#6b5905]"
           >
-            View Schedule
+            {/* Label hidden on the smallest viewports so the link
+                doesn't push past the right edge; arrow icon alone
+                remains tappable with an aria-label fallback. */}
+            <span className="hidden sm:inline">View Schedule</span>
             <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
