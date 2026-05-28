@@ -44,8 +44,8 @@ function ScaleRow({ dial, value, onChange }: ScaleRowProps) {
   return (
     <div>
       <div className="mb-1 flex items-baseline gap-2">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-600">{label}</span>
-        <span className="text-[10px] text-zinc-400">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-700">{label}</span>
+        <span className="text-[11px] font-medium text-zinc-600">
           {hint[0]} to {hint[1]}
         </span>
       </div>
