@@ -52,7 +52,7 @@ export function GoalItem({ goal, index, onEdit, isLocked = false }: GoalItemProp
       className="group h-full"
     >
       <GlassCard
-        className={cn('relative flex h-full flex-col border-l-4 p-3', isLocked && 'opacity-60')}
+        className={cn('relative flex h-full flex-col gap-4 border-l-[6px] p-5', isLocked && 'opacity-60')}
         style={{ borderLeftColor: goal.color }}
       >
         {isLocked && (
@@ -61,49 +61,61 @@ export function GoalItem({ goal, index, onEdit, isLocked = false }: GoalItemProp
           </div>
         )}
 
-        {/* Header: status + actions, tight */}
-        <div className="flex items-start justify-between gap-2">
-          <Badge variant={statusVariant as 'success' | 'warning' | 'default'} className="text-[9px]">
-            {isLocked ? 'LOCKED' : goal.status}
-          </Badge>
+        {/* Title row: category eyebrow + title + actions on hover */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span
+                aria-hidden
+                className={cn(
+                  'h-1.5 w-1.5 rounded-full',
+                  goal.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-zinc-300',
+                )}
+              />
+              <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+                {goal.category}
+              </span>
+              {isLocked && (
+                <Badge variant="warning" className="text-[9px]">LOCKED</Badge>
+              )}
+            </div>
+            <h3 className="mt-1.5 line-clamp-2 text-base font-semibold leading-snug text-zinc-900">
+              {goal.title}
+            </h3>
+          </div>
           <div className="flex shrink-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100">
             <Button
               type="button"
               variant="secondary"
               size="icon"
-              className="h-6 w-6"
+              className="h-7 w-7"
               onClick={() => canEdit && onEdit(goal)}
               disabled={!canEdit}
+              title="Edit goal"
             >
-              <Edit2 className="h-3 w-3" />
+              <Edit2 className="h-3.5 w-3.5" />
             </Button>
             <Button
               type="button"
               variant="secondary"
               size="icon"
-              className="h-6 w-6 text-rose-600 hover:border-rose-200 hover:bg-rose-50"
+              className="h-7 w-7 text-rose-600 hover:border-rose-200 hover:bg-rose-50"
               onClick={() => canEdit && handleDelete()}
               disabled={!canEdit}
+              title="Delete goal"
             >
-              <Trash2 className="h-3 w-3" />
+              <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
 
-        <h3 className="mt-2 line-clamp-2 text-sm font-semibold leading-snug text-zinc-900">
-          {goal.title}
-        </h3>
-        <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-          {goal.category}
-        </span>
-
         {goal.labels && goal.labels.length > 0 && (
-          <div className="mt-1.5 flex flex-wrap gap-1">
-            {goal.labels.slice(0, 3).map((gl) => (
+          <div className="flex flex-wrap gap-1">
+            {goal.labels.slice(0, 4).map((gl) => (
               <span
                 key={gl.label.id}
-                className="rounded-full border border-zinc-200 px-1.5 py-0 text-[9px] font-medium"
-                style={{ backgroundColor: gl.label.color || '#e5e7eb', color: '#000' }}
+                className="rounded-full border border-zinc-200 px-2 py-0.5 text-[10px] font-medium"
+                style={{ backgroundColor: gl.label.color || '#f4f4f5', color: '#000' }}
               >
                 {gl.label.name}
               </span>
@@ -114,25 +126,31 @@ export function GoalItem({ goal, index, onEdit, isLocked = false }: GoalItemProp
         {goal.description && (
           <HtmlContent
             html={goal.description}
-            className="prose prose-xs mt-1.5 line-clamp-2 max-w-none text-[11px] text-zinc-600"
+            className="prose prose-sm line-clamp-2 max-w-none text-[12px] leading-relaxed text-zinc-600"
           />
         )}
 
-        {/* Push the progress section to the bottom so all cards align nicely. */}
-        <div className="mt-auto pt-3">
-          <div className="flex items-baseline justify-between text-[11px]">
+        {/* Progress section pinned to bottom for consistent card heights. */}
+        <div className="mt-auto space-y-2 pt-1">
+          <div className="flex items-baseline justify-between text-[12px]">
             <span className="font-semibold tabular-nums text-zinc-900">
               {goal.loggedHours.toFixed(1)}h
               <span className="ml-1 font-normal text-zinc-400">/ {goal.targetHours}h</span>
             </span>
-            <span className="font-semibold tabular-nums text-zinc-500">{progress}%</span>
+            <span className="text-[18px] font-bold tabular-nums text-zinc-900">
+              {progress}
+              <span className="text-[11px] font-semibold text-zinc-400">%</span>
+            </span>
           </div>
-          <div className="mt-1 h-1 overflow-hidden rounded-full bg-zinc-100">
-            <div className="h-full bg-[#f2cc0d] transition-all" style={{ width: `${progress}%` }} />
+          <div className="h-2 overflow-hidden rounded-full bg-zinc-100">
+            <div
+              className="h-full rounded-full bg-[#f2cc0d] transition-[width] duration-500"
+              style={{ width: `${progress}%` }}
+            />
           </div>
           {goal.deadline && (
-            <div className="mt-2 text-[10px] text-zinc-500">
-              Deadline {format(new Date(goal.deadline), 'MMM d, yyyy')}
+            <div className="text-[11px] text-zinc-500">
+              Deadline · {format(new Date(goal.deadline), 'MMM d, yyyy')}
             </div>
           )}
         </div>

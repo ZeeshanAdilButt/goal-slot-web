@@ -146,8 +146,18 @@ export function StartTrackingPopover({ open, onClose }: StartTrackingPopoverProp
                   <button
                     type="button"
                     onClick={() => startWithTask(task)}
-                    className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-[#fff7d1]"
+                    title={`Start tracking "${task.title}"`}
+                    className="group/row flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-[#fff7d1]"
                   >
+                    {/* Visible play affordance — signals the whole row
+                        starts a timer when clicked. Brand-yellow on
+                        hover so it reads as the primary action. */}
+                    <span
+                      aria-hidden
+                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-500 transition-colors group-hover/row:border-[#f2cc0d] group-hover/row:bg-[#f2cc0d] group-hover/row:text-zinc-900"
+                    >
+                      <Play className="h-3 w-3 fill-current" />
+                    </span>
                     <span className="min-w-0 flex-1 truncate text-zinc-900">{task.title}</span>
                     <span className="flex shrink-0 items-center gap-1.5 text-[10px] text-zinc-500">
                       {task.goal?.title && (
