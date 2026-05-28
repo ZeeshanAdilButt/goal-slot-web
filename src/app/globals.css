@@ -97,24 +97,131 @@
   }
 }
 
-/* Journal night mode — sitewide. When the user is on the journal
-   page, the WHOLE app inverts via a CSS filter: white -> near-black,
-   dark text -> light, brand-yellow stays warm thanks to the
-   hue-rotate(180). Images / SVGs / videos get counter-inverted so
-   they look normal against the dark chrome. The filter is on the
-   <html> element so it covers everything including portaled popovers
-   and modals attached to body. */
+/* ============================================================
+   DARK MODE — proper, not a filter trick.
+   ============================================================
+   Activated by adding the `dark` class to <html> (also responds to
+   the legacy `[data-journal-night='true']` attribute so the existing
+   journal-page toggle keeps working). All real dark surfaces, real
+   light text, brand-yellow stays brand-yellow. No invert, no
+   hue-rotate. Photos, SVGs, icons all render as the designer drew
+   them; only the chrome around them flips.
+
+   Anything carrying a brand-yellow class (#f2cc0d, #fffbea, #fff7d1,
+   #fff3a8, #8a7307) is explicitly NOT touched — the yellow is the
+   one warm thing on the page, by design. */
+
+html.dark,
 html[data-journal-night='true'] {
   background-color: #09090b;
-  filter: invert(1) hue-rotate(180deg);
-  transition: filter 0.6s ease;
+  color-scheme: dark;
 }
-html[data-journal-night='true'] img,
-html[data-journal-night='true'] svg,
-html[data-journal-night='true'] video,
-html[data-journal-night='true'] picture,
-html[data-journal-night='true'] [data-no-invert='true'] {
-  filter: invert(1) hue-rotate(180deg);
+html.dark body,
+html[data-journal-night='true'] body {
+  background-color: #09090b !important;
+  color: #f4f4f5;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* Layout backgrounds */
+html.dark .bg-white,
+html[data-journal-night='true'] .bg-white {
+  background-color: #18181b !important;
+}
+html.dark .bg-zinc-50,
+html[data-journal-night='true'] .bg-zinc-50 {
+  background-color: #18181b !important;
+}
+html.dark .bg-zinc-100,
+html[data-journal-night='true'] .bg-zinc-100 {
+  background-color: #27272a !important;
+}
+html.dark .bg-\[\#fafafa\],
+html[data-journal-night='true'] .bg-\[\#fafafa\] {
+  background-color: #09090b !important;
+}
+html.dark .bg-white\/95,
+html.dark .bg-white\/90,
+html.dark .bg-white\/80,
+html.dark .bg-white\/70,
+html.dark .bg-white\/60,
+html.dark .bg-white\/50,
+html[data-journal-night='true'] .bg-white\/95,
+html[data-journal-night='true'] .bg-white\/90,
+html[data-journal-night='true'] .bg-white\/80,
+html[data-journal-night='true'] .bg-white\/70,
+html[data-journal-night='true'] .bg-white\/60,
+html[data-journal-night='true'] .bg-white\/50 {
+  background-color: rgba(24, 24, 27, 0.92) !important;
+}
+
+/* Text */
+html.dark .text-zinc-900,
+html[data-journal-night='true'] .text-zinc-900 {
+  color: #f4f4f5 !important;
+}
+html.dark .text-zinc-800,
+html.dark .text-zinc-700,
+html[data-journal-night='true'] .text-zinc-800,
+html[data-journal-night='true'] .text-zinc-700 {
+  color: #e4e4e7 !important;
+}
+html.dark .text-zinc-600,
+html[data-journal-night='true'] .text-zinc-600 {
+  color: #d4d4d8 !important;
+}
+html.dark .text-zinc-500,
+html[data-journal-night='true'] .text-zinc-500 {
+  color: #a1a1aa !important;
+}
+html.dark .text-zinc-400,
+html[data-journal-night='true'] .text-zinc-400 {
+  color: #71717a !important;
+}
+
+/* Borders */
+html.dark .border-zinc-100,
+html[data-journal-night='true'] .border-zinc-100 {
+  border-color: #18181b !important;
+}
+html.dark .border-zinc-200,
+html[data-journal-night='true'] .border-zinc-200 {
+  border-color: #27272a !important;
+}
+html.dark .border-zinc-300,
+html[data-journal-night='true'] .border-zinc-300 {
+  border-color: #3f3f46 !important;
+}
+html.dark .divide-zinc-100 > * + *,
+html.dark .divide-zinc-200 > * + *,
+html[data-journal-night='true'] .divide-zinc-100 > * + *,
+html[data-journal-night='true'] .divide-zinc-200 > * + * {
+  border-color: #27272a !important;
+}
+
+/* Shadows dial down — drop shadows over dark backgrounds look fake. */
+html.dark .shadow-sm,
+html.dark .shadow,
+html.dark .shadow-md,
+html.dark .shadow-lg,
+html.dark .shadow-xl,
+html[data-journal-night='true'] .shadow-sm,
+html[data-journal-night='true'] .shadow,
+html[data-journal-night='true'] .shadow-md,
+html[data-journal-night='true'] .shadow-lg,
+html[data-journal-night='true'] .shadow-xl {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.45) !important;
+}
+
+/* Popovers / dropdowns / dialogs (portaled outside the layout) */
+html.dark [data-radix-popper-content-wrapper] .bg-white,
+html[data-journal-night='true'] [data-radix-popper-content-wrapper] .bg-white {
+  background-color: #18181b !important;
+}
+html.dark [role='dialog'],
+html[data-journal-night='true'] [role='dialog'] {
+  background-color: #18181b !important;
+  color: #f4f4f5 !important;
 }
 
 /* Older, narrower overrides kept for surfaces the filter trick can

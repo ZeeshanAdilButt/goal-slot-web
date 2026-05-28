@@ -47,12 +47,13 @@ export function JournalPage() {
   const [lampOn, setLampOn] = useState(true)
 
   // The journal IS the dark room. The moment the user opens the page
-  // the WHOLE app dims — sidebar, banners, page chrome, everything —
+  // the whole app dims — sidebar, banners, page chrome, everything —
   // and the lamp / sun decoration becomes the warm light source. The
-  // lamp toggle now only governs the bedside lamp's own glow, not the
-  // dark theme itself. CSS rules live in globals.css under the
-  // [data-journal-night="true"] selector. Cleaned up on unmount so
-  // leaving the journal restores the regular day chrome.
+  // CSS rules in globals.css respond to both `.dark` (user-set in
+  // Settings) and `[data-journal-night='true']` (set here while the
+  // journal page is mounted). Removing the attribute on unmount
+  // restores the user's chosen theme — if they enabled dark mode
+  // globally, the rest of the app stays dark.
   useEffect(() => {
     const root = document.documentElement
     root.setAttribute('data-journal-night', 'true')

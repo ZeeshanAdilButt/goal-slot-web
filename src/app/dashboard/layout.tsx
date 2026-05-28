@@ -7,6 +7,7 @@ import { ReleaseNoteBanner } from '@/features/release-notes/components/release-n
 import { motion } from 'framer-motion'
 
 import { useAuthStore } from '@/lib/store'
+import { useApplyTheme } from '@/lib/use-theme'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { DailyCheckinBanner } from '@/components/daily-checkin-banner'
@@ -19,6 +20,8 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const { isLoading, isAuthenticated, loadUser } = useAuthStore()
+  // Sync persisted theme → <html> class so dark mode applies app-wide.
+  useApplyTheme()
 
   const returnTo = useMemo(() => {
     const search = searchParams?.toString()
