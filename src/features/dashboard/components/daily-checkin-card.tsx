@@ -43,11 +43,8 @@ function ScaleRow({ dial, value, onChange }: ScaleRowProps) {
   const { label, hint, emojis } = DIALS[dial]
   return (
     <div>
-      <div className="mb-1 flex items-baseline gap-2">
+      <div className="mb-1">
         <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-700">{label}</span>
-        <span className="text-[11px] font-medium text-zinc-600">
-          {hint[0]} to {hint[1]}
-        </span>
       </div>
       <div className="grid grid-cols-5 gap-1.5">
         {emojis.map((emoji, idx) => {
