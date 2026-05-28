@@ -89,59 +89,56 @@ export const NotificationsButton = () => {
           )}
         </div>
       </Button1>
-      <Material
-        type="menu"
+      <div
+        ref={menuRef}
         className={clsx(
-          'absolute w-[360px] font-sans duration-200',
+          'absolute z-50 w-[360px] overflow-hidden rounded-lg border border-zinc-200 bg-white text-zinc-900 shadow-xl transition-opacity duration-150',
           isOpen ? 'opacity-100' : 'pointer-events-none opacity-0',
         )}
         style={{ ...position }}
-        ref={menuRef}
       >
-        <div
-          className="flex items-center justify-between border-b px-3 py-2 text-sm font-semibold"
-          style={{ borderColor: 'var(--accents-2)' }}
-        >
+        <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-semibold text-zinc-900">
           <span>Notifications</span>
-          <span className="text-xs font-normal text-gray-600">{unreadCount} unread</span>
+          <span className="text-xs font-normal text-zinc-500">{unreadCount} unread</span>
         </div>
-        <div className="max-h-[360px] overflow-y-auto">
+        <div className="max-h-[360px] overflow-y-auto bg-white">
           {isQueryLoading ? (
-            <div className="px-4 py-6 text-center text-sm text-gray-600">Loading...</div>
+            <div className="px-4 py-6 text-center text-sm text-zinc-500">Loading...</div>
           ) : notifications.length === 0 ? (
-            <div className="px-4 py-6 text-center text-sm text-gray-600">No notifications yet</div>
+            <div className="px-4 py-6 text-center text-sm text-zinc-500">No notifications yet</div>
           ) : (
             notifications.map((item) => (
               <button
                 key={item.id}
                 className={clsx(
-                  'flex w-full flex-col items-start gap-1 px-4 py-3 text-left transition-colors',
-                  item.readAt ? 'bg-white' : 'bg-yellow-50',
+                  'flex w-full flex-col items-start gap-1 border-b border-zinc-100 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-zinc-50',
+                  item.readAt ? 'bg-white' : 'bg-[#fffbea]',
                 )}
                 onClick={() => handleNotificationClick(item)}
               >
-                <span className="text-xs uppercase text-gray-500">{item.type.replace('_', ' ')}</span>
-                <span className="text-sm font-semibold text-gray-900">{item.title}</span>
-                {item.body && <span className="text-sm text-gray-700">{item.body}</span>}
-                <span className="text-[11px] text-gray-500">{new Date(item.createdAt).toLocaleString()}</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                  {item.type.replace('_', ' ')}
+                </span>
+                <span className="text-sm font-semibold text-zinc-900">{item.title}</span>
+                {item.body && <span className="text-sm leading-relaxed text-zinc-700">{item.body}</span>}
+                <span className="text-[11px] text-zinc-400">{new Date(item.createdAt).toLocaleString()}</span>
               </button>
             ))
           )}
         </div>
         {hasNextPage && (
-          <div className="border-t p-2" style={{ borderColor: 'var(--accents-2)' }}>
-            <Button1
-              type="secondary"
-              size="small"
+          <div className="border-t border-zinc-200 bg-zinc-50 p-2">
+            <button
+              type="button"
               onClick={() => fetchNextPage()}
               disabled={isFetchingNextPage}
-              className="w-full"
+              className="inline-flex h-8 w-full items-center justify-center rounded-md border border-zinc-200 bg-white text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isFetchingNextPage ? 'Loading...' : 'Load more'}
-            </Button1>
+            </button>
           </div>
         )}
-      </Material>
+      </div>
     </div>
   )
 }
