@@ -10,6 +10,7 @@ import {
   DragOverlay,
   DragStartEvent,
   MeasuringStrategy,
+  type Modifier,
   MouseSensor,
   TouchSensor,
   useDraggable,
@@ -58,6 +59,19 @@ type DropPosition = 'top' | 'inside' | 'bottom' | null
 // behaviour. Lifted to module scope so resolveDropTarget can reuse it.
 const HORIZONTAL_SWIPE_PX = 40
 
+// Once the user has moved more than this many px (in any direction) we
+// snap-lock the drag to its dominant axis. OneNote-style: if they
+// started moving down, only vertical drops are valid until release.
+const AXIS_LOCK_PX = 8
+
+type DragAxis = 'x' | 'y' | null
+
+// Modifier factory: zero out the non-locked axis so the dnd-kit ghost
+// only translates along the locked axis. Returned per-render so the
+// closure captures the latest axis without restarting the drag.
+const verticalOnlyModifier: Modifier = ({ transform }) => ({ ...transform, x: 0 })
+const horizontalOnlyModifier: Modifier = ({ transform }) => ({ ...transform, y: 0 })
+
 type DropIntentKind = 'sub-note' | 'promote' | 'sibling' | 'reparent' | 'noop'
 
 interface ResolvedDropTarget {
@@ -80,12 +94,17 @@ interface ResolvedDropTarget {
 // Pure resolver: predicts what handleDragEnd will do given the
 // current drag inputs. Used by both the live preview pill and the
 // on-drop path, so the user sees exactly what they're about to get.
+//
+// `lockedAxis` short-circuits classification: when locked to 'y' we
+// ignore horizontal delta entirely (no promote/demote), and when
+// locked to 'x' we ignore vertical position (no sibling/inside).
 function resolveDropTarget(
   activeId: string | null,
   overId: string | null,
   deltaX: number,
   notes: Note[],
   dragState: { id: string; position: DropPosition },
+  lockedAxis: DragAxis,
 ): ResolvedDropTarget {
   if (!activeId) return { kind: 'noop', depthDelta: 0, horizontal: false }
   const dragged = notes.find((n) => n.id === activeId)
@@ -103,12 +122,16 @@ function resolveDropTarget(
   }
 
   // Horizontal swipe takes precedence when the user isn't hovering
-  // a different row (mirrors handleDragEnd's guard).
-  const horizontalSwipe = Math.abs(deltaX) >= HORIZONTAL_SWIPE_PX
+  // a different row (mirrors handleDragEnd's guard). When locked to
+  // the vertical axis, horizontal delta is ignored outright — a pure
+  // up/down drag must never accidentally promote/demote.
+  const effectiveDeltaX = lockedAxis === 'y' ? 0 : deltaX
+  const horizontalSwipe =
+    lockedAxis !== 'y' && Math.abs(effectiveDeltaX) >= HORIZONTAL_SWIPE_PX
   const hoveringSelfOrNone = !overId || overId === activeId
   if (horizontalSwipe && hoveringSelfOrNone) {
     const draggedDepth = noteDepth(dragged.id)
-    if (deltaX > 0) {
+    if (effectiveDeltaX > 0) {
       // Demote: become child of previous sibling.
       const siblings = notes
         .filter((n) => n.parentId === (dragged.parentId ?? null))
@@ -149,9 +172,26 @@ function resolveDropTarget(
   }
   const target = notes.find((n) => n.id === overId)
   if (!target) return { kind: 'noop', depthDelta: 0, horizontal: false }
-  const position: DropPosition = dragState.id === overId ? dragState.position : null
+  const hoverPosition: DropPosition = dragState.id === overId ? dragState.position : null
 
-  if (!position || position === 'inside') {
+  // When axis-locked to Y, a sibling reorder is the user's intent.
+  // Falling back to 'inside' (reparent) just because the row's
+  // onMouseMove hasn't fired yet was the root cause of sibling
+  // reorders silently turning into reparents.
+  if (lockedAxis === 'y') {
+    const position: 'top' | 'bottom' = hoverPosition === 'top' ? 'top' : 'bottom'
+    return {
+      kind: 'sibling',
+      siblingTitle: target.title || 'Untitled',
+      depthDelta: 0,
+      horizontal: false,
+      targetId: overId,
+      targetDepth: noteDepth(overId),
+      position,
+    }
+  }
+
+  if (!hoverPosition || hoverPosition === 'inside') {
     // Reparent under the target row.
     return {
       kind: 'reparent',
@@ -170,7 +210,7 @@ function resolveDropTarget(
     horizontal: false,
     targetId: overId,
     targetDepth: noteDepth(overId),
-    position,
+    position: hoverPosition,
   }
 }
 
@@ -296,7 +336,7 @@ function NoteItem({
         {...listeners}
         onMouseMove={handleMouseMove}
         className={cn(
-          'group relative flex items-center gap-1 rounded-md px-2 py-1.5 text-sm transition-[background-color,box-shadow,transform] duration-150 select-none cursor-move',
+          'group relative flex items-center gap-1 rounded-md px-2 py-1.5 text-sm transition-[background-color,box-shadow,transform] duration-150 select-none cursor-grab active:cursor-grabbing',
           isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-zinc-50',
           // Multi-select highlight (ctrl/cmd-click): brand-yellow tint
           // + ring so the marked-for-action notes are obvious without
@@ -571,9 +611,14 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
 
   // DnD Logic
   const [activeNote, setActiveNote] = useState<NoteTreeItem | null>(null)
-  // Live horizontal drag delta — drives the cursor swap between
-  // `move` (±<40px) and `ew-resize` (±≥40px, in promote/demote range).
+  // Live horizontal drag delta — kept around so the resolver can see
+  // post-lock horizontal motion (and so the dev tools can show it).
   const [dragX, setDragX] = useState(0)
+  // OneNote-style axis lock. `null` while the user hasn't moved far
+  // enough to commit to a direction; flips to 'x' or 'y' once total
+  // movement passes AXIS_LOCK_PX and stays locked until drag end.
+  const [lockedAxis, setLockedAxis] = useState<DragAxis>(null)
+  const lockedAxisRef = useRef<DragAxis>(null)
   // Live resolved-drop preview, recomputed on every onDragMove tick.
   // Drives the bottom-left pill + the depth-shifted indicator inside
   // the tree. Cleared on drag end so the UI snaps back instantly.
@@ -609,6 +654,8 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
     const note = findNote(noteTree, active.id as string)
     setActiveNote(note)
     setDragPreview(null)
+    setLockedAxis(null)
+    lockedAxisRef.current = null
   }
 
   // Single onDragMove handler: cursor swap fires inline (cheap), the
@@ -616,11 +663,26 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
   // only re-render once per frame even on a high-poll-rate mouse.
   const handleDragMove = (event: DragMoveEvent) => {
     const { active, over, delta } = event
-    setDragX(delta?.x ?? 0)
+    const dx = delta?.x ?? 0
+    const dy = delta?.y ?? 0
+    setDragX(dx)
+
+    // Commit to a dominant axis on the first non-trivial motion.
+    // After that, the lock is sticky for the rest of the drag.
+    if (lockedAxisRef.current == null) {
+      const absX = Math.abs(dx)
+      const absY = Math.abs(dy)
+      if (absX + absY >= AXIS_LOCK_PX) {
+        const axis: DragAxis = absX > absY ? 'x' : 'y'
+        lockedAxisRef.current = axis
+        setLockedAxis(axis)
+      }
+    }
+
     pendingMoveRef.current = {
       activeId: active.id as string,
       overId: (over?.id as string) ?? null,
-      deltaX: delta?.x ?? 0,
+      deltaX: dx,
     }
     if (dragMoveRafRef.current != null) return
     dragMoveRafRef.current = requestAnimationFrame(() => {
@@ -633,6 +695,7 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
         pending.deltaX,
         notes,
         dragStateRef.current,
+        lockedAxisRef.current,
       )
       setDragPreview(next)
     })
@@ -642,6 +705,8 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
     setActiveNote(null)
     setDragX(0)
     setDragPreview(null)
+    setLockedAxis(null)
+    lockedAxisRef.current = null
     if (dragMoveRafRef.current != null) {
       cancelAnimationFrame(dragMoveRafRef.current)
       dragMoveRafRef.current = null
@@ -651,9 +716,12 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over, delta } = event
+    const endLockedAxis = lockedAxisRef.current
     setActiveNote(null)
     setDragX(0)
     setDragPreview(null)
+    setLockedAxis(null)
+    lockedAxisRef.current = null
     if (dragMoveRafRef.current != null) {
       cancelAnimationFrame(dragMoveRafRef.current)
       dragMoveRafRef.current = null
@@ -663,13 +731,16 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
     const noteId = active.id as string
     // Resolve drop using the same helper that powered the live
     // preview, so the on-drop behaviour always matches what the user
-    // just saw on screen.
+    // just saw on screen. Pass the axis snapshot captured before we
+    // reset state above so the resolver sees the same lock the user
+    // had during the drag.
     const resolved = resolveDropTarget(
       noteId,
       (over?.id as string) ?? null,
       delta?.x ?? 0,
       notes,
       dragStateRef.current,
+      endLockedAxis,
     )
 
     const draggedNote = notes.find((n: Note) => n.id === noteId)
@@ -769,13 +840,20 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
     }),
   )
 
-  // Set body cursor + disable text selection during drag for a calm
-  // feel. The default during drag is `move` (4-arrow cross); once the
-  // user crosses the ±40px horizontal threshold we flip to `ew-resize`
-  // to signal "release now to promote/demote".
+  // Set body cursor + disable text selection during drag. ARROWS
+  // ONLY — never the 4-direction `move` cross. Pre-lock we show the
+  // standard grabbing cursor; once axis-locked we switch to the
+  // matching one-axis arrow so the user knows exactly which direction
+  // the drag is committed to.
   useEffect(() => {
     if (activeNote) {
-      document.body.style.cursor = Math.abs(dragX) >= 40 ? 'ew-resize' : 'move'
+      const cursor =
+        lockedAxis === 'y'
+          ? 'ns-resize'
+          : lockedAxis === 'x'
+            ? 'ew-resize'
+            : 'grabbing'
+      document.body.style.cursor = cursor
       document.body.style.userSelect = 'none'
     } else {
       document.body.style.cursor = ''
@@ -785,7 +863,17 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
       document.body.style.cursor = ''
       document.body.style.userSelect = ''
     }
-  }, [activeNote, dragX])
+  }, [activeNote, lockedAxis])
+
+  // Modifiers passed to DndContext: once the axis lock commits, zero
+  // out the off-axis translation so the dnd-kit ghost only moves along
+  // the locked direction. Memoised so the array identity is stable
+  // across re-renders that don't change the lock.
+  const dndModifiers = useMemo<Modifier[]>(() => {
+    if (lockedAxis === 'y') return [verticalOnlyModifier]
+    if (lockedAxis === 'x') return [horizontalOnlyModifier]
+    return []
+  }, [lockedAxis])
 
   const handleCreateNote = (parentId?: string | null) => {
     createMutation.mutate(
@@ -966,20 +1054,14 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
         onDragMove={handleDragMove}
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
+        modifiers={dndModifiers}
         measuring={{
           droppable: {
             strategy: MeasuringStrategy.Always,
           },
         }}
       >
-        <div
-          className="flex-1 overflow-y-auto px-2"
-          // While dragging, swap the global cursor to ew-resize once
-          // the horizontal delta exceeds the ±40px promote/demote
-          // threshold so the user gets a visible cue that releasing
-          // now will indent / outdent rather than reparent.
-          style={activeNote && Math.abs(dragX) >= 40 ? { cursor: 'ew-resize' } : undefined}
-        >
+        <div className="flex-1 overflow-y-auto px-2">
           {/* Favorites section */}
           {favorites.length > 0 && !searchQuery && (
             <div className="mb-4">
