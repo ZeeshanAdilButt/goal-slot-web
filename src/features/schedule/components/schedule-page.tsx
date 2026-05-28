@@ -88,8 +88,8 @@ export function SchedulePage() {
         title="Schedule"
         description="Plan your weekly time blocks"
         actions={
-          <Button onClick={() => handleAddBlock(1)} variant="brand">
-            <Plus className="h-4 w-4" />
+          <Button onClick={() => handleAddBlock(1)} variant="brand" size="sm">
+            <Plus className="h-3.5 w-3.5" />
             Add Block
           </Button>
         }

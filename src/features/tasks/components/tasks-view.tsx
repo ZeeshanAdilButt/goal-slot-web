@@ -163,9 +163,9 @@ export function TasksView({
             </div>
             <button
               onClick={onCreate}
-              className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800"
+              className="inline-flex h-8 items-center gap-1.5 rounded-md bg-zinc-900 px-2.5 text-xs font-semibold text-white transition-colors hover:bg-zinc-800"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">New Task</span>
               <span className="sm:hidden">New</span>
             </button>

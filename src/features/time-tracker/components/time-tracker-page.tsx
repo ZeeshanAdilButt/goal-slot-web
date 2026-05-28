@@ -294,8 +294,8 @@ export function TimeTrackerPage() {
         title="Time Tracker"
         description="Track time with precision"
         actions={
-          <Button onClick={() => setShowManualEntry(true)} variant="brand">
-            <Plus className="h-4 w-4" />
+          <Button onClick={() => setShowManualEntry(true)} variant="brand" size="sm">
+            <Plus className="h-3.5 w-3.5" />
             Manual Entry
           </Button>
         }
