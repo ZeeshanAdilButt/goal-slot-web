@@ -776,21 +776,33 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
 
     if (!over || active.id === over.id) return
 
-    // Positional drop. Prefer the resolver's view; fall back to the
-    // legacy hover-ref path if the resolver couldn't classify (e.g.
-    // because the hover state ref desynced).
+    // Positional drop. Geometry-first: dnd-kit captures the pointer
+    // during drag, so the per-row mousemove handler stops firing
+    // and `dragStateRef.position` is unreliable. Compute position
+    // from the dnd-kit rects directly — the dragged ghost's Y
+    // midpoint relative to the target row's vertical midpoint is the
+    // most reliable signal of "did the user drop above or below".
     const targetId = over.id as string
     const targetNote = notes.find((n: Note) => n.id === targetId)
     if (!targetNote) return
 
+    const draggedRect = active.rect.current.translated
+    const overRect = over.rect
+    let geometryPosition: DropPosition = null
+    if (draggedRect && overRect) {
+      const draggedMidY = draggedRect.top + draggedRect.height / 2
+      const targetMidY = overRect.top + overRect.height / 2
+      geometryPosition = draggedMidY < targetMidY ? 'top' : 'bottom'
+    }
+
     const position: DropPosition =
       resolved.kind === 'sibling'
-        ? resolved.position ?? null
+        ? resolved.position ?? geometryPosition ?? 'bottom'
         : resolved.kind === 'reparent'
           ? 'inside'
           : dragStateRef.current.id === targetId
             ? dragStateRef.current.position
-            : 'inside'
+            : geometryPosition ?? 'bottom'
 
     if (!position || position === 'inside') {
       reorderMutation.mutate([

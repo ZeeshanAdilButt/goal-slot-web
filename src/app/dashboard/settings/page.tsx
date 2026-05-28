@@ -19,7 +19,9 @@ import { PageShell } from '@/components/ui/page-shell'
 
 const TABS = [
   { id: 'profile', label: 'Profile', icon: User },
-  { id: 'appearance', label: 'Appearance', icon: Palette },
+  // Appearance tab intentionally hidden per user request — dark mode
+  // wiring is disabled. The AppearanceSettings component and theme
+  // store stay in place so we can revive later without refactor.
   { id: 'categories', label: 'Categories', icon: Tag },
   { id: 'billing', label: 'Billing', icon: CreditCard },
   { id: 'security', label: 'Security', icon: Shield },

@@ -7,34 +7,32 @@ interface TangleHeroProps {
 }
 
 /**
- * Decorative SVG line that genuinely morphs — every control point
- * moves smoothly from its tangled position to its calm position and
- * back. Both `d` strings use the SAME command sequence (one `M`, one
- * `C`, then five `S` shortcuts) so SVG's path interpolation creates
- * a continuous deformation instead of swapping between two unrelated
- * shapes. 6s loop, in-out cubic easing for a relaxed breath.
+ * The "tangled thought becomes a straight line" hero animation.
+ * Both `d` strings share the SAME command structure (M then six S
+ * shortcuts over six anchor X-points) so SVG path interpolation
+ * smoothly moves every control point from its tangled position to
+ * the flat line and back. Bigger viewBox + amplitude than the
+ * previous iteration so the morph reads at journal-page scale.
  */
 export function TangleHero({ className }: TangleHeroProps) {
-  // Same six anchor points along the horizontal axis: 4, 50, 96, 142, 188, 234.
-  // The tangled variant pushes alternating control points up/down by
-  // big swings; the calm variant keeps them gently above/below the
-  // mid-line. The path topology stays identical, so the morph is
-  // smooth point-by-point.
+  // Six X anchors at 8 / 60 / 112 / 164 / 216 / 268 / 320.
+  // TANGLED swings ±32 from the midline; CALM keeps Y=40 throughout
+  // so the line genuinely straightens — a single horizontal stroke.
   const TANGLED =
-    'M4 22 C 20 4, 32 40, 50 22 S 80 4, 96 22 S 126 40, 142 22 S 172 4, 188 22 S 218 40, 234 22'
+    'M8 40 C 30 8, 50 72, 60 40 S 90 8, 112 40 S 142 72, 164 40 S 194 8, 216 40 S 246 72, 268 40 S 298 8, 320 40'
   const CALM =
-    'M4 22 C 20 18, 32 26, 50 22 S 80 18, 96 22 S 126 26, 142 22 S 172 18, 188 22 S 218 26, 234 22'
+    'M8 40 C 30 40, 50 40, 60 40 S 90 40, 112 40 S 142 40, 164 40 S 194 40, 216 40 S 246 40, 268 40 S 298 40, 320 40'
 
   return (
     <svg
-      viewBox="0 0 238 44"
-      className={cn('h-5 w-40', className)}
+      viewBox="0 0 328 80"
+      className={cn('h-10 w-64', className)}
       aria-hidden="true"
     >
       <path
         fill="none"
         stroke="#f2cc0d"
-        strokeWidth="2.25"
+        strokeWidth="3"
         strokeLinecap="round"
         strokeLinejoin="round"
       >
@@ -42,7 +40,7 @@ export function TangleHero({ className }: TangleHeroProps) {
           attributeName="d"
           values={`${TANGLED};${CALM};${TANGLED}`}
           keyTimes="0;0.5;1"
-          dur="6s"
+          dur="7s"
           repeatCount="indefinite"
           calcMode="spline"
           keySplines="0.42 0 0.58 1;0.42 0 0.58 1"

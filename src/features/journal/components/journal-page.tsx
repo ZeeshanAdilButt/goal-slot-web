@@ -50,22 +50,22 @@ export function JournalPage() {
   // the user's theme; they click the lamp to enter the night room.
   const [lampOn, setLampOn] = useState(false)
 
-  // Lamp toggles the journal night theme. ON → set
-  // data-journal-night on <html> so the CSS rules in globals.css
-  // darken the whole app (sidebar, banners, page chrome, modals).
-  // OFF → remove the attribute, returning to the user's chosen
-  // theme (which may itself be dark via the Settings toggle).
+  // Dark-mode wiring intentionally disabled per user request. The
+  // lamp now stays purely decorative — it does not flip the site
+  // theme. The CSS + theme store remain in place so we can re-enable
+  // later, but this effect is a no-op for now.
+  // (was: setAttribute('data-journal-night', 'true') based on lampOn)
+
+  // Lock body scroll while fullscreen so the user can't accidentally
+  // scroll the dashboard chrome behind the overlay.
   useEffect(() => {
-    const root = document.documentElement
-    if (lampOn) {
-      root.setAttribute('data-journal-night', 'true')
-    } else {
-      root.removeAttribute('data-journal-night')
-    }
+    if (!isFullscreen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
     return () => {
-      root.removeAttribute('data-journal-night')
+      document.body.style.overflow = prev
     }
-  }, [lampOn])
+  }, [isFullscreen])
   const today = todayKey()
 
   const handleSelect = (date: string) => {
@@ -74,19 +74,12 @@ export function JournalPage() {
   }
 
   return (
-    <PageShell className="relative">
-      {/* Ambient lamp glow tucked into the top-right corner — only
-          rendered when the lamp is ON. Otherwise it leaves a faint
-          warm ring on the dark page that reads as an accidental
-          vignette. Hard-hide when off. */}
-      {lampOn && (
-        <div
-          aria-hidden
-          className="pointer-events-none absolute right-0 top-0 -z-0 h-[420px] w-[420px] -translate-y-32 translate-x-24 opacity-70 transition-opacity duration-700"
-        >
-          <LampGlow className="h-full w-full" />
-        </div>
-      )}
+    <PageShell className="relative overflow-x-hidden">
+      {/* LampGlow decoration intentionally removed — the absolutely-
+          positioned 420×420 box with a translate-x-24 was bleeding
+          past the page edge and triggering horizontal scroll every
+          time the lamp toggled. The lamp itself stays as a static
+          decoration; no halo overlay. */}
 
       {/* Time-of-day fixture in the top-right. Daytime → sun shines on
           its own (no toggle, slow ray rotation). Nighttime → bedside
@@ -121,54 +114,52 @@ export function JournalPage() {
 
       <div
         className={cn(
-          'relative z-10 flex flex-col overflow-hidden border shadow-sm backdrop-blur-[2px] transition-[border-color,background-color,inset,height] duration-300',
+          'relative z-10 flex flex-col overflow-hidden border border-zinc-200 bg-white text-zinc-900 shadow-sm',
           isFullscreen
-            ? 'fixed inset-0 z-50 h-screen w-screen rounded-none'
-            : 'h-[calc(100vh-13rem)] min-h-[480px] rounded-xl',
-          lampOn
-            ? 'border-zinc-800 bg-zinc-950/90 text-zinc-100'
-            : 'border-zinc-200 bg-white/95 text-zinc-900',
+            ? 'fixed inset-0 z-[100] h-[100dvh] w-screen max-w-none rounded-none border-0 bg-white'
+            : 'h-[calc(100vh-13rem)] min-h-[480px] rounded-xl backdrop-blur-[2px]',
         )}
       >
-        <div
-          className={cn(
-            'flex h-10 shrink-0 items-center justify-between border-b px-2 transition-colors duration-700',
-            lampOn ? 'border-zinc-800 bg-zinc-950/80' : 'border-zinc-200 bg-white',
+        <div className="flex h-10 shrink-0 items-center justify-between border-b border-zinc-200 bg-white px-2">
+          {/* Entries toggle hidden in fullscreen — there's no sidebar
+              to toggle when the editor takes the whole viewport. */}
+          {!isFullscreen ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() =>
+                isMobile
+                  ? setIsMobileSidebarOpen((o) => !o)
+                  : setIsSidebarCollapsed((c) => !c)
+              }
+              aria-label={
+                isMobile
+                  ? isMobileSidebarOpen
+                    ? 'Close entries'
+                    : 'Open entries'
+                  : isSidebarCollapsed
+                    ? 'Show entries'
+                    : 'Hide entries'
+              }
+            >
+              {(isMobile ? isMobileSidebarOpen : !isSidebarCollapsed) ? (
+                <PanelLeftClose className="h-4 w-4" />
+              ) : (
+                <PanelLeft className="h-4 w-4" />
+              )}
+              <span className="text-xs">
+                {isMobile
+                  ? isMobileSidebarOpen
+                    ? 'Close'
+                    : 'Entries'
+                  : isSidebarCollapsed
+                    ? 'Show entries'
+                    : 'Hide entries'}
+              </span>
+            </Button>
+          ) : (
+            <span />
           )}
-        >
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() =>
-              isMobile
-                ? setIsMobileSidebarOpen((o) => !o)
-                : setIsSidebarCollapsed((c) => !c)
-            }
-            aria-label={
-              isMobile
-                ? isMobileSidebarOpen
-                  ? 'Close entries'
-                  : 'Open entries'
-                : isSidebarCollapsed
-                  ? 'Show entries'
-                  : 'Hide entries'
-            }
-          >
-            {(isMobile ? isMobileSidebarOpen : !isSidebarCollapsed) ? (
-              <PanelLeftClose className="h-4 w-4" />
-            ) : (
-              <PanelLeft className="h-4 w-4" />
-            )}
-            <span className="text-xs">
-              {isMobile
-                ? isMobileSidebarOpen
-                  ? 'Close'
-                  : 'Entries'
-                : isSidebarCollapsed
-                  ? 'Show entries'
-                  : 'Hide entries'}
-            </span>
-          </Button>
           <div className="flex items-center gap-2">
             {selectedEntry && (
               <span className="truncate text-xs text-zinc-500">
@@ -198,7 +189,7 @@ export function JournalPage() {
               <div
                 className={cn(
                   'absolute inset-y-0 left-0 z-20 flex w-[min(85vw,300px)] flex-col border-r transition-transform duration-200',
-                  lampOn ? 'border-zinc-800 bg-zinc-950' : 'border-zinc-200 bg-white',
+                  'border-zinc-200 bg-white',
                   isMobileSidebarOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full',
                 )}
               >
@@ -215,21 +206,31 @@ export function JournalPage() {
               )}
             </>
           ) : (
-            <div
-              className={cn(
-                'shrink-0 border-r transition-[width,colors] duration-200',
-                lampOn ? 'border-zinc-800 bg-zinc-950/70' : 'border-zinc-200 bg-white',
-                isSidebarCollapsed && 'overflow-hidden border-r-0',
-              )}
-              style={{ width: isSidebarCollapsed ? 0 : 240 }}
-            >
-              <div className="h-full overflow-y-auto p-3">
-                <JournalSidebar entries={entries} selectedDate={selectedDate} onSelect={handleSelect} onDelete={deleteEntry} />
+            // Sidebar is hidden entirely in fullscreen mode so the
+            // editor gets the whole viewport. Otherwise honours the
+            // user's collapse toggle as before.
+            !isFullscreen && (
+              <div
+                className={cn(
+                  'shrink-0 border-r transition-[width,colors] duration-200',
+                  'border-zinc-200 bg-white',
+                  isSidebarCollapsed && 'overflow-hidden border-r-0',
+                )}
+                style={{ width: isSidebarCollapsed ? 0 : 240 }}
+              >
+                <div className="h-full overflow-y-auto p-3">
+                  <JournalSidebar entries={entries} selectedDate={selectedDate} onSelect={handleSelect} onDelete={deleteEntry} />
+                </div>
               </div>
-            </div>
+            )
           )}
 
-          <div className="flex min-w-0 flex-1 flex-col overflow-y-auto p-3 sm:p-4">
+          <div
+            className={cn(
+              'flex min-w-0 flex-1 flex-col overflow-y-auto',
+              isFullscreen ? 'mx-auto w-full max-w-3xl p-6 sm:p-10' : 'p-3 sm:p-4',
+            )}
+          >
             <JournalEntryEditor entry={selectedEntry} onSaveContent={upsertContent} />
           </div>
         </div>
