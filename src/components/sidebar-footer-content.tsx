@@ -21,7 +21,7 @@ export function SidebarFooterContent({ onLogout }: SidebarFooterContentProps) {
   return (
     <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 shadow-sm">
       <Link
-        href="/dashboard/settings/profile"
+        href="/dashboard/settings?tab=profile"
         title={user?.email || user?.name || 'Profile'}
         className="flex min-w-0 flex-1 items-center gap-2 rounded-md px-1 py-0.5 transition-colors hover:bg-zinc-50"
       >
