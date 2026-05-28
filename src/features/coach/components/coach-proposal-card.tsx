@@ -25,6 +25,7 @@ import {
   type CoachProposalResult,
 } from '@/lib/api'
 import { cn, formatTime12h } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 
 const ACTION_META: Record<
   CoachProposalActionType,
@@ -46,9 +47,13 @@ const ACTION_META: Record<
   CREATE_PRACTICE: { label: 'Add active practice', verb: 'create', icon: Sparkles },
 }
 
+// Verb pills share the dark brand pill so a proposal card doesn't read as
+// a stack of emerald/sky/rose Bootstrap chips. Only `delete` keeps the
+// rose tone because it's the platform-wide destructive cue (matches
+// Button variant="destructive").
 const VERB_CLASSES: Record<'create' | 'update' | 'delete', string> = {
-  create: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-  update: 'border-sky-200 bg-sky-50 text-sky-700',
+  create: 'border-zinc-900 bg-zinc-900 text-[#f2cc0d]',
+  update: 'border-zinc-900 bg-zinc-900 text-[#f2cc0d]',
   delete: 'border-rose-200 bg-rose-50 text-rose-700',
 }
 
@@ -449,7 +454,7 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
               {results && result && (
                 <div className="mt-0.5">
                   {result.ok ? (
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                    <CheckCircle2 className="h-4 w-4 text-[#8a7307]" />
                   ) : (
                     <XCircle className="h-4 w-4 text-rose-600" />
                   )}
@@ -485,16 +490,17 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
       {rejected && (
         <div className="flex items-center justify-between gap-2 border-t border-zinc-100 bg-zinc-50 px-3 py-2">
           <div className="text-xs text-zinc-500">You rejected this proposal.</div>
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="sm"
             onClick={() => {
               setRejected(false)
               clearProposalState(stateKey)
             }}
-            className="rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-100"
           >
             Undo
-          </button>
+          </Button>
         </div>
       )}
       {!results && !rejected && (
@@ -510,26 +516,28 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
             </div>
           )}
           <div className="flex items-center gap-2">
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              size="sm"
               onClick={() => {
                 setRejected(true)
                 saveProposalState(stateKey, { status: 'rejected', appliedAt: Date.now() })
               }}
               disabled={applying}
-              className="rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-50 disabled:opacity-50"
             >
               Reject
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="brand"
+              size="sm"
               onClick={handleApply}
               disabled={applying || selected.size === 0}
-              className="inline-flex items-center gap-1.5 rounded-md bg-[#f2cc0d] px-3 py-1.5 text-xs font-semibold text-zinc-900 shadow-sm hover:bg-[#dfb90c] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {applying && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
               Apply {selected.size > 0 ? `(${selected.size})` : ''}
-            </button>
+            </Button>
           </div>
         </div>
       )}
