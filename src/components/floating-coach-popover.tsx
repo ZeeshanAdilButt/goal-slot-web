@@ -319,6 +319,21 @@ export function FloatingCoachPopover({ open, onClose }: FloatingCoachPopoverProp
         onSubmit={onSubmit}
         className="flex items-center gap-2 border-t border-zinc-200 bg-white px-3 py-2"
       >
+        <button
+          type="button"
+          onClick={() => {
+            if (streaming) return
+            const hasMessages = persistedMessages.length > 0 || optimistic.length > 0
+            if (hasMessages) setConfirmClear(true)
+            else toast('Chat is already empty.', { icon: '👌' })
+          }}
+          disabled={streaming}
+          title="Start a new chat"
+          aria-label="Start a new chat"
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:bg-zinc-50 hover:text-[#8a7307] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <RotateCcw className="h-3.5 w-3.5" />
+        </button>
         <input
           ref={inputRef}
           type="text"
