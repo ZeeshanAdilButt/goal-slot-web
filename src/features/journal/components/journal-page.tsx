@@ -6,6 +6,7 @@ import { JournalAffirmations } from '@/features/journal/components/journal-affir
 import { JournalEntryEditor } from '@/features/journal/components/journal-entry-editor'
 import { JournalLamp } from '@/features/journal/components/journal-lamp'
 import { JournalSidebar } from '@/features/journal/components/journal-sidebar'
+import { JournalSun } from '@/features/journal/components/journal-sun'
 import { TangleHero } from '@/features/journal/components/tangle-hero'
 import { useJournalEntries } from '@/features/journal/hooks/use-journal-entries'
 import { CalendarDays, PanelLeft, PanelLeftClose } from 'lucide-react'
@@ -30,12 +31,17 @@ function todayKey(): string {
  */
 export function JournalPage() {
   const isMobile = useIsMobile()
-  const { entries, selectedEntry, selectedDate, selectDate, upsertContent } = useJournalEntries()
+  const { entries, selectedEntry, selectedDate, selectDate, upsertContent, deleteEntry } = useJournalEntries()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
-  // Default off so the journal opens in the warm day theme. Turning
-  // the lamp on flips the surface to a night theme — the lamp's pool
-  // of warm light becomes the only thing illuminating the page.
+  // Day vs night is driven by the user's local clock — daytime gets
+  // the sun (always shining, no toggle), nighttime gets the bedside
+  // lamp (off by default; user clicks to turn it on). 6 AM – 6 PM is
+  // day. The chosen "fixture" decides which decoration to show.
+  const isNight = (() => {
+    const h = new Date().getHours()
+    return h < 6 || h >= 18
+  })()
   const [lampOn, setLampOn] = useState(false)
 
   // Mirror the lamp state onto the <html> element so the surrounding
@@ -77,11 +83,19 @@ export function JournalPage() {
         <LampGlow className="h-full w-full" />
       </div>
 
-      {/* Bedside-style lamp in the top-right corner. Click anywhere on
-          the lamp to toggle the ambient page glow. */}
-      <div className="pointer-events-none absolute -top-2 right-1 z-10 hidden sm:block sm:right-3">
-        <JournalLamp on={lampOn} onToggle={() => setLampOn((v) => !v)} />
-      </div>
+      {/* Time-of-day fixture in the top-right. Daytime → sun shines on
+          its own (no toggle, slow ray rotation). Nighttime → bedside
+          lamp, clickable to turn on/off the ambient page glow. Only
+          one is visible at a time. */}
+      {isNight ? (
+        <div className="pointer-events-none absolute -top-3 right-1 z-10 hidden sm:block sm:right-3">
+          <JournalLamp on={lampOn} onToggle={() => setLampOn((v) => !v)} />
+        </div>
+      ) : (
+        <div className="pointer-events-none absolute -top-4 right-2 z-10 hidden sm:block">
+          <JournalSun className="h-40 w-40" />
+        </div>
+      )}
 
       <PageHeader
         eyebrow="Reflect"
@@ -165,7 +179,7 @@ export function JournalPage() {
                 )}
               >
                 <div className="h-full overflow-y-auto p-3">
-                  <JournalSidebar entries={entries} selectedDate={selectedDate} onSelect={handleSelect} />
+                  <JournalSidebar entries={entries} selectedDate={selectedDate} onSelect={handleSelect} onDelete={deleteEntry} />
                 </div>
               </div>
               {isMobileSidebarOpen && (
@@ -186,7 +200,7 @@ export function JournalPage() {
               style={{ width: isSidebarCollapsed ? 0 : 240 }}
             >
               <div className="h-full overflow-y-auto p-3">
-                <JournalSidebar entries={entries} selectedDate={selectedDate} onSelect={handleSelect} />
+                <JournalSidebar entries={entries} selectedDate={selectedDate} onSelect={handleSelect} onDelete={deleteEntry} />
               </div>
             </div>
           )}

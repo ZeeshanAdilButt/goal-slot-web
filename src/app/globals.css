@@ -122,6 +122,13 @@ html[data-journal-night='true'] [data-sidebar='sidebar'] a:hover,
 html[data-journal-night='true'] [data-sidebar='sidebar'] button:hover {
   background-color: #18181b;
 }
+/* CoachIcon is a fixed-colour <img> (brand square logo) — it can't be
+   re-tinted via currentColor. Invert it under night mode so the dark
+   pixels become bright + the brand-yellow flips to a deep navy that
+   reads against the zinc-950 chrome. */
+html[data-journal-night='true'] [data-sidebar='sidebar'] [aria-hidden] img[src*='goalslot-icon'] {
+  filter: invert(1) hue-rotate(180deg);
+}
 
 /* Soft brand-yellow pulse for the Journal sidebar icon. Stays subtle —
    the glow expands and softens slightly to feel "magical", not flashy. */
@@ -158,6 +165,17 @@ html[data-journal-night='true'] [data-sidebar='sidebar'] button:hover {
   70%,
   100% {
     transform: rotate(0deg);
+  }
+}
+
+/* Daytime sun for the Journal page rotates its rays over a full
+   minute — slow enough that motion is felt, not seen. */
+@keyframes sun-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
   }
 }
 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 
+import { useCategoriesQuery } from '@/features/categories'
 import { ManualEntryModal } from '@/features/time-tracker/components/manual-entry-modal'
 import { RecentEntries } from '@/features/time-tracker/components/recent-entries'
 import { StatsCards } from '@/features/time-tracker/components/stats-cards'
@@ -55,6 +56,7 @@ export function TimeTrackerPage() {
   } = useTimer()
 
   const { goals, tasks, recentEntries, weeklySchedule } = useTimeTrackerData()
+  const { data: categories = [] } = useCategoriesQuery()
   const createEntry = useCreateTimeEntry()
   const updateTask = useUpdateTaskMutation()
   const queryClient = useQueryClient()
@@ -253,11 +255,17 @@ export function TimeTrackerPage() {
     setShowStopModal(true)
   }
 
-  const handleStopConfirm = (notes: string) => {
+  const handleStopConfirm = ({ notes, goalId, category }: { notes: string; goalId: string; category: string }) => {
     const duration = Math.max(1, Math.floor(elapsedTime / 60))
     const taskTitle = currentTaskId
       ? tasks.find((t: Task) => t.id === currentTaskId)?.title || currentTask
       : currentTask
+
+    // Persist any goal / category override the user made in the stop
+    // modal back to the timer state so the next session starts from
+    // the corrected values, not the stale ones.
+    if (goalId !== currentGoalId) setGoalId(goalId)
+    if (category !== currentCategory) setCategory(category)
 
     createEntry.mutate(
       {
@@ -267,7 +275,7 @@ export function TimeTrackerPage() {
         duration,
         date: getLocalDateString(),
         notes: notes || undefined,
-        goalId: currentGoalId || undefined,
+        goalId: goalId || undefined,
         startedAt: startTimestamp ? new Date(startTimestamp).toISOString() : undefined,
         scheduleBlockId: currentScheduleBlockId || undefined,
       },
@@ -378,6 +386,10 @@ export function TimeTrackerPage() {
         taskName={currentTask || 'Untitled'}
         duration={Math.max(1, Math.floor(elapsedTime / 60))}
         isLoading={createEntry.isPending}
+        goals={goals.map((g: Goal) => ({ id: g.id, title: g.title }))}
+        categories={categories.map((c: any) => ({ value: c.value, name: c.name }))}
+        defaultGoalId={currentGoalId}
+        defaultCategory={currentCategory}
       />
     </PageShell>
   )

@@ -24,15 +24,18 @@ export function JournalAffirmations() {
 
   useEffect(() => {
     let cancelled = false
+    // Slower, calmer cadence: long visible dwell, gentle 800ms fade
+    // between affirmations so the eye registers each one before it
+    // changes.
     const tick = () => {
       setVisible(false)
       setTimeout(() => {
         if (cancelled) return
         setIndex((i) => (i + 1) % AFFIRMATIONS.length)
         setVisible(true)
-      }, 350)
+      }, 800)
     }
-    const interval = setInterval(tick, 5200)
+    const interval = setInterval(tick, 8000)
     return () => {
       cancelled = true
       clearInterval(interval)
@@ -43,7 +46,7 @@ export function JournalAffirmations() {
     <span
       key={index}
       className={cn(
-        'inline-block transition-opacity duration-300 ease-out',
+        'inline-block transition-opacity duration-700 ease-in-out',
         visible ? 'opacity-100' : 'opacity-0',
       )}
       aria-live="polite"

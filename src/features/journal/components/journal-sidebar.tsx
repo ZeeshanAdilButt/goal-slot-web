@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 
 import { JournalEntry } from '@/features/journal/hooks/use-journal-entries'
-import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Trash2, X } from 'lucide-react'
 import { DayPicker, type DateRange } from 'react-day-picker'
 
 import { cn } from '@/lib/utils'
@@ -12,6 +12,7 @@ interface JournalSidebarProps {
   entries: JournalEntry[]
   selectedDate: string | null
   onSelect: (date: string) => void
+  onDelete?: (date: string) => void
 }
 
 function todayKey(): string {
@@ -35,7 +36,7 @@ function toDateKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSidebarProps) {
+export function JournalSidebar({ entries, selectedDate, onSelect, onDelete }: JournalSidebarProps) {
   const today = todayKey()
   const todayObj = useMemo(() => new Date(), [])
   // The month currently shown in the calendar.
@@ -297,12 +298,12 @@ export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSideb
           const isSelected = date === selectedDate
           const isToday = date === today
           return (
-            <li key={date}>
+            <li key={date} className="group/entry relative">
               <button
                 type="button"
                 onClick={() => onSelect(date)}
                 className={cn(
-                  'flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors',
+                  'flex w-full items-center justify-between gap-2 rounded-md py-2 pl-3 pr-2 text-left text-sm transition-colors',
                   isSelected
                     ? 'bg-[#fff7d1] text-zinc-900 ring-1 ring-[#f2cc0d]/40'
                     : 'text-zinc-700 hover:bg-zinc-50',
@@ -314,11 +315,31 @@ export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSideb
                   )}
                   <span className="truncate font-medium">{formatChip(date, today)}</span>
                 </span>
-                {entry && (entry.mood !== null || entry.energy !== null) && (
-                  <span className="shrink-0 rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-600">
-                    M{entry.mood ?? '-'} · E{entry.energy ?? '-'}
-                  </span>
-                )}
+                <span className="flex shrink-0 items-center gap-1">
+                  {entry && (entry.mood !== null || entry.energy !== null) && (
+                    <span className="rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-600">
+                      M{entry.mood ?? '-'} · E{entry.energy ?? '-'}
+                    </span>
+                  )}
+                  {onDelete && (
+                    <button
+                      type="button"
+                      title="Delete entry"
+                      aria-label={`Delete ${formatChip(date, today)} entry`}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (confirm(`Delete the ${formatChip(date, today).toLowerCase()} entry? This can't be undone.`)) {
+                          onDelete(date)
+                        }
+                      }}
+                      className={cn(
+                        'flex h-5 w-5 shrink-0 items-center justify-center rounded text-zinc-400 opacity-0 transition-opacity hover:bg-rose-50 hover:text-rose-600 group-hover/entry:opacity-100',
+                      )}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </span>
               </button>
             </li>
           )

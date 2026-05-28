@@ -34,7 +34,7 @@ export function JournalLamp({ on, onToggle }: JournalLampProps) {
       aria-pressed={on}
       title={on ? 'Turn lamp off' : 'Turn lamp on'}
       className={cn(
-        'group pointer-events-auto relative inline-flex h-32 w-24 items-end justify-center focus-visible:outline-none',
+        'group pointer-events-auto relative inline-flex h-40 w-32 items-end justify-center focus-visible:outline-none',
         !hasInteracted && 'motion-safe:animate-[lamp-bob_3.4s_ease-in-out_infinite]',
       )}
     >

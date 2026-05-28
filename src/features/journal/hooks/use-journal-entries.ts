@@ -93,6 +93,19 @@ export function useJournalEntries() {
     },
   })
 
+  const deleteMutation = useMutation({
+    mutationFn: async (date: string) => {
+      await coachApi.deleteJournalEntry(date)
+      return date
+    },
+    onSuccess: (date) => {
+      queryClient.setQueryData<JournalEntry[]>(QUERY_KEY, (prev) => {
+        const list = prev ?? []
+        return list.filter((e) => e.date !== date)
+      })
+    },
+  })
+
   const moodMutation = useMutation({
     mutationFn: async (vars: { date: string; mood: number | null; energy: number | null }) => {
       const res = await coachApi.updateJournalMood(vars.date, vars.mood, vars.energy)
@@ -184,6 +197,20 @@ export function useJournalEntries() {
     [moodMutation],
   )
 
+  const deleteEntry = useCallback(
+    (date: string) => {
+      deleteMutation.mutate(date)
+      // If the deleted entry was selected, fall back to the next entry
+      // in the list (most recent) so the editor isn't left empty.
+      setSelectedDate((cur) => {
+        if (cur !== date) return cur
+        const remaining = (query.data ?? []).filter((e) => e.date !== date)
+        return remaining[0]?.date ?? null
+      })
+    },
+    [deleteMutation, query.data],
+  )
+
   return {
     entries: sortedEntries,
     selectedEntry,
@@ -191,6 +218,7 @@ export function useJournalEntries() {
     selectDate,
     upsertContent,
     upsertMoodEnergy,
+    deleteEntry,
     isLoaded: !query.isLoading,
   }
 }
