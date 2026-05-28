@@ -131,13 +131,13 @@ export function AppSidebar() {
                       <Link href={item.href}>
                         {isJournal ? (
                           // Journal: pen sits inside the brand-yellow aura
-                          // ring that pulses on a 2s beat — same "thinking"
-                          // halo we use for GoalSlot AI, applied here so the
-                          // journaling habit gets the same emphasis.
+                          // ring that pulses on a 2s beat, and the pen itself
+                          // tilts up a few degrees on the same beat — a soft
+                          // nudge toward writing without breaking the calm.
                           <span className="relative inline-flex h-4 w-4 items-center justify-center rounded-full motion-safe:animate-[coach-aura_2s_ease-in-out_infinite] group-data-[collapsible=icon]:-ml-1 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5">
                             <item.icon
                               className={cn(
-                                'h-4 w-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5',
+                                'h-4 w-4 origin-bottom-left motion-safe:animate-[pen-tilt_2s_ease-in-out_infinite] group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5',
                                 isActive && 'text-[#f2cc0d]',
                               )}
                             />

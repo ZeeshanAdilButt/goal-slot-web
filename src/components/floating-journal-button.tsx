@@ -106,7 +106,7 @@ function FloatingJournalButtonInner() {
           aria-label="Quick journal"
           className="group relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-zinc-900 bg-zinc-900 text-[#f2cc0d] shadow-lg transition-all hover:-translate-y-0.5 hover:bg-zinc-800 motion-safe:animate-[coach-aura_2s_ease-in-out_infinite]"
         >
-          <FeatherPenIcon className="h-5 w-5" />
+          <FeatherPenIcon className="h-5 w-5 origin-bottom-left motion-safe:animate-[pen-tilt_2s_ease-in-out_infinite]" />
         </button>
       </PopoverTrigger>
       <PopoverContent

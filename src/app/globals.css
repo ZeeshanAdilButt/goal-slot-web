@@ -111,6 +111,19 @@
   }
 }
 
+/* Gentle "nib lifts off the page" tilt for the Journal feather pen.
+   Pivots around the nib (bottom-left), tilts up a few degrees, settles
+   back. 2s loop. Calming, but a subtle nudge toward writing. */
+@keyframes pen-tilt {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-9deg);
+  }
+}
+
 /* Brand-yellow spark twinkling around the Journal nav icon. Three sparks
    share this keyframe with staggered delays (0s / 1s / 2s) so a star
    shows up roughly every second without all of them firing at once. */

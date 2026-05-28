@@ -10,6 +10,7 @@ import { CalendarDays, PanelLeft, PanelLeftClose } from 'lucide-react'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { LampGlow } from '@/components/icons/lamp-glow'
 import { PageHeader } from '@/components/ui/page-header'
 import { PageShell } from '@/components/ui/page-shell'
 
@@ -37,7 +38,17 @@ export function JournalPage() {
   }
 
   return (
-    <PageShell>
+    <PageShell className="relative">
+      {/* Ambient lamp glow tucked into the top-right corner of the page —
+          warms the whole surface without pulling attention. Fixed inside
+          the PageShell so it scrolls with content but doesn't block clicks. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute right-0 top-0 -z-0 h-[420px] w-[420px] -translate-y-32 translate-x-24 opacity-60"
+      >
+        <LampGlow className="h-full w-full" />
+      </div>
+
       <PageHeader
         eyebrow="Reflect"
         title="Journal"
@@ -55,7 +66,12 @@ export function JournalPage() {
         }
       />
 
-      <div className="flex h-[calc(100vh-13rem)] min-h-[480px] flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+      <p className="-mt-2 flex items-center gap-2 text-[12px] italic text-[#8a7307]">
+        <span aria-hidden className="inline-block h-px w-6 bg-[#f2cc0d]/60" />
+        Your safe space. Nothing leaves here unless you say so.
+      </p>
+
+      <div className="relative z-10 flex h-[calc(100vh-13rem)] min-h-[480px] flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white/95 shadow-sm backdrop-blur-[2px]">
         <div className="flex h-10 shrink-0 items-center justify-between border-b border-zinc-200 bg-white px-2">
           <Button
             variant="ghost"
