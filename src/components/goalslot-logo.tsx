@@ -174,7 +174,12 @@ export function GoalSlotBrand({
       <div className="leading-tight">
         <span className={cn('font-display font-bold uppercase tracking-tight', sizes.title, textStyles.title)}>GoalSlot</span>
         {showTagline && (
-          <span className={cn('block font-sans', sizes.tagline, textStyles.tagline)}>{tagline}</span>
+          <span
+            className={cn('block whitespace-nowrap font-sans', sizes.tagline, textStyles.tagline)}
+            title={tagline}
+          >
+            {tagline}
+          </span>
         )}
       </div>
     </div>
