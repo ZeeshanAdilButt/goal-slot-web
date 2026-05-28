@@ -3,6 +3,7 @@
 import { useCallback } from 'react'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'react-hot-toast'
 
 import { coachApi, type CoachDailyCheckin } from '@/lib/api'
 
@@ -64,23 +65,39 @@ export function useDailyCheckin() {
       return fromDto(res.data)
     },
     onSuccess: (next) => {
+      // Server is authoritative — replace whatever optimistic shape we
+      // wrote in submit() with the real row (real id, real timestamps).
       queryClient.setQueryData<DailyCheckin | null>(QUERY_KEY, next)
       queryClient.invalidateQueries({ queryKey: ['coach', 'checkins'] })
+    },
+    onError: (err: any) => {
+      // Roll back the optimistic insert so the prompt comes back and the
+      // user gets a chance to retry, instead of a silently-stale "done"
+      // state. The banner kept showing "How did today land?" after submit
+      // when the network blip swallowed the upsert — surface it now.
+      queryClient.setQueryData<DailyCheckin | null>(QUERY_KEY, null)
+      const msg = err?.response?.data?.message || err?.message || 'Could not save check-in. Try again.'
+      toast.error(msg)
     },
   })
 
   const submit = useCallback(
     (payload: Omit<DailyCheckin, 'date' | 'submittedAt'>) => {
-      mutation.mutate(payload)
-      // Return an optimistic shape, components that read this discard the value today.
       const date = todayKey()
-      return {
+      const optimistic: DailyCheckin = {
         ...payload,
         date,
         submittedAt: new Date().toISOString(),
-      } satisfies DailyCheckin
+      }
+      // Optimistically mark today as checked-in so every surface that
+      // reads `todayCheckin` (the banner, the dashboard summary chips)
+      // updates immediately. onSuccess replaces this with the real row,
+      // onError rolls it back.
+      queryClient.setQueryData<DailyCheckin | null>(QUERY_KEY, optimistic)
+      mutation.mutate(payload)
+      return optimistic
     },
-    [mutation],
+    [mutation, queryClient],
   )
 
   return {
