@@ -17,8 +17,8 @@ import {
   MessageSquare,
   Share2,
   Shield,
+  Flag,
   Sparkles,
-  Target,
   Users,
 } from 'lucide-react'
 
@@ -47,7 +47,7 @@ import { SidebarFooterContent } from '@/components/sidebar-footer-content'
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   // Planning pair: Goals + Schedule. Decide what matters, allocate time for it.
-  { href: '/dashboard/goals', label: 'Goals', icon: Target },
+  { href: '/dashboard/goals', label: 'Goals', icon: Flag },
   { href: '/dashboard/schedule', label: 'Schedule', icon: Calendar },
   // Execution pair: Tasks + Time Tracker. Do the work, measure it.
   { href: '/dashboard/tasks', label: 'Tasks', icon: CheckSquare },

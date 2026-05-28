@@ -833,26 +833,13 @@ export function CoachPage() {
         title="Coach"
         eyebrow="Insights"
         description="Your Socratic productivity coach. Reads your goals, time, schedule, check-ins, journal, and Habits Profile to surface patterns and ask the questions that matter."
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            {hasKey ? (
-              <Badge variant="success">{providerLabel} - Connected</Badge>
-            ) : (
-              <Badge variant="default">Not configured</Badge>
-            )}
-            <Link href="/dashboard/settings?tab=coach-profile">
-              <Button variant="secondary" size="sm">
-                <SettingsIcon className="h-3.5 w-3.5" />
-                Train Coach
-              </Button>
-            </Link>
-          </div>
-        }
       />
 
-      {/* Scope picker: let the user widen Coach's context to the month,
-          quarter, or year. Chat history is keyed per scope, so each pill
-          opens a separate conversation thread. */}
+      {/* Scope picker + Coach-level actions (status badge + Train Coach)
+          on a single row. The badge / Train Coach used to live in the
+          PageHeader but pushed below on wide descriptions; this places
+          them right next to the context filters so they're always
+          on-screen at the same height. */}
       {hasKey && (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
@@ -878,6 +865,20 @@ export function CoachPage() {
           {scopeKey && (
             <span className="text-[11px] text-zinc-500">{humanScopeLabel(scopeKey)}</span>
           )}
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <Badge variant="success">{providerLabel} - Connected</Badge>
+            <Link href="/dashboard/settings?tab=coach-profile">
+              <Button variant="secondary" size="sm">
+                <SettingsIcon className="h-3.5 w-3.5" />
+                Train Coach
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
+      {!hasKey && (
+        <div className="flex items-center justify-end">
+          <Badge variant="default">Not configured</Badge>
         </div>
       )}
 
