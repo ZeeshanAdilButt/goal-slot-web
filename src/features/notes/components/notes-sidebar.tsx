@@ -1126,6 +1126,7 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
               <div className="flex flex-col gap-0.5">{noteTree.map((note) => renderNoteItem(note))}</div>
             ) : (
               <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                {/* TODO(human-copy): "No notes yet. Create your first note!" — stock empty-state phrasing + exclamation; rewrite to point at the "New note" affordance with a human voice. */}
                 No notes yet. Create your first note!
               </div>
             )}
