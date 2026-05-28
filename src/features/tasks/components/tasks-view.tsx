@@ -109,22 +109,22 @@ export function TasksView({
 
   return (
     <div className={cn('flex h-full min-h-0 flex-col', className)}>
-      <div className="p-4 sm:p-6">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="px-4 py-3 sm:px-5 sm:py-4">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             {goalsSidebarCollapsed && onToggleGoalsSidebar ? (
               <button
                 type="button"
                 onClick={onToggleGoalsSidebar}
-                className="hidden h-9 items-center gap-2 border border-zinc-200 bg-primary px-3 text-[10px] font-bold uppercase text-zinc-900 shadow-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-sm active:translate-x-1 active:translate-y-1 active:shadow-none md:inline-flex"
+                className="hidden h-8 items-center gap-1.5 rounded-md border border-zinc-200 bg-primary px-2.5 text-[10px] font-semibold uppercase text-zinc-900 shadow-sm transition-colors hover:bg-[#dfb90c] md:inline-flex"
                 aria-label="Expand goals sidebar"
                 title="Show goals sidebar"
               >
-                <PanelLeft className="h-4 w-4" />
+                <PanelLeft className="h-3.5 w-3.5" />
                 <span>Goals</span>
               </button>
             ) : null}
-            <h1 className="font-display text-2xl font-bold uppercase sm:text-3xl md:text-4xl">Tasks</h1>
+            <h1 className="text-xl font-bold tracking-tight text-zinc-900 sm:text-2xl">Tasks</h1>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex border border-zinc-200 bg-white shadow-sm">
@@ -166,16 +166,15 @@ export function TasksView({
           </div>
         ) : null}
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2">
             {/* Search */}
-            <div className="flex items-center gap-2">
-              <input
+            <input
                 type="text"
                 placeholder="Search tasks..."
                 value={searchQuery}
                 onChange={(e) => onSearchQueryChange(e.target.value)}
-                className="h-8 w-full flex-1 rounded-sm border border-zinc-200 bg-white px-3 text-xs font-bold uppercase placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black/20 sm:w-48"
+                className="h-8 w-44 rounded-md border border-zinc-200 bg-white px-3 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] sm:w-56"
               />
               <Sheet>
                 <SheetTrigger asChild>
@@ -215,35 +214,34 @@ export function TasksView({
               </Sheet>
             </div>
 
-            {/* Filters Row */}
-            <div className="hidden md:flex">
-              <TasksAdvancedFilters
-                dueDateFilter={dueDateFilter}
-                setDueDateFilter={setDueDateFilter}
-                durationFilter={durationFilter}
-                setDurationFilter={setDurationFilter}
-                customDateStart={customDateStart}
-                setCustomDateStart={setCustomDateStart}
-                customDateEnd={customDateEnd}
-                setCustomDateEnd={setCustomDateEnd}
-                customDurationMin={customDurationMin}
-                setCustomDurationMin={setCustomDurationMin}
-                customDurationMax={customDurationMax}
-                setCustomDurationMax={setCustomDurationMax}
-                showReset={hasActiveFilters}
-                onReset={onResetFilters}
-                variant="inline"
-              />
-            </div>
+          {/* Filters Row (inline on md+) */}
+          <div className="hidden flex-wrap items-center gap-2 md:flex">
+            <TasksAdvancedFilters
+              dueDateFilter={dueDateFilter}
+              setDueDateFilter={setDueDateFilter}
+              durationFilter={durationFilter}
+              setDurationFilter={setDurationFilter}
+              customDateStart={customDateStart}
+              setCustomDateStart={setCustomDateStart}
+              customDateEnd={customDateEnd}
+              setCustomDateEnd={setCustomDateEnd}
+              customDurationMin={customDurationMin}
+              setCustomDurationMin={setCustomDurationMin}
+              customDurationMax={customDurationMax}
+              setCustomDurationMax={setCustomDurationMax}
+              showReset={hasActiveFilters}
+              onReset={onResetFilters}
+              variant="inline"
+            />
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 text-[10px] font-semibold uppercase tracking-wide text-zinc-600">
+          <div className="ml-auto flex flex-wrap items-center gap-2">
             <TasksFilters showCompleted={showCompleted} onShowCompletedChange={onShowCompletedChange} />
-            {viewMode === 'board' ? (
-              <span className="rounded-sm border border-dashed border-secondary/40 px-2 py-1">
-                Drag tasks to reorder
+            {viewMode === 'board' && (
+              <span className="hidden rounded-md border border-dashed border-zinc-300 px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-zinc-500 lg:inline">
+                Drag to reorder
               </span>
-            ) : null}
+            )}
           </div>
         </div>
       </div>
