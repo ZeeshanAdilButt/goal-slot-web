@@ -152,14 +152,13 @@ export function FocusNowBar() {
         </div>
       </div>
 
-      {/* Up next panel — right-aligned, fixed-width, distinct dark card
-          so it visually separates from the yellow ticker above. Shows the
-          next 4 upcoming blocks with day/time + goal + a deep link into
-          the schedule. Closed by clicking the Up next pill again or any
-          schedule link inside. */}
+      {/* Up next panel — floats over the content below the bar instead
+          of taking flow space, so the yellow ticker strip keeps its
+          natural height and the dark card visually separates. Right-
+          aligned, fixed-width, distinct dark card. */}
       {expanded && upcomingList.length > 0 && (
-        <div className="border-t border-[#f2cc0d]/30 bg-transparent px-4 py-3">
-          <div className="ml-auto w-full max-w-md overflow-hidden rounded-xl border border-zinc-900 bg-zinc-950 text-white shadow-xl ring-1 ring-zinc-800">
+        <div className="absolute right-3 top-full z-40 mt-2 w-[min(28rem,calc(100vw-1.5rem))]">
+          <div className="overflow-hidden rounded-xl border border-zinc-900 bg-zinc-950 text-white shadow-2xl ring-1 ring-zinc-800">
             <div className="flex items-center justify-between border-b border-zinc-800 px-3 py-2">
               <div className="flex items-center gap-2">
                 <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[#f2cc0d]" />

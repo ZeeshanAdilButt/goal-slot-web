@@ -186,17 +186,38 @@ function NoteItem({
             (isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />)}
         </button>
 
-        {/* Icon */}
-        <span className="shrink-0 text-base">{note.icon || '📄'}</span>
+        {/* Icon — only render when the user picked a custom one. The
+            default 📄 fallback was just visual noise on every row. */}
+        {note.icon && <span className="shrink-0 text-base">{note.icon}</span>}
 
         {/* Title */}
         <span className="flex-1 truncate">{note.title || 'Untitled'}</span>
 
-        {/* Favorite indicator */}
-        {note.isFavorite && <Star className="h-3.5 w-3.5 shrink-0 fill-current text-yellow-500" />}
+        {/* Favorite indicator. Clickable so a second click un-favorites
+            without going through the overflow menu. */}
+        {note.isFavorite && (
+          <button
+            type="button"
+            title="Remove from favorites"
+            aria-label="Remove from favorites"
+            onClick={(e) => {
+              e.stopPropagation()
+              onToggleFavorite(note)
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            className={cn(
+              'flex h-5 w-5 shrink-0 items-center justify-center rounded transition-colors hover:bg-[#fff7d1]',
+              isSelected && 'hover:bg-black/10',
+            )}
+          >
+            <Star className="h-3.5 w-3.5 fill-current text-yellow-500" />
+          </button>
+        )}
 
-        {/* Inline quick actions: add sub-note + delete. Visible on hover so
-            the resting row stays clean, no extra clicks through a menu. */}
+        {/* Inline quick actions: add sub-note + delete. Always render so
+            the row layout doesn't shift on hover (favorite star + title
+            used to slide left). Opacity gates visibility; pointer-events
+            gates interaction. */}
         <button
           type="button"
           title="Add sub-note"
@@ -207,7 +228,7 @@ function NoteItem({
           }}
           onPointerDown={(e) => e.stopPropagation()}
           className={cn(
-            'hidden h-5 w-5 shrink-0 items-center justify-center rounded text-zinc-500 transition-colors hover:bg-[#fff7d1] hover:text-[#8a7307] group-hover:flex',
+            'flex h-5 w-5 shrink-0 items-center justify-center rounded text-zinc-500 opacity-0 transition-opacity hover:bg-[#fff7d1] hover:text-[#8a7307] group-hover:opacity-100 group-hover:pointer-events-auto pointer-events-none',
             isSelected && 'hover:bg-black/10',
           )}
         >
@@ -223,7 +244,7 @@ function NoteItem({
           }}
           onPointerDown={(e) => e.stopPropagation()}
           className={cn(
-            'hidden h-5 w-5 shrink-0 items-center justify-center rounded text-zinc-500 transition-colors hover:bg-rose-50 hover:text-rose-600 group-hover:flex',
+            'flex h-5 w-5 shrink-0 items-center justify-center rounded text-zinc-500 opacity-0 transition-opacity hover:bg-rose-50 hover:text-rose-600 group-hover:opacity-100 group-hover:pointer-events-auto pointer-events-none',
             isSelected && 'hover:bg-black/10',
           )}
         >
