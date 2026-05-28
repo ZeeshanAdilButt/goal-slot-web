@@ -33,7 +33,10 @@ export function JournalPage() {
   const { entries, selectedEntry, selectedDate, selectDate, upsertContent } = useJournalEntries()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
-  const [lampOn, setLampOn] = useState(true)
+  // Default off so the journal opens in the warm day theme. Turning
+  // the lamp on flips the surface to a night theme — the lamp's pool
+  // of warm light becomes the only thing illuminating the page.
+  const [lampOn, setLampOn] = useState(false)
   const today = todayKey()
 
   const handleSelect = (date: string) => {
@@ -79,8 +82,20 @@ export function JournalPage() {
         </span>
       </div>
 
-      <div className="relative z-10 flex h-[calc(100vh-13rem)] min-h-[480px] flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white/95 shadow-sm backdrop-blur-[2px]">
-        <div className="flex h-10 shrink-0 items-center justify-between border-b border-zinc-200 bg-white px-2">
+      <div
+        className={cn(
+          'relative z-10 flex h-[calc(100vh-13rem)] min-h-[480px] flex-col overflow-hidden rounded-xl border shadow-sm backdrop-blur-[2px] transition-colors duration-700',
+          lampOn
+            ? 'border-zinc-800 bg-zinc-950/90 text-zinc-100'
+            : 'border-zinc-200 bg-white/95 text-zinc-900',
+        )}
+      >
+        <div
+          className={cn(
+            'flex h-10 shrink-0 items-center justify-between border-b px-2 transition-colors duration-700',
+            lampOn ? 'border-zinc-800 bg-zinc-950/80' : 'border-zinc-200 bg-white',
+          )}
+        >
           <Button
             variant="ghost"
             size="sm"
@@ -126,7 +141,8 @@ export function JournalPage() {
             <>
               <div
                 className={cn(
-                  'absolute inset-y-0 left-0 z-20 flex w-[min(85vw,300px)] flex-col border-r border-zinc-200 bg-white transition-transform duration-200',
+                  'absolute inset-y-0 left-0 z-20 flex w-[min(85vw,300px)] flex-col border-r transition-transform duration-200',
+                  lampOn ? 'border-zinc-800 bg-zinc-950' : 'border-zinc-200 bg-white',
                   isMobileSidebarOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full',
                 )}
               >
@@ -145,7 +161,8 @@ export function JournalPage() {
           ) : (
             <div
               className={cn(
-                'shrink-0 border-r border-zinc-200 bg-white transition-[width] duration-200',
+                'shrink-0 border-r transition-[width,colors] duration-200',
+                lampOn ? 'border-zinc-800 bg-zinc-950/70' : 'border-zinc-200 bg-white',
                 isSidebarCollapsed && 'overflow-hidden border-r-0',
               )}
               style={{ width: isSidebarCollapsed ? 0 : 240 }}

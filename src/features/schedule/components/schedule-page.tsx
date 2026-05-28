@@ -54,7 +54,11 @@ export function SchedulePage() {
   const scrollToBlock = (blockId: string) => {
     const el = document.getElementById(`schedule-block-${blockId}`)
     if (!el) return
-    el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' })
+    // Scroll vertically only — horizontal centering would push empty
+    // days (e.g. Sunday with no blocks) under the left-hand time-
+    // labels column and hide it. Vertical scroll is enough since the
+    // block's column is already in view.
+    el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' })
     // Flash a brand-yellow ring on the block for a couple of seconds so
     // the eye lands on it after the scroll finishes.
     el.setAttribute('data-flash', 'true')
