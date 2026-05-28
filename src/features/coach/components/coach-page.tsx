@@ -5,7 +5,7 @@ import Link from 'next/link'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
-import { KeyRound, MessageCircle, RotateCcw, Send, Sparkles, Trash2 } from 'lucide-react'
+import { Bookmark, BookmarkCheck, KeyRound, MessageCircle, RotateCcw, Send, Sparkles, Trash2 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { coachApi, type CoachMessageDto, type CoachStreamChunk } from '@/lib/api'
@@ -319,6 +319,85 @@ interface ChatMessageView {
   pending?: boolean
 }
 
+/**
+ * One row in the chat thread. Coach replies that are real persisted messages
+ * (not optimistic or in-flight) get a "Save as reminder" button — clicking
+ * it turns the reply into an ACCEPTED CoachInsight that lands in the
+ * Dashboard reminders + Settings Active practice surfaces.
+ */
+function ChatMessageRow({
+  message,
+  scopeKey,
+  savedIds,
+  onSaved,
+}: {
+  message: ChatMessageView
+  scopeKey: string
+  savedIds: Set<string>
+  onSaved: (id: string) => void
+}) {
+  const queryClient = useQueryClient()
+  const [saving, setSaving] = useState(false)
+  const isCoach = message.role === 'ASSISTANT'
+  const isPersisted = isCoach && !message.pending && !message.id.startsWith('streaming-')
+  const isSaved = savedIds.has(message.id)
+
+  const handleSave = useCallback(async () => {
+    if (!isPersisted || saving || isSaved) return
+    setSaving(true)
+    try {
+      await coachApi.saveChatMessageAsInsight(scopeKey, message.id)
+      onSaved(message.id)
+      await queryClient.invalidateQueries({ queryKey: ['coach', 'insights'] })
+      toast.success('Saved as a reminder. Open Dashboard or Coach Profile to see it.')
+    } catch (err) {
+      const m = err instanceof Error ? err.message : 'Could not save'
+      toast.error(m)
+    } finally {
+      setSaving(false)
+    }
+  }, [isPersisted, isSaved, message.id, onSaved, queryClient, saving, scopeKey])
+
+  return (
+    <div className="group space-y-1">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-zinc-400">
+          {message.role === 'USER' ? 'You' : 'Coach'}
+        </span>
+        {isPersisted &&
+          (isSaved ? (
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700">
+              <BookmarkCheck className="h-3.5 w-3.5" />
+              Saved
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving}
+              className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-500 opacity-0 transition-opacity hover:text-[#8a7307] focus-visible:opacity-100 group-hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-60"
+              title="Save this reply as a reminder"
+            >
+              <Bookmark className="h-3.5 w-3.5" />
+              {saving ? 'Saving…' : 'Save as reminder'}
+            </button>
+          ))}
+      </div>
+      <div
+        className={cn(
+          'whitespace-pre-wrap text-[15px] leading-relaxed',
+          message.role === 'USER' ? 'text-zinc-700' : 'text-zinc-900',
+        )}
+      >
+        {message.content}
+        {message.pending && message.role === 'ASSISTANT' && (
+          <span className="ml-1 animate-pulse text-zinc-400">▍</span>
+        )}
+      </div>
+    </div>
+  )
+}
+
 interface ChatSectionProps {
   scopeKey: string
 }
@@ -339,6 +418,7 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
   const [optimistic, setOptimistic] = useState<ChatMessageView[]>([])
   const [streamingReply, setStreamingReply] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set())
   const abortRef = useRef<AbortController | null>(null)
   const scrollRef = useRef<HTMLDivElement | null>(null)
 
@@ -489,22 +569,13 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
         ) : (
           <div className="space-y-5">
             {allMessages.map((m) => (
-              <div key={m.id} className="space-y-1">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-zinc-400">
-                  {m.role === 'USER' ? 'You' : 'Coach'}
-                </span>
-                <div
-                  className={cn(
-                    'whitespace-pre-wrap text-[15px] leading-relaxed',
-                    m.role === 'USER' ? 'text-zinc-700' : 'text-zinc-900',
-                  )}
-                >
-                  {m.content}
-                  {m.pending && m.role === 'ASSISTANT' && (
-                    <span className="ml-1 animate-pulse text-zinc-400">▍</span>
-                  )}
-                </div>
-              </div>
+              <ChatMessageRow
+                key={m.id}
+                message={m}
+                scopeKey={scopeKey}
+                savedIds={savedIds}
+                onSaved={(id) => setSavedIds((prev) => new Set(prev).add(id))}
+              />
             ))}
           </div>
         )}
