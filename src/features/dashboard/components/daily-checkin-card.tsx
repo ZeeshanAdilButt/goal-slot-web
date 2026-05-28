@@ -46,15 +46,16 @@ export function DailyCheckinCard() {
 
   if (todayCheckin) {
     return (
-      <div className="flex flex-wrap items-center justify-end gap-3">
+      <div className="flex flex-wrap items-center justify-end gap-2">
         <SummaryIcons
           mood={todayCheckin.mood}
           energy={todayCheckin.energy}
           focus={todayCheckin.focus}
         />
-        <StatusPill variant="success" dot className="h-8 px-3">
-          ✓ Checked in today
-        </StatusPill>
+        <span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 text-[11px] font-semibold text-emerald-700">
+          <span className="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
+          Checked in today
+        </span>
       </div>
     )
   }
