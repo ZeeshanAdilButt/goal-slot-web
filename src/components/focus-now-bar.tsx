@@ -5,9 +5,10 @@ import Link from 'next/link'
 
 import { useTimeTrackerData } from '@/features/time-tracker/hooks/use-time-tracker-queries'
 import { findScheduleBlockForDateTime } from '@/features/time-tracker/utils/schedule'
-import { ArrowRight, Clock, Target } from 'lucide-react'
+import { ArrowRight, Clock } from 'lucide-react'
 
 import { formatTime12h } from '@/lib/utils'
+import { GoalFlagIcon } from '@/components/icons/goal-flag-icon'
 
 /** "14:00" -> "2 PM", "14:30" -> "2:30 PM". Drops :00 when on the hour. */
 function fmtShort(time: string): string {
@@ -71,7 +72,7 @@ export function FocusNowBar() {
           <span className="truncate text-sm font-bold text-zinc-900">{activeBlock.title}</span>
           {activeBlock.goal?.title && (
             <span className="inline-flex items-center gap-1 truncate text-xs text-zinc-600">
-              <Target className="h-3 w-3 shrink-0 text-[#8a7307]" />
+              <GoalFlagIcon className="h-3 w-3 shrink-0 text-[#8a7307]" />
               <span className="truncate">{activeBlock.goal.title}</span>
             </span>
           )}

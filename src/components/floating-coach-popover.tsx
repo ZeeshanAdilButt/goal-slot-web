@@ -10,7 +10,6 @@ import {
   Pencil,
   RotateCcw,
   Send,
-  Sparkles,
   Square,
   X,
 } from 'lucide-react'
@@ -23,6 +22,7 @@ import {
 } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { ConfirmDialog } from '@/components/confirm-dialog'
+import { CoachIcon } from '@/components/icons/coach-icon'
 import { CoachMarkdown } from '@/features/coach/components/coach-markdown'
 import { CoachErrorText, showCoachStreamError, statusOf } from '@/features/coach/utils/stream-error-toast'
 import {
@@ -232,7 +232,7 @@ export function FloatingCoachPopover({ open, onClose }: FloatingCoachPopoverProp
       <header className="flex items-center justify-between gap-2 border-b border-zinc-200 bg-gradient-to-br from-[#fffbea] to-white px-3 py-2.5">
         <div className="flex items-center gap-2">
           <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#f2cc0d]/20 text-[#8a7307]">
-            <Sparkles className="h-4 w-4" />
+            <CoachIcon className="h-4 w-4" />
           </span>
           <div className="leading-tight">
             <div className="text-sm font-semibold text-zinc-900">Coach</div>

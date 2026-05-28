@@ -4,11 +4,12 @@ import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 
 import { useCoachInsights } from '@/features/coach/hooks/use-coach-insights'
-import { MessageCircle, Sparkles } from 'lucide-react'
+import { MessageCircle } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
 import { FloatingCoachPopover } from './floating-coach-popover'
+import { CoachIcon } from './icons/coach-icon'
 
 /**
  * Floating Coach button anchored bottom-right on every authenticated page.
@@ -49,7 +50,7 @@ function FloatingCoachButtonInner() {
             : 'border-zinc-200',
         )}
       >
-        {open ? <MessageCircle className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
+        {open ? <MessageCircle className="h-5 w-5" /> : <CoachIcon className="h-5 w-5" />}
         {fresh > 0 && !open && (
           <span
             aria-hidden

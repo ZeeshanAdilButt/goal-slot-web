@@ -18,9 +18,10 @@ import {
   Share2,
   Shield,
   Flag,
-  Sparkles,
   Users,
 } from 'lucide-react'
+
+import { CoachIcon } from '@/components/icons/coach-icon'
 
 import { useAuthStore, useIsAdmin } from '@/lib/store'
 import { cn } from '@/lib/utils'
@@ -54,7 +55,7 @@ const navItems = [
   { href: '/dashboard/time-tracker', label: 'Time Tracker', icon: Clock },
   // Reflection pair: Journal + Coach. Write your day, let the Coach analyse + remind.
   { href: '/dashboard/journal', label: 'Journal', icon: BookOpen },
-  { href: '/dashboard/coach', label: 'Coach', icon: Sparkles },
+  { href: '/dashboard/coach', label: 'Coach', icon: CoachIcon },
   // Auxiliary surfaces.
   { href: '/dashboard/notes', label: 'Notes', icon: FileText },
   { href: '/dashboard/reports', label: 'Reports', icon: BarChart3 },
