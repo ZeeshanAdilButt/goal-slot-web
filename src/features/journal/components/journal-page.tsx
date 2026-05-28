@@ -42,25 +42,24 @@ export function JournalPage() {
     const h = new Date().getHours()
     return h < 6 || h >= 18
   })()
-  const [lampOn, setLampOn] = useState(false)
+  // Default lamp ON at night so the page reads as "lit bedside lamp
+  // in a dark room" from the first frame. User can click to dim it.
+  const [lampOn, setLampOn] = useState(true)
 
-  // Mirror the lamp state onto the <html> element so the surrounding
-  // dashboard chrome (sidebar, top bars, focus strip) can dim with the
-  // journal — gives the whole app the "writing late at night" feel
-  // the user wanted. CSS rules live in globals.css under the
+  // The journal IS the dark room. The moment the user opens the page
+  // the WHOLE app dims — sidebar, banners, page chrome, everything —
+  // and the lamp / sun decoration becomes the warm light source. The
+  // lamp toggle now only governs the bedside lamp's own glow, not the
+  // dark theme itself. CSS rules live in globals.css under the
   // [data-journal-night="true"] selector. Cleaned up on unmount so
   // leaving the journal restores the regular day chrome.
   useEffect(() => {
     const root = document.documentElement
-    if (lampOn) {
-      root.setAttribute('data-journal-night', 'true')
-    } else {
-      root.removeAttribute('data-journal-night')
-    }
+    root.setAttribute('data-journal-night', 'true')
     return () => {
       root.removeAttribute('data-journal-night')
     }
-  }, [lampOn])
+  }, [])
   const today = todayKey()
 
   const handleSelect = (date: string) => {

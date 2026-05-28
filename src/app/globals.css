@@ -97,21 +97,16 @@
   }
 }
 
-/* Journal night mode — sitewide. Tailwind utility-class overrides
-   were unreliable (layer cascade + JIT compiled class names), so we
-   use the CSS-filter sledgehammer: invert the entire document and
-   hue-rotate 180° to keep warm yellows looking warm (yellow inverts
-   to blue, hue-rotate 180 returns it back to yellow). Media gets a
-   counter-invert + counter-rotate so images / SVGs / videos look
-   normal against the dark chrome. The `journal-no-invert` data flag
-   on a node opts it out of the counter-invert (used by the lamp's
-   own warm glow). */
+/* Journal night mode — sitewide. When the user is on the journal
+   page, the WHOLE app inverts via a CSS filter: white -> near-black,
+   dark text -> light, brand-yellow stays warm thanks to the
+   hue-rotate(180). Images / SVGs / videos get counter-inverted so
+   they look normal against the dark chrome. The filter is on the
+   <html> element so it covers everything including portaled popovers
+   and modals attached to body. */
 html[data-journal-night='true'] {
   background-color: #09090b;
-}
-html[data-journal-night='true'] body {
   filter: invert(1) hue-rotate(180deg);
-  background-color: #f4f4f5; /* becomes near-black after invert */
   transition: filter 0.6s ease;
 }
 html[data-journal-night='true'] img,
