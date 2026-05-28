@@ -334,7 +334,7 @@ function NoteItem({
         {...listeners}
         onMouseMove={handleMouseMove}
         className={cn(
-          'group relative flex items-center gap-1 rounded-md px-2 py-1.5 text-sm transition-[background-color,box-shadow,transform] duration-150 select-none cursor-pointer',
+          'group relative flex items-center gap-1 rounded-md px-2 py-1.5 text-sm transition-[background-color,box-shadow,transform] duration-150 select-none cursor-move',
           isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-zinc-50',
           // Multi-select highlight (ctrl/cmd-click): brand-yellow tint
           // + ring so the marked-for-action notes are obvious without
@@ -803,24 +803,27 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
       return
     }
 
-    // top or bottom: reorder among siblings
-    const siblings = notes.filter((n: Note) => n.parentId === targetNote.parentId)
+    // top or bottom: reorder among siblings. SORT FIRST — `notes`
+    // arrives in whatever order the cache happens to hold, not by
+    // `order`. Splicing into an unsorted list scrambles positions
+    // (the user-reported "free fall" / messed-up ordering). Build
+    // the canonical sibling list, lift the dragged note out, drop it
+    // back at the target index, then rewrite orders.
     const noteToMove = notes.find((n: Note) => n.id === noteId)
     if (!noteToMove) return
 
-    const newSiblings = [...siblings]
-    const activeIndex = newSiblings.findIndex((n: Note) => n.id === noteId)
-    if (activeIndex >= 0) {
-      newSiblings.splice(activeIndex, 1)
-    }
+    const newSiblings = notes
+      .filter((n: Note) => n.parentId === targetNote.parentId && n.id !== noteId)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 
     const targetIndex = newSiblings.findIndex((n: Note) => n.id === targetId)
+    if (targetIndex === -1) return
     const insertionIndex = position === 'top' ? targetIndex : targetIndex + 1
     newSiblings.splice(insertionIndex, 0, noteToMove)
 
     const updates = newSiblings.map((n: Note, index: number) => ({
       noteId: n.id,
-      parentId: targetNote.parentId,
+      parentId: targetNote.parentId ?? null,
       order: (index + 1) * 1000,
     }))
 
@@ -838,11 +841,12 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
     }),
   )
 
-  // Set body cursor + disable text selection during drag. ARROWS
-  // ONLY — never the 4-direction `move` cross. Pre-lock we show the
-  // standard grabbing cursor; once axis-locked we switch to the
-  // matching one-axis arrow so the user knows exactly which direction
-  // the drag is committed to.
+  // Body cursor during drag: 4-direction `move` cross before the axis
+  // locks, then the matching one-axis arrow (ns-resize for vertical,
+  // ew-resize for horizontal) once committed. Never a hand. The row
+  // itself defaults to cursor-move so hovering a row already shows
+  // the cross; the body override here just keeps the cursor consistent
+  // while the dnd ghost is rendered.
   useEffect(() => {
     if (activeNote) {
       const cursor =
@@ -850,7 +854,7 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
           ? 'ns-resize'
           : lockedAxis === 'x'
             ? 'ew-resize'
-            : 'grabbing'
+            : 'move'
       document.body.style.cursor = cursor
       document.body.style.userSelect = 'none'
     } else {
