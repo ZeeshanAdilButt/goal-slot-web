@@ -53,6 +53,127 @@ interface NotesSidebarProps {
 
 type DropPosition = 'top' | 'inside' | 'bottom' | null
 
+// Threshold (px) for horizontal-swipe promote/demote. Mirrored in
+// handleDragEnd so the live preview always agrees with the on-drop
+// behaviour. Lifted to module scope so resolveDropTarget can reuse it.
+const HORIZONTAL_SWIPE_PX = 40
+
+type DropIntentKind = 'sub-note' | 'promote' | 'sibling' | 'reparent' | 'noop'
+
+interface ResolvedDropTarget {
+  kind: DropIntentKind
+  parentTitle?: string
+  siblingTitle?: string
+  // -1 = promote (less indented), 0 = stay, 1 = demote (more indented).
+  depthDelta: -1 | 0 | 1
+  // Whether the resolution is a horizontal-swipe (drag on the dragged
+  // row itself) vs a positional drop on another row. The preview
+  // indicator renders differently for the two.
+  horizontal: boolean
+  // For positional drops, which row the indicator should "attach" to
+  // and at what depth in the tree it should visually appear.
+  targetId?: string
+  targetDepth?: number
+  position?: DropPosition
+}
+
+// Pure resolver: predicts what handleDragEnd will do given the
+// current drag inputs. Used by both the live preview pill and the
+// on-drop path, so the user sees exactly what they're about to get.
+function resolveDropTarget(
+  activeId: string | null,
+  overId: string | null,
+  deltaX: number,
+  notes: Note[],
+  dragState: { id: string; position: DropPosition },
+): ResolvedDropTarget {
+  if (!activeId) return { kind: 'noop', depthDelta: 0, horizontal: false }
+  const dragged = notes.find((n) => n.id === activeId)
+  if (!dragged) return { kind: 'noop', depthDelta: 0, horizontal: false }
+
+  const noteDepth = (id: string | null): number => {
+    let d = 0
+    let cur = id ? notes.find((n) => n.id === id) : null
+    while (cur?.parentId) {
+      d += 1
+      const pid: string = cur.parentId
+      cur = notes.find((n) => n.id === pid) ?? null
+    }
+    return d
+  }
+
+  // Horizontal swipe takes precedence when the user isn't hovering
+  // a different row (mirrors handleDragEnd's guard).
+  const horizontalSwipe = Math.abs(deltaX) >= HORIZONTAL_SWIPE_PX
+  const hoveringSelfOrNone = !overId || overId === activeId
+  if (horizontalSwipe && hoveringSelfOrNone) {
+    const draggedDepth = noteDepth(dragged.id)
+    if (deltaX > 0) {
+      // Demote: become child of previous sibling.
+      const siblings = notes
+        .filter((n) => n.parentId === (dragged.parentId ?? null))
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      const idx = siblings.findIndex((n) => n.id === dragged.id)
+      const prev = idx > 0 ? siblings[idx - 1] : null
+      if (prev) {
+        return {
+          kind: 'sub-note',
+          parentTitle: prev.title || 'Untitled',
+          depthDelta: 1,
+          horizontal: true,
+          targetId: dragged.id,
+          targetDepth: draggedDepth + 1,
+        }
+      }
+    } else {
+      // Promote: become sibling of current parent.
+      const parent = dragged.parentId
+        ? notes.find((n) => n.id === dragged.parentId)
+        : null
+      if (parent) {
+        return {
+          kind: 'promote',
+          depthDelta: -1,
+          horizontal: true,
+          targetId: dragged.id,
+          targetDepth: Math.max(0, draggedDepth - 1),
+        }
+      }
+    }
+    return { kind: 'noop', depthDelta: 0, horizontal: true }
+  }
+
+  // Positional drop (top / inside / bottom on another row).
+  if (!overId || overId === activeId) {
+    return { kind: 'noop', depthDelta: 0, horizontal: false }
+  }
+  const target = notes.find((n) => n.id === overId)
+  if (!target) return { kind: 'noop', depthDelta: 0, horizontal: false }
+  const position: DropPosition = dragState.id === overId ? dragState.position : null
+
+  if (!position || position === 'inside') {
+    // Reparent under the target row.
+    return {
+      kind: 'reparent',
+      parentTitle: target.title || 'Untitled',
+      depthDelta: 0,
+      horizontal: false,
+      targetId: overId,
+      targetDepth: noteDepth(overId) + 1,
+      position: 'inside',
+    }
+  }
+  return {
+    kind: 'sibling',
+    siblingTitle: target.title || 'Untitled',
+    depthDelta: 0,
+    horizontal: false,
+    targetId: overId,
+    targetDepth: noteDepth(overId),
+    position,
+  }
+}
+
 interface NoteItemProps {
   note: NoteTreeItem
   depth: number
@@ -67,6 +188,11 @@ interface NoteItemProps {
   onDelete: (id: string) => void
   onHoverStateChange: (id: string, position: DropPosition) => void
   multiSelectIds: Set<string>
+  // Live preview hint forwarded from the sidebar's onDragMove. When
+  // this row is the resolved drop target, we render an extra preview
+  // indicator shifted to the resolved depth so the user sees exactly
+  // where the note will land before they release.
+  preview?: ResolvedDropTarget | null
   className?: string
 }
 
@@ -84,6 +210,7 @@ function NoteItem({
   onDelete,
   onHoverStateChange,
   multiSelectIds,
+  preview,
   className,
 }: NoteItemProps) {
   const { attributes, listeners, setNodeRef, isDragging, transform } = useDraggable({
@@ -147,6 +274,16 @@ function NoteItem({
   // Recursive render helper for children
   const hasChildren = note.children.length > 0
 
+  // Live preview indicator. Active when this row is the resolved
+  // target of the in-flight drag. We expose it as a CSS left offset
+  // so the yellow guideline visually snaps to the resolved depth —
+  // e.g. promote pulls it left, demote pushes it right.
+  const showPreview = !!preview && preview.targetId === note.id && preview.kind !== 'noop'
+  const previewLeftPx = showPreview ? Math.max(0, (preview!.targetDepth ?? depth)) * 12 + 8 : 0
+  const previewPosition: 'top' | 'bottom' | 'inside' =
+    preview?.position ??
+    (preview?.kind === 'sub-note' || preview?.kind === 'reparent' ? 'inside' : 'bottom')
+
   return (
     <div className={className}>
       <div
@@ -182,6 +319,29 @@ function NoteItem({
             isOver && dropPosition === 'bottom' ? 'opacity-100' : 'opacity-0',
           )}
         />
+
+        {/* Live drop-target preview. Only renders during an in-flight
+            drag when the resolver picks this row as the landing spot.
+            The left offset is animated so the guideline glides between
+            indent levels as the user swipes horizontally. For inside /
+            reparent / demote we draw a ring-style cue; for top / bottom
+            (sibling) we draw a thin bar at the edge. Both visually
+            "snap" to the resolved target depth. */}
+        {showPreview && previewPosition !== 'inside' && (
+          <div
+            style={{ left: `${previewLeftPx}px` }}
+            className={cn(
+              'pointer-events-none absolute right-1 z-40 h-[2px] rounded-full bg-[#f2cc0d]/80 shadow-[0_0_8px_rgba(242,204,13,0.5)] transition-[left] duration-150 ease-out',
+              previewPosition === 'top' ? 'top-0' : 'bottom-0',
+            )}
+          />
+        )}
+        {showPreview && previewPosition === 'inside' && (
+          <div
+            style={{ left: `${previewLeftPx}px` }}
+            className="pointer-events-none absolute right-1 top-1/2 z-40 h-[60%] -translate-y-1/2 rounded-md border border-dashed border-[#f2cc0d] bg-[#f2cc0d]/10 transition-[left] duration-150 ease-out"
+          />
+        )}
 
         {/* Expand/Collapse button — only on the top-level row. Sub-notes
             and deeper descendants get an invisible spacer of the same
@@ -302,6 +462,7 @@ function NoteItem({
               onDelete={onDelete}
               onHoverStateChange={onHoverStateChange}
               multiSelectIds={multiSelectIds}
+              preview={preview}
               className={className}
             />
           ))}
@@ -410,10 +571,21 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
 
   // DnD Logic
   const [activeNote, setActiveNote] = useState<NoteTreeItem | null>(null)
-  // Track live horizontal drag delta so the cursor can flip to an
-  // east-west arrow once the user crosses the ±40px promote/demote
-  // threshold (matches the swipe logic in handleDragEnd).
+  // Live horizontal drag delta — drives the cursor swap between
+  // `move` (±<40px) and `ew-resize` (±≥40px, in promote/demote range).
   const [dragX, setDragX] = useState(0)
+  // Live resolved-drop preview, recomputed on every onDragMove tick.
+  // Drives the bottom-left pill + the depth-shifted indicator inside
+  // the tree. Cleared on drag end so the UI snaps back instantly.
+  const [dragPreview, setDragPreview] = useState<ResolvedDropTarget | null>(null)
+  // Throttle the preview recompute to ~per-frame so we don't thrash
+  // React state on every pointer microtick. rAF is the right cadence
+  // for a visual that's purely cosmetic. dragX is fine to set inline
+  // since the cursor swap is a cheap body-style write.
+  const dragMoveRafRef = useRef<number | null>(null)
+  const pendingMoveRef = useRef<{ activeId: string; overId: string | null; deltaX: number } | null>(
+    null,
+  )
 
   const dragStateRef = useRef<{ id: string; position: DropPosition }>({ id: '', position: null })
 
@@ -436,47 +608,89 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
     }
     const note = findNote(noteTree, active.id as string)
     setActiveNote(note)
+    setDragPreview(null)
   }
 
+  // Single onDragMove handler: cursor swap fires inline (cheap), the
+  // preview recompute is coalesced into a single rAF callback so we
+  // only re-render once per frame even on a high-poll-rate mouse.
   const handleDragMove = (event: DragMoveEvent) => {
-    setDragX(event.delta?.x ?? 0)
+    const { active, over, delta } = event
+    setDragX(delta?.x ?? 0)
+    pendingMoveRef.current = {
+      activeId: active.id as string,
+      overId: (over?.id as string) ?? null,
+      deltaX: delta?.x ?? 0,
+    }
+    if (dragMoveRafRef.current != null) return
+    dragMoveRafRef.current = requestAnimationFrame(() => {
+      dragMoveRafRef.current = null
+      const pending = pendingMoveRef.current
+      if (!pending) return
+      const next = resolveDropTarget(
+        pending.activeId,
+        pending.overId,
+        pending.deltaX,
+        notes,
+        dragStateRef.current,
+      )
+      setDragPreview(next)
+    })
   }
 
   const handleDragCancel = () => {
     setActiveNote(null)
     setDragX(0)
+    setDragPreview(null)
+    if (dragMoveRafRef.current != null) {
+      cancelAnimationFrame(dragMoveRafRef.current)
+      dragMoveRafRef.current = null
+    }
+    pendingMoveRef.current = null
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over, delta } = event
     setActiveNote(null)
     setDragX(0)
+    setDragPreview(null)
+    if (dragMoveRafRef.current != null) {
+      cancelAnimationFrame(dragMoveRafRef.current)
+      dragMoveRafRef.current = null
+    }
+    pendingMoveRef.current = null
 
-    // Horizontal promote / demote: if the user dragged left or right
-    // past a threshold without landing on another row, treat it as a
-    // depth change. Right ≥ 40px = demote (become child of previous
-    // sibling). Left ≤ -40px = promote (move out one level, becoming
-    // a sibling of the current parent). This mirrors the OneNote
-    // expectation of "drag sideways to indent / outdent". Children of
-    // the dragged note travel with it automatically because we only
-    // rewrite this note's parentId.
-    const horizontalSwipe = Math.abs(delta?.x ?? 0) >= 40
     const noteId = active.id as string
-    const draggedNote = notes.find((n: Note) => n.id === noteId)
+    // Resolve drop using the same helper that powered the live
+    // preview, so the on-drop behaviour always matches what the user
+    // just saw on screen.
+    const resolved = resolveDropTarget(
+      noteId,
+      (over?.id as string) ?? null,
+      delta?.x ?? 0,
+      notes,
+      dragStateRef.current,
+    )
 
-    if (horizontalSwipe && draggedNote && (!over || over.id === active.id)) {
-      const goingRight = (delta?.x ?? 0) >= 40
-      const siblings = notes
-        .filter((n: Note) => n.parentId === (draggedNote.parentId ?? null))
-        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-      const idx = siblings.findIndex((n) => n.id === noteId)
-      if (goingRight) {
+    const draggedNote = notes.find((n: Note) => n.id === noteId)
+    if (!draggedNote) return
+
+    if (resolved.horizontal) {
+      // Horizontal promote / demote (mirrors OneNote indent / outdent).
+      // Children travel with the dragged note automatically because we
+      // only rewrite this note's parentId.
+      if (resolved.kind === 'sub-note') {
+        const siblings = notes
+          .filter((n: Note) => n.parentId === (draggedNote.parentId ?? null))
+          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        const idx = siblings.findIndex((n) => n.id === noteId)
         const prev = idx > 0 ? siblings[idx - 1] : null
         if (prev) {
           reorderMutation.mutate([{ noteId, parentId: prev.id, order: 99999 }])
-          return
         }
-      } else {
+        return
+      }
+      if (resolved.kind === 'promote') {
         const parent = draggedNote.parentId
           ? notes.find((n: Note) => n.id === draggedNote.parentId)
           : null
@@ -484,41 +698,32 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
           reorderMutation.mutate([
             { noteId, parentId: parent.parentId ?? null, order: 99999 },
           ])
-          return
         }
+        return
       }
+      // noop: dragged but no valid promote/demote target.
+      return
     }
 
     if (!over || active.id === over.id) return
 
-    // Logic for reparenting/reordering
-    const { id: hoverId, position } = dragStateRef.current
-
-    // Safety check: ensure we are hovering the correct item or at least 'over' matches
-    // Note: over.id might be bubbling? No, standard usage.
-    if (!position || hoverId !== over.id) {
-      // Fallback if hover state is desynced: treat as 'inside' if directly over
-      if (over.id) {
-        // Default to reparenting if dropping on top of something
-        reorderMutation.mutate([
-          {
-            noteId: active.id as string,
-            parentId: over.id as string,
-            order: 99999, // Append to end
-          },
-        ])
-      }
-      return
-    }
-
-    // Handle position-based drag and drop
+    // Positional drop. Prefer the resolver's view; fall back to the
+    // legacy hover-ref path if the resolver couldn't classify (e.g.
+    // because the hover state ref desynced).
     const targetId = over.id as string
     const targetNote = notes.find((n: Note) => n.id === targetId)
-
     if (!targetNote) return
 
-    if (position === 'inside') {
-      // Reparent: make the dragged note a child of the target
+    const position: DropPosition =
+      resolved.kind === 'sibling'
+        ? resolved.position ?? null
+        : resolved.kind === 'reparent'
+          ? 'inside'
+          : dragStateRef.current.id === targetId
+            ? dragStateRef.current.position
+            : 'inside'
+
+    if (!position || position === 'inside') {
       reorderMutation.mutate([
         {
           noteId,
@@ -526,30 +731,31 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
           order: 99999,
         },
       ])
-    } else {
-      // top or bottom: reorder among siblings
-      const siblings = notes.filter((n: Note) => n.parentId === targetNote.parentId)
-      const noteToMove = notes.find((n: Note) => n.id === noteId)
-      if (!noteToMove) return
-
-      const newSiblings = [...siblings]
-      const activeIndex = newSiblings.findIndex((n: Note) => n.id === noteId)
-      if (activeIndex >= 0) {
-        newSiblings.splice(activeIndex, 1)
-      }
-
-      const targetIndex = newSiblings.findIndex((n: Note) => n.id === targetId)
-      const insertionIndex = position === 'top' ? targetIndex : targetIndex + 1
-      newSiblings.splice(insertionIndex, 0, noteToMove)
-
-      const updates = newSiblings.map((n: Note, index: number) => ({
-        noteId: n.id,
-        parentId: targetNote.parentId,
-        order: (index + 1) * 1000,
-      }))
-
-      reorderMutation.mutate(updates)
+      return
     }
+
+    // top or bottom: reorder among siblings
+    const siblings = notes.filter((n: Note) => n.parentId === targetNote.parentId)
+    const noteToMove = notes.find((n: Note) => n.id === noteId)
+    if (!noteToMove) return
+
+    const newSiblings = [...siblings]
+    const activeIndex = newSiblings.findIndex((n: Note) => n.id === noteId)
+    if (activeIndex >= 0) {
+      newSiblings.splice(activeIndex, 1)
+    }
+
+    const targetIndex = newSiblings.findIndex((n: Note) => n.id === targetId)
+    const insertionIndex = position === 'top' ? targetIndex : targetIndex + 1
+    newSiblings.splice(insertionIndex, 0, noteToMove)
+
+    const updates = newSiblings.map((n: Note, index: number) => ({
+      noteId: n.id,
+      parentId: targetNote.parentId,
+      order: (index + 1) * 1000,
+    }))
+
+    reorderMutation.mutate(updates)
   }
 
   const sensors = useSensors(
@@ -682,9 +888,37 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
         onDelete={handleDeleteNote}
         onHoverStateChange={handleItemHoverStateChange}
         multiSelectIds={multiSelectIds}
+        preview={dragPreview}
       />
     )
   }
+
+  // Human-readable label for the live drop-target pill. Keeps the
+  // copy centralized so the preview matches the resolver's intent
+  // exactly — if a new DropIntentKind is added later, the compiler
+  // forces an update here too.
+  const previewLabel = (() => {
+    if (!dragPreview || dragPreview.kind === 'noop') return 'No change'
+    switch (dragPreview.kind) {
+      case 'sub-note':
+        return `Sub-note of "${dragPreview.parentTitle ?? 'Untitled'}"`
+      case 'reparent':
+        return `Sub-note of "${dragPreview.parentTitle ?? 'Untitled'}"`
+      case 'promote':
+        return 'One level up'
+      case 'sibling':
+        return `${dragPreview.position === 'top' ? 'Above' : 'Below'} "${dragPreview.siblingTitle ?? 'Untitled'}"`
+      default:
+        return 'No change'
+    }
+  })()
+
+  const previewArrow = (() => {
+    if (!dragPreview) return ''
+    if (dragPreview.kind === 'sub-note' || dragPreview.kind === 'reparent') return '→ '
+    if (dragPreview.kind === 'promote') return '↑ '
+    return ''
+  })()
 
   if (isLoading) {
     return (
@@ -697,7 +931,7 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
   }
 
   return (
-    <div className={cn('flex h-full flex-col', className)}>
+    <div className={cn('relative flex h-full flex-col', className)}>
       {/* Search */}
       <div className="p-3">
         <div className="relative">
@@ -815,6 +1049,32 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
             )}
           </div>
         </div>
+
+        {/* Live drop-target preview pill. Anchored bottom-left of the
+            sidebar tree, brand-yellow on zinc-900 so it reads as a
+            transient "if you release now…" hint without competing
+            with the dragged ghost overlay. Only visible while an
+            active drag has resolved to a target. */}
+        {activeNote && dragPreview && (
+          <div className="pointer-events-none absolute bottom-3 left-3 z-40 max-w-[16rem]">
+            <div
+              role="status"
+              aria-live="polite"
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold shadow-lg transition-colors',
+                dragPreview.kind === 'noop'
+                  ? 'bg-zinc-900 text-zinc-300'
+                  : 'bg-[#f2cc0d] text-zinc-900',
+              )}
+            >
+              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-zinc-900" />
+              <span className="truncate">
+                {previewArrow}
+                {previewLabel}
+              </span>
+            </div>
+          </div>
+        )}
 
         <DragOverlay dropAnimation={{ duration: 180, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
           {activeNote ? (
