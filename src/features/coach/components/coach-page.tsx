@@ -562,11 +562,20 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
           if (chunk.done) break
         }
         if (streamErr) {
+          // Stream completed with an error (budget exceeded, key removed, etc.
+          // surfaces here instead of via throw because the SSE bridge wraps
+          // backend throws into a terminal {error, done:true} chunk).
+          handleStreamError(undefined, streamErr)
           setError(streamErr)
+          // Restore the user's typed text and drop the optimistic bubble so
+          // they can fix-and-retry without retyping.
+          setInput((cur) => cur || trimmed)
+          setOptimistic((prev) => prev.filter((m) => m.id !== userMsgId))
+        } else {
+          // Invalidate history so we get authoritative IDs/timestamps; drop optimistic.
+          await queryClient.invalidateQueries({ queryKey: ['coach', 'chat', scopeKey] })
+          setOptimistic([])
         }
-        // Invalidate history so we get authoritative IDs/timestamps; drop optimistic.
-        await queryClient.invalidateQueries({ queryKey: ['coach', 'chat', scopeKey] })
-        setOptimistic([])
       } catch (err) {
         const status = statusOf(err)
         const message = err instanceof Error ? err.message : 'Chat failed'

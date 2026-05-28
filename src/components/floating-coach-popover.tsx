@@ -173,9 +173,10 @@ export function FloatingCoachPopover({ open, onClose }: FloatingCoachPopoverProp
           signal: controller.signal,
         })
         let acc = ''
+        let streamErr: string | undefined
         for await (const chunk of iter as AsyncGenerator<CoachStreamChunk>) {
           if (chunk.error) {
-            setError(chunk.error)
+            streamErr = chunk.error
             break
           }
           if (chunk.delta) {
@@ -184,9 +185,18 @@ export function FloatingCoachPopover({ open, onClose }: FloatingCoachPopoverProp
           }
           if (chunk.done) break
         }
-        // Refetch persisted history so the streaming reply gets a real id.
-        await queryClient.invalidateQueries({ queryKey: ['coach', 'chat', scopeKey] })
-        setOptimistic([])
+        if (streamErr) {
+          // SSE bridge wraps backend throws (budget exceeded, key removed)
+          // into a terminal {error, done:true} chunk, surface here.
+          setError(streamErr)
+          showCoachStreamError(undefined, streamErr)
+          setInput((cur) => cur || trimmed)
+          setOptimistic((prev) => prev.filter((m) => m.id !== userMsgId))
+        } else {
+          // Refetch persisted history so the streaming reply gets a real id.
+          await queryClient.invalidateQueries({ queryKey: ['coach', 'chat', scopeKey] })
+          setOptimistic([])
+        }
       } catch (err) {
         if ((err as any)?.name !== 'AbortError') {
           const m = err instanceof Error ? err.message : 'Chat failed'
