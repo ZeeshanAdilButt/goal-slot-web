@@ -33,8 +33,8 @@ export function SidebarFooterContent({ onLogout }: SidebarFooterContentProps) {
           {initial}
         </span>
         <span className="flex min-w-0 flex-1 flex-col leading-tight">
-          <span className="flex items-center gap-1.5">
-            <span className="truncate text-sm font-semibold text-zinc-900">
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span className="min-w-0 flex-1 truncate text-sm font-semibold text-zinc-900">
               {user?.name || 'User'}
             </span>
             <span
@@ -49,7 +49,7 @@ export function SidebarFooterContent({ onLogout }: SidebarFooterContentProps) {
               {planLabel}
             </span>
           </span>
-          <span className="truncate text-[10px] text-zinc-500">{user?.email || ''}</span>
+          <span className="min-w-0 truncate text-[10px] text-zinc-500">{user?.email || ''}</span>
         </span>
       </Link>
       <button
