@@ -803,27 +803,37 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
       return
     }
 
-    // top or bottom: reorder among siblings. SORT FIRST — `notes`
-    // arrives in whatever order the cache happens to hold, not by
-    // `order`. Splicing into an unsorted list scrambles positions
-    // (the user-reported "free fall" / messed-up ordering). Build
-    // the canonical sibling list, lift the dragged note out, drop it
-    // back at the target index, then rewrite orders.
+    // top or bottom: reorder among siblings. Normalize parentId with
+    // `?? null` on both sides — a root note has parentId === null in
+    // the DB but the cache occasionally surfaces it as undefined.
+    // Strict equality on the two would silently exclude valid
+    // siblings and break cross-hierarchy drops (e.g. moving a root
+    // note to become a sibling of a sub-note).
     const noteToMove = notes.find((n: Note) => n.id === noteId)
     if (!noteToMove) return
 
+    const targetParentId = targetNote.parentId ?? null
     const newSiblings = notes
-      .filter((n: Note) => n.parentId === targetNote.parentId && n.id !== noteId)
+      .filter(
+        (n: Note) => (n.parentId ?? null) === targetParentId && n.id !== noteId,
+      )
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 
     const targetIndex = newSiblings.findIndex((n: Note) => n.id === targetId)
-    if (targetIndex === -1) return
-    const insertionIndex = position === 'top' ? targetIndex : targetIndex + 1
+    // Fallback: if the target somehow isn't in its own parent's list
+    // (data drift), append the dragged note after it so the move
+    // still completes.
+    const insertionIndex =
+      targetIndex === -1
+        ? newSiblings.length
+        : position === 'top'
+          ? targetIndex
+          : targetIndex + 1
     newSiblings.splice(insertionIndex, 0, noteToMove)
 
     const updates = newSiblings.map((n: Note, index: number) => ({
       noteId: n.id,
-      parentId: targetNote.parentId ?? null,
+      parentId: targetParentId,
       order: (index + 1) * 1000,
     }))
 

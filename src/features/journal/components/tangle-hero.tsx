@@ -7,24 +7,27 @@ interface TangleHeroProps {
 }
 
 /**
- * Decorative SVG line that morphs from a tangled knot into a clean
- * untangled wave and back, on a 3s loop. Slightly thicker stroke than
- * the original so it actually reads as a stroke at 14–18px height.
- * Pure SVG, animates the `d` attribute via SMIL so we don't drag in
- * a JS animation library for one shape.
+ * Decorative SVG line that genuinely morphs — every control point
+ * moves smoothly from its tangled position to its calm position and
+ * back. Both `d` strings use the SAME command sequence (one `M`, one
+ * `C`, then five `S` shortcuts) so SVG's path interpolation creates
+ * a continuous deformation instead of swapping between two unrelated
+ * shapes. 6s loop, in-out cubic easing for a relaxed breath.
  */
 export function TangleHero({ className }: TangleHeroProps) {
-  // Tangled: messy zigzag with self-crossings — taller amplitude so
-  // the transformation to the calm wave reads clearly.
+  // Same six anchor points along the horizontal axis: 4, 50, 96, 142, 188, 234.
+  // The tangled variant pushes alternating control points up/down by
+  // big swings; the calm variant keeps them gently above/below the
+  // mid-line. The path topology stays identical, so the morph is
+  // smooth point-by-point.
   const TANGLED =
-    'M4 22 C 20 4, 28 38, 46 6 S 70 36, 88 8 S 116 36, 138 10 S 162 38, 184 18 S 208 4, 232 22'
-  // Calm: a gentle low-amplitude sine across the width.
+    'M4 22 C 20 4, 32 40, 50 22 S 80 4, 96 22 S 126 40, 142 22 S 172 4, 188 22 S 218 40, 234 22'
   const CALM =
-    'M4 22 C 30 14, 60 30, 90 22 S 150 14, 184 22 S 220 30, 232 22'
+    'M4 22 C 20 18, 32 26, 50 22 S 80 18, 96 22 S 126 26, 142 22 S 172 18, 188 22 S 218 26, 234 22'
 
   return (
     <svg
-      viewBox="0 0 236 44"
+      viewBox="0 0 238 44"
       className={cn('h-5 w-40', className)}
       aria-hidden="true"
     >
@@ -34,25 +37,15 @@ export function TangleHero({ className }: TangleHeroProps) {
         strokeWidth="2.25"
         strokeLinecap="round"
         strokeLinejoin="round"
-        opacity="0.95"
       >
         <animate
           attributeName="d"
-          values={`${TANGLED};${CALM};${CALM};${TANGLED};${TANGLED}`}
-          keyTimes="0;0.45;0.7;0.95;1"
-          dur="16s"
+          values={`${TANGLED};${CALM};${TANGLED}`}
+          keyTimes="0;0.5;1"
+          dur="6s"
           repeatCount="indefinite"
           calcMode="spline"
-          keySplines="0.25 0.1 0.25 1;0 0 1 1;0.25 0.1 0.25 1;0 0 1 1"
-        />
-        <animate
-          attributeName="opacity"
-          values="0.6;1;1;0.6;0.6"
-          keyTimes="0;0.45;0.7;0.95;1"
-          dur="16s"
-          repeatCount="indefinite"
-          calcMode="spline"
-          keySplines="0.25 0.1 0.25 1;0 0 1 1;0.25 0.1 0.25 1;0 0 1 1"
+          keySplines="0.42 0 0.58 1;0.42 0 0.58 1"
         />
       </path>
     </svg>
