@@ -10,7 +10,7 @@ import { JournalSidebar } from '@/features/journal/components/journal-sidebar'
 import { JournalSun } from '@/features/journal/components/journal-sun'
 import { TangleHero } from '@/features/journal/components/tangle-hero'
 import { useJournalEntries } from '@/features/journal/hooks/use-journal-entries'
-import { CalendarDays, Maximize2, Minimize2, PanelLeft, PanelLeftClose } from 'lucide-react'
+import { CalendarDays, Maximize2, Minimize2, PanelLeft, PanelLeftClose, X } from 'lucide-react'
 
 import { useIsMobile } from '@/hooks/use-mobile'
 import { cn } from '@/lib/utils'
@@ -58,13 +58,19 @@ export function JournalPage() {
   // (was: setAttribute('data-journal-night', 'true') based on lampOn)
 
   // Lock body scroll while fullscreen so the user can't accidentally
-  // scroll the dashboard chrome behind the overlay.
+  // scroll the dashboard chrome behind the overlay. Esc key also
+  // exits — standard distraction-free convention.
   useEffect(() => {
     if (!isFullscreen) return
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsFullscreen(false)
+    }
+    window.addEventListener('keydown', onKey)
     return () => {
       document.body.style.overflow = prev
+      window.removeEventListener('keydown', onKey)
     }
   }, [isFullscreen])
   const today = todayKey()
@@ -103,7 +109,7 @@ export function JournalPage() {
       />
 
       <div className="-mt-1 flex flex-wrap items-center gap-3 text-[14px] font-medium text-[#8a7307]">
-        <TangleHero className="h-5 w-40 shrink-0" />
+        <TangleHero className="h-12 w-56 shrink-0 sm:h-16 sm:w-72" />
         <span className="italic">
           <JournalAffirmations />
         </span>
@@ -231,7 +237,9 @@ export function JournalPage() {
           <div
             className={cn(
               'flex min-w-0 flex-1 flex-col overflow-y-auto',
-              isFullscreen ? 'mx-auto w-full max-w-3xl p-6 sm:p-10' : 'p-3 sm:p-4',
+              isFullscreen
+                ? 'mx-auto w-full max-w-5xl px-6 py-6 sm:px-12 sm:py-10'
+                : 'p-3 sm:p-4',
             )}
           >
             <JournalEntryEditor entry={selectedEntry} onSaveContent={upsertContent} />
@@ -244,11 +252,26 @@ export function JournalPage() {
         // wrapped in a fixed overlay. Portaling escapes any ancestor
         // transform / filter / overflow that breaks position:fixed,
         // and lets us reliably cover the dashboard chrome + lamp /
-        // banners with a single solid surface.
+        // banners with a single solid surface. A prominent floating
+        // Close button sits at top-right of the overlay so the user
+        // always has a visible escape (in addition to Esc).
         if (isFullscreen) {
           if (typeof document === 'undefined') return null
           return createPortal(
-            <div className="fixed inset-0 z-[1000] bg-white">{editorCard}</div>,
+            <div className="fixed inset-0 z-[1000] flex h-[100dvh] w-screen bg-white">
+              {editorCard}
+              <button
+                type="button"
+                onClick={() => setIsFullscreen(false)}
+                aria-label="Exit fullscreen (Esc)"
+                title="Exit fullscreen (Esc)"
+                className="fixed right-4 top-4 z-[1010] inline-flex h-10 items-center gap-2 rounded-full border border-zinc-200 bg-white px-3.5 text-sm font-semibold text-zinc-900 shadow-lg transition-colors hover:bg-zinc-50"
+              >
+                <X className="h-4 w-4" />
+                Exit fullscreen
+                <span className="hidden text-[11px] font-medium text-zinc-400 sm:inline">Esc</span>
+              </button>
+            </div>,
             document.body,
           )
         }
