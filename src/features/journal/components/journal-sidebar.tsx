@@ -3,8 +3,8 @@
 import { useMemo, useState } from 'react'
 
 import { JournalEntry } from '@/features/journal/hooks/use-journal-entries'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { DayPicker } from 'react-day-picker'
+import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { DayPicker, type DateRange } from 'react-day-picker'
 
 import { cn } from '@/lib/utils'
 
@@ -31,27 +31,22 @@ function formatChip(date: string, today: string): string {
   return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
 }
 
+function toDateKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSidebarProps) {
   const today = todayKey()
   const todayObj = useMemo(() => new Date(), [])
-  // The month currently shown in the calendar. Defaults to the month of the
-  // selected entry, or today's month. Prev/next chevrons mutate it so the
-  // user can navigate any month they've journaled in.
+  // The month currently shown in the calendar.
   const [viewMonth, setViewMonth] = useState<Date>(() =>
     selectedDate ? new Date(`${selectedDate}T00:00:00`) : new Date(),
   )
-
-  // Ensure "Today" appears first as a tappable chip even when no entry exists yet.
-  const list = useMemo(() => {
-    const dates = new Set(entries.map((e) => e.date))
-    const ordered: { date: string; entry: JournalEntry | null }[] = []
-    if (!dates.has(today)) ordered.push({ date: today, entry: null })
-    entries
-      .slice()
-      .sort((a, b) => (a.date < b.date ? 1 : -1))
-      .forEach((e) => ordered.push({ date: e.date, entry: e }))
-    return ordered
-  }, [entries, today])
+  // Optional date range to filter the entries list. When set, the list
+  // below the calendar shows only entries whose date falls within
+  // [range.from, range.to]. Click two days on the calendar to define;
+  // click Clear to reset.
+  const [range, setRange] = useState<DateRange | undefined>(undefined)
 
   const entryDates = useMemo(
     () => entries.map((e) => new Date(`${e.date}T00:00:00`)),
@@ -71,13 +66,44 @@ export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSideb
     })
   }, [todayObj])
 
-  const selectedDateObj = selectedDate ? new Date(`${selectedDate}T00:00:00`) : undefined
+  // Entries filtered by the active range (if any), with Today pinned at top
+  // when no entry exists for it and no range is active.
+  const list = useMemo(() => {
+    const fromKey = range?.from ? toDateKey(range.from) : null
+    const toKey = range?.to ? toDateKey(range.to) : fromKey
+    const within = (date: string): boolean => {
+      if (!fromKey) return true
+      if (!toKey) return date === fromKey
+      return date >= fromKey && date <= toKey
+    }
+    const dates = new Set(entries.map((e) => e.date))
+    const ordered: { date: string; entry: JournalEntry | null }[] = []
+    if (!range && !dates.has(today)) ordered.push({ date: today, entry: null })
+    entries
+      .slice()
+      .filter((e) => within(e.date))
+      .sort((a, b) => (a.date < b.date ? 1 : -1))
+      .forEach((e) => ordered.push({ date: e.date, entry: e }))
+    return ordered
+  }, [entries, today, range])
 
-  const handlePickDay = (day: Date | undefined) => {
-    if (!day) return
-    const key = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`
-    onSelect(key)
+  const handleRangeChange = (next: DateRange | undefined) => {
+    setRange(next)
+    // When the user has picked a full range with a single entry inside,
+    // auto-open that entry so the editor follows the filter.
+    if (next?.from && next.to) {
+      const fromKey = toDateKey(next.from)
+      const toKey = toDateKey(next.to)
+      const hits = entries
+        .filter((e) => e.date >= fromKey && e.date <= toKey)
+        .sort((a, b) => (a.date < b.date ? 1 : -1))
+      if (hits.length > 0) onSelect(hits[0].date)
+    } else if (next?.from && !next.to) {
+      onSelect(toDateKey(next.from))
+    }
   }
+
+  const selectedDateObj = selectedDate ? new Date(`${selectedDate}T00:00:00`) : undefined
 
   const shiftMonth = (delta: number) => {
     setViewMonth((prev) => {
@@ -115,11 +141,11 @@ export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSideb
           </button>
         </div>
         <DayPicker
-          mode="single"
+          mode="range"
           month={viewMonth}
           onMonthChange={setViewMonth}
-          selected={selectedDateObj}
-          onSelect={handlePickDay}
+          selected={range}
+          onSelect={handleRangeChange}
           disabled={{ after: new Date() }}
           modifiers={{ hasEntry: entryDates, thisWeek: thisWeekDates }}
           modifiersClassNames={{
@@ -144,9 +170,28 @@ export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSideb
             day_button:
               'h-7 w-full rounded text-[11px] font-medium text-zinc-700 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40',
             today: 'font-bold text-[#8a7307]',
-            selected: '[&_button]:!bg-[#f2cc0d] [&_button]:!text-zinc-900',
+            range_start: '[&_button]:!bg-[#f2cc0d] [&_button]:!text-zinc-900 rounded-l',
+            range_end: '[&_button]:!bg-[#f2cc0d] [&_button]:!text-zinc-900 rounded-r',
+            range_middle: 'bg-[#f2cc0d]/20',
           }}
         />
+        {range?.from && (
+          <div className="mt-1.5 flex items-center justify-between gap-2 border-t border-zinc-100 px-1 pt-1.5">
+            <span className="text-[10px] text-zinc-500">
+              {range.to
+                ? `${range.from.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} – ${range.to.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`
+                : `From ${range.from.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`}
+            </span>
+            <button
+              type="button"
+              onClick={() => setRange(undefined)}
+              className="inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[10px] font-medium text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700"
+            >
+              <X className="h-3 w-3" />
+              Clear
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="px-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
