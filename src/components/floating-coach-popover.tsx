@@ -250,12 +250,12 @@ export function FloatingCoachPopover({ open, onClose }: FloatingCoachPopoverProp
               if (hasMessages) setConfirmClear(true)
               else toast('Chat is already empty.', { icon: '👌' })
             }}
-            title="Start a new chat"
+            title="Start a new chat (clears this week's chat history)"
             disabled={streaming}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:cursor-not-allowed disabled:opacity-50"
-            aria-label="Start a new chat"
+            className="inline-flex h-8 items-center gap-1 rounded-md border border-zinc-200 bg-white px-2 text-[11px] font-medium text-zinc-600 transition-colors hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="h-3.5 w-3.5" />
+            New
           </button>
           <Link
             href="/dashboard/coach"
