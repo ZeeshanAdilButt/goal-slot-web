@@ -224,6 +224,75 @@ html[data-journal-night='true'] [role='dialog'] {
   color: #f4f4f5 !important;
 }
 
+/* Tiptap editor — uses `@apply` so its surfaces don't inherit from
+   our utility-class overrides. Explicit rules so the toolbar and the
+   editor body actually flip in dark mode. */
+html.dark .tiptap-toolbar,
+html[data-journal-night='true'] .tiptap-toolbar {
+  background-color: #18181b !important;
+  border-color: #27272a !important;
+}
+html.dark .toolbar-btn,
+html[data-journal-night='true'] .toolbar-btn {
+  color: #a1a1aa !important;
+}
+html.dark .toolbar-btn:hover,
+html[data-journal-night='true'] .toolbar-btn:hover {
+  background-color: #27272a !important;
+  color: #f4f4f5 !important;
+}
+html.dark .tiptap-editor .ProseMirror,
+html[data-journal-night='true'] .tiptap-editor .ProseMirror {
+  color: #e4e4e7 !important;
+}
+html.dark .tiptap-editor .ProseMirror p.is-editor-empty:first-child::before,
+html[data-journal-night='true'] .tiptap-editor .ProseMirror p.is-editor-empty:first-child::before {
+  color: #52525b !important;
+}
+html.dark .bubble-menu,
+html[data-journal-night='true'] .bubble-menu {
+  background-color: #18181b !important;
+  border-color: #27272a !important;
+}
+
+/* Brand-yellow tinted surfaces — in light mode these are warm cream
+   highlights (today's entry header, recent-entry selected row,
+   inline banners). In dark mode they'd punch as bright cream
+   rectangles, killing the night feel. Tone them down to dark-warm
+   tints so they still read as "this is brand territory" without
+   bleaching the page. The pure brand-yellow text colour stays as-is
+   so accents (the dot, the "Today" label, etc.) keep their warmth. */
+html.dark .bg-\[\#fffbea\],
+html[data-journal-night='true'] .bg-\[\#fffbea\] {
+  background-color: #2a2410 !important;
+}
+html.dark .bg-\[\#fff7d1\],
+html[data-journal-night='true'] .bg-\[\#fff7d1\] {
+  background-color: #3a3415 !important;
+}
+html.dark .bg-\[\#fff3a8\],
+html[data-journal-night='true'] .bg-\[\#fff3a8\] {
+  background-color: #4a4218 !important;
+}
+
+/* Gradient backgrounds used in banners (FocusNowBar, etc.) — Tailwind
+   compiles them to inline CSS variables. Replace with a darker warm
+   gradient under dark mode. */
+html.dark .from-\[\#fffbea\],
+html[data-journal-night='true'] .from-\[\#fffbea\] {
+  --tw-gradient-from: #2a2410 var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(42, 36, 16, 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+html.dark .via-\[\#fffbea\],
+html[data-journal-night='true'] .via-\[\#fffbea\] {
+  --tw-gradient-stops: var(--tw-gradient-from), #2a2410 var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+}
+html.dark .to-\[\#fff7d1\],
+html[data-journal-night='true'] .to-\[\#fff7d1\] {
+  --tw-gradient-to: #3a3415 var(--tw-gradient-to-position) !important;
+}
+
 /* Older, narrower overrides kept for surfaces the filter trick can
    miss (popover portals occasionally render outside <body>). */
 html[data-journal-night='true'] body,

@@ -332,7 +332,7 @@ function NoteItem({
         {...listeners}
         onMouseMove={handleMouseMove}
         className={cn(
-          'group relative flex items-center gap-1 rounded-md px-2 py-1.5 text-sm transition-[background-color,box-shadow,transform] duration-150 select-none cursor-grab active:cursor-grabbing',
+          'group relative flex items-center gap-1 rounded-md px-2 py-1.5 text-sm transition-[background-color,box-shadow,transform] duration-150 select-none cursor-pointer',
           isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-zinc-50',
           // Multi-select highlight (ctrl/cmd-click): brand-yellow tint
           // + ring so the marked-for-action notes are obvious without

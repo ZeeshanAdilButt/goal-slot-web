@@ -42,25 +42,29 @@ export function JournalPage() {
     const h = new Date().getHours()
     return h < 6 || h >= 18
   })()
-  // Default lamp ON at night so the page reads as "lit bedside lamp
-  // in a dark room" from the first frame. User can click to dim it.
-  const [lampOn, setLampOn] = useState(true)
+  // Lamp toggle now controls the dark theme. ON = the journal is a
+  // dark room with a warm lamp; OFF = the journal returns to the
+  // regular daytime chrome (or whatever theme the user has set
+  // globally in Settings). Default OFF so the first frame respects
+  // the user's theme; they click the lamp to enter the night room.
+  const [lampOn, setLampOn] = useState(false)
 
-  // The journal IS the dark room. The moment the user opens the page
-  // the whole app dims — sidebar, banners, page chrome, everything —
-  // and the lamp / sun decoration becomes the warm light source. The
-  // CSS rules in globals.css respond to both `.dark` (user-set in
-  // Settings) and `[data-journal-night='true']` (set here while the
-  // journal page is mounted). Removing the attribute on unmount
-  // restores the user's chosen theme — if they enabled dark mode
-  // globally, the rest of the app stays dark.
+  // Lamp toggles the journal night theme. ON → set
+  // data-journal-night on <html> so the CSS rules in globals.css
+  // darken the whole app (sidebar, banners, page chrome, modals).
+  // OFF → remove the attribute, returning to the user's chosen
+  // theme (which may itself be dark via the Settings toggle).
   useEffect(() => {
     const root = document.documentElement
-    root.setAttribute('data-journal-night', 'true')
+    if (lampOn) {
+      root.setAttribute('data-journal-night', 'true')
+    } else {
+      root.removeAttribute('data-journal-night')
+    }
     return () => {
       root.removeAttribute('data-journal-night')
     }
-  }, [])
+  }, [lampOn])
   const today = todayKey()
 
   const handleSelect = (date: string) => {

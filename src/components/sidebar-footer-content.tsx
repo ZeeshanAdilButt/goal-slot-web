@@ -2,9 +2,10 @@
 
 import Link from 'next/link'
 
-import { LogOut, Settings, User as UserIcon } from 'lucide-react'
+import { LogOut, Moon, Settings, Sun, User as UserIcon } from 'lucide-react'
 
 import { useAuthStore } from '@/lib/store'
+import { useThemeStore } from '@/lib/use-theme'
 import { cn } from '@/lib/utils'
 
 interface SidebarFooterContentProps {
@@ -13,6 +14,9 @@ interface SidebarFooterContentProps {
 
 export function SidebarFooterContent({ onLogout }: SidebarFooterContentProps) {
   const { user } = useAuthStore()
+  const theme = useThemeStore((s) => s.theme)
+  const toggleTheme = useThemeStore((s) => s.toggle)
+  const isDark = theme === 'dark'
 
   const isPro = user?.plan === 'PRO' || user?.unlimitedAccess
   const planLabel = isPro ? 'PRO' : user?.plan || 'FREE'
@@ -48,6 +52,21 @@ export function SidebarFooterContent({ onLogout }: SidebarFooterContentProps) {
           <span className="truncate text-[10px] text-zinc-500">{user?.email || ''}</span>
         </span>
       </Link>
+      <button
+        type="button"
+        onClick={toggleTheme}
+        title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+        aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+        aria-pressed={isDark}
+        className={cn(
+          'inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+          isDark
+            ? 'bg-zinc-900 text-[#f2cc0d] hover:bg-zinc-800'
+            : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900',
+        )}
+      >
+        {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      </button>
       <Link
         href="/dashboard/settings"
         title="Settings"
