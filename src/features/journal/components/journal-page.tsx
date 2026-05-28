@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 import { JournalAffirmations } from '@/features/journal/components/journal-affirmations'
 import { JournalEntryEditor } from '@/features/journal/components/journal-entry-editor'
@@ -112,11 +113,13 @@ export function JournalPage() {
         </span>
       </div>
 
+      {(() => {
+        const editorCard = (
       <div
         className={cn(
           'relative z-10 flex flex-col overflow-hidden border border-zinc-200 bg-white text-zinc-900 shadow-sm',
           isFullscreen
-            ? 'fixed inset-0 z-[100] h-[100dvh] w-screen max-w-none rounded-none border-0 bg-white'
+            ? 'h-[100dvh] w-full max-w-none rounded-none border-0'
             : 'h-[calc(100vh-13rem)] min-h-[480px] rounded-xl backdrop-blur-[2px]',
         )}
       >
@@ -235,6 +238,22 @@ export function JournalPage() {
           </div>
         </div>
       </div>
+        )
+
+        // In fullscreen we portal the editor card to document.body
+        // wrapped in a fixed overlay. Portaling escapes any ancestor
+        // transform / filter / overflow that breaks position:fixed,
+        // and lets us reliably cover the dashboard chrome + lamp /
+        // banners with a single solid surface.
+        if (isFullscreen) {
+          if (typeof document === 'undefined') return null
+          return createPortal(
+            <div className="fixed inset-0 z-[1000] bg-white">{editorCard}</div>,
+            document.body,
+          )
+        }
+        return editorCard
+      })()}
     </PageShell>
   )
 }
