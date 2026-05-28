@@ -5,13 +5,14 @@ import Link from 'next/link'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
-import { Bookmark, BookmarkCheck, KeyRound, MessageCircle, RotateCcw, Send, Sparkles, Trash2 } from 'lucide-react'
+import { Bookmark, BookmarkCheck, KeyRound, MessageCircle, RotateCcw, Send, Settings as SettingsIcon, Sparkles, Trash2 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { coachApi, type CoachMessageDto, type CoachStreamChunk } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { PROVIDER_META, useByokKey } from '@/features/settings/hooks/use-byok-key'
 import { useCoachInsights } from '@/features/coach/hooks/use-coach-insights'
+import { ActivePracticeSection } from '@/features/coach/components/active-practice-section'
 import { InsightCard } from '@/features/coach/components/insight-card'
 
 import { Badge } from '@/components/ui/badge'
@@ -638,11 +639,19 @@ export function CoachPage() {
         eyebrow="Insights"
         description="Your Socratic productivity coach — reads your goals, time, schedule, check-ins, journal, and Habits Profile to surface patterns and ask the questions that matter."
         actions={
-          hasKey ? (
-            <Badge variant="success">{providerLabel} · Connected</Badge>
-          ) : (
-            <Badge variant="default">Not configured</Badge>
-          )
+          <div className="flex flex-wrap items-center gap-2">
+            {hasKey ? (
+              <Badge variant="success">{providerLabel} · Connected</Badge>
+            ) : (
+              <Badge variant="default">Not configured</Badge>
+            )}
+            <Link href="/dashboard/settings?tab=coach-profile">
+              <Button variant="secondary" size="sm">
+                <SettingsIcon className="h-3.5 w-3.5" />
+                Train Coach
+              </Button>
+            </Link>
+          </div>
         }
       />
 
@@ -671,6 +680,7 @@ export function CoachPage() {
         <>
           <NarrativeSection scopeKey={scopeKey} />
           <NewSuggestionsSection scopeKey={scopeKey} />
+          <ActivePracticeSection />
           <ChatSection scopeKey={scopeKey} />
         </>
       )}

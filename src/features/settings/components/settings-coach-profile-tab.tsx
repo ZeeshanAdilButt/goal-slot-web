@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 
 import { toast } from 'react-hot-toast'
 
@@ -9,17 +8,9 @@ import {
   CoachProfile,
   useCoachProfile,
 } from '@/features/settings/hooks/use-coach-profile'
-import { useCoachInsights } from '@/features/coach/hooks/use-coach-insights'
-import { InsightCard } from '@/features/coach/components/insight-card'
 
-import type {
-  CoachInsightStatusEnum,
-  CoachInsightStatusFilter,
-  ReligiousContextEnum,
-} from '@/lib/api'
-import { cn } from '@/lib/utils'
+import type { ReligiousContextEnum } from '@/lib/api'
 
-import { Button } from '@/components/ui/button'
 import { GlassCard } from '@/components/ui/glass-card'
 import { SectionHeader } from '@/components/ui/section-header'
 import {
@@ -42,26 +33,16 @@ const RELIGIOUS_CONTEXT_OPTIONS: { value: ReligiousContextEnum; label: string }[
   { value: 'OTHER', label: 'Other' },
 ]
 
-interface FilterPill {
-  key: string
-  label: string
-  filter: CoachInsightStatusFilter
-}
-
-const FILTER_PILLS: FilterPill[] = [
-  { key: 'active', label: 'Active', filter: 'ACTIVE' },
-  { key: 'doing', label: 'Doing', filter: 'DOING' },
-  { key: 'done', label: 'Done', filter: 'DONE' },
-  { key: 'dismissed', label: 'Dismissed', filter: 'DISMISSED' },
-  { key: 'saved', label: 'Saved', filter: 'SAVED' },
-]
-
+/**
+ * Settings → Coach Profile is now JUST the baseline (Why + religious context).
+ * The Active Practice insights list moved to the Coach page itself so users
+ * work with their accepted insights right next to the narrative + chat that
+ * produced them. From the Coach page, a "Train Coach" link brings users back
+ * here to update the baseline.
+ */
 export function SettingsCoachProfileTab() {
   const { profile, isLoaded, save } = useCoachProfile()
   const [form, setForm] = useState<CoachProfile>(profile)
-  const [filter, setFilter] = useState<CoachInsightStatusFilter>('ACTIVE')
-
-  const { insights, isLoading, updateStatus, remove } = useCoachInsights(filter)
 
   useEffect(() => {
     if (isLoaded) {
@@ -101,27 +82,13 @@ export function SettingsCoachProfileTab() {
     void persist(next)
   }
 
-  const handleInsightUpdate = (id: string, status: CoachInsightStatusEnum) => {
-    updateStatus(id, status)
-  }
-
-  const handleInsightDelete = (id: string) => {
-    const ok =
-      typeof window !== 'undefined'
-        ? window.confirm(
-            'Delete this insight for good? Dismissed insights stay in your history unless you delete them here.',
-          )
-        : true
-    if (!ok) return
-    remove(id)
-  }
-
   return (
     <div className="space-y-6">
       <GlassCard padded>
-        <SectionHeader title="Baseline" />
+        <SectionHeader title="Train the Coach" />
         <p className="text-sm text-zinc-600 mb-3">
-          The Coach reads these whenever it talks to you. Keep it short and honest.
+          The Coach reads these whenever it talks to you. Keep it short and honest — the more
+          accurate, the better the narratives and suggestions it gives back.
         </p>
 
         <div className="space-y-4">
@@ -136,19 +103,14 @@ export function SettingsCoachProfileTab() {
               onChange={(e) => update('why', e.target.value)}
               onBlur={handleWhyBlur}
             />
-            <p className="mt-1 text-[11px] text-zinc-500">
-              Saves automatically when you click away.
-            </p>
+            <p className="mt-1 text-[11px] text-zinc-500">Saves automatically when you click away.</p>
           </div>
 
           <div>
             <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-zinc-500">
               Spiritual / religious context
             </label>
-            <Select
-              value={form.religiousContext}
-              onValueChange={handleReligiousContextChange}
-            >
+            <Select value={form.religiousContext} onValueChange={handleReligiousContextChange}>
               <SelectTrigger className="w-full sm:w-72">
                 <SelectValue placeholder="None" />
               </SelectTrigger>
@@ -182,54 +144,10 @@ export function SettingsCoachProfileTab() {
         </div>
       </GlassCard>
 
-      <GlassCard padded>
-        <SectionHeader title="Active practice" />
-        <p className="text-sm text-zinc-600 mb-3">
-          Insights the Coach has surfaced from your weekly narratives. Accept the ones you want to commit to —
-          the Coach will then track them across future weeks.
-        </p>
-
-        <div className="mb-4 flex flex-wrap gap-2">
-          {FILTER_PILLS.map((pill) => {
-            const active = filter === pill.filter
-            return (
-              <button
-                key={pill.key}
-                type="button"
-                onClick={() => setFilter(pill.filter)}
-                className={cn(
-                  'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
-                  active
-                    ? 'border-yellow-400/40 bg-yellow-400/10 text-yellow-800'
-                    : 'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50',
-                )}
-              >
-                {pill.label}
-              </button>
-            )
-          })}
-        </div>
-
-        {isLoading ? (
-          <p className="text-sm text-zinc-500">Loading insights…</p>
-        ) : insights.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50/50 p-6 text-center text-sm text-zinc-500">
-            Nothing here yet. The Coach surfaces insights from your weekly narratives and chats —
-            once you generate one, the ones you accept or save will appear here.
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {insights.map((insight) => (
-              <InsightCard
-                key={insight.id}
-                insight={insight}
-                onUpdate={(s) => handleInsightUpdate(insight.id, s)}
-                onDelete={() => handleInsightDelete(insight.id)}
-              />
-            ))}
-          </div>
-        )}
-      </GlassCard>
+      <p className="px-1 text-xs text-zinc-500">
+        Looking for your accepted insights and Active practice? They live on the Coach page now,
+        right next to the narrative + chat that produced them.
+      </p>
     </div>
   )
 }
