@@ -12,6 +12,7 @@ import { useCreateTimeEntry } from '@/features/time-tracker/hooks/use-time-track
 import { formatDuration, getLocalDateString } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { FocusNowBar } from '@/components/focus-now-bar'
 import { StartTrackingPopover } from '@/components/start-tracking-popover'
 
 const formatTimerDisplay = (seconds: number) => {
@@ -70,10 +71,10 @@ export function TimeEntryBanner() {
     // or capture a note from any dashboard page without navigating first.
     return (
       <div className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 bg-white px-4 py-2">
-        <div className="flex items-center gap-2 text-xs text-zinc-500">
-          <Clock3 className="h-3.5 w-3.5 text-zinc-400" />
+        <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-zinc-500">
+          <Clock3 className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
           <span className="font-medium text-zinc-700">Not tracking</span>
-          <span className="hidden sm:inline">- start a timer, log past time, or jot a note.</span>
+          <FocusNowBar />
         </div>
         <div className="flex items-center gap-2">
           <Link href="/dashboard/notes?action=new">
