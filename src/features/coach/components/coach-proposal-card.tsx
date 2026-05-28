@@ -117,7 +117,11 @@ function describeAction(
       if (typeof existing?.dayOfWeek === 'number') subjectBits.push(DAYS_SHORT[existing.dayOfWeek])
       const existingRange = fmtTimeRange(existing?.startTime, existing?.endTime)
       if (existingRange) subjectBits.push(existingRange)
-      const subject = subjectBits.length ? subjectBits.join(', ') : id ? `Block ${id.slice(0, 8)}` : undefined
+      // If we can't resolve the block (cache miss / id Coach made up), fall
+      // back to "Schedule block" instead of a scary "Block 3df269cf" hex
+      // dump. The detail line still shows what's being changed, which is
+      // what actually matters at approval time.
+      const subject = subjectBits.length ? subjectBits.join(', ') : 'Schedule block'
 
       if (action.type === 'DELETE_SCHEDULE_BLOCK') return { subject, detail: 'Delete this block.' }
 
@@ -242,17 +246,22 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
 
   // Eagerly populate the schedule + goals caches so describeAction can resolve
   // ids to "Qur'an Reading, Sun, 6:00 AM to 6:30 AM" even when the user hasn't
-  // visited the Schedule or Goals page yet in this session. Both queries are
-  // staleTime: long so they don't refetch on every card mount.
+  // visited the Schedule or Goals page yet. staleTime 0 + refetchOnMount
+  // 'always' so a block Coach just created/learned about in this conversation
+  // (and that isn't in the user's last cached schedule fetch) gets pulled in
+  // before the card renders — fixes "Block 3df269cf" fallback strings when
+  // some ids in the proposal aren't yet known to the client cache.
   useQuery({
     queryKey: ['schedule', 'weekly'],
     queryFn: async () => (await scheduleApi.getWeekly()).data,
-    staleTime: 60_000,
+    staleTime: 0,
+    refetchOnMount: 'always',
   })
   useQuery({
     queryKey: ['goals', 'list', undefined],
     queryFn: async () => (await goalsApi.getAll({})).data,
-    staleTime: 60_000,
+    staleTime: 0,
+    refetchOnMount: 'always',
   })
   const [selected, setSelected] = useState<Set<number>>(
     () => new Set(block.actions.map((_, i) => i)),
