@@ -19,6 +19,12 @@ export const categoryQueries = {
         const res = await categoriesApi.getAll()
         return res.data
       },
+      // Refetch on every mount + window focus so newly seeded categories
+      // (e.g. backend backfill of Spiritual + Community) show up without
+      // a hard page reload.
+      staleTime: 0,
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
     }),
 
   detail: (id: string) =>
