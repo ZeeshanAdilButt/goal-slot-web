@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { feedbackApi } from '@/lib/api'
-import type { FeedbackThreadResponse } from '@/features/feedback/utils/types'
+import type { FeedbackResponse, FeedbackThreadResponse } from '@/features/feedback/utils/types'
 
 const feedbackThreadKey = (id: string) => ['feedback', 'thread', id] as const
 
@@ -22,9 +22,21 @@ export function useCreateFeedbackResponseMutation(feedbackId: string) {
   return useMutation({
     mutationFn: async (message: string) => {
       const res = await feedbackApi.reply(feedbackId, { message })
-      return res.data
+      return res.data as FeedbackResponse
     },
-    onSuccess: () => {
+    // Merge the returned response into the cached thread immediately so the
+    // reply appears in the UI without waiting for the refetch to land.
+    // Without this, the network refetch occasionally races the optimistic
+    // close-and-clear and the reply doesn't show until manual refresh.
+    onSuccess: (response) => {
+      queryClient.setQueryData<FeedbackThreadResponse | undefined>(
+        feedbackThreadKey(feedbackId),
+        (prev) => {
+          if (!prev) return prev
+          if (prev.responses.some((r) => r.id === response.id)) return prev
+          return { ...prev, responses: [...prev.responses, response] }
+        },
+      )
       queryClient.invalidateQueries({ queryKey: feedbackThreadKey(feedbackId) })
     },
   })

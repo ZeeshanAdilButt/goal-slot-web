@@ -104,7 +104,8 @@ export function ScaleRow({ dial, value, onChange }: ScaleRowProps) {
 
 /**
  * Tiny inline render of a saved check-in (used in summary chips).
- * Shows the three icons in their value color.
+ * Letter + number tokens (M3 / E4 / F5) coloured by the value palette so
+ * the row reads as a real measurement, not a generic icon strip.
  */
 export function CheckinSummaryIcons({
   mood,
@@ -117,18 +118,29 @@ export function CheckinSummaryIcons({
   focus: number | null
   className?: string
 }) {
-  const items: { dial: DialKey; v: number | null }[] = [
-    { dial: 'mood', v: mood },
-    { dial: 'energy', v: energy },
-    { dial: 'focus', v: focus },
+  const items: { letter: string; v: number | null; title: string }[] = [
+    { letter: 'M', v: mood, title: 'Mood' },
+    { letter: 'E', v: energy, title: 'Energy' },
+    { letter: 'F', v: focus, title: 'Focus' },
   ]
   return (
     <span className={cn('inline-flex items-center gap-1', className)}>
-      {items.map(({ dial, v }) => {
+      {items.map(({ letter, v, title }) => {
         if (v == null) return null
-        const Icon = DIALS[dial].icons[v - 1]
         const palette = VALUE_COLOR[v]
-        return <Icon key={dial} className={cn('h-3.5 w-3.5', palette.fg)} strokeWidth={2} />
+        return (
+          <span
+            key={letter}
+            title={`${title}: ${v}/5`}
+            className={cn(
+              'inline-flex h-5 items-center gap-0.5 rounded-md border border-zinc-200 bg-white px-1.5 text-[10px] font-bold tabular-nums',
+              palette.fg,
+            )}
+          >
+            <span className="text-zinc-500">{letter}</span>
+            <span>{v}</span>
+          </span>
+        )
       })}
     </span>
   )

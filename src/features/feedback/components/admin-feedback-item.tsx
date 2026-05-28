@@ -121,7 +121,7 @@ export const FeedbackItem = ({ feedback, onDelete }: FeedbackItemProps) => {
         </div>
       </div>
 
-      <div className="mt-6 space-y-3 rounded-md border p-4" style={{ borderColor: 'var(--accents-2)' }}>
+      <div className="mt-6 space-y-3 rounded-md border border-zinc-200 p-4">
         <div className="flex items-center justify-between text-sm font-semibold text-gray-800">
           <span>Thread</span>
           <div className="flex items-center gap-2">

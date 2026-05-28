@@ -9,6 +9,7 @@ import { motion } from 'framer-motion'
 import { useAuthStore } from '@/lib/store'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
+import { DailyCheckinBanner } from '@/components/daily-checkin-banner'
 import { GoalSlotSpinner } from '@/components/goalslot-logo'
 import { FocusNowBar } from '@/components/focus-now-bar'
 import { TimeEntryBanner } from '@/components/time-entry-banner'
@@ -55,6 +56,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         </div>
         <TimeEntryBanner />
         <FocusNowBar />
+        <DailyCheckinBanner />
         <ReleaseNoteBanner />
         <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
       </SidebarInset>

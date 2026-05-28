@@ -866,7 +866,12 @@ export function CoachPage() {
             <span className="text-[11px] text-zinc-500">{humanScopeLabel(scopeKey)}</span>
           )}
           <div className="ml-auto flex flex-wrap items-center gap-2">
-            <Badge variant="success">{providerLabel} - Connected</Badge>
+            <span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-zinc-900 bg-zinc-900 px-2.5 text-[11px] font-semibold tracking-tight text-white">
+              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[#f2cc0d]" />
+              {providerLabel}
+              <span aria-hidden className="text-zinc-500">·</span>
+              <span className="text-[#f2cc0d]">Connected</span>
+            </span>
             <Link href="/dashboard/settings?tab=coach-profile">
               <Button variant="secondary" size="sm">
                 <SettingsIcon className="h-3.5 w-3.5" />
@@ -878,7 +883,10 @@ export function CoachPage() {
       )}
       {!hasKey && (
         <div className="flex items-center justify-end">
-          <Badge variant="default">Not configured</Badge>
+          <span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-zinc-300 bg-white px-2.5 text-[11px] font-semibold tracking-tight text-zinc-700">
+            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-zinc-400" />
+            Not configured
+          </span>
         </div>
       )}
 

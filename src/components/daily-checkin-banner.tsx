@@ -1,11 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { usePathname } from 'next/navigation'
 
 import { ScaleRow } from '@/features/dashboard/components/checkin-dials'
 import { useDailyCheckin } from '@/features/dashboard/hooks/use-daily-checkin'
-import { Sparkles } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { Button } from '@/components/ui/button'
@@ -21,27 +19,20 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 
 /**
- * Always-visible floating "Check in" button shown on every dashboard screen
- * until the user has logged today's check-in. Hidden once today is done so
- * we don't nag. Clicking opens the same 3-dial modal as the Dashboard card,
- * keeping the data path identical.
+ * Site-wide top banner that nudges the user to log today's check-in.
+ * Renders on every dashboard page (mounted in dashboard/layout.tsx) until
+ * today's check-in is logged, then hides. Tap "Check in" to open the same
+ * 3-dial modal the dashboard card uses, keeping the data path identical.
  */
-export function FloatingCheckinButton() {
-  const pathname = usePathname() ?? ''
-  if (!pathname.startsWith('/dashboard')) return null
-  return <FloatingCheckinButtonInner />
-}
-
-function FloatingCheckinButtonInner() {
+export function DailyCheckinBanner() {
   const { todayCheckin, submit } = useDailyCheckin()
   const [open, setOpen] = useState(false)
   const [mood, setMood] = useState<number | null>(null)
   const [energy, setEnergy] = useState<number | null>(null)
   const [focus, setFocus] = useState<number | null>(null)
-  const [blocked, setBlocked] = useState('')
   const [worked, setWorked] = useState('')
+  const [blocked, setBlocked] = useState('')
 
-  // If today is already logged, do not nag.
   if (todayCheckin) return null
 
   const canSubmit = mood !== null && energy !== null && focus !== null
@@ -63,27 +54,36 @@ function FloatingCheckinButtonInner() {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        title="Daily check-in"
-        aria-label="Daily check-in"
-        className="group relative inline-flex h-12 items-center gap-2 rounded-full border border-[#f2cc0d] bg-[#f2cc0d] px-4 text-sm font-semibold text-zinc-900 shadow-lg transition-all hover:-translate-y-0.5 hover:bg-[#dfb90c]"
-      >
-        <Sparkles className="h-4 w-4" />
-        Check in
-        <span
-          aria-hidden
-          className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-rose-500 ring-2 ring-white"
-        />
-      </button>
+      <div className="border-b border-[#f2cc0d]/30 bg-[#fffbea]">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
+          <div className="flex items-center gap-2.5">
+            <span
+              aria-hidden
+              className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#f2cc0d] text-[12px] font-bold text-zinc-900"
+            >
+              ?
+            </span>
+            <div className="min-w-0">
+              <p className="text-[13px] font-semibold leading-tight text-zinc-900">
+                How did today land?
+              </p>
+              <p className="hidden text-[11px] leading-tight text-zinc-600 sm:block">
+                30 seconds. Mood, energy, focus, and what helped or got in the way. The Coach reads this.
+              </p>
+            </div>
+          </div>
+          <Button variant="brand" size="sm" onClick={() => setOpen(true)}>
+            Check in
+          </Button>
+        </div>
+      </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[90vh] w-[95vw] overflow-y-auto sm:max-w-xl lg:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg">How did today land?</DialogTitle>
             <DialogDescription className="text-sm">
-              Pick an emoji for each dial. Notes are optional.
+              Pick a value for each dial. Notes are optional.
             </DialogDescription>
           </DialogHeader>
 
@@ -97,13 +97,13 @@ function FloatingCheckinButtonInner() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-1">
                 <Label
-                  htmlFor="floating-checkin-worked"
+                  htmlFor="banner-checkin-worked"
                   className="text-xs normal-case tracking-normal text-zinc-700"
                 >
                   What worked?
                 </Label>
                 <Textarea
-                  id="floating-checkin-worked"
+                  id="banner-checkin-worked"
                   rows={4}
                   placeholder="A block of deep work, a walk, sleep, a clear next step..."
                   value={worked}
@@ -113,13 +113,13 @@ function FloatingCheckinButtonInner() {
               </div>
               <div className="space-y-1">
                 <Label
-                  htmlFor="floating-checkin-blocked"
+                  htmlFor="banner-checkin-blocked"
                   className="text-xs normal-case tracking-normal text-zinc-700"
                 >
                   What got in the way?
                 </Label>
                 <Textarea
-                  id="floating-checkin-blocked"
+                  id="banner-checkin-blocked"
                   rows={4}
                   placeholder="Phone, low energy, unclear next step, something on your mind..."
                   value={blocked}
