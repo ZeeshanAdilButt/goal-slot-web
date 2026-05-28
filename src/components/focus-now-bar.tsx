@@ -9,6 +9,12 @@ import { ArrowRight, Target } from 'lucide-react'
 
 import { formatTime12h } from '@/lib/utils'
 
+/** "14:00" -> "2 PM", "14:30" -> "2:30 PM". Drops :00 when on the hour. */
+function fmtShort(time: string): string {
+  const out = formatTime12h(time)
+  return out.replace(':00 ', ' ')
+}
+
 /**
  * Standalone strip rendered under the persistent header bar telling the
  * user what schedule block is active right now, with the linked goal and
@@ -58,7 +64,7 @@ export function FocusNowBar() {
           </span>
         )}
         <span className="text-[#8a7307]/80">
-          · {formatTime12h(activeBlock.startTime)} to {formatTime12h(activeBlock.endTime)}
+          · {fmtShort(activeBlock.startTime)} - {fmtShort(activeBlock.endTime)}
         </span>
         <span className="text-[#8a7307]/80">· {remaining}</span>
       </div>
