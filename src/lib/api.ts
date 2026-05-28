@@ -734,6 +734,8 @@ export const coachApi = {
     api.post<CoachByokStateDto>('/coach/byok-key', data),
   deleteByokKey: () => api.delete<{ success: boolean }>('/coach/byok-key'),
   getByokUsage: () => api.get<CoachByokUsageDto>('/coach/byok-key/usage'),
+  updateByokBudget: (tokensLimit: number) =>
+    api.patch<CoachByokStateDto>('/coach/byok-key/budget', { tokensLimit }),
 
   // Habits profile
   getHabitsProfile: () => api.get<CoachHabitsProfileDto>('/coach/habits-profile'),

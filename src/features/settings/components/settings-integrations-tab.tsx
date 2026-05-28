@@ -16,14 +16,44 @@ import { SectionHeader } from '@/components/ui/section-header'
 const PROVIDERS: ByokProvider[] = ['openai', 'anthropic']
 
 export function SettingsIntegrationsTab() {
-  const { provider: savedProvider, maskedKey, status, tokensUsed, tokensLimit, saveKey, deleteKey } = useByokKey()
+  const {
+    provider: savedProvider,
+    maskedKey,
+    status,
+    tokensUsed,
+    tokensLimit,
+    saveKey,
+    deleteKey,
+    updateBudget,
+    isUpdatingBudget,
+  } = useByokKey()
   const [pendingProvider, setPendingProvider] = useState<ByokProvider>(savedProvider)
   const [rawKey, setRawKey] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+  const [budgetInput, setBudgetInput] = useState<string>('')
 
   const activeProvider = status === 'active' ? savedProvider : pendingProvider
   const meta = PROVIDER_META[activeProvider]
   const tokenPct = tokensLimit > 0 ? Math.min(100, Math.round((tokensUsed / tokensLimit) * 100)) : 0
+
+  const handleSaveBudget = async () => {
+    const parsed = Number(budgetInput.replace(/[, _]/g, ''))
+    if (!Number.isFinite(parsed) || parsed < 1_000) {
+      toast.error('Set a budget of at least 1,000 tokens')
+      return
+    }
+    if (parsed > 100_000_000) {
+      toast.error('Maximum monthly budget is 100,000,000 tokens')
+      return
+    }
+    const res = await updateBudget(parsed)
+    if (res.success) {
+      toast.success(`Monthly budget set to ${parsed.toLocaleString()} tokens`)
+      setBudgetInput('')
+    } else {
+      toast.error('Could not update budget')
+    }
+  }
 
   const handleSave = () => {
     const trimmed = rawKey.trim()
@@ -158,21 +188,76 @@ export function SettingsIntegrationsTab() {
 
       {status === 'active' && (
         <GlassCard padded>
-          <SectionHeader title="Token usage" />
-          <div className="space-y-2">
-            <div className="flex items-baseline justify-between">
-              <span className="text-2xl font-semibold text-zinc-900">{tokensUsed.toLocaleString()}</span>
-              <span className="text-xs text-zinc-500">
-                of {tokensLimit.toLocaleString()} this month ({tokenPct}%)
-              </span>
+          <SectionHeader title="Token usage and monthly budget" />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-baseline justify-between">
+                <span className="text-2xl font-semibold text-zinc-900">{tokensUsed.toLocaleString()}</span>
+                <span className="text-xs text-zinc-500">
+                  of {tokensLimit.toLocaleString()} this month ({tokenPct}%)
+                </span>
+              </div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-zinc-100">
+                <div className="h-full bg-[#f2cc0d] transition-all" style={{ width: `${tokenPct}%` }} />
+              </div>
+              <p className="text-[11px] text-zinc-500">
+                Usage resets on the first day of each month. With BYOK active, charges go directly to your{' '}
+                {PROVIDER_META[savedProvider].label} account. When the budget is hit, Coach requests pause until next month.
+              </p>
             </div>
-            <div className="h-1.5 bg-zinc-100 rounded-full overflow-hidden">
-              <div className="h-full bg-[#f2cc0d] transition-all" style={{ width: `${tokenPct}%` }} />
+
+            <div className="space-y-2 border-t border-zinc-200 pt-3">
+              <label
+                htmlFor="byok-monthly-budget"
+                className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-500"
+              >
+                Update monthly budget
+              </label>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <Input
+                  id="byok-monthly-budget"
+                  type="number"
+                  min={1000}
+                  max={100_000_000}
+                  step={1000}
+                  inputMode="numeric"
+                  placeholder={tokensLimit.toLocaleString()}
+                  value={budgetInput}
+                  onChange={(e) => setBudgetInput(e.target.value)}
+                  disabled={isUpdatingBudget}
+                  className="sm:max-w-xs"
+                />
+                <Button
+                  type="button"
+                  variant="brand"
+                  size="sm"
+                  onClick={handleSaveBudget}
+                  disabled={isUpdatingBudget || !budgetInput.trim()}
+                >
+                  {isUpdatingBudget ? 'Saving...' : 'Save budget'}
+                </Button>
+                <div className="flex flex-wrap gap-1.5 sm:ml-auto">
+                  {[100_000, 250_000, 500_000, 1_000_000].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setBudgetInput(String(preset))}
+                      disabled={isUpdatingBudget}
+                      className={cn(
+                        'rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-medium text-zinc-700 transition-colors hover:bg-zinc-50',
+                        'disabled:cursor-not-allowed disabled:opacity-50',
+                      )}
+                    >
+                      {preset >= 1_000_000 ? `${preset / 1_000_000}M` : `${preset / 1000}k`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <p className="text-[11px] text-zinc-500">
+                Soft cap enforced server-side. Pick something that matches your comfort with your provider bill.
+                Minimum 1,000. Maximum 100M.
+              </p>
             </div>
-            <p className="text-[11px] text-zinc-500">
-              Usage resets on the first day of each month. With BYOK active, charges go directly to your{' '}
-              {PROVIDER_META[savedProvider].label} account.
-            </p>
           </div>
         </GlassCard>
       )}

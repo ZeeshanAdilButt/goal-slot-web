@@ -91,6 +91,16 @@ export function useByokKey() {
     },
   })
 
+  const budgetMutation = useMutation({
+    mutationFn: async (tokensLimit: number) => {
+      const res = await coachApi.updateByokBudget(tokensLimit)
+      return mapStateDto(res.data)
+    },
+    onSuccess: (next) => {
+      queryClient.setQueryData<ByokState>(QUERY_KEY, next)
+    },
+  })
+
   const deleteMutation = useMutation({
     mutationFn: async () => {
       await coachApi.deleteByokKey()
@@ -135,9 +145,21 @@ export function useByokKey() {
     })
   }, [deleteMutation])
 
+  const updateBudget = useCallback(
+    (tokensLimit: number) => {
+      return budgetMutation
+        .mutateAsync(tokensLimit)
+        .then(() => ({ success: true as const }))
+        .catch((err) => ({ success: false as const, error: err }))
+    },
+    [budgetMutation],
+  )
+
   return {
     ...state,
     saveKey,
     deleteKey,
+    updateBudget,
+    isUpdatingBudget: budgetMutation.isPending,
   }
 }
