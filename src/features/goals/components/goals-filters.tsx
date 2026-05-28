@@ -5,6 +5,7 @@ import { GoalFilters } from '@/features/goals/utils/types'
 import { useLabelsQuery } from '@/features/labels'
 import { Filter } from 'lucide-react'
 
+import { SearchableSelect } from '@/components/ui/searchable-select'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface GoalsFiltersProps {
@@ -50,45 +51,27 @@ export function GoalsFilters({ filters, onFilterChange }: GoalsFiltersProps) {
         </SelectContent>
       </Select>
 
-      <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-        <SelectTrigger aria-label="Category" className="h-10 w-full sm:w-56">
-          <SelectValue placeholder="Category" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All categories</SelectItem>
-          {categories.length === 0 ? (
-            <SelectItem value="no-categories" disabled>
-              No categories
-            </SelectItem>
-          ) : (
-            categories.map((category) => (
-              <SelectItem key={category.id} value={category.value}>
-                {category.name}
-              </SelectItem>
-            ))
-          )}
-        </SelectContent>
-      </Select>
+      <SearchableSelect
+        className="w-full sm:w-56"
+        value={selectedCategory}
+        onChange={handleCategoryChange}
+        placeholder="All categories"
+        options={[
+          { value: 'all', label: 'All categories' },
+          ...categories.map((c) => ({ value: c.value, label: c.name, color: c.color })),
+        ]}
+      />
 
-      <Select value={selectedLabel} onValueChange={handleLabelChange}>
-        <SelectTrigger aria-label="Label" className="h-10 w-full sm:w-56">
-          <SelectValue placeholder="Label" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All labels</SelectItem>
-          {labels.length === 0 ? (
-            <SelectItem value="no-labels" disabled>
-              No labels
-            </SelectItem>
-          ) : (
-            labels.map((label) => (
-              <SelectItem key={label.id} value={label.id}>
-                {label.name}
-              </SelectItem>
-            ))
-          )}
-        </SelectContent>
-      </Select>
+      <SearchableSelect
+        className="w-full sm:w-56"
+        value={selectedLabel}
+        onChange={handleLabelChange}
+        placeholder="All labels"
+        options={[
+          { value: 'all', label: 'All labels' },
+          ...labels.map((l) => ({ value: l.id, label: l.name, color: l.color })),
+        ]}
+      />
     </div>
   )
 }
