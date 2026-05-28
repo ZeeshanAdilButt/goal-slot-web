@@ -19,10 +19,13 @@ const buttonVariants = cva(
         brand: 'bg-[#f2cc0d] text-zinc-900 hover:bg-[#d9b307]',
       },
       size: {
-        default: 'h-10 px-4',
+        // Tightened in 2026 pass: default h-9 + text-sm so a labelless
+        // <Button> across the app reads as compact, matching the rest
+        // of the form chrome instead of standing out as oversized.
+        default: 'h-9 px-3.5',
         sm: 'h-8 px-3 text-xs',
-        lg: 'h-12 px-6 text-base',
-        icon: 'h-10 w-10',
+        lg: 'h-11 px-5 text-base',
+        icon: 'h-9 w-9',
       },
     },
     defaultVariants: {

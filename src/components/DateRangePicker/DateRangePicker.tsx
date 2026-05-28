@@ -119,7 +119,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
     >
       <PopoverTrigger asChild>
         <Button
-          className="inline-flex w-full min-w-0 justify-between gap-2 px-3 py-1.5 text-sm sm:w-auto sm:min-w-[14rem]"
+          className="inline-flex w-full min-w-0 max-w-full justify-between gap-2 truncate px-3 py-1.5 text-xs"
           size="sm"
           variant="outline"
         >
