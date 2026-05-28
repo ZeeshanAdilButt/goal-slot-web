@@ -53,7 +53,9 @@ function FloatingCoachButtonInner() {
         {open ? (
           <MessageCircle className="h-5 w-5" />
         ) : (
-          <CoachIcon className="h-8 w-8 [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.55))] motion-safe:animate-[coach-spin-pause_2s_ease-in-out_infinite]" />
+          <span className="relative inline-flex h-9 w-9 items-center justify-center rounded-full motion-safe:animate-[coach-aura_2s_ease-in-out_infinite]">
+            <CoachIcon className="h-8 w-8 [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.6))] motion-safe:animate-[coach-spin-pause_2s_ease-in-out_infinite]" />
+          </span>
         )}
         {fresh > 0 && !open && (
           <span

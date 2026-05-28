@@ -22,6 +22,7 @@ import {
 
 import { CoachIcon } from '@/components/icons/coach-icon'
 import { FeatherPenIcon } from '@/components/icons/feather-pen-icon'
+import { JournalSpark } from '@/components/icons/journal-spark'
 
 import { useAuthStore, useIsAdmin } from '@/lib/store'
 import { cn } from '@/lib/utils'
@@ -128,24 +129,48 @@ export function AppSidebar() {
                       className="h-8"
                     >
                       <Link href={item.href}>
-                        <item.icon
-                          className={cn(
-                            'h-4 w-4 group-data-[collapsible=icon]:-ml-1 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5',
-                            isActive && 'text-[#f2cc0d]',
-                            // Journal gets a soft brand-yellow glow + slow
-                            // pulse to nudge daily journaling. Keep visible
-                            // even when not active so the habit is the focus.
-                            isJournal &&
-                              'text-[#f2cc0d] [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.7))_drop-shadow(0_0_10px_rgba(242,204,13,0.35))] motion-safe:animate-[journal-glow_2.4s_ease-in-out_infinite]',
-                            // GoalSlot AI mark: bumped a notch larger than the
-                            // other lucide nav icons, soft brand-yellow glow,
-                            // and spins one turn then holds for a beat (2s
-                            // cycle), so it reads as "thinking, then settling"
-                            // rather than continuously moving.
-                            isCoach &&
-                              '!h-6 !w-6 group-data-[collapsible=icon]:!h-7 group-data-[collapsible=icon]:!w-7 [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.5))] motion-safe:animate-[coach-spin-pause_2s_ease-in-out_infinite]',
-                          )}
-                        />
+                        {isJournal ? (
+                          // Journal: default-coloured pen with three tiny
+                          // brand-yellow stars twinkling around it on staggered
+                          // delays — a star appears roughly every second so
+                          // the icon reads as quietly magical without shouting.
+                          <span className="relative inline-flex h-4 w-4 items-center justify-center group-data-[collapsible=icon]:-ml-1 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5">
+                            <item.icon
+                              className={cn(
+                                'h-4 w-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5',
+                                isActive && 'text-[#f2cc0d]',
+                              )}
+                            />
+                            <JournalSpark className="absolute -right-1 -top-1 h-2 w-2 motion-safe:animate-[journal-spark_3s_ease-in-out_infinite]" />
+                            <JournalSpark
+                              className="absolute -left-1 top-1 h-1.5 w-1.5 motion-safe:animate-[journal-spark_3s_ease-in-out_infinite]"
+                              style={{ animationDelay: '1s' }}
+                            />
+                            <JournalSpark
+                              className="absolute -bottom-1 right-0 h-1.5 w-1.5 motion-safe:animate-[journal-spark_3s_ease-in-out_infinite]"
+                              style={{ animationDelay: '2s' }}
+                            />
+                          </span>
+                        ) : isCoach ? (
+                          // GoalSlot AI mark: brand-yellow aura ring pulses on
+                          // the same 2s beat as the coin flip, so the icon
+                          // reads as "thinking" rather than just spinning.
+                          // Larger than the other lucide nav icons.
+                          <span className="relative inline-flex h-6 w-6 items-center justify-center rounded-full motion-safe:animate-[coach-aura_2s_ease-in-out_infinite] group-data-[collapsible=icon]:-ml-1 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
+                            <item.icon
+                              className={cn(
+                                'h-6 w-6 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7 [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.6))] motion-safe:animate-[coach-spin-pause_2s_ease-in-out_infinite]',
+                              )}
+                            />
+                          </span>
+                        ) : (
+                          <item.icon
+                            className={cn(
+                              'h-4 w-4 group-data-[collapsible=icon]:-ml-1 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5',
+                              isActive && 'text-[#f2cc0d]',
+                            )}
+                          />
+                        )}
                         <span className="text-sm group-data-[collapsible=icon]:hidden">{item.label}</span>
                         {showCoachBadge && (
                           <Badge

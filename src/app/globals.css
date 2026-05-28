@@ -111,6 +111,45 @@
   }
 }
 
+/* Brand-yellow spark twinkling around the Journal nav icon. Three sparks
+   share this keyframe with staggered delays (0s / 1s / 2s) so a star
+   shows up roughly every second without all of them firing at once. */
+@keyframes journal-spark {
+  0%,
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  15% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  40% {
+    opacity: 0.4;
+    transform: scale(0.7);
+  }
+}
+
+/* Slow brand-yellow halo ring that rides on top of the GoalSlot AI
+   coin-flip. Pulses brighter on the same 2s beat as the flip so the
+   icon reads as "thinking" — not just spinning. */
+@keyframes coach-aura {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 rgba(242, 204, 13, 0),
+      0 0 8px rgba(242, 204, 13, 0.35),
+      inset 0 0 6px rgba(242, 204, 13, 0.15);
+  }
+  50% {
+    box-shadow:
+      0 0 0 4px rgba(242, 204, 13, 0.18),
+      0 0 14px rgba(242, 204, 13, 0.6),
+      inset 0 0 8px rgba(242, 204, 13, 0.3);
+  }
+}
+
 /* GoalSlot AI mark: flips one full turn around the Y axis (horizontal
    spin like a coin) in the first half of the cycle, then holds for the
    second half — so it reads as "thinking, then settles". 2s total.

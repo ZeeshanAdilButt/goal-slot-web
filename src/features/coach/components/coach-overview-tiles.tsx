@@ -41,20 +41,23 @@ export function CoachOverviewTiles({ scopeKey }: CoachOverviewTilesProps) {
     (i) => i.status === 'ACCEPTED' || i.status === 'DOING',
   ).length
 
+  // All tiles share the dark brand pill treatment — matches the "OpenAI ·
+  // Connected" pill so the Coach surface reads as one system, not a
+  // rainbow of accents.
   const tiles: TileMeta[] = [
     {
       id: 'capabilities',
-      title: 'What Coach can do',
+      title: 'What GoalSlot AI can do',
       summary: 'Reads your week, proposes edits, remembers practices.',
       icon: Lightbulb,
-      accent: 'text-[#8a7307]',
+      accent: 'bg-zinc-900 text-[#f2cc0d]',
     },
     {
       id: 'narrative',
       title: 'Your week',
       summary: 'A narrative grounded in your data, refreshed weekly.',
       icon: CalendarRange,
-      accent: 'text-sky-700',
+      accent: 'bg-zinc-900 text-[#f2cc0d]',
     },
     {
       id: 'practice',
@@ -64,7 +67,7 @@ export function CoachOverviewTiles({ scopeKey }: CoachOverviewTilesProps) {
           ? 'Nothing accepted yet. Open a suggestion and say yes to start.'
           : `${practiceCount} practice${practiceCount === 1 ? '' : 's'} you said yes to.`,
       icon: Flame,
-      accent: 'text-emerald-700',
+      accent: 'bg-zinc-900 text-[#f2cc0d]',
     },
   ]
 
@@ -92,7 +95,7 @@ export function CoachOverviewTiles({ scopeKey }: CoachOverviewTilesProps) {
                 className="flex w-full items-start gap-3 text-left"
                 aria-expanded={isActive}
               >
-                <span className={cn('mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-zinc-50', tile.accent)}>
+                <span className={cn('mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg', tile.accent)}>
                   <Icon className="h-4 w-4" />
                 </span>
                 <span className="flex-1 min-w-0">
@@ -170,7 +173,7 @@ function CapabilityList() {
         <span>Save any chat reply as a tracked reminder (Bookmark icon in the conversation).</span>
       </li>
       <li className="flex items-start gap-2">
-        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-zinc-900" />
         <span>
           Runs on <span className="font-medium text-zinc-900">your</span> OpenAI/Anthropic key, AES-256-GCM encrypted at rest, never logged, removable from Settings, Integrations.
         </span>
