@@ -24,6 +24,7 @@ import {
 import { cn } from '@/lib/utils'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { CoachMarkdown } from '@/features/coach/components/coach-markdown'
+import { showCoachStreamError, statusOf } from '@/features/coach/utils/stream-error-toast'
 import {
   CoachProposalCard,
   extractCoachProposals,
@@ -159,7 +160,7 @@ export function FloatingCoachPopover({ open, onClose }: FloatingCoachPopoverProp
         if ((err as any)?.name !== 'AbortError') {
           const m = err instanceof Error ? err.message : 'Chat failed'
           setError(m)
-          toast.error(m)
+          showCoachStreamError(statusOf(err), m)
         }
       } finally {
         setStreaming(false)
