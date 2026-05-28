@@ -105,6 +105,8 @@ export function GoalsSidebarDesktop({
   isLoading,
   onToggleCollapse,
   activeGoalIds,
+  upcomingTodayIds,
+  pastTodayIds,
   goalNextBlockMinutes,
 }: GoalsSidebarProps) {
   const [showModal, setShowModal] = useState(false)
@@ -251,66 +253,77 @@ export function GoalsSidebarDesktop({
                 >
                   <SortableContext items={orderedGoals.map((g) => g.id)} strategy={verticalListSortingStrategy}>
                     {(() => {
-                      // Split into 3 buckets so "On now" stays pinned at the
-                      // top in its own band, then upcoming-today/this-week,
-                      // then everything else. Order within each bucket is
-                      // already schedule-aware from the parent.
                       const onNow: TaskGoal[] = []
-                      const upcoming: TaskGoal[] = []
-                      const rest: TaskGoal[] = []
+                      const upcomingToday: TaskGoal[] = []
+                      const pastToday: TaskGoal[] = []
+                      const laterWeek: TaskGoal[] = []
+                      const unscheduled: TaskGoal[] = []
                       orderedGoals.forEach((g) => {
                         if (activeGoalIds?.has(g.id)) onNow.push(g)
-                        else if (goalNextBlockMinutes?.has(g.id)) upcoming.push(g)
-                        else rest.push(g)
+                        else if (upcomingTodayIds?.has(g.id)) upcomingToday.push(g)
+                        else if (pastTodayIds?.has(g.id)) pastToday.push(g)
+                        else if (goalNextBlockMinutes?.has(g.id)) laterWeek.push(g)
+                        else unscheduled.push(g)
                       })
-                      const sectionLabel = (text: string) => (
-                        <div className="mt-2 mb-1 px-1 text-[9px] font-bold uppercase tracking-[0.12em] text-zinc-400 first:mt-0">
-                          {text}
+                      const sectionLabel = (text: string, accent?: string) => (
+                        <div
+                          className={cn(
+                            'mt-3 mb-1 flex items-center gap-1.5 px-1 text-[9px] font-bold uppercase tracking-[0.12em] first:mt-0',
+                            accent ?? 'text-zinc-400',
+                          )}
+                        >
+                          <span className="h-px flex-1 bg-zinc-200" aria-hidden />
+                          <span>{text}</span>
+                          <span className="h-px flex-1 bg-zinc-200" aria-hidden />
+                        </div>
+                      )
+                      const renderItem = (
+                        goal: TaskGoal,
+                        opts?: { dim?: boolean; activeNow?: boolean },
+                      ) => (
+                        <div key={goal.id} className={opts?.dim ? 'opacity-60' : undefined}>
+                          <SortableGoalItem
+                            goal={goal}
+                            isSelected={selectedGoalId === goal.id}
+                            isActiveNow={opts?.activeNow}
+                            onSelect={() => onSelectGoal(goal.id)}
+                            onEdit={() => handleEditGoal(goal)}
+                          />
                         </div>
                       )
                       return (
                         <>
                           {onNow.length > 0 && (
                             <>
-                              {sectionLabel('On now')}
-                              {onNow.map((goal) => (
-                                <SortableGoalItem
-                                  key={goal.id}
-                                  goal={goal}
-                                  isSelected={selectedGoalId === goal.id}
-                                  isActiveNow
-                                  onSelect={() => onSelectGoal(goal.id)}
-                                  onEdit={() => handleEditGoal(goal)}
-                                />
-                              ))}
+                              {sectionLabel('On now', 'text-emerald-600')}
+                              {onNow.map((g) => renderItem(g, { activeNow: true }))}
                             </>
                           )}
-                          {upcoming.length > 0 && (
+                          {upcomingToday.length > 0 && (
                             <>
-                              {sectionLabel('Upcoming this week')}
-                              {upcoming.map((goal) => (
-                                <SortableGoalItem
-                                  key={goal.id}
-                                  goal={goal}
-                                  isSelected={selectedGoalId === goal.id}
-                                  onSelect={() => onSelectGoal(goal.id)}
-                                  onEdit={() => handleEditGoal(goal)}
-                                />
-                              ))}
+                              {sectionLabel('Upcoming today', 'text-[#8a7307]')}
+                              {upcomingToday.map((g) => renderItem(g))}
                             </>
                           )}
-                          {rest.length > 0 && (
+                          {pastToday.length > 0 && (
                             <>
-                              {(onNow.length > 0 || upcoming.length > 0) && sectionLabel('Other goals')}
-                              {rest.map((goal) => (
-                                <SortableGoalItem
-                                  key={goal.id}
-                                  goal={goal}
-                                  isSelected={selectedGoalId === goal.id}
-                                  onSelect={() => onSelectGoal(goal.id)}
-                                  onEdit={() => handleEditGoal(goal)}
-                                />
-                              ))}
+                              {sectionLabel('Done today')}
+                              {pastToday.map((g) => renderItem(g, { dim: true }))}
+                            </>
+                          )}
+                          {laterWeek.length > 0 && (
+                            <>
+                              {sectionLabel('Later this week')}
+                              {laterWeek.map((g) => renderItem(g))}
+                            </>
+                          )}
+                          {unscheduled.length > 0 && (
+                            <>
+                              {(onNow.length > 0 ||
+                                upcomingToday.length > 0 ||
+                                pastToday.length > 0 ||
+                                laterWeek.length > 0) && sectionLabel('No schedule')}
+                              {unscheduled.map((g) => renderItem(g))}
                             </>
                           )}
                         </>

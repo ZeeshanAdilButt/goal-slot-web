@@ -11,9 +11,13 @@ export interface GoalsSidebarProps {
   isLoading: boolean
   isCollapsed?: boolean
   onToggleCollapse?: () => void
-  /** Goal ids that have at least one schedule block in the current week. */
+  /** Goals with a schedule block happening right now. */
   activeGoalIds?: Set<string>
-  /** Map of goalId -> minutes until next scheduled occurrence (0 = active now). */
+  /** Goals with a block starting later today (not active now). */
+  upcomingTodayIds?: Set<string>
+  /** Goals with a block earlier today that has already ended. */
+  pastTodayIds?: Set<string>
+  /** Minutes until next scheduled occurrence (0 = active now). */
   goalNextBlockMinutes?: Map<string, number>
 }
 

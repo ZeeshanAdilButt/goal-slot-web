@@ -178,9 +178,10 @@ export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSideb
     <div className="space-y-3">
       {/* Inline calendar pinned to the top with explicit month nav. */}
       <div className="rounded-lg border border-zinc-200 bg-white p-2">
-        {/* Quick range presets so the user can scope to week / month /
-            quarter / year with one tap, no two-click range selection. */}
-        <div className="mb-2 grid grid-cols-4 gap-1 rounded-md bg-zinc-50 p-0.5">
+        {/* Quick range presets: segmented pill row with explicit gaps and a
+            white selected pill so the four buttons read as distinct
+            controls, not a merged blob. */}
+        <div className="mb-2 inline-flex w-full rounded-lg border border-zinc-200 bg-zinc-100 p-1">
           {presets.map((p) => {
             const isActive = activePresetKey === p.key
             return (
@@ -189,9 +190,9 @@ export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSideb
                 type="button"
                 onClick={() => handleRangeChange(p.build())}
                 className={cn(
-                  'rounded px-1.5 py-1 text-[10px] font-semibold uppercase tracking-wider transition-colors',
+                  'flex-1 rounded-md px-2 py-1 text-[11px] font-semibold transition-all',
                   isActive
-                    ? 'bg-white text-zinc-900 shadow-sm'
+                    ? 'bg-white text-zinc-900 shadow-sm ring-1 ring-zinc-200'
                     : 'text-zinc-500 hover:text-zinc-900',
                 )}
               >

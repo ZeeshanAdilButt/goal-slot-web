@@ -3,11 +3,11 @@
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 
+import { ScaleRow } from '@/features/dashboard/components/checkin-dials'
 import { useDailyCheckin } from '@/features/dashboard/hooks/use-daily-checkin'
 import { Sparkles } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -19,61 +19,6 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-
-type DialKey = 'mood' | 'energy' | 'focus'
-
-const DIALS: Record<
-  DialKey,
-  { label: string; hint: [string, string]; emojis: [string, string, string, string, string] }
-> = {
-  mood: { label: 'Mood', hint: ['low', 'great'], emojis: ['😞', '😕', '😐', '🙂', '😄'] },
-  energy: { label: 'Energy', hint: ['drained', 'wired'], emojis: ['😴', '🥱', '😐', '⚡️', '🔥'] },
-  focus: { label: 'Focus', hint: ['scattered', 'sharp'], emojis: ['🌫️', '😵‍💫', '😐', '🎯', '🧠'] },
-}
-
-function ScaleRow({
-  dial,
-  value,
-  onChange,
-}: {
-  dial: DialKey
-  value: number | null
-  onChange: (v: number) => void
-}) {
-  const { label, emojis } = DIALS[dial]
-  return (
-    <div>
-      <div className="mb-1">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-700">
-          {label}
-        </span>
-      </div>
-      <div className="grid grid-cols-5 gap-1.5">
-        {emojis.map((emoji, idx) => {
-          const n = idx + 1
-          const selected = value === n
-          return (
-            <button
-              key={n}
-              type="button"
-              onClick={() => onChange(n)}
-              aria-pressed={selected}
-              aria-label={`${label} ${n} of 5`}
-              className={cn(
-                'inline-flex h-11 items-center justify-center rounded-lg text-2xl transition-all',
-                selected
-                  ? 'bg-[#fff7d1] ring-2 ring-[#f2cc0d] scale-[1.06]'
-                  : 'bg-transparent hover:bg-zinc-50 hover:scale-105',
-              )}
-            >
-              <span className="leading-none">{emoji}</span>
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
 
 /**
  * Always-visible floating "Check in" button shown on every dashboard screen
