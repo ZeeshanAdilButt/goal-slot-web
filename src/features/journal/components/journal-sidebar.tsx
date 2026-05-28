@@ -1,9 +1,9 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 
 import { JournalEntry } from '@/features/journal/hooks/use-journal-entries'
-import { Calendar } from 'lucide-react'
+import { DayPicker } from 'react-day-picker'
 
 import { cn } from '@/lib/utils'
 
@@ -32,7 +32,6 @@ function formatChip(date: string, today: string): string {
 
 export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSidebarProps) {
   const today = todayKey()
-  const [pickerValue, setPickerValue] = useState(today)
 
   // Ensure "Today" appears first as a tappable chip even when no entry exists yet.
   const list = useMemo(() => {
@@ -46,39 +45,56 @@ export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSideb
     return ordered
   }, [entries, today])
 
-  const handlePick = () => {
-    if (!pickerValue) return
-    onSelect(pickerValue)
+  const entryDates = useMemo(
+    () => entries.map((e) => new Date(`${e.date}T00:00:00`)),
+    [entries],
+  )
+
+  const selectedDateObj = selectedDate ? new Date(`${selectedDate}T00:00:00`) : undefined
+
+  const handlePickDay = (day: Date | undefined) => {
+    if (!day) return
+    const key = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`
+    onSelect(key)
   }
 
   return (
     <div className="space-y-3">
-      {/* Compact inline date jump, always visible above the entries list. */}
-      <div className="flex items-center gap-1 rounded-md border border-zinc-200 bg-white px-1.5 py-1">
-        <Calendar className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden />
-        <input
-          type="date"
-          value={pickerValue}
-          max={today}
-          onChange={(e) => {
-            setPickerValue(e.target.value)
-            if (e.target.value) onSelect(e.target.value)
+      {/* Inline calendar pinned to the top — click any day to jump to it. */}
+      <div className="rounded-lg border border-zinc-200 bg-white p-2">
+        <DayPicker
+          mode="single"
+          selected={selectedDateObj}
+          onSelect={handlePickDay}
+          disabled={{ after: new Date() }}
+          modifiers={{ hasEntry: entryDates }}
+          modifiersClassNames={{
+            hasEntry: 'after:absolute after:bottom-0.5 after:left-1/2 after:h-1 after:w-1 after:-translate-x-1/2 after:rounded-full after:bg-[#f2cc0d] relative',
           }}
-          aria-label="Jump to a date"
-          className="h-7 min-w-0 flex-1 border-0 bg-transparent p-0 text-xs text-zinc-900 focus:outline-none focus:ring-0"
+          showOutsideDays={false}
+          classNames={{
+            root: 'text-xs',
+            months: 'flex flex-col',
+            month: 'space-y-1',
+            month_caption: 'flex justify-center font-semibold text-[11px] uppercase tracking-wider text-zinc-600',
+            nav: 'flex items-center justify-between absolute right-1 top-1 z-10',
+            button_previous: 'h-6 w-6 rounded hover:bg-zinc-100 inline-flex items-center justify-center text-zinc-500',
+            button_next: 'h-6 w-6 rounded hover:bg-zinc-100 inline-flex items-center justify-center text-zinc-500',
+            month_grid: 'w-full border-collapse mt-1',
+            weekdays: 'flex',
+            weekday: 'flex-1 text-center text-[9px] font-semibold uppercase tracking-wider text-zinc-400 py-0.5',
+            weeks: 'flex flex-col',
+            week: 'flex w-full',
+            day: 'flex-1 p-0 text-center',
+            day_button: 'h-6 w-full rounded text-[11px] font-medium text-zinc-700 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40',
+            today: 'font-bold text-[#8a7307]',
+            selected: '[&_button]:!bg-[#f2cc0d] [&_button]:!text-zinc-900',
+          }}
         />
-        <button
-          type="button"
-          onClick={handlePick}
-          disabled={!pickerValue}
-          className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#8a7307] hover:bg-[#fff7d1] disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Go
-        </button>
       </div>
 
       <div className="px-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
-        Entries
+        Recent entries
       </div>
 
       <ul className="flex flex-col gap-0.5">
