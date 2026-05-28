@@ -63,7 +63,32 @@ export function TimeEntryBanner() {
     }
   }, [timerState, startTimestamp, pausedElapsedTime])
 
-  if (timerState === 'STOPPED') return null
+  if (timerState === 'STOPPED') {
+    // Always-on quick shortcut bar so users can start tracking from any
+    // dashboard page without first navigating to /dashboard/time-tracker.
+    return (
+      <div className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-zinc-200 bg-white px-4 py-2">
+        <div className="flex items-center gap-2 text-xs text-zinc-500">
+          <Clock3 className="h-3.5 w-3.5 text-zinc-400" />
+          <span className="font-medium text-zinc-700">Not tracking</span>
+          <span className="hidden sm:inline">— start a timer when you're ready.</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Link href="/dashboard/time-tracker?action=manual">
+            <Button variant="ghost" size="sm">
+              + Log time
+            </Button>
+          </Link>
+          <Link href="/dashboard/time-tracker">
+            <Button variant="brand" size="sm">
+              <Play className="h-3.5 w-3.5" />
+              Start tracking
+            </Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   const isPaused = timerState === 'PAUSED'
 

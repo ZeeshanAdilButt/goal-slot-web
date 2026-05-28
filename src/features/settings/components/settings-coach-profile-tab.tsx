@@ -213,17 +213,9 @@ export function SettingsCoachProfileTab() {
         {isLoading ? (
           <p className="text-sm text-zinc-500">Loading insights…</p>
         ) : insights.length === 0 ? (
-          <div className="space-y-3 rounded-lg border border-dashed border-zinc-200 bg-zinc-50/50 p-6 text-center">
-            <p className="text-sm text-zinc-600">
-              No insights yet. Open this week&apos;s narrative to generate your first ones →
-            </p>
-            <div className="flex justify-center">
-              <Link href="/dashboard/coach">
-                <Button variant="brand" size="sm">
-                  Go to Coach
-                </Button>
-              </Link>
-            </div>
+          <div className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50/50 p-6 text-center text-sm text-zinc-500">
+            Nothing here yet. The Coach surfaces insights from your weekly narratives and chats —
+            once you generate one, the ones you accept or save will appear here.
           </div>
         ) : (
           <div className="space-y-3">
