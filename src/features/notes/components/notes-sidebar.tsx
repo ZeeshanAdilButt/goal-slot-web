@@ -6,6 +6,7 @@ import {
   closestCenter,
   DndContext,
   DragEndEvent,
+  DragMoveEvent,
   DragOverlay,
   DragStartEvent,
   MeasuringStrategy,
@@ -158,7 +159,7 @@ function NoteItem({
         {...listeners}
         onMouseMove={handleMouseMove}
         className={cn(
-          'group relative flex items-center gap-1 rounded-md px-2 py-1.5 text-sm transition-[background-color,box-shadow,transform] duration-150 select-none cursor-grab active:cursor-grabbing',
+          'group relative flex items-center gap-1 rounded-md px-2 py-1.5 text-sm transition-[background-color,box-shadow,transform] duration-150 select-none cursor-move',
           isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-zinc-50',
           // Multi-select highlight (ctrl/cmd-click): brand-yellow tint
           // + ring so the marked-for-action notes are obvious without
@@ -409,6 +410,10 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
 
   // DnD Logic
   const [activeNote, setActiveNote] = useState<NoteTreeItem | null>(null)
+  // Track live horizontal drag delta so the cursor can flip to an
+  // east-west arrow once the user crosses the ±40px promote/demote
+  // threshold (matches the swipe logic in handleDragEnd).
+  const [dragX, setDragX] = useState(0)
 
   const dragStateRef = useRef<{ id: string; position: DropPosition }>({ id: '', position: null })
 
@@ -433,9 +438,19 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
     setActiveNote(note)
   }
 
+  const handleDragMove = (event: DragMoveEvent) => {
+    setDragX(event.delta?.x ?? 0)
+  }
+
+  const handleDragCancel = () => {
+    setActiveNote(null)
+    setDragX(0)
+  }
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over, delta } = event
     setActiveNote(null)
+    setDragX(0)
 
     // Horizontal promote / demote: if the user dragged left or right
     // past a threshold without landing on another row, treat it as a
@@ -548,10 +563,13 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
     }),
   )
 
-  // Set body cursor + disable text selection during drag for a calm feel.
+  // Set body cursor + disable text selection during drag for a calm
+  // feel. The default during drag is `move` (4-arrow cross); once the
+  // user crosses the ±40px horizontal threshold we flip to `ew-resize`
+  // to signal "release now to promote/demote".
   useEffect(() => {
     if (activeNote) {
-      document.body.style.cursor = 'grabbing'
+      document.body.style.cursor = Math.abs(dragX) >= 40 ? 'ew-resize' : 'move'
       document.body.style.userSelect = 'none'
     } else {
       document.body.style.cursor = ''
@@ -561,7 +579,7 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
       document.body.style.cursor = ''
       document.body.style.userSelect = ''
     }
-  }, [activeNote])
+  }, [activeNote, dragX])
 
   const handleCreateNote = (parentId?: string | null) => {
     createMutation.mutate(
@@ -711,14 +729,23 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragStart={handleDragStart}
+        onDragMove={handleDragMove}
         onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
         measuring={{
           droppable: {
             strategy: MeasuringStrategy.Always,
           },
         }}
       >
-        <div className="flex-1 overflow-y-auto px-2">
+        <div
+          className="flex-1 overflow-y-auto px-2"
+          // While dragging, swap the global cursor to ew-resize once
+          // the horizontal delta exceeds the ±40px promote/demote
+          // threshold so the user gets a visible cue that releasing
+          // now will indent / outdent rather than reparent.
+          style={activeNote && Math.abs(dragX) >= 40 ? { cursor: 'ew-resize' } : undefined}
+        >
           {/* Favorites section */}
           {favorites.length > 0 && !searchQuery && (
             <div className="mb-4">
