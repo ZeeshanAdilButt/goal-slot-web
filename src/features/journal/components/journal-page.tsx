@@ -9,7 +9,7 @@ import { JournalSidebar } from '@/features/journal/components/journal-sidebar'
 import { JournalSun } from '@/features/journal/components/journal-sun'
 import { TangleHero } from '@/features/journal/components/tangle-hero'
 import { useJournalEntries } from '@/features/journal/hooks/use-journal-entries'
-import { CalendarDays, PanelLeft, PanelLeftClose } from 'lucide-react'
+import { CalendarDays, Maximize2, Minimize2, PanelLeft, PanelLeftClose } from 'lucide-react'
 
 import { useIsMobile } from '@/hooks/use-mobile'
 import { cn } from '@/lib/utils'
@@ -34,6 +34,7 @@ export function JournalPage() {
   const { entries, selectedEntry, selectedDate, selectDate, upsertContent, deleteEntry } = useJournalEntries()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   // Day vs night is driven by the user's local clock — daytime gets
   // the sun (always shining, no toggle), nighttime gets the bedside
   // lamp (off by default; user clicks to turn it on). 6 AM – 6 PM is
@@ -120,7 +121,10 @@ export function JournalPage() {
 
       <div
         className={cn(
-          'relative z-10 flex h-[calc(100vh-13rem)] min-h-[480px] flex-col overflow-hidden rounded-xl border shadow-sm backdrop-blur-[2px] transition-colors duration-700',
+          'relative z-10 flex flex-col overflow-hidden border shadow-sm backdrop-blur-[2px] transition-[border-color,background-color,inset,height] duration-300',
+          isFullscreen
+            ? 'fixed inset-0 z-50 h-screen w-screen rounded-none'
+            : 'h-[calc(100vh-13rem)] min-h-[480px] rounded-xl',
           lampOn
             ? 'border-zinc-800 bg-zinc-950/90 text-zinc-100'
             : 'border-zinc-200 bg-white/95 text-zinc-900',
@@ -165,11 +169,27 @@ export function JournalPage() {
                   : 'Hide entries'}
             </span>
           </Button>
-          {selectedEntry && (
-            <span className="truncate text-xs text-zinc-500">
-              {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {selectedEntry && (
+              <span className="truncate text-xs text-zinc-500">
+                {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
+              </span>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsFullscreen((v) => !v)}
+              aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen writing'}
+              title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen writing'}
+            >
+              {isFullscreen ? (
+                <Minimize2 className="h-4 w-4" />
+              ) : (
+                <Maximize2 className="h-4 w-4" />
+              )}
+              <span className="text-xs">{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
+            </Button>
+          </div>
         </div>
 
         <div className="relative flex flex-1 overflow-hidden">

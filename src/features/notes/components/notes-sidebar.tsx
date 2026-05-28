@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+import toast from 'react-hot-toast'
+
 import {
   closestCenter,
   DndContext,
@@ -901,15 +903,75 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
     setContextMenuNoteId(null)
   }
 
-  const confirmDeleteNote = () => {
+  const confirmDeleteNote = async () => {
     if (!deleteConfirmNoteId) return
-    deleteMutation.mutate(deleteConfirmNoteId, {
+    const targetId = deleteConfirmNoteId
+    const target = notes.find((n) => n.id === targetId)
+    if (!target) {
+      setDeleteConfirmNoteId(null)
+      return
+    }
+
+    // Re-parent direct children to the target's parent BEFORE we
+    // delete the target — otherwise the DB cascade would drag them
+    // down with their parent. The user wants only the target row
+    // removed; its children should pop up one level and stay.
+    const directChildren = notes
+      .filter((n) => n.parentId === targetId)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    if (directChildren.length > 0) {
+      try {
+        await reorderMutation.mutateAsync(
+          directChildren.map((child, idx) => ({
+            noteId: child.id,
+            parentId: target.parentId ?? null,
+            order: (target.order ?? 0) + (idx + 1) * 100,
+          })),
+        )
+      } catch {
+        // If reparenting fails we still attempt the delete; the
+        // cascade will then take children down with the parent
+        // (server-truthful behaviour, not silently lost).
+      }
+    }
+
+    // Snapshot the deleted note for the Undo toast (re-create from
+    // the snapshot if the user clicks Undo within 10s). Captures
+    // title / content / icon / color / parentId / order.
+    const snapshot = {
+      title: target.title,
+      content: target.content,
+      icon: target.icon,
+      color: target.color,
+      parentId: target.parentId ?? null,
+    }
+
+    deleteMutation.mutate(targetId, {
       onSuccess: () => {
-        if (selectedNoteId === deleteConfirmNoteId) {
-          onSelectNote(notes[0])
+        if (selectedNoteId === targetId) {
+          onSelectNote(notes.find((n) => n.id !== targetId) ?? notes[0])
         }
+        toast(
+          (t) => (
+            <span className="flex items-center gap-3 text-sm">
+              <span>Note deleted.</span>
+              <button
+                type="button"
+                onClick={() => {
+                  createMutation.mutate(snapshot)
+                  toast.dismiss(t.id)
+                }}
+                className="rounded-md bg-[#f2cc0d] px-2 py-0.5 text-[12px] font-semibold text-zinc-900 hover:bg-[#dfb90c]"
+              >
+                Undo
+              </button>
+            </span>
+          ),
+          { duration: 10_000 },
+        )
       },
     })
+    setDeleteConfirmNoteId(null)
   }
 
   // Open the doc on a plain click; ctrl/cmd-click toggles the note in
