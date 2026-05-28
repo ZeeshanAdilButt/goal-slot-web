@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 
 import { JournalEntry } from '@/features/journal/hooks/use-journal-entries'
-import { ChevronLeft, ChevronRight, Trash2, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Trash2, X } from 'lucide-react'
 import { DayPicker, type DateRange } from 'react-day-picker'
 
 import { cn } from '@/lib/utils'
@@ -188,6 +188,20 @@ export function JournalSidebar({ entries, selectedDate, onSelect, onDelete }: Jo
 
   return (
     <div className="space-y-3">
+      {/* Always-visible "new entry" affordance — defaults to today and
+          falls through to the same selectDate path the calendar uses,
+          so the entry gets seeded with the human template. */}
+      <button
+        type="button"
+        onClick={() => onSelect(today)}
+        className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-zinc-900 bg-zinc-900 px-3 text-[12px] font-semibold tracking-tight text-white transition-colors hover:bg-zinc-800"
+      >
+        <Plus className="h-3.5 w-3.5 text-[#f2cc0d]" />
+        <span>Write</span>
+        <span aria-hidden className="text-zinc-500">·</span>
+        <span className="text-[#f2cc0d]">today</span>
+      </button>
+
       {/* Inline calendar pinned to the top with explicit month nav. */}
       <div className="rounded-lg border border-zinc-200 bg-white p-2">
         {/* Compact segmented preset row — short labels (Wk / Mo / Qtr / Yr)

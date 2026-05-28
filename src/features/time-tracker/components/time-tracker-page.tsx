@@ -334,7 +334,10 @@ export function TimeTrackerPage() {
             }}
           />
         </div>
-      <GlassCard className="timer-glow text-center p-5 sm:p-6">
+      <GlassCard className="timer-glow text-center p-6 sm:p-8 md:p-10">
+        {/* Hero timer first — eye lands on the digits, not the form.
+            The form sits in a compact, narrow column beneath. */}
+        <TimerDisplay elapsedTime={elapsedTime} timerState={timerState} />
         <TaskSelector
           tasks={orderedTasks}
           currentTaskId={currentTaskId}
@@ -354,7 +357,6 @@ export function TimeTrackerPage() {
           onCategoryChange={handleCategoryChange}
           onGoalIdChange={handleGoalChange}
         />
-        <TimerDisplay elapsedTime={elapsedTime} timerState={timerState} />
         <TimerControls
           timerState={timerState}
           isStopLoading={createEntry.isPending}

@@ -41,28 +41,38 @@ export function TimerDisplay({ elapsedTime, timerState }: TimerDisplayProps) {
   const isRunning = timerState === 'RUNNING'
 
   return (
-    <div className="mb-4 flex flex-col items-center gap-2">
+    <div className="mb-6 mt-2 flex flex-col items-center gap-3">
+      {/* Dark brand-pill status (matches "OpenAI · Connected"): keeps
+          the timer's status indicator in the GoalSlot voice instead of
+          the off-the-shelf emerald/amber pills we used to swap. */}
       <span
         className={cn(
-          'inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wider',
-          meta.pillClass,
+          'inline-flex h-7 items-center gap-1.5 rounded-full border border-zinc-900 bg-zinc-900 px-3 text-[11px] font-semibold tracking-tight text-white',
         )}
       >
-        <span className={cn('h-1.5 w-1.5 rounded-full', meta.dotClass)} aria-hidden />
-        {meta.label}
+        <span
+          className={cn(
+            'h-1.5 w-1.5 rounded-full',
+            timerState === 'RUNNING' && 'bg-[#f2cc0d] animate-pulse',
+            timerState === 'PAUSED' && 'bg-[#f2cc0d]',
+            timerState === 'STOPPED' && 'bg-zinc-500',
+          )}
+          aria-hidden
+        />
+        <span className={cn(timerState !== 'STOPPED' && 'text-[#f2cc0d]')}>{meta.label}</span>
       </span>
 
       <div
         className={cn(
-          'text-5xl font-medium leading-none tracking-tight text-zinc-900 sm:text-6xl',
+          'text-7xl font-medium leading-none tracking-tight text-zinc-900 sm:text-[88px] md:text-[104px]',
           isRunning && 'text-zinc-900',
         )}
         style={DIGIT_STYLE}
       >
         <span>{hrs.toString().padStart(2, '0')}</span>
-        <span className="mx-0.5 text-zinc-300">:</span>
+        <span className="mx-1 text-zinc-300">:</span>
         <span>{mins.toString().padStart(2, '0')}</span>
-        <span className="mx-0.5 text-zinc-300">:</span>
+        <span className="mx-1 text-zinc-300">:</span>
         <span className="text-zinc-500">{secs.toString().padStart(2, '0')}</span>
       </div>
     </div>
