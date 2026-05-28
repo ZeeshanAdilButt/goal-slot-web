@@ -5,7 +5,7 @@ import Link from 'next/link'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
-import { KeyRound, MessageCircle, RotateCcw, Send, Sparkles } from 'lucide-react'
+import { KeyRound, MessageCircle, RotateCcw, Send, Sparkles, Trash2 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { coachApi, type CoachMessageDto, type CoachStreamChunk } from '@/lib/api'
@@ -420,6 +420,32 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
     void handleSend(input)
   }
 
+  const handleClearChat = useCallback(async () => {
+    if (streaming) return
+    const hasMessages = persistedMessages.length > 0 || optimistic.length > 0
+    if (
+      hasMessages &&
+      typeof window !== 'undefined' &&
+      !window.confirm(
+        'Start a new conversation? Your chat history for this week will be cleared. Accepted insights + narrative stay.',
+      )
+    ) {
+      return
+    }
+    try {
+      await coachApi.clearChatHistory(scopeKey)
+      setOptimistic([])
+      setStreamingReply('')
+      setError(null)
+      queryClient.setQueryData<CoachMessageDto[]>(['coach', 'chat', scopeKey], [])
+      await queryClient.invalidateQueries({ queryKey: ['coach', 'chat', scopeKey] })
+      toast.success('New conversation. The Coach still remembers your data + accepted insights.')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not clear chat'
+      toast.error(message)
+    }
+  }, [optimistic.length, persistedMessages.length, queryClient, scopeKey, streaming])
+
   return (
     <GlassCard padded className="space-y-3">
       <SectionHeader
@@ -429,7 +455,24 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
             Ask the Coach
           </span>
         }
-        action={<Badge variant="default">{humanScopeLabel(scopeKey)}</Badge>}
+        action={
+          <div className="flex items-center gap-2">
+            <Badge variant="default">{humanScopeLabel(scopeKey)}</Badge>
+            {(persistedMessages.length > 0 || optimistic.length > 0) && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleClearChat}
+                disabled={streaming}
+                title="Clear chat and start a new conversation"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                New
+              </Button>
+            )}
+          </div>
+        }
       />
 
       <div

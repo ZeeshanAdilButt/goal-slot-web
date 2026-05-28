@@ -1,6 +1,7 @@
 'use client'
 
 import { useCategoriesQuery } from '@/features/categories'
+import { ActivePracticeReminders } from '@/features/dashboard/components/active-practice-reminders'
 import { DailyCheckinCard } from '@/features/dashboard/components/daily-checkin-card'
 import { DashboardGoals } from '@/features/dashboard/components/dashboard-goals'
 import { DashboardHeader } from '@/features/dashboard/components/dashboard-header'
@@ -27,6 +28,8 @@ export function DashboardPage() {
   return (
     <PageShell>
       <DailyCheckinCard />
+
+      <ActivePracticeReminders />
 
       <DashboardHeader />
 

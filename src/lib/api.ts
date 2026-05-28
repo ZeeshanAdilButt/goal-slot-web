@@ -770,6 +770,8 @@ export const coachApi = {
     const messages = Array.isArray(raw) ? raw : raw?.messages ?? []
     return { ...res, data: messages }
   },
+  clearChatHistory: (scopeKey: string) =>
+    api.delete<{ success: true }>(`/coach/chat/${scopeKey}`),
   streamChat: (scopeKey: string, content: string, opts?: { signal?: AbortSignal }) =>
     postCoachStream(`/coach/chat/${scopeKey}`, { content }, opts?.signal),
 
