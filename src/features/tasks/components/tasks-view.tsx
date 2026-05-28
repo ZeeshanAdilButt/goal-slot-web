@@ -110,13 +110,13 @@ export function TasksView({
   return (
     <div className={cn('flex h-full min-h-0 flex-col', className)}>
       <div className="px-4 py-3 sm:px-5 sm:py-4">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+        <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+          <div className="flex min-w-0 items-start gap-2">
             {goalsSidebarCollapsed && onToggleGoalsSidebar ? (
               <button
                 type="button"
                 onClick={onToggleGoalsSidebar}
-                className="hidden h-8 items-center gap-1.5 rounded-md border border-zinc-200 bg-primary px-2.5 text-[10px] font-semibold uppercase text-zinc-900 shadow-sm transition-colors hover:bg-[#dfb90c] md:inline-flex"
+                className="mt-0.5 hidden h-8 items-center gap-1.5 rounded-md border border-zinc-200 bg-primary px-2.5 text-[10px] font-semibold uppercase text-zinc-900 shadow-sm transition-colors hover:bg-[#dfb90c] md:inline-flex"
                 aria-label="Expand goals sidebar"
                 title="Show goals sidebar"
               >
@@ -124,29 +124,48 @@ export function TasksView({
                 <span>Goals</span>
               </button>
             ) : null}
-            <h1 className="text-xl font-bold tracking-tight text-zinc-900 sm:text-2xl">Tasks</h1>
+            <div className="min-w-0">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+                Execute
+              </div>
+              <h1 className="text-lg font-bold leading-tight tracking-tight text-zinc-900 sm:text-xl">
+                Tasks
+              </h1>
+              <p className="mt-0.5 text-xs leading-snug text-zinc-500">
+                Capture, prioritise, and ship the work that moves your goals.
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="flex border border-zinc-200 bg-white shadow-sm">
+          <div className="flex shrink-0 items-center gap-2">
+            <div className="inline-flex rounded-md border border-zinc-200 bg-white p-0.5 shadow-sm">
               <button
                 onClick={() => setViewMode('board')}
-                className={`px-3 py-2 text-[10px] font-bold uppercase transition-colors sm:px-4 sm:text-xs ${
-                  viewMode === 'board' ? 'bg-primary text-zinc-900' : 'hover:bg-gray-100'
-                }`}
+                className={cn(
+                  'rounded px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider transition-colors',
+                  viewMode === 'board'
+                    ? 'bg-[#f2cc0d] text-zinc-900'
+                    : 'text-zinc-500 hover:text-zinc-900',
+                )}
               >
                 Board
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`px-3 py-2 text-[10px] font-bold uppercase transition-colors sm:px-4 sm:text-xs ${
-                  viewMode === 'list' ? 'bg-primary text-zinc-900' : 'hover:bg-gray-100'
-                }`}
+                className={cn(
+                  'rounded px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider transition-colors',
+                  viewMode === 'list'
+                    ? 'bg-[#f2cc0d] text-zinc-900'
+                    : 'text-zinc-500 hover:text-zinc-900',
+                )}
               >
                 List
               </button>
             </div>
-            <button onClick={onCreate} className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 flex items-center">
-              <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+            <button
+              onClick={onCreate}
+              className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800"
+            >
+              <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">New Task</span>
               <span className="sm:hidden">New</span>
             </button>
