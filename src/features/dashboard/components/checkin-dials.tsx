@@ -1,0 +1,135 @@
+'use client'
+
+import {
+  Angry,
+  Battery,
+  BatteryLow,
+  Brain,
+  Cloud,
+  CloudFog,
+  Coffee,
+  Eye,
+  Flame,
+  Frown,
+  type LucideIcon,
+  Laugh,
+  Meh,
+  Smile,
+  Target,
+  Zap,
+} from 'lucide-react'
+
+import { cn } from '@/lib/utils'
+
+export type DialKey = 'mood' | 'energy' | 'focus'
+
+interface DialMeta {
+  label: string
+  /** Five icons low -> high. Lucide so they render crisp at any size, no emoji. */
+  icons: [LucideIcon, LucideIcon, LucideIcon, LucideIcon, LucideIcon]
+}
+
+/** Color ramp by value 1..5: bad red -> neutral amber -> great emerald. */
+const VALUE_COLOR: Record<number, { fg: string; bgSel: string; ringSel: string }> = {
+  1: { fg: 'text-rose-500', bgSel: 'bg-rose-50', ringSel: 'ring-rose-300' },
+  2: { fg: 'text-orange-500', bgSel: 'bg-orange-50', ringSel: 'ring-orange-300' },
+  3: { fg: 'text-amber-500', bgSel: 'bg-amber-50', ringSel: 'ring-amber-300' },
+  4: { fg: 'text-emerald-500', bgSel: 'bg-emerald-50', ringSel: 'ring-emerald-300' },
+  5: { fg: 'text-green-600', bgSel: 'bg-green-50', ringSel: 'ring-green-400' },
+}
+
+export const DIALS: Record<DialKey, DialMeta> = {
+  mood: {
+    label: 'Mood',
+    icons: [Angry, Frown, Meh, Smile, Laugh],
+  },
+  energy: {
+    label: 'Energy',
+    icons: [BatteryLow, Battery, Coffee, Zap, Flame],
+  },
+  focus: {
+    label: 'Focus',
+    icons: [CloudFog, Cloud, Eye, Target, Brain],
+  },
+}
+
+interface ScaleRowProps {
+  dial: DialKey
+  value: number | null
+  onChange: (v: number) => void
+}
+
+export function ScaleRow({ dial, value, onChange }: ScaleRowProps) {
+  const { label, icons } = DIALS[dial]
+  return (
+    <div>
+      <div className="mb-1">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-700">
+          {label}
+        </span>
+      </div>
+      <div className="grid grid-cols-5 gap-1.5">
+        {icons.map((Icon, idx) => {
+          const n = idx + 1
+          const selected = value === n
+          const palette = VALUE_COLOR[n]
+          return (
+            <button
+              key={n}
+              type="button"
+              onClick={() => onChange(n)}
+              aria-pressed={selected}
+              aria-label={`${label} ${n} of 5`}
+              className={cn(
+                'inline-flex h-12 items-center justify-center rounded-lg transition-all',
+                selected
+                  ? cn(palette.bgSel, palette.ringSel, 'ring-2 scale-[1.06]')
+                  : 'bg-transparent hover:bg-zinc-50 hover:scale-105',
+              )}
+            >
+              <Icon
+                className={cn(
+                  'h-5 w-5 transition-colors',
+                  selected ? palette.fg : 'text-zinc-400',
+                )}
+                strokeWidth={selected ? 2.25 : 1.75}
+              />
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Tiny inline render of a saved check-in (used in summary chips).
+ * Shows the three icons in their value color.
+ */
+export function CheckinSummaryIcons({
+  mood,
+  energy,
+  focus,
+  className,
+}: {
+  mood: number | null
+  energy: number | null
+  focus: number | null
+  className?: string
+}) {
+  const items: { dial: DialKey; v: number | null }[] = [
+    { dial: 'mood', v: mood },
+    { dial: 'energy', v: energy },
+    { dial: 'focus', v: focus },
+  ]
+  return (
+    <span className={cn('inline-flex items-center gap-1', className)}>
+      {items.map(({ dial, v }) => {
+        if (v == null) return null
+        const Icon = DIALS[dial].icons[v - 1]
+        const palette = VALUE_COLOR[v]
+        return <Icon key={dial} className={cn('h-3.5 w-3.5', palette.fg)} strokeWidth={2} />
+      })}
+    </span>
+  )
+}

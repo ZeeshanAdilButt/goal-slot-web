@@ -13,65 +13,10 @@ import { Label } from '@/components/ui/label'
 import { StatusPill } from '@/components/ui/status-pill'
 import { Textarea } from '@/components/ui/textarea'
 
-type DialKey = 'mood' | 'energy' | 'focus'
-
-const DIALS: Record<DialKey, { label: string; hint: [string, string]; emojis: [string, string, string, string, string] }> = {
-  mood: {
-    label: 'Mood',
-    hint: ['low', 'great'],
-    emojis: ['😞', '😕', '😐', '🙂', '😄'],
-  },
-  energy: {
-    label: 'Energy',
-    hint: ['drained', 'wired'],
-    emojis: ['😴', '🥱', '😐', '⚡️', '🔥'],
-  },
-  focus: {
-    label: 'Focus',
-    hint: ['scattered', 'sharp'],
-    emojis: ['🌫️', '😵‍💫', '😐', '🎯', '🧠'],
-  },
-}
-
-interface ScaleRowProps {
-  dial: DialKey
-  value: number | null
-  onChange: (v: number) => void
-}
-
-function ScaleRow({ dial, value, onChange }: ScaleRowProps) {
-  const { label, hint, emojis } = DIALS[dial]
-  return (
-    <div>
-      <div className="mb-1">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-700">{label}</span>
-      </div>
-      <div className="grid grid-cols-5 gap-1.5">
-        {emojis.map((emoji, idx) => {
-          const n = idx + 1
-          const selected = value === n
-          return (
-            <button
-              key={n}
-              type="button"
-              onClick={() => onChange(n)}
-              aria-pressed={selected}
-              aria-label={`${label} ${n} of 5`}
-              className={cn(
-                'inline-flex h-11 items-center justify-center rounded-lg text-2xl transition-all',
-                selected
-                  ? 'bg-[#fff7d1] ring-2 ring-[#f2cc0d] scale-[1.06]'
-                  : 'bg-transparent hover:bg-zinc-50 hover:scale-105',
-              )}
-            >
-              <span className="leading-none">{emoji}</span>
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
+// ScaleRow + summary icons live in ./checkin-dials so the floating button
+// and the dashboard card share a single source of truth. Lucide icons
+// replaced the emoji set per user feedback ("too AI-ish").
+import { CheckinSummaryIcons as SummaryIcons, ScaleRow } from './checkin-dials'
 
 export function DailyCheckinCard() {
   const { todayCheckin, submit } = useDailyCheckin()
@@ -105,10 +50,11 @@ export function DailyCheckinCard() {
         <StatusPill variant="success" dot className="h-8 px-3">
           ✓ Checked in today
         </StatusPill>
-        <span className="text-xs text-zinc-500">
-          {DIALS.mood.emojis[(todayCheckin.mood ?? 1) - 1]} {DIALS.energy.emojis[(todayCheckin.energy ?? 1) - 1]}{' '}
-          {DIALS.focus.emojis[(todayCheckin.focus ?? 1) - 1]}
-        </span>
+        <SummaryIcons
+          mood={todayCheckin.mood}
+          energy={todayCheckin.energy}
+          focus={todayCheckin.focus}
+        />
       </div>
     )
   }
