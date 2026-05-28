@@ -7,32 +7,43 @@ interface TangleHeroProps {
 }
 
 /**
- * "A tangled thought becomes a clear line." Wide, dramatic morph: the
- * TANGLED path uses extreme control points that pull the cubic bezier
- * segments into overlapping loops — visually it reads as a knotted
- * string crossing over itself. The CALM path keeps every anchor on
- * the midline so the string genuinely straightens to a flat horizontal
- * stroke. Both paths share the exact same command sequence (M + six
- * S shortcuts), so SVG path interpolation morphs every control point
- * smoothly from its tangled position to the flat position and back.
+ * "A tangled thought becomes a clear line." The TANGLED path is six
+ * explicit cubic bezier segments where each pair of control points
+ * sits far above (y=-10) and far below (y=190) the midline (y=90)
+ * — that combination pulls each segment into a near-circular loop
+ * where the stroke crosses over itself. Visually it reads as a
+ * string knotted in six places, not a zig-zag.
+ *
+ * The CALM path uses the same six cubic segments but every control
+ * point sits on the midline, so each `C` collapses to a straight
+ * segment. Identical command structure means SVG path interpolation
+ * smoothly morphs every control point between the two states.
  */
 export function TangleHero({ className }: TangleHeroProps) {
-  // Seven X anchors at 16 / 76 / 136 / 196 / 256 / 316 / 376.
-  // TANGLED uses control points that swing 60+ above/below the
-  // midline AND pull BACKWARD (negative x relative to expected) so
-  // each cubic segment forms a near-closed loop where the stroke
-  // crosses over itself. Looks like a string knotted in multiple
-  // places.
+  // Seven anchors at y=90; each pair forms a loop with controls at
+  // y=-10 and y=190. Anchors at x=30 / 90 / 140 / 190 / 240 / 290 / 340.
   const TANGLED =
-    'M16 60 C 80 -20, -10 130, 76 60 S 200 -10, 136 60 S 50 140, 196 60 S 320 -20, 256 60 S 180 140, 316 60 S 440 -10, 376 60'
-  // CALM: every control point sits on the midline so the path
-  // straightens to a single horizontal stroke.
+    'M 30 90 ' +
+    'C 130 -10, -30 190, 90 90 ' +
+    'C 180 -10, 20 190, 140 90 ' +
+    'C 230 -10, 70 190, 190 90 ' +
+    'C 280 -10, 120 190, 240 90 ' +
+    'C 330 -10, 170 190, 290 90 ' +
+    'C 380 -10, 220 190, 340 90'
+  // CALM: every control point on the midline, so each cubic segment
+  // collapses to a straight horizontal stroke.
   const CALM =
-    'M16 60 C 36 60, 56 60, 76 60 S 116 60, 136 60 S 176 60, 196 60 S 236 60, 256 60 S 296 60, 316 60 S 356 60, 376 60'
+    'M 30 90 ' +
+    'C 60 90, 60 90, 90 90 ' +
+    'C 110 90, 110 90, 140 90 ' +
+    'C 160 90, 160 90, 190 90 ' +
+    'C 210 90, 210 90, 240 90 ' +
+    'C 260 90, 260 90, 290 90 ' +
+    'C 310 90, 310 90, 340 90'
 
   return (
     <svg
-      viewBox="0 0 392 120"
+      viewBox="0 0 370 180"
       className={cn('h-16 w-80', className)}
       aria-hidden="true"
     >
