@@ -57,13 +57,15 @@ interface NoteItemProps {
   depth: number
   isExpanded: boolean
   isSelected: boolean
+  isMultiSelected: boolean
   expandedIds: Set<string>
-  onSelect: (note: Note) => void
+  onSelect: (note: Note, modifier: boolean) => void
   onToggleExpand: (id: string, e: React.MouseEvent) => void
   onCreateSubNote: (parentId: string) => void
   onToggleFavorite: (note: Note) => void
   onDelete: (id: string) => void
   onHoverStateChange: (id: string, position: DropPosition) => void
+  multiSelectIds: Set<string>
   className?: string
 }
 
@@ -72,6 +74,7 @@ function NoteItem({
   depth,
   isExpanded,
   isSelected,
+  isMultiSelected,
   expandedIds,
   onSelect,
   onToggleExpand,
@@ -79,6 +82,7 @@ function NoteItem({
   onToggleFavorite,
   onDelete,
   onHoverStateChange,
+  multiSelectIds,
   className,
 }: NoteItemProps) {
   const { attributes, listeners, setNodeRef, isDragging, transform } = useDraggable({
@@ -156,9 +160,13 @@ function NoteItem({
         className={cn(
           'group relative flex items-center gap-1 rounded-md px-2 py-1.5 text-sm transition-[background-color,box-shadow,transform] duration-150 select-none cursor-grab active:cursor-grabbing',
           isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-zinc-50',
+          // Multi-select highlight (ctrl/cmd-click): brand-yellow tint
+          // + ring so the marked-for-action notes are obvious without
+          // colliding with the single-select highlight.
+          isMultiSelected && !isSelected && 'bg-[#fff7d1] ring-1 ring-[#f2cc0d]/60',
           isOver && dropPosition === 'inside' && 'bg-[#f2cc0d]/15 ring-2 ring-[#f2cc0d] ring-inset',
         )}
-        onClick={() => onSelect(note)}
+        onClick={(e) => onSelect(note, e.ctrlKey || e.metaKey)}
       >
         {/* Drop Indicators, animated yellow bar for top/bottom inserts */}
         <div
@@ -284,6 +292,7 @@ function NoteItem({
               depth={depth + 1}
               isExpanded={expandedIds.has(child.id)}
               isSelected={false} // Only highlighting direct selection in recursive render is limiting, better fix in parent
+              isMultiSelected={multiSelectIds.has(child.id)}
               expandedIds={expandedIds}
               onSelect={onSelect}
               onToggleExpand={onToggleExpand}
@@ -291,6 +300,7 @@ function NoteItem({
               onToggleFavorite={onToggleFavorite}
               onDelete={onDelete}
               onHoverStateChange={onHoverStateChange}
+              multiSelectIds={multiSelectIds}
               className={className}
             />
           ))}
@@ -311,6 +321,12 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
   const [contextMenuNoteId, setContextMenuNoteId] = useState<string | null>(null)
   const [deleteConfirmNoteId, setDeleteConfirmNoteId] = useState<string | null>(null)
+  // Multi-select via Ctrl/Cmd-click. A plain click clears this set
+  // and behaves like before (open the doc). Modifier-click toggles
+  // membership without opening the doc, so the user can mark several
+  // notes and delete them as a batch from the floating toolbar.
+  const [multiSelectIds, setMultiSelectIds] = useState<Set<string>>(new Set())
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false)
 
   // Initialize expandedIds from localStorage
   useEffect(() => {
@@ -552,6 +568,49 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
     })
   }
 
+  // Open the doc on a plain click; ctrl/cmd-click toggles the note in
+  // the multi-select set without opening anything, so the user can
+  // mark several notes and delete them together. A plain click also
+  // clears any existing multi-select so the user doesn't have a stale
+  // selection hanging around once they move on.
+  const handleNoteClick = (note: Note, modifier: boolean) => {
+    if (modifier) {
+      setMultiSelectIds((prev) => {
+        const next = new Set(prev)
+        if (next.has(note.id)) next.delete(note.id)
+        else next.add(note.id)
+        return next
+      })
+      return
+    }
+    if (multiSelectIds.size > 0) setMultiSelectIds(new Set())
+    onSelectNote(note)
+  }
+
+  const clearMultiSelect = () => setMultiSelectIds(new Set())
+
+  const performBulkDelete = async () => {
+    const ids = Array.from(multiSelectIds)
+    if (ids.length === 0) return
+    // Server cascades children when a parent is deleted; we still
+    // fire one mutation per top-level selected id sequentially so the
+    // cache invalidation matches what useDeleteNoteMutation already
+    // wires up.
+    for (const id of ids) {
+      try {
+        await deleteMutation.mutateAsync(id)
+      } catch {
+        // Continue with the rest of the batch even if one fails.
+      }
+    }
+    if (selectedNoteId && multiSelectIds.has(selectedNoteId)) {
+      const remaining = notes.find((n) => !multiSelectIds.has(n.id))
+      if (remaining) onSelectNote(remaining)
+    }
+    setMultiSelectIds(new Set())
+    setShowBulkDeleteConfirm(false)
+  }
+
   const renderNoteItem = (note: NoteTreeItem, depth = 0) => {
     return (
       <NoteItem
@@ -560,13 +619,15 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
         depth={depth}
         isExpanded={expandedIds.has(note.id)}
         isSelected={selectedNoteId === note.id}
+        isMultiSelected={multiSelectIds.has(note.id)}
         expandedIds={expandedIds}
-        onSelect={onSelectNote}
+        onSelect={handleNoteClick}
         onToggleExpand={toggleExpanded}
         onCreateSubNote={handleCreateNote}
         onToggleFavorite={handleToggleFavorite}
         onDelete={handleDeleteNote}
         onHoverStateChange={handleItemHoverStateChange}
+        multiSelectIds={multiSelectIds}
       />
     )
   }
@@ -644,7 +705,7 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
                     'flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors cursor-pointer',
                     selectedNoteId === note.id ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
                   )}
-                  onClick={() => onSelectNote(note)}
+                  onClick={(e) => handleNoteClick(note, e.ctrlKey || e.metaKey)}
                 >
                   {note.icon && <span className="text-base">{note.icon}</span>}
                   <span className="flex-1 truncate">{note.title || 'Untitled'}</span>
@@ -680,7 +741,7 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
                       'flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors cursor-pointer',
                       selectedNoteId === note.id ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
                     )}
-                    onClick={() => onSelectNote(note)}
+                    onClick={(e) => handleNoteClick(note, e.ctrlKey || e.metaKey)}
                   >
                     {note.icon && <span className="text-base">{note.icon}</span>}
                     <span className="flex-1 truncate">{note.title || 'Untitled'}</span>
@@ -722,6 +783,48 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
         variant="destructive"
         isLoading={deleteMutation.isPending}
       />
+
+      {/* Bulk delete confirmation (for multi-select) */}
+      <ConfirmDialog
+        open={showBulkDeleteConfirm}
+        onOpenChange={(open) => !open && setShowBulkDeleteConfirm(false)}
+        title={`Delete ${multiSelectIds.size} notes?`}
+        description="Each note and all its children will be deleted. This action cannot be undone."
+        onConfirm={performBulkDelete}
+        confirmButtonText={`Delete ${multiSelectIds.size}`}
+        variant="destructive"
+        isLoading={deleteMutation.isPending}
+      />
+
+      {/* Floating multi-select action bar — appears whenever 1+ notes
+          are ctrl-clicked. Stays anchored at the bottom of the sidebar
+          so the user can scan their selection and clear / delete from
+          a single fixed surface. */}
+      {multiSelectIds.size > 0 && (
+        <div className="pointer-events-auto sticky bottom-2 z-30 mx-2 mb-1 flex items-center justify-between gap-2 rounded-lg border border-zinc-900 bg-zinc-900 px-2.5 py-2 text-[12px] font-semibold text-white shadow-lg">
+          <span className="inline-flex items-center gap-1.5">
+            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[#f2cc0d]" />
+            {multiSelectIds.size} selected
+          </span>
+          <span className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={clearMultiSelect}
+              className="rounded px-2 py-1 text-[11px] text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-white"
+            >
+              Clear
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowBulkDeleteConfirm(true)}
+              className="inline-flex items-center gap-1 rounded bg-rose-500 px-2 py-1 text-[11px] font-semibold text-white transition-colors hover:bg-rose-600"
+            >
+              <Trash2 className="h-3 w-3" />
+              Delete
+            </button>
+          </span>
+        </div>
+      )}
     </div>
   )
 }
