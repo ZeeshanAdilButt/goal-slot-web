@@ -34,8 +34,10 @@ import { SocraticQuote } from '@/components/ui/socratic-quote'
 
 const EXAMPLE_PROMPTS = [
   'Suggest an active practice',
+  'Add to my schedule',
+  'Edit my schedule',
+  'Log time for...',
   'Why was Wednesday bad?',
-  "Suggest next week's schedule",
   'Where am I leaking time?',
 ]
 
