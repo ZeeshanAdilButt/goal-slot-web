@@ -143,7 +143,7 @@ export function AppSidebar() {
                             // cycle), so it reads as "thinking, then settling"
                             // rather than continuously moving.
                             isCoach &&
-                              '!h-5 !w-5 group-data-[collapsible=icon]:!h-6 group-data-[collapsible=icon]:!w-6 [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.5))] motion-safe:animate-[coach-spin-pause_2s_ease-in-out_infinite]',
+                              '!h-6 !w-6 group-data-[collapsible=icon]:!h-7 group-data-[collapsible=icon]:!w-7 [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.5))] motion-safe:animate-[coach-spin-pause_2s_ease-in-out_infinite]',
                           )}
                         />
                         <span className="text-sm group-data-[collapsible=icon]:hidden">{item.label}</span>
