@@ -38,45 +38,44 @@ export function TimerSettings({
   const canClearAll = timerState === 'STOPPED' && (!!currentGoalId || !!currentCategory)
 
   return (
-    <div className="mb-6 space-y-4 text-left">
-      <div>
-        <label className={`${LABEL_CLASS} mb-1.5`}>Reminder frequency</label>
-        <Select
-          value={reminderInterval.toString()}
-          onValueChange={(val) => setReminderInterval(Number(val))}
-          disabled={timerState === 'RUNNING'}
-        >
-          <SelectTrigger className={`${SELECT_TRIGGER_CLASS} sm:w-72`}>
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-zinc-500" />
-              <SelectValue />
-            </div>
-          </SelectTrigger>
-          <SelectContent>
-            {REMINDER_OPTIONS.map((min) => (
-              <SelectItem key={min} value={min.toString()}>
-                Every {min} minutes
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {canClearAll && (
-        <div className="flex justify-end">
+    <div className="mb-4 space-y-3 text-left">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <label className={`${LABEL_CLASS} mb-1`}>Reminder</label>
+          <Select
+            value={reminderInterval.toString()}
+            onValueChange={(val) => setReminderInterval(Number(val))}
+            disabled={timerState === 'RUNNING'}
+          >
+            <SelectTrigger className={`${SELECT_TRIGGER_CLASS} sm:w-56`}>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-zinc-500" />
+                <SelectValue />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              {REMINDER_OPTIONS.map((min) => (
+                <SelectItem key={min} value={min.toString()}>
+                  Every {min} minutes
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {canClearAll && (
           <button
             type="button"
             onClick={() => {
               onGoalIdChange('')
               onCategoryChange('')
             }}
-            className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-medium text-zinc-600 transition-colors hover:border-zinc-300 hover:text-zinc-900"
+            className="inline-flex h-9 items-center gap-1.5 self-end rounded-md border border-zinc-200 bg-white px-2.5 text-xs font-medium text-zinc-600 transition-colors hover:border-zinc-300 hover:text-zinc-900"
           >
             <X className="h-3.5 w-3.5" />
             Clear goal & category
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>

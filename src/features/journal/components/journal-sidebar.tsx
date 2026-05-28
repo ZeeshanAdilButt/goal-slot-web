@@ -32,7 +32,7 @@ function formatChip(date: string, today: string): string {
 
 export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSidebarProps) {
   const today = todayKey()
-  const [showPicker, setShowPicker] = useState(false)
+  const [showPicker, setShowPicker] = useState(true)
   const [pickerValue, setPickerValue] = useState(today)
 
   // Ensure "Today" appears first as a tappable chip even when no entry exists yet.
