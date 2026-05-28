@@ -164,11 +164,46 @@ function describeAction(
       return { subject, detail }
     }
 
-    case 'CREATE_TIME_ENTRY':
+    case 'CREATE_TIME_ENTRY': {
+      const taskName = typeof p.taskName === 'string' ? p.taskName : 'Work'
+      const duration = typeof p.duration === 'number' ? p.duration : undefined
+      const date = typeof p.date === 'string' ? p.date : undefined
+      const linkedGoalId = typeof p.goalId === 'string' ? p.goalId : undefined
+      const linkedGoal = linkedGoalId ? findGoal(queryClient, linkedGoalId) : undefined
+
+      const subject = `"${taskName}"`
+      const bits: string[] = []
+      if (duration !== undefined) {
+        const h = Math.floor(duration / 60)
+        const m = duration % 60
+        bits.push(
+          h && m ? `${h}h ${m}m` : h ? `${h}h` : `${m}m`,
+        )
+      }
+      if (date) {
+        const d = new Date(`${date}T00:00:00`)
+        bits.push(
+          Number.isNaN(d.getTime())
+            ? date
+            : d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }),
+        )
+      }
+      if (linkedGoal?.title) bits.push(`linked to "${linkedGoal.title}"`)
+      else if (linkedGoalId) bits.push('linked to a goal')
+      if (typeof p.notes === 'string' && p.notes.trim()) {
+        bits.push(p.notes.length > 60 ? `${p.notes.slice(0, 60)}...` : p.notes)
+      }
+      return { subject, detail: bits.join(', ') || 'Log this time entry.' }
+    }
     case 'UPDATE_TIME_ENTRY':
     case 'DELETE_TIME_ENTRY': {
       const subject = id ? `Time entry ${id.slice(0, 8)}` : 'Time entry'
-      return { subject, detail: action.type.replace('_', ' ').toLowerCase() }
+      if (action.type === 'DELETE_TIME_ENTRY') return { subject, detail: 'Delete this entry.' }
+      const bits: string[] = []
+      if (typeof p.taskName === 'string') bits.push(`name to "${p.taskName}"`)
+      if (typeof p.duration === 'number') bits.push(`duration to ${p.duration}m`)
+      if (typeof p.date === 'string') bits.push(`date to ${p.date}`)
+      return { subject, detail: bits.length ? `Change ${bits.join(', ')}.` : 'Update this entry.' }
     }
 
     case 'CREATE_TASK':
