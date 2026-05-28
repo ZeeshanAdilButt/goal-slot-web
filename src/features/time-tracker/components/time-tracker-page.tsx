@@ -255,23 +255,34 @@ export function TimeTrackerPage() {
     setShowStopModal(true)
   }
 
-  const handleStopConfirm = ({ notes, goalId, category }: { notes: string; goalId: string; category: string }) => {
+  const handleStopConfirm = ({
+    notes,
+    goalId,
+    category,
+    taskTitle,
+    taskId,
+  }: {
+    notes: string
+    goalId: string
+    category: string
+    taskTitle: string
+    taskId: string | null
+  }) => {
     const duration = Math.max(1, Math.floor(elapsedTime / 60))
-    const taskTitle = currentTaskId
-      ? tasks.find((t: Task) => t.id === currentTaskId)?.title || currentTask
-      : currentTask
+    const resolvedTitle = taskTitle.trim() || currentTask || 'Untitled'
 
-    // Persist any goal / category override the user made in the stop
-    // modal back to the timer state so the next session starts from
-    // the corrected values, not the stale ones.
+    // Persist any goal / category / task override the user made in
+    // the stop modal back to the timer state so the next session
+    // starts from the corrected values, not the stale ones.
     if (goalId !== currentGoalId) setGoalId(goalId)
     if (category !== currentCategory) setCategory(category)
+    if ((taskId ?? '') !== currentTaskId) setTaskId(taskId ?? '')
 
     createEntry.mutate(
       {
-        taskName: taskTitle,
-        taskId: currentTaskId || undefined,
-        taskTitle,
+        taskName: resolvedTitle,
+        taskId: taskId || undefined,
+        taskTitle: resolvedTitle,
         duration,
         date: getLocalDateString(),
         notes: notes || undefined,
@@ -390,8 +401,10 @@ export function TimeTrackerPage() {
         isLoading={createEntry.isPending}
         goals={goals.map((g: Goal) => ({ id: g.id, title: g.title }))}
         categories={categories.map((c: any) => ({ value: c.value, name: c.name }))}
+        tasks={tasks.map((t: Task) => ({ id: t.id, title: t.title }))}
         defaultGoalId={currentGoalId}
         defaultCategory={currentCategory}
+        defaultTaskId={currentTaskId}
       />
     </PageShell>
   )
