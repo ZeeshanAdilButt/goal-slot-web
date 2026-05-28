@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 
 import { JournalEntry } from '@/features/journal/hooks/use-journal-entries'
-import { Calendar, ChevronDown } from 'lucide-react'
+import { Calendar } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
@@ -32,7 +32,6 @@ function formatChip(date: string, today: string): string {
 
 export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSidebarProps) {
   const today = todayKey()
-  const [showPicker, setShowPicker] = useState(true)
   const [pickerValue, setPickerValue] = useState(today)
 
   // Ensure "Today" appears first as a tappable chip even when no entry exists yet.
@@ -50,11 +49,34 @@ export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSideb
   const handlePick = () => {
     if (!pickerValue) return
     onSelect(pickerValue)
-    setShowPicker(false)
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
+      {/* Compact inline date jump, always visible above the entries list. */}
+      <div className="flex items-center gap-1 rounded-md border border-zinc-200 bg-white px-1.5 py-1">
+        <Calendar className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden />
+        <input
+          type="date"
+          value={pickerValue}
+          max={today}
+          onChange={(e) => {
+            setPickerValue(e.target.value)
+            if (e.target.value) onSelect(e.target.value)
+          }}
+          aria-label="Jump to a date"
+          className="h-7 min-w-0 flex-1 border-0 bg-transparent p-0 text-xs text-zinc-900 focus:outline-none focus:ring-0"
+        />
+        <button
+          type="button"
+          onClick={handlePick}
+          disabled={!pickerValue}
+          className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#8a7307] hover:bg-[#fff7d1] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Go
+        </button>
+      </div>
+
       <div className="px-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
         Entries
       </div>
@@ -83,7 +105,7 @@ export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSideb
                 </span>
                 {entry && (entry.mood !== null || entry.energy !== null) && (
                   <span className="shrink-0 rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-600">
-                    M{entry.mood ?? '–'} · E{entry.energy ?? '–'}
+                    M{entry.mood ?? '-'} · E{entry.energy ?? '-'}
                   </span>
                 )}
               </button>
@@ -91,41 +113,6 @@ export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSideb
           )
         })}
       </ul>
-
-      <div className="border-t border-zinc-100 pt-2">
-        <button
-          type="button"
-          onClick={() => setShowPicker((s) => !s)}
-          className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-50 hover:text-zinc-700"
-          aria-expanded={showPicker}
-        >
-          <span className="inline-flex items-center gap-2">
-            <Calendar className="h-3.5 w-3.5" />
-            Jump to a date
-          </span>
-          <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', showPicker && 'rotate-180')} />
-        </button>
-
-        {showPicker && (
-          <div className="mt-1.5 flex items-center gap-2 px-1">
-            <input
-              type="date"
-              value={pickerValue}
-              max={today}
-              onChange={(e) => setPickerValue(e.target.value)}
-              className="h-8 flex-1 rounded-md border border-zinc-200 bg-white px-2 text-xs text-zinc-900 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
-            />
-            <button
-              type="button"
-              onClick={handlePick}
-              disabled={!pickerValue}
-              className="h-8 rounded-md bg-[#f2cc0d] px-2.5 text-xs font-semibold text-zinc-900 transition-colors hover:bg-[#dfb90c] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Open
-            </button>
-          </div>
-        )}
-      </div>
     </div>
   )
 }

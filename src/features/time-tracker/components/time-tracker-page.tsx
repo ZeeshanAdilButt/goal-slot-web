@@ -159,15 +159,22 @@ export function TimeTrackerPage() {
       const task = tasks.find((t: Task) => t.id === taskId)
       if (task) {
         setTask(task.title)
-        setManualCategory(true)
-        setManualGoal(true)
-        setCategory(task.category || '')
-        setGoalId(task.goalId || '')
+        // Only pull goal / category from the task when the user hasn't
+        // already chosen one. Otherwise the user's explicit pick wins, and
+        // picking a task is just about setting the title. This fixes the
+        // "I picked goal X, then I picked task Y which was linked to goal Z,
+        // and the goal silently changed to Z" trap.
+        if (!manualGoal && !currentGoalId && task.goalId) {
+          setGoalId(task.goalId)
+          setManualGoal(true)
+        }
+        if (!manualCategory && !currentCategory && task.category) {
+          setCategory(task.category)
+          setManualCategory(true)
+        }
         if (task.scheduleBlockId) {
           setScheduleBlockId(task.scheduleBlockId)
           setManualSchedule(true)
-        } else {
-          setManualSchedule(false)
         }
       }
     } else {
