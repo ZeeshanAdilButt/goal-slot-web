@@ -4,12 +4,12 @@ import { ReactNode, useState } from 'react'
 
 import { useCoachInsights } from '@/features/coach/hooks/use-coach-insights'
 import {
-  BookText,
+  CalendarRange,
   ChevronDown,
+  Flame,
+  Lightbulb,
   Maximize2,
   ShieldCheck,
-  Sparkles,
-  Target,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -24,7 +24,7 @@ interface TileMeta {
   id: TileId
   title: string
   summary: string
-  icon: typeof Sparkles
+  icon: typeof Lightbulb
   accent: string
 }
 
@@ -46,14 +46,14 @@ export function CoachOverviewTiles({ scopeKey }: CoachOverviewTilesProps) {
       id: 'capabilities',
       title: 'What Coach can do',
       summary: 'Reads your week, proposes edits, remembers practices.',
-      icon: Sparkles,
+      icon: Lightbulb,
       accent: 'text-[#8a7307]',
     },
     {
       id: 'narrative',
       title: 'Your week',
       summary: 'A narrative grounded in your data, refreshed weekly.',
-      icon: BookText,
+      icon: CalendarRange,
       accent: 'text-sky-700',
     },
     {
@@ -63,7 +63,7 @@ export function CoachOverviewTiles({ scopeKey }: CoachOverviewTilesProps) {
         practiceCount === 0
           ? 'Nothing accepted yet. Open a suggestion and say yes to start.'
           : `${practiceCount} practice${practiceCount === 1 ? '' : 's'} you said yes to.`,
-      icon: Target,
+      icon: Flame,
       accent: 'text-emerald-700',
     },
   ]

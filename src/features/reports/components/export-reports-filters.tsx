@@ -88,22 +88,23 @@ export function ExportReportsFilters({ state }: ExportReportsFiltersProps) {
     setDraftTaskIds(selectedTaskIds)
   }
 
+  // Live-apply: toggling a goal/task in the popover updates both the
+  // draft (for the popover's checked state) AND the applied selection
+  // (for the table) in the same render. No more "Apply filters" round-trip.
   const toggleDraftGoalFilter = (goalId: string) => {
-    setDraftGoalIds((prev) => (prev.includes(goalId) ? prev.filter((id) => id !== goalId) : [...prev, goalId]))
+    setDraftGoalIds((prev) => {
+      const next = prev.includes(goalId) ? prev.filter((id) => id !== goalId) : [...prev, goalId]
+      setSelectedGoalIds(next)
+      return next
+    })
   }
 
   const toggleDraftTaskFilter = (taskId: string) => {
-    setDraftTaskIds((prev) => (prev.includes(taskId) ? prev.filter((id) => id !== taskId) : [...prev, taskId]))
-  }
-
-  const applyGoalFilters = () => {
-    setSelectedGoalIds(draftGoalIds)
-    setGoalPopoverOpen(false)
-  }
-
-  const applyTaskFilters = () => {
-    setSelectedTaskIds(draftTaskIds)
-    setTaskPopoverOpen(false)
+    setDraftTaskIds((prev) => {
+      const next = prev.includes(taskId) ? prev.filter((id) => id !== taskId) : [...prev, taskId]
+      setSelectedTaskIds(next)
+      return next
+    })
   }
 
   return (
@@ -125,7 +126,7 @@ export function ExportReportsFilters({ state }: ExportReportsFiltersProps) {
             )}
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:items-start">
+          <div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2 lg:grid-cols-4 lg:items-start [&>div]:min-w-0">
             <div className="flex flex-col gap-2">
               <Label className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
@@ -223,16 +224,11 @@ export function ExportReportsFilters({ state }: ExportReportsFiltersProps) {
                       ))
                     )}
                   </div>
-                  <div className="mt-2 border-t border-secondary/30 pt-2">
-                    <Button className="h-9 w-full" size="sm" onClick={applyGoalFilters}>
-                      Apply filters
-                    </Button>
-                  </div>
                 </PopoverContent>
               </Popover>
             </div>
 
-            <div className="flex flex-col gap-2">
+            <div className="flex min-w-0 flex-col gap-2">
               <Label className="flex items-center gap-2">
                 <Layers className="h-4 w-4" />
                 Filter by Task
@@ -277,11 +273,6 @@ export function ExportReportsFilters({ state }: ExportReportsFiltersProps) {
                         </label>
                       ))
                     )}
-                  </div>
-                  <div className="mt-2 border-t border-secondary/30 pt-2">
-                    <Button className="h-9 w-full" size="sm" onClick={applyTaskFilters}>
-                      Apply filters
-                    </Button>
                   </div>
                 </PopoverContent>
               </Popover>
