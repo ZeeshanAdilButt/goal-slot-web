@@ -241,8 +241,55 @@ interface CoachProposalCardProps {
   sourceMessageId?: string
 }
 
+const STORAGE_PREFIX = 'coach-proposal-state:'
+
+interface PersistedProposalState {
+  status: 'applied' | 'rejected'
+  results?: CoachProposalResult[]
+  appliedAt: number
+}
+
+function loadProposalState(key: string): PersistedProposalState | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.localStorage.getItem(STORAGE_PREFIX + key)
+    if (!raw) return null
+    return JSON.parse(raw) as PersistedProposalState
+  } catch {
+    return null
+  }
+}
+
+function saveProposalState(key: string, state: PersistedProposalState): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(state))
+  } catch {
+    /* quota or disabled storage, ignore */
+  }
+}
+
+function clearProposalState(key: string): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.removeItem(STORAGE_PREFIX + key)
+  } catch {
+    /* ignore */
+  }
+}
+
 export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardProps) {
   const queryClient = useQueryClient()
+
+  // Stable key for this exact proposal block so apply/reject state survives
+  // refreshes and re-renders. Uses sourceMessageId + a hash of the action
+  // list so editing the conversation generates a new key.
+  const stateKey = useMemo(() => {
+    const fingerprint = block.actions
+      .map((a) => `${a.type}:${a.id ?? ''}`)
+      .join('|')
+    return `${sourceMessageId ?? 'anon'}:${fingerprint}`
+  }, [block.actions, sourceMessageId])
 
   // Eagerly populate the schedule + goals caches so describeAction can resolve
   // ids to "Qur'an Reading, Sun, 6:00 AM to 6:30 AM" even when the user hasn't
@@ -267,8 +314,14 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
     () => new Set(block.actions.map((_, i) => i)),
   )
   const [applying, setApplying] = useState(false)
-  const [results, setResults] = useState<CoachProposalResult[] | null>(null)
-  const [rejected, setRejected] = useState(false)
+
+  // Hydrate persisted state on mount so previously-applied/rejected proposals
+  // show their final state when the user reopens the chat or refreshes.
+  const persisted = useMemo(() => loadProposalState(stateKey), [stateKey])
+  const [results, setResults] = useState<CoachProposalResult[] | null>(
+    persisted?.status === 'applied' ? persisted.results ?? [] : null,
+  )
+  const [rejected, setRejected] = useState(persisted?.status === 'rejected')
 
   const hasDestructive = useMemo(
     () => block.actions.some((a) => ACTION_META[a.type]?.verb === 'delete'),
@@ -295,6 +348,11 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
     try {
       const res = await coachApi.applyProposals(toApply, sourceMessageId)
       setResults(res.data.results)
+      saveProposalState(stateKey, {
+        status: 'applied',
+        results: res.data.results,
+        appliedAt: Date.now(),
+      })
       const okCount = res.data.results.filter((r) => r.ok).length
       const failCount = res.data.results.length - okCount
       if (failCount === 0) toast.success(`Applied ${okCount} change${okCount === 1 ? '' : 's'}.`)
@@ -429,7 +487,10 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
           <div className="text-xs text-zinc-500">You rejected this proposal.</div>
           <button
             type="button"
-            onClick={() => setRejected(false)}
+            onClick={() => {
+              setRejected(false)
+              clearProposalState(stateKey)
+            }}
             className="rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-100"
           >
             Undo
@@ -451,7 +512,10 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setRejected(true)}
+              onClick={() => {
+                setRejected(true)
+                saveProposalState(stateKey, { status: 'rejected', appliedAt: Date.now() })
+              }}
               disabled={applying}
               className="rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-50 disabled:opacity-50"
             >

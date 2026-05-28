@@ -242,19 +242,21 @@ export function FloatingCoachPopover({ open, onClose }: FloatingCoachPopoverProp
           </div>
         </div>
         <div className="flex items-center gap-1">
-          {(persistedMessages.length > 0 || optimistic.length > 0) && (
-            <button
-              type="button"
-              onClick={() => {
-                if (!streaming) setConfirmClear(true)
-              }}
-              title="Start a new chat"
-              disabled={streaming}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <RotateCcw className="h-4 w-4" />
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => {
+              if (streaming) return
+              const hasMessages = persistedMessages.length > 0 || optimistic.length > 0
+              if (hasMessages) setConfirmClear(true)
+              else toast('Chat is already empty.', { icon: '👌' })
+            }}
+            title="Start a new chat"
+            disabled={streaming}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:cursor-not-allowed disabled:opacity-50"
+            aria-label="Start a new chat"
+          >
+            <RotateCcw className="h-4 w-4" />
+          </button>
           <Link
             href="/dashboard/coach"
             onClick={onClose}
