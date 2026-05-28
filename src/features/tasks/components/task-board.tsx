@@ -236,7 +236,7 @@ function BoardColumn({ column, renderTask }: BoardColumnProps) {
     <div
       ref={setNodeRef}
       className={cn(
-        'flex min-h-[260px] min-w-[280px] snap-center flex-col gap-3 rounded-xl p-4 sm:min-w-[320px] md:min-w-[350px] h-full',
+        'flex h-full min-h-[260px] min-w-[220px] snap-center flex-col gap-2 rounded-xl p-3 sm:min-w-[240px] md:min-w-[260px]',
         column.accent,
         isOver ? 'ring-2 ring-yellow-400/40' : 'ring-0',
       )}

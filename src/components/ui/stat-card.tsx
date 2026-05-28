@@ -22,13 +22,15 @@ const accentRing: Record<NonNullable<StatCardProps['accent']>, string> = {
 
 function StatCard({ icon, label, value, delta, accent = 'neutral', className }: StatCardProps) {
   return (
-    <GlassCard padded={false} className={cn('p-5 flex flex-col gap-3', className)}>
-      <div className="flex items-start justify-between gap-3">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{label}</span>
+    <GlassCard padded={false} className={cn('flex flex-col gap-2 p-4', className)}>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+          {label}
+        </span>
         {icon && (
           <span
             className={cn(
-              'h-8 w-8 rounded-lg border flex items-center justify-center [&_svg]:size-4',
+              'inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border [&_svg]:h-3.5 [&_svg]:w-3.5 [&_svg]:shrink-0',
               accentRing[accent],
             )}
           >
@@ -36,7 +38,7 @@ function StatCard({ icon, label, value, delta, accent = 'neutral', className }: 
           </span>
         )}
       </div>
-      <div className="text-2xl font-bold text-zinc-900 tabular-nums">{value}</div>
+      <div className="text-2xl font-bold tabular-nums text-zinc-900">{value}</div>
       {delta && <div className="text-xs text-zinc-500">{delta}</div>}
     </GlassCard>
   )
