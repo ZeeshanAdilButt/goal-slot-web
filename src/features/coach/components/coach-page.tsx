@@ -42,16 +42,30 @@ const EXAMPLE_PROMPTS = [
 ]
 
 // ---------------------------------------------------------------------------
-// scopeKey helpers — ISO week "YYYY-Www" (matches backend & use-goal-reflection)
+// scopeKey helpers — supports week ("YYYY-Www"), month ("YYYY-Mmm"),
+// quarter ("YYYY-Qq"), and year ("YYYY"). Backend parses all four shapes
+// into a date range the context bundle aggregates against.
 // ---------------------------------------------------------------------------
-function currentScopeKey(): string {
+export type CoachScopePeriod = 'week' | 'month' | 'quarter' | 'year'
+
+function currentScopeKey(period: CoachScopePeriod = 'week'): string {
   const now = new Date()
-  const date = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
-  const dayNum = date.getUTCDay() || 7
-  date.setUTCDate(date.getUTCDate() + 4 - dayNum)
-  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1))
-  const weekNo = Math.ceil(((date.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
-  return `${date.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`
+  if (period === 'week') {
+    const date = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
+    const dayNum = date.getUTCDay() || 7
+    date.setUTCDate(date.getUTCDate() + 4 - dayNum)
+    const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1))
+    const weekNo = Math.ceil(((date.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
+    return `${date.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`
+  }
+  if (period === 'month') {
+    return `${now.getFullYear()}-M${String(now.getMonth() + 1).padStart(2, '0')}`
+  }
+  if (period === 'quarter') {
+    const q = Math.floor(now.getMonth() / 3) + 1
+    return `${now.getFullYear()}-Q${q}`
+  }
+  return `${now.getFullYear()}`
 }
 
 /**
@@ -60,25 +74,43 @@ function currentScopeKey(): string {
  * scopeKey only when the parse fails.
  */
 function humanScopeLabel(scopeKey: string): string {
-  const m = /^(\d{4})-W(\d{2})$/.exec(scopeKey)
-  if (!m) return scopeKey
-  const year = Number(m[1])
-  const week = Number(m[2])
-  // ISO-week Monday: Jan 4 of the year is always in week 1; back up to its Monday.
-  const jan4 = new Date(Date.UTC(year, 0, 4))
-  const jan4Day = jan4.getUTCDay() || 7
-  const week1Monday = new Date(jan4)
-  week1Monday.setUTCDate(jan4.getUTCDate() - (jan4Day - 1))
-  const monday = new Date(week1Monday)
-  monday.setUTCDate(week1Monday.getUTCDate() + (week - 1) * 7)
-  const sunday = new Date(monday)
-  sunday.setUTCDate(monday.getUTCDate() + 6)
-  const fmtDay = (d: Date) => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-  const fmtSundayDay = (d: Date) =>
-    d.getUTCMonth() === monday.getUTCMonth() ? String(d.getUTCDate()) : fmtDay(d)
-  const isCurrent = scopeKey === currentScopeKey()
-  const prefix = isCurrent ? 'This week · ' : ''
-  return `${prefix}${fmtDay(monday)} - ${fmtSundayDay(sunday)}`
+  // Week
+  let m: RegExpExecArray | null = /^(\d{4})-W(\d{2})$/.exec(scopeKey)
+  if (m) {
+    const year = Number(m[1])
+    const week = Number(m[2])
+    const jan4 = new Date(Date.UTC(year, 0, 4))
+    const jan4Day = jan4.getUTCDay() || 7
+    const week1Monday = new Date(jan4)
+    week1Monday.setUTCDate(jan4.getUTCDate() - (jan4Day - 1))
+    const monday = new Date(week1Monday)
+    monday.setUTCDate(week1Monday.getUTCDate() + (week - 1) * 7)
+    const sunday = new Date(monday)
+    sunday.setUTCDate(monday.getUTCDate() + 6)
+    const fmtDay = (d: Date) => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+    const fmtSundayDay = (d: Date) =>
+      d.getUTCMonth() === monday.getUTCMonth() ? String(d.getUTCDate()) : fmtDay(d)
+    const isCurrent = scopeKey === currentScopeKey('week')
+    return `${isCurrent ? 'This week · ' : ''}${fmtDay(monday)} - ${fmtSundayDay(sunday)}`
+  }
+  // Month
+  m = /^(\d{4})-M(\d{2})$/.exec(scopeKey)
+  if (m) {
+    const date = new Date(Number(m[1]), Number(m[2]) - 1, 1)
+    const label = date.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+    return scopeKey === currentScopeKey('month') ? `This month · ${label}` : label
+  }
+  // Quarter
+  m = /^(\d{4})-Q([1-4])$/.exec(scopeKey)
+  if (m) {
+    const label = `Q${m[2]} ${m[1]}`
+    return scopeKey === currentScopeKey('quarter') ? `This quarter · ${label}` : label
+  }
+  // Year
+  if (/^\d{4}$/.test(scopeKey)) {
+    return scopeKey === currentScopeKey('year') ? `This year · ${scopeKey}` : scopeKey
+  }
+  return scopeKey
 }
 
 function isAxios404(err: unknown): boolean {
@@ -782,10 +814,18 @@ export function CoachPage() {
   const hasKey = status === 'active'
   const providerLabel = PROVIDER_META[provider].label
 
+  const [period, setPeriod] = useState<CoachScopePeriod>('week')
   const [scopeKey, setScopeKey] = useState('')
   useEffect(() => {
-    setScopeKey(currentScopeKey())
-  }, [])
+    setScopeKey(currentScopeKey(period))
+  }, [period])
+
+  const PERIODS: { key: CoachScopePeriod; label: string }[] = [
+    { key: 'week', label: 'Week' },
+    { key: 'month', label: 'Month' },
+    { key: 'quarter', label: 'Quarter' },
+    { key: 'year', label: 'Year' },
+  ]
 
   return (
     <PageShell>
@@ -809,6 +849,37 @@ export function CoachPage() {
           </div>
         }
       />
+
+      {/* Scope picker: let the user widen Coach's context to the month,
+          quarter, or year. Chat history is keyed per scope, so each pill
+          opens a separate conversation thread. */}
+      {hasKey && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+            Context
+          </span>
+          <div className="inline-flex rounded-md border border-zinc-200 bg-white p-0.5 shadow-sm">
+            {PERIODS.map((p) => (
+              <button
+                key={p.key}
+                type="button"
+                onClick={() => setPeriod(p.key)}
+                className={cn(
+                  'rounded px-2.5 py-1 text-xs font-medium transition-colors',
+                  period === p.key
+                    ? 'bg-[#f2cc0d] text-zinc-900'
+                    : 'text-zinc-600 hover:bg-zinc-50',
+                )}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+          {scopeKey && (
+            <span className="text-[11px] text-zinc-500">{humanScopeLabel(scopeKey)}</span>
+          )}
+        </div>
+      )}
 
       {/* Compact tiles row: capabilities, narrative, active practice — collapsed by default to keep chat front-and-center. */}
       {hasKey && scopeKey && <CoachOverviewTiles scopeKey={scopeKey} />}
