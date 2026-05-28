@@ -8,42 +8,42 @@ interface TangleHeroProps {
 
 /**
  * Decorative SVG line that morphs from a tangled knot into a clean
- * untangled loop and back, on a slow loop. Sits at the top of the
- * Journal page as a tiny visual metaphor for what writing here does
- * to a busy head. Pure SVG, animates the `d` attribute via SMIL
- * <animate> so we don't drag in a JS animation library for one shape.
+ * untangled wave and back, on a 3s loop. Slightly thicker stroke than
+ * the original so it actually reads as a stroke at 14–18px height.
+ * Pure SVG, animates the `d` attribute via SMIL so we don't drag in
+ * a JS animation library for one shape.
  */
 export function TangleHero({ className }: TangleHeroProps) {
-  // Two paths to morph between.
-  // Tangled: messy zigzag with self-crossings.
+  // Tangled: messy zigzag with self-crossings — taller amplitude so
+  // the transformation to the calm wave reads clearly.
   const TANGLED =
-    'M4 14 C 18 4, 22 24, 36 8 S 52 22, 66 6 S 90 24, 110 12 S 136 2, 150 18 S 168 4, 184 14'
-  // Calm: gentle sine wave from left to right.
+    'M4 22 C 20 4, 28 38, 46 6 S 70 36, 88 8 S 116 36, 138 10 S 162 38, 184 18 S 208 4, 232 22'
+  // Calm: a gentle low-amplitude sine across the width.
   const CALM =
-    'M4 14 C 24 14, 36 14, 56 14 S 96 14, 116 14 S 156 14, 184 14'
+    'M4 22 C 30 14, 60 30, 90 22 S 150 14, 184 22 S 220 30, 232 22'
 
   return (
     <svg
-      viewBox="0 0 188 28"
-      className={cn('h-3 w-32', className)}
+      viewBox="0 0 236 44"
+      className={cn('h-5 w-40', className)}
       aria-hidden="true"
     >
       <path
         fill="none"
         stroke="#f2cc0d"
-        strokeWidth="1.5"
+        strokeWidth="2.25"
         strokeLinecap="round"
         strokeLinejoin="round"
-        opacity="0.85"
+        opacity="0.95"
       >
         <animate
           attributeName="d"
-          values={`${TANGLED};${CALM};${CALM};${TANGLED}`}
-          keyTimes="0;0.45;0.65;1"
-          dur="6.5s"
+          values={`${TANGLED};${CALM};${CALM};${TANGLED};${TANGLED}`}
+          keyTimes="0;0.45;0.55;0.95;1"
+          dur="6s"
           repeatCount="indefinite"
           calcMode="spline"
-          keySplines="0.42 0 0.58 1;0 0 1 1;0.42 0 0.58 1"
+          keySplines="0.45 0.05 0.55 0.95;0 0 1 1;0.45 0.05 0.55 0.95;0 0 1 1"
         />
       </path>
     </svg>

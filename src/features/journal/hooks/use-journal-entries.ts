@@ -17,6 +17,12 @@ export interface JournalEntry {
 
 const QUERY_KEY = ['coach', 'journal', 'entries'] as const
 
+// Default starter template for a brand-new daily entry. Plain HTML so
+// TipTap renders it as real headings + paragraphs the user can edit or
+// delete inline. Intentionally human: no emojis, no AI persona, no
+// branded copy — these are the questions you'd jot in a notebook.
+const DEFAULT_ENTRY_TEMPLATE = `<h2>What happened today</h2><p></p><h2>How I felt</h2><p></p><h2>What worked, what didn't</h2><p></p><h2>One thing for tomorrow</h2><p></p>`
+
 function todayKey(): string {
   const d = new Date()
   const yyyy = d.getFullYear()
@@ -51,7 +57,14 @@ export function useJournalEntries() {
 
   const ensureMutation = useMutation({
     mutationFn: async (date: string) => {
-      const res = await coachApi.upsertJournalEntry({ date })
+      // Seed brand-new entries with a quiet, human starting template
+      // — no emojis, no "AI assistant" framing, just four soft prompts
+      // the writer can fill in or delete. The check guards against
+      // clobbering an existing entry on a server-side recreate path.
+      const res = await coachApi.upsertJournalEntry({
+        date,
+        content: DEFAULT_ENTRY_TEMPLATE,
+      })
       return fromDto(res.data)
     },
     onSuccess: (entry) => {

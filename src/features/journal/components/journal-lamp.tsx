@@ -10,15 +10,13 @@ interface JournalLampProps {
 }
 
 /**
- * Interactive desk lamp tucked into the top-right of the Journal page.
- * Click the bulb to toggle on/off — controls the ambient glow on the
- * page. When off, the lamp has a gentle idle bob + a soft pulse on the
- * pull-string so it nudges the user to pick it. When on, the bulb glows
- * brand-yellow and the cone of light is visible.
+ * Interactive bedside-style lamp. Cylindrical base, fabric dome shade,
+ * thin neck, pull-string with a small bead. Click anywhere on the lamp
+ * to toggle the bulb (which controls the page's ambient glow). While
+ * off + before first interaction the lamp does a gentle bob and the
+ * pull-string bead softly pulses, so the user notices the click target.
  */
 export function JournalLamp({ on, onToggle }: JournalLampProps) {
-  // Stop the idle bob once the user has interacted at least once — no
-  // need to keep nudging if they already know it's clickable.
   const [hasInteracted, setHasInteracted] = useState(false)
   useEffect(() => {
     if (on) setHasInteracted(true)
@@ -36,65 +34,77 @@ export function JournalLamp({ on, onToggle }: JournalLampProps) {
       aria-pressed={on}
       title={on ? 'Turn lamp off' : 'Turn lamp on'}
       className={cn(
-        'group pointer-events-auto relative inline-flex h-32 w-24 items-start justify-center focus-visible:outline-none',
+        'group pointer-events-auto relative inline-flex h-32 w-24 items-end justify-center focus-visible:outline-none',
         !hasInteracted && 'motion-safe:animate-[lamp-bob_3.4s_ease-in-out_infinite]',
       )}
     >
       <svg viewBox="0 0 96 128" className="h-full w-full" aria-hidden="true">
         <defs>
-          <radialGradient id="lamp-bulb-on" cx="50%" cy="55%" r="55%">
-            <stop offset="0%" stopColor="#fff5b3" />
-            <stop offset="45%" stopColor="#f2cc0d" />
-            <stop offset="100%" stopColor="#a88a08" />
+          {/* Warm bulb gradient — only used when on */}
+          <radialGradient id="bedside-bulb-on" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#fff8c2" />
+            <stop offset="60%" stopColor="#f2cc0d" stopOpacity="0.55" />
+            <stop offset="100%" stopColor="#f2cc0d" stopOpacity="0" />
           </radialGradient>
-          <linearGradient id="lamp-cone-fill" x1="50%" y1="0%" x2="50%" y2="100%">
-            <stop offset="0%" stopColor="#fff3a8" stopOpacity="0.7" />
+          {/* Fabric shade fill — warmer when on */}
+          <linearGradient id="bedside-shade-on" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#5a4a18" />
+            <stop offset="60%" stopColor="#8a7307" />
+            <stop offset="100%" stopColor="#f2cc0d" />
+          </linearGradient>
+          <linearGradient id="bedside-shade-off" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#27272a" />
+            <stop offset="100%" stopColor="#3f3f46" />
+          </linearGradient>
+          <linearGradient id="bedside-base" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#3f3f46" />
+            <stop offset="100%" stopColor="#18181b" />
+          </linearGradient>
+          {/* Light cone — only when on */}
+          <linearGradient id="bedside-cone" x1="50%" y1="0%" x2="50%" y2="100%">
+            <stop offset="0%" stopColor="#fff3a8" stopOpacity="0.55" />
             <stop offset="100%" stopColor="#fff3a8" stopOpacity="0" />
           </linearGradient>
         </defs>
 
-        {/* Cord from top */}
-        <line x1="48" y1="0" x2="48" y2="22" stroke="#52525b" strokeWidth="1.5" />
-
-        {/* Shade (trapezoid) */}
+        {/* Lamp shade — dome / drum shape */}
         <path
-          d="M28 22 L68 22 L60 56 L36 56 Z"
-          fill="#18181b"
+          d="M22 18 L74 18 L66 50 L30 50 Z"
+          fill={on ? 'url(#bedside-shade-on)' : 'url(#bedside-shade-off)'}
           stroke="#27272a"
-          strokeWidth="1.5"
+          strokeWidth="1.25"
           strokeLinejoin="round"
         />
-        {/* Shade highlight */}
-        <path d="M30 24 L36 24 L34 30 L30 30 Z" fill="#3f3f46" opacity="0.6" />
+        {/* Shade rim highlight */}
+        <path d="M22 18 L74 18" stroke="#52525b" strokeWidth="1.25" />
+        <path d="M30 50 L66 50" stroke="#0a0a0a" strokeWidth="1.25" />
 
-        {/* Bulb socket */}
-        <rect x="40" y="56" width="16" height="4" fill="#3f3f46" />
+        {/* Neck (thin rod from shade down to base) */}
+        <rect x="46" y="50" width="4" height="44" fill="#52525b" />
 
-        {/* Bulb */}
-        <circle
-          cx="48"
-          cy="68"
-          r="9"
-          fill={on ? 'url(#lamp-bulb-on)' : '#3f3f46'}
-          stroke={on ? '#a88a08' : '#52525b'}
-          strokeWidth="1.25"
-        />
+        {/* Base — round disc with subtle highlight */}
+        <ellipse cx="48" cy="100" rx="22" ry="6" fill="url(#bedside-base)" stroke="#0a0a0a" strokeWidth="1" />
+        <ellipse cx="48" cy="98" rx="22" ry="5" fill="#27272a" />
+        <ellipse cx="48" cy="97" rx="18" ry="3" fill="#3f3f46" opacity="0.7" />
 
-        {/* Light cone — only when on */}
+        {/* Bulb glow under the shade — only when on */}
+        {on && <circle cx="48" cy="48" r="14" fill="url(#bedside-bulb-on)" />}
+
+        {/* Light cone spilling onto the surface */}
         {on && (
           <path
-            d="M30 60 L66 60 L92 128 L4 128 Z"
-            fill="url(#lamp-cone-fill)"
-            opacity="0.85"
+            d="M30 50 L66 50 L82 110 L14 110 Z"
+            fill="url(#bedside-cone)"
+            opacity="0.8"
           />
         )}
 
-        {/* Pull string + bead. Bead pulses when the lamp is OFF and the
-            user hasn't interacted yet, to draw the click. */}
-        <line x1="58" y1="60" x2="58" y2="78" stroke="#71717a" strokeWidth="1" />
+        {/* Pull-string + bead, hangs from the right side of the shade.
+            The bead pulses softly when the lamp is OFF and unclicked. */}
+        <line x1="64" y1="50" x2="64" y2="62" stroke="#71717a" strokeWidth="1" />
         <circle
-          cx="58"
-          cy="80"
+          cx="64"
+          cy="64"
           r="2.2"
           fill={on ? '#f2cc0d' : '#a1a1aa'}
           className={cn(
@@ -103,11 +113,11 @@ export function JournalLamp({ on, onToggle }: JournalLampProps) {
         />
       </svg>
 
-      {/* Bulb glow halo (CSS, sits behind the SVG for blur) */}
+      {/* Soft CSS halo behind the SVG when on — sits behind the shade */}
       {on && (
         <span
           aria-hidden
-          className="pointer-events-none absolute left-1/2 top-[42%] -z-10 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#f2cc0d]/30 blur-2xl"
+          className="pointer-events-none absolute left-1/2 top-[36%] -z-10 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#f2cc0d]/30 blur-2xl"
         />
       )}
     </button>

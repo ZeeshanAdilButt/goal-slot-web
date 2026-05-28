@@ -56,9 +56,9 @@ export function JournalPage() {
         <LampGlow className="h-full w-full" />
       </div>
 
-      {/* Interactive desk lamp. Click the bulb to toggle the ambient
-          glow. Bobs gently while off + before first interaction. */}
-      <div className="pointer-events-none absolute right-4 top-0 z-10 sm:right-8">
+      {/* Bedside-style lamp in the top-right corner. Click anywhere on
+          the lamp to toggle the ambient page glow. */}
+      <div className="pointer-events-none absolute -top-2 right-1 z-10 hidden sm:block sm:right-3">
         <JournalLamp on={lampOn} onToggle={() => setLampOn((v) => !v)} />
       </div>
 
@@ -66,24 +66,15 @@ export function JournalPage() {
         eyebrow="Reflect"
         title="Journal"
         description="One free-form entry per day. Just start typing. It autosaves, and the Coach uses it when reading your week."
-        actions={
-          <Button
-            type="button"
-            variant="brand"
-            size="sm"
-            onClick={() => handleSelect(today)}
-          >
-            <CalendarDays className="h-4 w-4" />
-            Today
-          </Button>
-        }
       />
 
-      <div className="-mt-2 flex flex-wrap items-center gap-3 text-[12px] italic text-[#8a7307]">
-        <TangleHero className="h-3 w-24 opacity-90" />
-        <JournalAffirmations />
+      <div className="-mt-1 flex flex-wrap items-center gap-3 text-[14px] font-medium text-[#8a7307]">
+        <TangleHero className="h-5 w-40 shrink-0" />
+        <span className="italic">
+          <JournalAffirmations />
+        </span>
         <span aria-hidden className="inline-block h-px w-6 bg-[#f2cc0d]/60" />
-        <span className="not-italic text-[11px] uppercase tracking-wider text-zinc-400">
+        <span className="text-[11px] uppercase tracking-wider text-zinc-400">
           Your safe space
         </span>
       </div>

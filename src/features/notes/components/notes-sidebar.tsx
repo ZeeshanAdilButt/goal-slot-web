@@ -175,9 +175,10 @@ function NoteItem({
         />
 
         {/* Expand/Collapse button — only on the top-level row. Sub-notes
-            and deeper descendants don't get a caret; the indentation
-            already communicates parent/child, and folding inside a
-            subtree was noisy. */}
+            and deeper descendants get an invisible spacer of the same
+            width so their content stays aligned past the parent's
+            chevron (otherwise the first sub-note falls left of where
+            the parent's title started). */}
         {depth === 0 ? (
           <button
             onClick={(e) => onToggleExpand(note.id, e)}
@@ -189,7 +190,9 @@ function NoteItem({
             {hasChildren &&
               (isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />)}
           </button>
-        ) : null}
+        ) : (
+          <span aria-hidden className="block h-5 w-5 shrink-0" />
+        )}
 
         {/* Icon — only render when the user picked a custom one. The
             default 📄 fallback was just visual noise on every row. */}
