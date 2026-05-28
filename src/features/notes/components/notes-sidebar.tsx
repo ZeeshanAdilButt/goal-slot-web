@@ -195,7 +195,42 @@ function NoteItem({
         {/* Favorite indicator */}
         {note.isFavorite && <Star className="h-3.5 w-3.5 shrink-0 fill-current text-yellow-500" />}
 
-        {/* Actions */}
+        {/* Inline quick actions: add sub-note + delete. Visible on hover so
+            the resting row stays clean, no extra clicks through a menu. */}
+        <button
+          type="button"
+          title="Add sub-note"
+          aria-label="Add sub-note"
+          onClick={(e) => {
+            e.stopPropagation()
+            onCreateSubNote(note.id)
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          className={cn(
+            'hidden h-5 w-5 shrink-0 items-center justify-center rounded text-zinc-500 transition-colors hover:bg-[#fff7d1] hover:text-[#8a7307] group-hover:flex',
+            isSelected && 'hover:bg-black/10',
+          )}
+        >
+          <Plus className="h-3.5 w-3.5" />
+        </button>
+        <button
+          type="button"
+          title="Delete note"
+          aria-label="Delete note"
+          onClick={(e) => {
+            e.stopPropagation()
+            onDelete(note.id)
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          className={cn(
+            'hidden h-5 w-5 shrink-0 items-center justify-center rounded text-zinc-500 transition-colors hover:bg-rose-50 hover:text-rose-600 group-hover:flex',
+            isSelected && 'hover:bg-black/10',
+          )}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+
+        {/* Overflow menu (favorite / rename / etc) */}
         <Popover>
           <PopoverTrigger asChild>
             <button
