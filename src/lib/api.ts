@@ -418,6 +418,9 @@ export interface CoachByokStateDto {
   maskedKey: string | null
   tokensUsed: number | null
   tokensLimit: number | null
+  selectedModel?: string | null
+  allowedModels?: string[]
+  effectiveModel?: string | null
 }
 
 export interface CoachByokUsageDto {
@@ -736,6 +739,8 @@ export const coachApi = {
   getByokUsage: () => api.get<CoachByokUsageDto>('/coach/byok-key/usage'),
   updateByokBudget: (tokensLimit: number) =>
     api.patch<CoachByokStateDto>('/coach/byok-key/budget', { tokensLimit }),
+  updateByokModel: (model: string) =>
+    api.patch<CoachByokStateDto>('/coach/byok-key/model', { model }),
 
   // Habits profile
   getHabitsProfile: () => api.get<CoachHabitsProfileDto>('/coach/habits-profile'),

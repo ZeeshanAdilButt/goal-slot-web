@@ -15,6 +15,9 @@ export interface ByokState {
   tokensUsed: number
   tokensLimit: number
   status: ByokStatus
+  selectedModel: string | null
+  allowedModels: string[]
+  effectiveModel: string | null
 }
 
 const DEFAULT_LIMIT = 100000
@@ -56,6 +59,9 @@ function mapStateDto(dto: CoachByokStateDto | undefined | null): ByokState {
       tokensUsed: 0,
       tokensLimit: DEFAULT_LIMIT,
       status: 'unset',
+      selectedModel: null,
+      allowedModels: [],
+      effectiveModel: null,
     }
   }
   return {
@@ -64,6 +70,9 @@ function mapStateDto(dto: CoachByokStateDto | undefined | null): ByokState {
     tokensUsed: dto.tokensUsed ?? 0,
     tokensLimit: dto.tokensLimit ?? DEFAULT_LIMIT,
     status: 'active',
+    selectedModel: dto.selectedModel ?? null,
+    allowedModels: dto.allowedModels ?? [],
+    effectiveModel: dto.effectiveModel ?? null,
   }
 }
 
@@ -101,6 +110,16 @@ export function useByokKey() {
     },
   })
 
+  const modelMutation = useMutation({
+    mutationFn: async (model: string) => {
+      const res = await coachApi.updateByokModel(model)
+      return mapStateDto(res.data)
+    },
+    onSuccess: (next) => {
+      queryClient.setQueryData<ByokState>(QUERY_KEY, next)
+    },
+  })
+
   const deleteMutation = useMutation({
     mutationFn: async () => {
       await coachApi.deleteByokKey()
@@ -112,6 +131,9 @@ export function useByokKey() {
         tokensUsed: 0,
         tokensLimit: DEFAULT_LIMIT,
         status: 'unset',
+        selectedModel: null,
+        allowedModels: [],
+        effectiveModel: null,
       })
       // Invalidate any related Coach queries since prior keys are gone.
       queryClient.invalidateQueries({ queryKey: ['coach'] })
@@ -124,6 +146,9 @@ export function useByokKey() {
     tokensUsed: 0,
     tokensLimit: DEFAULT_LIMIT,
     status: 'unset',
+    selectedModel: null,
+    allowedModels: [],
+    effectiveModel: null,
   }
 
   const saveKey = useCallback(
@@ -155,11 +180,22 @@ export function useByokKey() {
     [budgetMutation],
   )
 
+  const updateModel = useCallback(
+    (model: string) =>
+      modelMutation
+        .mutateAsync(model)
+        .then(() => ({ success: true as const }))
+        .catch((err) => ({ success: false as const, error: err })),
+    [modelMutation],
+  )
+
   return {
     ...state,
     saveKey,
     deleteKey,
     updateBudget,
     isUpdatingBudget: budgetMutation.isPending,
+    updateModel,
+    isUpdatingModel: modelMutation.isPending,
   }
 }

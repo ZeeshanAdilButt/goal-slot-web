@@ -22,10 +22,15 @@ export function SettingsIntegrationsTab() {
     status,
     tokensUsed,
     tokensLimit,
+    selectedModel,
+    allowedModels,
+    effectiveModel,
     saveKey,
     deleteKey,
     updateBudget,
     isUpdatingBudget,
+    updateModel,
+    isUpdatingModel,
   } = useByokKey()
   const [pendingProvider, setPendingProvider] = useState<ByokProvider>(savedProvider)
   const [rawKey, setRawKey] = useState('')
@@ -185,6 +190,51 @@ export function SettingsIntegrationsTab() {
           </p>
         </div>
       </GlassCard>
+
+      {status === 'active' && allowedModels.length > 0 && (
+        <GlassCard padded>
+          <SectionHeader title="Model" />
+          <div className="space-y-2">
+            <label
+              htmlFor="byok-model"
+              className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-500"
+            >
+              {PROVIDER_META[savedProvider].label} model used by Coach
+            </label>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <select
+                id="byok-model"
+                value={selectedModel ?? effectiveModel ?? ''}
+                onChange={async (e) => {
+                  const next = e.target.value
+                  if (!next) return
+                  const res = await updateModel(next)
+                  if (res.success) toast.success(`Model set to ${next}`)
+                  else toast.error('Could not update model')
+                }}
+                disabled={isUpdatingModel}
+                className="h-9 w-full rounded-md border border-zinc-200 bg-white px-2 text-sm text-zinc-900 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] sm:max-w-sm"
+              >
+                {allowedModels.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                    {effectiveModel === m && selectedModel == null ? ' (default)' : ''}
+                  </option>
+                ))}
+              </select>
+              {effectiveModel && (
+                <span className="text-[11px] text-zinc-500">
+                  Currently using <span className="font-mono text-zinc-700">{effectiveModel}</span>
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] text-zinc-500">
+              Lower-tier models (e.g. gpt-4o-mini, claude-3-5-haiku) cost less per request. Pick what
+              matches your comfort with your provider bill. Whitelist enforced server-side.
+            </p>
+          </div>
+        </GlassCard>
+      )}
 
       {status === 'active' && (
         <GlassCard padded>
