@@ -83,10 +83,17 @@ export function FloatingCoachPopover({ open, onClose }: FloatingCoachPopoverProp
   const abortRef = useRef<AbortController | null>(null)
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
+  const [editingFromMessageId, setEditingFromMessageId] = useState<string | null>(null)
 
-  const handleEditMessage = (content: string) => {
+  const handleEditMessage = (id: string, content: string) => {
+    setEditingFromMessageId(id)
     setInput(content)
     inputRef.current?.focus()
+  }
+
+  const cancelEdit = () => {
+    setEditingFromMessageId(null)
+    setInput('')
   }
 
   // Intentionally do NOT abort the SSE when the popover closes or when the
@@ -126,6 +133,30 @@ export function FloatingCoachPopover({ open, onClose }: FloatingCoachPopoverProp
       if (!trimmed || streaming || !scopeKey) return
       setError(null)
       setInput('')
+
+      // Edit-and-resend: truncate the chat from the edited message before
+      // sending so the now-stale reply chain is gone (server + cache).
+      const editingId = editingFromMessageId
+      if (editingId) {
+        try {
+          await coachApi.truncateChatFrom(scopeKey, editingId)
+          queryClient.setQueryData<CoachMessageDto[]>(
+            ['coach', 'chat', scopeKey],
+            (prev) => {
+              if (!prev) return prev
+              const idx = prev.findIndex((m) => m.id === editingId)
+              return idx === -1 ? prev : prev.slice(0, idx)
+            },
+          )
+        } catch (err) {
+          const m = err instanceof Error ? err.message : 'Could not edit'
+          toast.error(m)
+          setEditingFromMessageId(null)
+          return
+        }
+        setEditingFromMessageId(null)
+      }
+
       const userMsgId = `local_user_${Date.now()}`
       setOptimistic((prev) => [
         ...prev,
@@ -161,6 +192,10 @@ export function FloatingCoachPopover({ open, onClose }: FloatingCoachPopoverProp
           const m = err instanceof Error ? err.message : 'Chat failed'
           setError(m)
           showCoachStreamError(statusOf(err), m)
+          // Restore the user's input so they don't have to retype after a
+          // budget/key/network failure, and drop the optimistic bubble.
+          setInput((cur) => cur || trimmed)
+          setOptimistic((prev) => prev.filter((m) => m.id !== userMsgId))
         }
       } finally {
         setStreaming(false)
@@ -168,7 +203,7 @@ export function FloatingCoachPopover({ open, onClose }: FloatingCoachPopoverProp
         abortRef.current = null
       }
     },
-    [queryClient, scopeKey, streaming],
+    [editingFromMessageId, queryClient, scopeKey, streaming],
   )
 
   const onSubmit = (e: React.FormEvent) => {
@@ -254,6 +289,20 @@ export function FloatingCoachPopover({ open, onClose }: FloatingCoachPopoverProp
         )}
       </div>
 
+      {editingFromMessageId && (
+        <div className="flex items-center justify-between gap-2 border-t border-[#f2cc0d]/40 bg-[#fffbea] px-3 py-1.5 text-[11px] text-[#8a7307]">
+          <span>
+            <span className="font-semibold">Editing.</span> Sending replaces the reply that came after.
+          </span>
+          <button
+            type="button"
+            onClick={cancelEdit}
+            className="font-medium text-[#8a7307] underline underline-offset-2 hover:text-[#6b5905]"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
       <form
         onSubmit={onSubmit}
         className="flex items-center gap-2 border-t border-zinc-200 bg-white px-3 py-2"
@@ -324,7 +373,7 @@ function PopoverMessageRow({
   onEdit,
 }: {
   message: ChatMessageView
-  onEdit?: (content: string) => void
+  onEdit?: (id: string, content: string) => void
 }) {
   const isCoach = message.role === 'ASSISTANT'
   const isUser = !isCoach
@@ -338,12 +387,12 @@ function PopoverMessageRow({
         <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-zinc-400">
           {isCoach ? 'Coach' : 'You'}
         </div>
-        {isUser && onEdit && !message.pending && (
+        {isUser && onEdit && !message.pending && !message.id.startsWith('local_user_') && (
           <button
             type="button"
-            onClick={() => onEdit(message.content)}
-            className="inline-flex items-center gap-1 text-[10px] font-medium text-zinc-400 opacity-0 transition-opacity hover:text-[#8a7307] group-hover:opacity-100"
-            title="Edit and resend"
+            onClick={() => onEdit(message.id, message.content)}
+            className="inline-flex items-center gap-1 text-[10px] font-medium text-zinc-400 opacity-70 transition-colors hover:text-[#8a7307] hover:opacity-100"
+            title="Edit and resend (removes the reply that came after)"
           >
             <Pencil className="h-3 w-3" />
             Edit

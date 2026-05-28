@@ -814,6 +814,8 @@ export const coachApi = {
   },
   clearChatHistory: (scopeKey: string) =>
     api.delete<{ success: true }>(`/coach/chat/${scopeKey}`),
+  truncateChatFrom: (scopeKey: string, messageId: string) =>
+    api.delete<{ deleted: number }>(`/coach/chat/${scopeKey}/messages/from/${messageId}`),
   saveChatMessageAsInsight: (scopeKey: string, messageId: string, title?: string) =>
     api.post<CoachInsightDto>(
       `/coach/chat/${scopeKey}/messages/${messageId}/save`,

@@ -345,7 +345,7 @@ function ChatMessageRow({
   scopeKey: string
   savedIds: Set<string>
   onSaved: (id: string) => void
-  onEdit?: (content: string) => void
+  onEdit?: (id: string, content: string) => void
 }) {
   const queryClient = useQueryClient()
   const [saving, setSaving] = useState(false)
@@ -376,12 +376,12 @@ function ChatMessageRow({
         <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-zinc-400">
           {isUser ? 'You' : 'Coach'}
         </span>
-        {isUser && onEdit && !message.pending && (
+        {isUser && onEdit && !message.pending && !message.id.startsWith('local_user_') && (
           <button
             type="button"
-            onClick={() => onEdit(message.content)}
-            className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-400 opacity-0 transition-opacity hover:text-[#8a7307] group-hover:opacity-100 focus-visible:opacity-100"
-            title="Edit and resend"
+            onClick={() => onEdit(message.id, message.content)}
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-400 opacity-70 transition-colors hover:text-[#8a7307] hover:opacity-100 focus-visible:opacity-100"
+            title="Edit and resend (removes the reply that came after)"
           >
             <Pencil className="h-3 w-3" />
             Edit
@@ -493,11 +493,22 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
   // want the server to finish and persist the message, so the next visit just
   // shows the answer. Only the explicit Stop button aborts.
 
-  const handleEditMessage = useCallback((content: string) => {
+  // When the user is editing an older message, send() will first truncate
+  // the chat from that message onward (server + cache) so the new turn
+  // replaces the stale reply chain. Saves tokens and prevents Coach from
+  // contradicting itself.
+  const [editingFromMessageId, setEditingFromMessageId] = useState<string | null>(null)
+
+  const handleEditMessage = useCallback((id: string, content: string) => {
+    setEditingFromMessageId(id)
     setInput(content)
     inputRef.current?.focus()
-    // Scroll input into view on mobile.
     inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [])
+
+  const cancelEdit = useCallback(() => {
+    setEditingFromMessageId(null)
+    setInput('')
   }, [])
 
   const handleSend = useCallback(
@@ -506,6 +517,31 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
       if (!trimmed || streaming) return
       setError(null)
       setInput('')
+
+      // If this send is an edit of an older message, truncate the chat at
+      // that message (server + cache) so the previous turn-and-reply chain
+      // is gone. Then proceed with a fresh send.
+      const editingId = editingFromMessageId
+      if (editingId) {
+        try {
+          await coachApi.truncateChatFrom(scopeKey, editingId)
+          queryClient.setQueryData<CoachMessageDto[]>(
+            ['coach', 'chat', scopeKey],
+            (prev) => {
+              if (!prev) return prev
+              const idx = prev.findIndex((m) => m.id === editingId)
+              return idx === -1 ? prev : prev.slice(0, idx)
+            },
+          )
+        } catch (err) {
+          const m = err instanceof Error ? err.message : 'Could not edit'
+          toast.error(m)
+          setEditingFromMessageId(null)
+          return
+        }
+        setEditingFromMessageId(null)
+      }
+
       const userMsgId = `local_user_${Date.now()}`
       setOptimistic((prev) => [...prev, { id: userMsgId, role: 'USER', content: trimmed }])
       setStreamingReply('')
@@ -536,14 +572,18 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
         const message = err instanceof Error ? err.message : 'Chat failed'
         handleStreamError(status, message)
         setError(message)
-        // Keep the optimistic user message visible so the user can retry.
+        // Send failed (budget exceeded, key removed, network, etc). Restore
+        // what the user wrote so they don't have to retype, and drop the
+        // optimistic user bubble so we don't leave a ghost message in chat.
+        setInput((cur) => cur || trimmed)
+        setOptimistic((prev) => prev.filter((m) => m.id !== userMsgId))
       } finally {
         setStreaming(false)
         setStreamingReply('')
         abortRef.current = null
       }
     },
-    [queryClient, scopeKey, streaming],
+    [editingFromMessageId, queryClient, scopeKey, streaming],
   )
 
   const onSubmit = (e: React.FormEvent) => {
@@ -646,12 +686,27 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
         ))}
       </div>
 
+      {editingFromMessageId && (
+        <div className="flex items-center justify-between gap-2 rounded-md border border-[#f2cc0d]/40 bg-[#fffbea] px-3 py-1.5 text-xs text-[#8a7307]">
+          <span>
+            <span className="font-semibold">Editing.</span> Sending will replace this message and
+            remove the reply that came after it.
+          </span>
+          <button
+            type="button"
+            onClick={cancelEdit}
+            className="text-xs font-medium text-[#8a7307] underline underline-offset-2 hover:text-[#6b5905]"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
       <form onSubmit={onSubmit} className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <Input
           ref={inputRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask the Coach a question..."
+          placeholder={editingFromMessageId ? 'Edit your message...' : 'Ask the Coach a question...'}
           disabled={streaming}
           className="flex-1"
         />
