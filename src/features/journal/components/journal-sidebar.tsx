@@ -103,6 +103,65 @@ export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSideb
     }
   }
 
+  // Quick presets the user can click to set a common date range on the
+  // calendar without having to click two days. Each computes [from, to]
+  // for week (Sun-today), month-to-date, quarter-to-date, year-to-date.
+  const presets: { key: string; label: string; build: () => DateRange }[] = [
+    {
+      key: 'week',
+      label: 'Week',
+      build: () => {
+        const from = new Date(todayObj)
+        from.setDate(todayObj.getDate() - todayObj.getDay())
+        return { from, to: todayObj }
+      },
+    },
+    {
+      key: 'month',
+      label: 'Month',
+      build: () => ({
+        from: new Date(todayObj.getFullYear(), todayObj.getMonth(), 1),
+        to: todayObj,
+      }),
+    },
+    {
+      key: 'quarter',
+      label: 'Quarter',
+      build: () => {
+        const startMonth = Math.floor(todayObj.getMonth() / 3) * 3
+        return {
+          from: new Date(todayObj.getFullYear(), startMonth, 1),
+          to: todayObj,
+        }
+      },
+    },
+    {
+      key: 'year',
+      label: 'Year',
+      build: () => ({
+        from: new Date(todayObj.getFullYear(), 0, 1),
+        to: todayObj,
+      }),
+    },
+  ]
+
+  // Which preset (if any) currently matches the active range — for the
+  // "selected" visual on the chip row.
+  const activePresetKey = useMemo(() => {
+    if (!range?.from || !range.to) return null
+    const fromKey = toDateKey(range.from)
+    const toKey = toDateKey(range.to)
+    for (const p of presets) {
+      const r = p.build()
+      if (r.from && r.to && toDateKey(r.from) === fromKey && toDateKey(r.to) === toKey) {
+        return p.key
+      }
+    }
+    return null
+    // presets is rebuilt every render but deps don't change meaningfully here
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [range])
+
   const selectedDateObj = selectedDate ? new Date(`${selectedDate}T00:00:00`) : undefined
 
   const shiftMonth = (delta: number) => {
@@ -119,6 +178,28 @@ export function JournalSidebar({ entries, selectedDate, onSelect }: JournalSideb
     <div className="space-y-3">
       {/* Inline calendar pinned to the top with explicit month nav. */}
       <div className="rounded-lg border border-zinc-200 bg-white p-2">
+        {/* Quick range presets so the user can scope to week / month /
+            quarter / year with one tap, no two-click range selection. */}
+        <div className="mb-2 grid grid-cols-4 gap-1 rounded-md bg-zinc-50 p-0.5">
+          {presets.map((p) => {
+            const isActive = activePresetKey === p.key
+            return (
+              <button
+                key={p.key}
+                type="button"
+                onClick={() => handleRangeChange(p.build())}
+                className={cn(
+                  'rounded px-1.5 py-1 text-[10px] font-semibold uppercase tracking-wider transition-colors',
+                  isActive
+                    ? 'bg-white text-zinc-900 shadow-sm'
+                    : 'text-zinc-500 hover:text-zinc-900',
+                )}
+              >
+                {p.label}
+              </button>
+            )
+          })}
+        </div>
         <div className="mb-1 flex items-center justify-between gap-2 px-1">
           <button
             type="button"
