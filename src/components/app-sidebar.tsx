@@ -130,15 +130,27 @@ export function AppSidebar() {
                     >
                       <Link href={item.href}>
                         {isJournal ? (
-                          // Journal: default-coloured pen with three tiny
-                          // brand-yellow stars twinkling around it on staggered
-                          // delays — a star appears roughly every second so
-                          // the icon reads as quietly magical without shouting.
-                          <span className="relative inline-flex h-4 w-4 items-center justify-center group-data-[collapsible=icon]:-ml-1 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5">
+                          // Journal: pen sits inside the brand-yellow aura
+                          // ring that pulses on a 2s beat — same "thinking"
+                          // halo we use for GoalSlot AI, applied here so the
+                          // journaling habit gets the same emphasis.
+                          <span className="relative inline-flex h-4 w-4 items-center justify-center rounded-full motion-safe:animate-[coach-aura_2s_ease-in-out_infinite] group-data-[collapsible=icon]:-ml-1 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5">
                             <item.icon
                               className={cn(
                                 'h-4 w-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5',
                                 isActive && 'text-[#f2cc0d]',
+                              )}
+                            />
+                          </span>
+                        ) : isCoach ? (
+                          // GoalSlot AI: bigger than the other lucide nav
+                          // icons; coin-flips every 2s and is surrounded by
+                          // three tiny brand-yellow stars twinkling on
+                          // staggered 3s delays so a spark fires every ~1s.
+                          <span className="relative inline-flex h-6 w-6 items-center justify-center group-data-[collapsible=icon]:-ml-1 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
+                            <item.icon
+                              className={cn(
+                                'h-6 w-6 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7 [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.6))] motion-safe:animate-[coach-spin-pause_2s_ease-in-out_infinite]',
                               )}
                             />
                             <JournalSpark className="absolute -right-1 -top-1 h-2 w-2 motion-safe:animate-[journal-spark_3s_ease-in-out_infinite]" />
@@ -149,18 +161,6 @@ export function AppSidebar() {
                             <JournalSpark
                               className="absolute -bottom-1 right-0 h-1.5 w-1.5 motion-safe:animate-[journal-spark_3s_ease-in-out_infinite]"
                               style={{ animationDelay: '2s' }}
-                            />
-                          </span>
-                        ) : isCoach ? (
-                          // GoalSlot AI mark: brand-yellow aura ring pulses on
-                          // the same 2s beat as the coin flip, so the icon
-                          // reads as "thinking" rather than just spinning.
-                          // Larger than the other lucide nav icons.
-                          <span className="relative inline-flex h-6 w-6 items-center justify-center rounded-full motion-safe:animate-[coach-aura_2s_ease-in-out_infinite] group-data-[collapsible=icon]:-ml-1 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
-                            <item.icon
-                              className={cn(
-                                'h-6 w-6 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7 [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.6))] motion-safe:animate-[coach-spin-pause_2s_ease-in-out_infinite]',
-                              )}
                             />
                           </span>
                         ) : (

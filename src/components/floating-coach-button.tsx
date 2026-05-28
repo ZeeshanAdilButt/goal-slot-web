@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils'
 
 import { FloatingCoachPopover } from './floating-coach-popover'
 import { CoachIcon } from './icons/coach-icon'
+import { JournalSpark } from './icons/journal-spark'
 
 /**
  * Floating Coach button anchored bottom-right on every authenticated page.
@@ -53,8 +54,17 @@ function FloatingCoachButtonInner() {
         {open ? (
           <MessageCircle className="h-5 w-5" />
         ) : (
-          <span className="relative inline-flex h-9 w-9 items-center justify-center rounded-full motion-safe:animate-[coach-aura_2s_ease-in-out_infinite]">
+          <span className="relative inline-flex h-9 w-9 items-center justify-center">
             <CoachIcon className="h-8 w-8 [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.6))] motion-safe:animate-[coach-spin-pause_2s_ease-in-out_infinite]" />
+            <JournalSpark className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 motion-safe:animate-[journal-spark_3s_ease-in-out_infinite]" />
+            <JournalSpark
+              className="absolute -left-0.5 top-1 h-2 w-2 motion-safe:animate-[journal-spark_3s_ease-in-out_infinite]"
+              style={{ animationDelay: '1s' }}
+            />
+            <JournalSpark
+              className="absolute -bottom-0.5 right-1 h-2 w-2 motion-safe:animate-[journal-spark_3s_ease-in-out_infinite]"
+              style={{ animationDelay: '2s' }}
+            />
           </span>
         )}
         {fresh > 0 && !open && (
