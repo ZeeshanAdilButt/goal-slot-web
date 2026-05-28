@@ -39,9 +39,9 @@ export function TimerSettings({
 
   return (
     <div className="mb-4 space-y-3 text-left">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <label className={`${LABEL_CLASS} mb-1`}>Reminder</label>
+      <div>
+        <label className={`${LABEL_CLASS} mb-1`}>Reminder</label>
+        <div className="flex flex-wrap items-center gap-2">
           <Select
             value={reminderInterval.toString()}
             onValueChange={(val) => setReminderInterval(Number(val))}
@@ -61,20 +61,20 @@ export function TimerSettings({
               ))}
             </SelectContent>
           </Select>
+          {canClearAll && (
+            <button
+              type="button"
+              onClick={() => {
+                onGoalIdChange('')
+                onCategoryChange('')
+              }}
+              className="inline-flex h-9 items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-2.5 text-xs font-medium text-zinc-600 transition-colors hover:border-zinc-300 hover:text-zinc-900"
+            >
+              <X className="h-3.5 w-3.5" />
+              Clear goal & category
+            </button>
+          )}
         </div>
-        {canClearAll && (
-          <button
-            type="button"
-            onClick={() => {
-              onGoalIdChange('')
-              onCategoryChange('')
-            }}
-            className="inline-flex h-9 items-center gap-1.5 self-end rounded-md border border-zinc-200 bg-white px-2.5 text-xs font-medium text-zinc-600 transition-colors hover:border-zinc-300 hover:text-zinc-900"
-          >
-            <X className="h-3.5 w-3.5" />
-            Clear goal & category
-          </button>
-        )}
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
