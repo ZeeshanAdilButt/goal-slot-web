@@ -1,8 +1,11 @@
+'use client'
+
 import Link from 'next/link'
 
 import { format } from 'date-fns'
-import { Clock, Plus, Tag } from 'lucide-react'
+import { Clock, Plus } from 'lucide-react'
 
+import { CategoriesButton } from '@/features/categories/components/categories-button'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/ui/page-header'
 
@@ -16,12 +19,7 @@ export function DashboardHeader() {
       description={today}
       actions={
         <>
-          <Button asChild variant="secondary" size="sm">
-            <Link href="/dashboard/settings?tab=categories">
-              <Tag className="h-4 w-4" />
-              <span className="hidden sm:inline">Categories</span>
-            </Link>
-          </Button>
+          <CategoriesButton />
           <Button asChild variant="secondary" size="sm">
             <Link href="/dashboard/time-tracker">
               <Clock className="h-4 w-4" />
