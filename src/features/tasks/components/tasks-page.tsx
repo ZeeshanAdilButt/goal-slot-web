@@ -58,12 +58,15 @@ export function TasksPage() {
     false,
   )
 
-  // Set of goal ids that have a schedule block ACTIVE RIGHT NOW (today's
-  // dayOfWeek AND current time within [startTime, endTime]). Tight rule so
-  // the "On now" pill only flags the goal you're literally supposed to be
-  // working on this minute, not every goal with a daily-recurring block.
-  const activeGoalIdsThisWeek = useMemo(() => {
-    const ids = new Set<string>()
+  // Schedule-aware ordering signal for goals:
+  //   activeGoalIdsThisWeek: ids of goals with a block ACTIVE RIGHT NOW.
+  //   goalNextBlockMinutes:  map of goalId -> minutes until next occurrence
+  //                          (0 for active-now, Infinity for unscheduled).
+  // Sidebar uses these to float scheduled goals to the top in order of how
+  // soon they're up. Drag-to-reorder still works for unscheduled goals.
+  const { activeGoalIdsThisWeek, goalNextBlockMinutes } = useMemo(() => {
+    const active = new Set<string>()
+    const nextMins = new Map<string, number>()
     const now = new Date()
     const todayDow = now.getDay()
     const nowMinutes = now.getHours() * 60 + now.getMinutes()
@@ -80,14 +83,25 @@ export function TasksPage() {
         startTime?: string | null
         endTime?: string | null
       }) => {
-        if (!b.goalId || b.dayOfWeek !== todayDow) return
+        if (!b.goalId || typeof b.dayOfWeek !== 'number') return
         const start = parseHM(b.startTime)
         const end = parseHM(b.endTime)
         if (start == null || end == null) return
-        if (nowMinutes >= start && nowMinutes < end) ids.add(b.goalId)
+        // Active right now → distance 0 + tag as active.
+        if (b.dayOfWeek === todayDow && nowMinutes >= start && nowMinutes < end) {
+          active.add(b.goalId)
+          nextMins.set(b.goalId, 0)
+          return
+        }
+        // Minutes until the next occurrence (rolling 7-day window).
+        let daysUntil = (b.dayOfWeek - todayDow + 7) % 7
+        let blockNow = daysUntil * 1440 + start - nowMinutes
+        if (blockNow < 0) blockNow += 7 * 1440
+        const prev = nextMins.get(b.goalId)
+        if (prev === undefined || blockNow < prev) nextMins.set(b.goalId, blockNow)
       },
     )
-    return ids
+    return { activeGoalIdsThisWeek: active, goalNextBlockMinutes: nextMins }
   }, [scheduleBlocks])
 
   // Auto-select first goal when goals change
@@ -274,6 +288,7 @@ export function TasksPage() {
           isCollapsed={goalsSidebarCollapsed}
           onToggleCollapse={() => setIsGoalsSidebarCollapsed((prev) => !prev)}
           activeGoalIds={activeGoalIdsThisWeek}
+          goalNextBlockMinutes={goalNextBlockMinutes}
         />
       </div>
 

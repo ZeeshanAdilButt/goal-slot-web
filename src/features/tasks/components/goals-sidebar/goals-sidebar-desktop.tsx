@@ -105,6 +105,7 @@ export function GoalsSidebarDesktop({
   isLoading,
   onToggleCollapse,
   activeGoalIds,
+  goalNextBlockMinutes,
 }: GoalsSidebarProps) {
   const [showModal, setShowModal] = useState(false)
   const [editingGoal, setEditingGoal] = useState<FullGoal | null>(null)
@@ -114,18 +115,24 @@ export function GoalsSidebarDesktop({
   const reorderGoalsMutation = useReorderGoalsMutation()
 
   useEffect(() => {
-    // Stable order: goals with schedule blocks this week float to the top so
-    // the user can jump to what they're actively working on in one tap.
-    // Within each bucket the upstream order is preserved.
-    if (!activeGoalIds || activeGoalIds.size === 0) {
+    // Schedule-aware sort: goals with schedule blocks float to the top in
+    // order of how soon their next occurrence is (active now -> 0; today
+    // 2pm -> 120; tomorrow 9am -> 1980; etc). Unscheduled goals stay in
+    // their upstream order at the bottom so the user can still drag-reorder
+    // them. Drag is still available across the whole list and the new
+    // order persists via useReorderGoalsMutation.
+    if (!goalNextBlockMinutes || goalNextBlockMinutes.size === 0) {
       setOrderedGoals(goals)
       return
     }
-    const active: TaskGoal[] = []
-    const rest: TaskGoal[] = []
-    goals.forEach((g) => (activeGoalIds.has(g.id) ? active.push(g) : rest.push(g)))
-    setOrderedGoals([...active, ...rest])
-  }, [goals, activeGoalIds])
+    const withKey = goals.map((g, idx) => ({
+      g,
+      idx,
+      key: goalNextBlockMinutes.get(g.id) ?? Number.POSITIVE_INFINITY,
+    }))
+    withKey.sort((a, b) => (a.key === b.key ? a.idx - b.idx : a.key - b.key))
+    setOrderedGoals(withKey.map((x) => x.g))
+  }, [goals, goalNextBlockMinutes])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -243,16 +250,72 @@ export function GoalsSidebarDesktop({
                   onDragEnd={handleDragEnd}
                 >
                   <SortableContext items={orderedGoals.map((g) => g.id)} strategy={verticalListSortingStrategy}>
-                    {orderedGoals.map((goal) => (
-                      <SortableGoalItem
-                        key={goal.id}
-                        goal={goal}
-                        isSelected={selectedGoalId === goal.id}
-                        isActiveNow={activeGoalIds?.has(goal.id)}
-                        onSelect={() => onSelectGoal(goal.id)}
-                        onEdit={() => handleEditGoal(goal)}
-                      />
-                    ))}
+                    {(() => {
+                      // Split into 3 buckets so "On now" stays pinned at the
+                      // top in its own band, then upcoming-today/this-week,
+                      // then everything else. Order within each bucket is
+                      // already schedule-aware from the parent.
+                      const onNow: TaskGoal[] = []
+                      const upcoming: TaskGoal[] = []
+                      const rest: TaskGoal[] = []
+                      orderedGoals.forEach((g) => {
+                        if (activeGoalIds?.has(g.id)) onNow.push(g)
+                        else if (goalNextBlockMinutes?.has(g.id)) upcoming.push(g)
+                        else rest.push(g)
+                      })
+                      const sectionLabel = (text: string) => (
+                        <div className="mt-2 mb-1 px-1 text-[9px] font-bold uppercase tracking-[0.12em] text-zinc-400 first:mt-0">
+                          {text}
+                        </div>
+                      )
+                      return (
+                        <>
+                          {onNow.length > 0 && (
+                            <>
+                              {sectionLabel('On now')}
+                              {onNow.map((goal) => (
+                                <SortableGoalItem
+                                  key={goal.id}
+                                  goal={goal}
+                                  isSelected={selectedGoalId === goal.id}
+                                  isActiveNow
+                                  onSelect={() => onSelectGoal(goal.id)}
+                                  onEdit={() => handleEditGoal(goal)}
+                                />
+                              ))}
+                            </>
+                          )}
+                          {upcoming.length > 0 && (
+                            <>
+                              {sectionLabel('Upcoming this week')}
+                              {upcoming.map((goal) => (
+                                <SortableGoalItem
+                                  key={goal.id}
+                                  goal={goal}
+                                  isSelected={selectedGoalId === goal.id}
+                                  onSelect={() => onSelectGoal(goal.id)}
+                                  onEdit={() => handleEditGoal(goal)}
+                                />
+                              ))}
+                            </>
+                          )}
+                          {rest.length > 0 && (
+                            <>
+                              {(onNow.length > 0 || upcoming.length > 0) && sectionLabel('Other goals')}
+                              {rest.map((goal) => (
+                                <SortableGoalItem
+                                  key={goal.id}
+                                  goal={goal}
+                                  isSelected={selectedGoalId === goal.id}
+                                  onSelect={() => onSelectGoal(goal.id)}
+                                  onEdit={() => handleEditGoal(goal)}
+                                />
+                              ))}
+                            </>
+                          )}
+                        </>
+                      )
+                    })()}
                   </SortableContext>
                   <DragOverlay>
                     {activeGoal ? (

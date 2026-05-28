@@ -13,6 +13,8 @@ export interface GoalsSidebarProps {
   onToggleCollapse?: () => void
   /** Goal ids that have at least one schedule block in the current week. */
   activeGoalIds?: Set<string>
+  /** Map of goalId -> minutes until next scheduled occurrence (0 = active now). */
+  goalNextBlockMinutes?: Map<string, number>
 }
 
 export const GOAL_STATUS_OPTIONS = [
