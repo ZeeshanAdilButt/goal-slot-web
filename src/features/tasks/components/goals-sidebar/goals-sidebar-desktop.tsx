@@ -34,11 +34,13 @@ import { GOAL_STATUS_OPTIONS, GoalsSidebarProps, WITHOUT_GOALS_ID } from './type
 function SortableGoalItem({
   goal,
   isSelected,
+  isActiveNow,
   onSelect,
   onEdit,
 }: {
   goal: TaskGoal
   isSelected: boolean
+  isActiveNow?: boolean
   onSelect: () => void
   onEdit: () => void
 }) {
@@ -72,6 +74,14 @@ function SortableGoalItem({
         </div>
         <span className="inline-block h-2 w-2 flex-shrink-0 rounded-full" style={{ background: goal.color }} />
         <span className="flex-1 truncate">{goal.title}</span>
+        {isActiveNow && (
+          <span
+            className="rounded bg-emerald-100 px-1 py-[1px] text-[8px] font-bold uppercase tracking-wider text-emerald-700"
+            title="Has schedule blocks this week"
+          >
+            On
+          </span>
+        )}
         <button
           onClick={(e) => {
             e.stopPropagation()
@@ -94,6 +104,7 @@ export function GoalsSidebarDesktop({
   onSelectStatus,
   isLoading,
   onToggleCollapse,
+  activeGoalIds,
 }: GoalsSidebarProps) {
   const [showModal, setShowModal] = useState(false)
   const [editingGoal, setEditingGoal] = useState<FullGoal | null>(null)
@@ -103,8 +114,18 @@ export function GoalsSidebarDesktop({
   const reorderGoalsMutation = useReorderGoalsMutation()
 
   useEffect(() => {
-    setOrderedGoals(goals)
-  }, [goals])
+    // Stable order: goals with schedule blocks this week float to the top so
+    // the user can jump to what they're actively working on in one tap.
+    // Within each bucket the upstream order is preserved.
+    if (!activeGoalIds || activeGoalIds.size === 0) {
+      setOrderedGoals(goals)
+      return
+    }
+    const active: TaskGoal[] = []
+    const rest: TaskGoal[] = []
+    goals.forEach((g) => (activeGoalIds.has(g.id) ? active.push(g) : rest.push(g)))
+    setOrderedGoals([...active, ...rest])
+  }, [goals, activeGoalIds])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -227,6 +248,7 @@ export function GoalsSidebarDesktop({
                         key={goal.id}
                         goal={goal}
                         isSelected={selectedGoalId === goal.id}
+                        isActiveNow={activeGoalIds?.has(goal.id)}
                         onSelect={() => onSelectGoal(goal.id)}
                         onEdit={() => handleEditGoal(goal)}
                       />

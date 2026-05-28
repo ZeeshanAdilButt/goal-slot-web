@@ -46,12 +46,10 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
   const createEntry = useCreateTimeEntry()
   const queryClient = useQueryClient()
   const { data: categories = [] } = useCategoriesQuery()
-  // Show ALL tasks for the selected goal, sorting puts the category-matching
-  // ones first but doesn't exclude others (a goal can have multiple DOING tasks
-  // across categories).
-  const visibleTasks = goalId
-    ? sortTasksBySelection(filterTasks(tasks, undefined, goalId), goalId, category || undefined)
-    : sortTasksBySelection(tasks, undefined, category || undefined)
+  // Always show every task; sort puts the current goal/category matches at
+  // the top so they're easy to pick by default while leaving search/select of
+  // other tasks unconstrained.
+  const visibleTasks = sortTasksBySelection(tasks, goalId || undefined, category || undefined)
 
   // Set default category when categories load
   useEffect(() => {

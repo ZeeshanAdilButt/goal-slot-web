@@ -98,7 +98,23 @@ function handleStreamError(status: number | undefined, message: string) {
   if (status === 412) {
     toast.error('Your API key was removed. Reconnect it in Integrations.')
   } else if (status === 429) {
-    toast.error('Rate limit hit, try again later or check your token budget.')
+    // Render a clickable link inline so the user can jump straight to the
+    // budget control. react-hot-toast accepts JSX via toast().
+    toast(
+      (t) => (
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-zinc-900">Monthly token budget exceeded.</span>
+          <Link
+            href="/dashboard/settings?tab=integrations"
+            onClick={() => toast.dismiss(t.id)}
+            className="font-semibold text-[#8a7307] underline underline-offset-2 hover:text-[#6b5905]"
+          >
+            Increase budget
+          </Link>
+        </div>
+      ),
+      { icon: '⚠️', duration: 6000 },
+    )
   } else {
     toast.error(message)
   }

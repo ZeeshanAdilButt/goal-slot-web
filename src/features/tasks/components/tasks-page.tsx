@@ -58,6 +58,17 @@ export function TasksPage() {
     false,
   )
 
+  // Set of goal ids that have at least one schedule block (across the week).
+  // Surfaced in the sidebar so the user can jump to what they're actively
+  // working on this week without scrolling all goals.
+  const activeGoalIdsThisWeek = useMemo(() => {
+    const ids = new Set<string>()
+    ;(scheduleBlocks ?? []).forEach((b: { goalId?: string | null }) => {
+      if (b.goalId) ids.add(b.goalId)
+    })
+    return ids
+  }, [scheduleBlocks])
+
   // Auto-select first goal when goals change
   useEffect(() => {
     if (!isGoalIdInitialized || isLoading) return
@@ -241,6 +252,7 @@ export function TasksPage() {
           isLoading={isLoading}
           isCollapsed={goalsSidebarCollapsed}
           onToggleCollapse={() => setIsGoalsSidebarCollapsed((prev) => !prev)}
+          activeGoalIds={activeGoalIdsThisWeek}
         />
       </div>
 

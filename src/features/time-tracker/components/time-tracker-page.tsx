@@ -125,10 +125,16 @@ export function TimeTrackerPage() {
 
   const handleCreateTask = async (title: string): Promise<Task | null> => {
     try {
+      // Only pre-link to a goal/category when the user has explicitly chosen
+      // them. The schedule-block auto-bind sets currentGoalId silently from
+      // whatever block is active right now, and inheriting that into a new
+      // task created mid-session is what produces "I picked an OloStep task
+      // but it's showing Core Engineering Study as the goal" later. Manual
+      // picks are tracked via manualGoal / manualCategory.
       const response = await tasksApi.create({
         title,
-        goalId: currentGoalId || undefined,
-        category: currentCategory || undefined,
+        goalId: manualGoal && currentGoalId ? currentGoalId : undefined,
+        category: manualCategory && currentCategory ? currentCategory : undefined,
       })
 
       queryClient.invalidateQueries({ queryKey: ['tasks'] })
@@ -288,7 +294,7 @@ export function TimeTrackerPage() {
         }
       />
 
-      <GlassCard className="timer-glow text-center p-8 sm:p-12">
+      <GlassCard className="timer-glow text-center p-5 sm:p-6">
         <TaskSelector
           tasks={orderedTasks}
           currentTaskId={currentTaskId}

@@ -11,6 +11,8 @@ export interface GoalsSidebarProps {
   isLoading: boolean
   isCollapsed?: boolean
   onToggleCollapse?: () => void
+  /** Goal ids that have at least one schedule block in the current week. */
+  activeGoalIds?: Set<string>
 }
 
 export const GOAL_STATUS_OPTIONS = [

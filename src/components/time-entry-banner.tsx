@@ -12,6 +12,7 @@ import { useCreateTimeEntry } from '@/features/time-tracker/hooks/use-time-track
 import { formatDuration, getLocalDateString } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { StartTrackingPopover } from '@/components/start-tracking-popover'
 
 const formatTimerDisplay = (seconds: number) => {
   const hrs = Math.floor(seconds / 3600)
@@ -47,6 +48,7 @@ export function TimeEntryBanner() {
     reset: state.reset,
   }))
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
+  const [startPopoverOpen, setStartPopoverOpen] = useState(false)
   const { permission, requestPermission } = useTimerNotifications()
   const createEntry = useCreateTimeEntry()
 
@@ -86,13 +88,12 @@ export function TimeEntryBanner() {
               + Log time
             </Button>
           </Link>
-          <Link href="/dashboard/time-tracker">
-            <Button variant="brand" size="sm">
-              <Play className="h-3.5 w-3.5" />
-              Start tracking
-            </Button>
-          </Link>
+          <Button variant="brand" size="sm" onClick={() => setStartPopoverOpen(true)}>
+            <Play className="h-3.5 w-3.5" />
+            Start tracking
+          </Button>
         </div>
+        <StartTrackingPopover open={startPopoverOpen} onClose={() => setStartPopoverOpen(false)} />
       </div>
     )
   }
