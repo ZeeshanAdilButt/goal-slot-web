@@ -6,8 +6,12 @@ import { TimeEntry } from '@/features/time-tracker/utils/types'
 import { Pencil } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 
 interface EditTimeEntryModalProps {
   isOpen: boolean
@@ -77,61 +81,63 @@ export function EditTimeEntryModal({ isOpen, onClose, entry }: EditTimeEntryModa
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className=" max-w-md">
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl font-bold uppercase">
+          <DialogTitle className="flex items-center gap-2 text-xl font-semibold text-zinc-900">
             <Pencil className="h-5 w-5" />
             Edit Entry
           </DialogTitle>
         </DialogHeader>
 
-        <form id="edit-entry-form" onSubmit={handleSubmit} className="space-y-4">
+        <form id="edit-entry-form" onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="mb-2 block text-sm font-bold uppercase">Task Name</label>
-            <input
+            <Label className="mb-1.5 block text-[10px] tracking-wider">
+              Task Name <span className="text-[#f2cc0d]">*</span>
+            </Label>
+            <Input
               type="text"
               value={taskName}
               onChange={(e) => setTaskName(e.target.value)}
               placeholder="What did you work on?"
-              className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
               required
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label className="mb-2 block text-sm font-bold uppercase">Date</label>
-              <input
+              <Label className="mb-1.5 block text-[10px] tracking-wider">
+                Date <span className="text-[#f2cc0d]">*</span>
+              </Label>
+              <Input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
                 required
               />
             </div>
             <div>
-              <label className="mb-2 block text-sm font-bold uppercase">Duration</label>
-              <div className="flex items-center gap-1">
-                <input
+              <Label className="mb-1.5 block text-[10px] tracking-wider">Duration</Label>
+              <div className="flex items-center gap-1.5">
+                <Input
                   type="number"
                   value={hours}
                   onChange={(e) => setHours(Math.max(0, parseInt(e.target.value) || 0))}
                   min={0}
                   max={23}
-                  className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] w-16 text-center"
+                  className="w-16 text-center"
                   placeholder="0"
                 />
-                <span className="text-sm font-bold">h</span>
-                <input
+                <span className="text-xs font-semibold text-zinc-500">h</span>
+                <Input
                   type="number"
                   value={minutes}
                   onChange={(e) => setMinutes(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
                   min={0}
                   max={59}
-                  className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] w-16 text-center"
+                  className="w-16 text-center"
                   placeholder="30"
                 />
-                <span className="text-sm font-bold">m</span>
+                <span className="text-xs font-semibold text-zinc-500">m</span>
               </div>
             </div>
           </div>
@@ -147,8 +153,10 @@ export function EditTimeEntryModal({ isOpen, onClose, entry }: EditTimeEntryModa
                   setMinutes(min % 60)
                 }}
                 className={cn(
-                  'rounded-sm border border-zinc-200 px-2.5 py-1 font-mono text-xs transition-all',
-                  totalDuration === min ? 'bg-primary shadow-sm' : 'bg-white hover:bg-gray-100',
+                  'rounded-lg border px-2.5 py-1 font-mono text-xs transition-all',
+                  totalDuration === min
+                    ? 'bg-[#f2cc0d] border-yellow-400 text-zinc-900'
+                    : 'bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50',
                 )}
               >
                 {min >= 60 ? `${min / 60}h` : `${min}m`}
@@ -157,21 +165,21 @@ export function EditTimeEntryModal({ isOpen, onClose, entry }: EditTimeEntryModa
           </div>
 
           <div>
-            <label className="mb-2 flex items-center justify-between text-sm font-bold uppercase">
+            <Label className="mb-1.5 flex items-center justify-between text-[10px] tracking-wider">
               <span>Notes</span>
-              <span className="font-normal text-gray-400">optional</span>
-            </label>
-            <textarea
+              <span className="text-[10px] font-normal normal-case tracking-normal text-zinc-400">optional</span>
+            </Label>
+            <Textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Add notes about this session..."
-              className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] min-h-[60px] resize-none"
+              className="min-h-[60px]"
               rows={2}
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-bold uppercase">Goal</label>
+            <Label className="mb-1.5 block text-[10px] tracking-wider">Goal</Label>
             <Select value={goalId || 'no_goal'} onValueChange={(value) => setGoalId(value === 'no_goal' ? '' : value)}>
               <SelectTrigger className={cn(selectedGoal && 'border-l-4')} style={selectedGoal ? { borderLeftColor: selectedGoal.color } : undefined}>
                 <SelectValue placeholder="Select goal" />
@@ -191,18 +199,19 @@ export function EditTimeEntryModal({ isOpen, onClose, entry }: EditTimeEntryModa
           </div>
         </form>
 
-        <DialogFooter className="flex-row gap-3 pt-2">
-          <button type="button" onClick={onClose} className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 flex-1 text-sm">
+        <DialogFooter className="flex-row gap-3 pt-4">
+          <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             form="edit-entry-form"
+            variant="brand"
             disabled={updateEntry.isPending || totalDuration < 1}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 flex-[2] text-sm"
+            className="flex-1"
           >
             {updateEntry.isPending ? 'Saving...' : 'Save Changes'}
-          </button>
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

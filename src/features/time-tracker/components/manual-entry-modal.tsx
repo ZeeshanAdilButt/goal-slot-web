@@ -16,7 +16,10 @@ import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 
 import { cn, getLocalDateString, getLocalTimeString } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { tasksApi } from '@/lib/api'
 
@@ -164,10 +167,10 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-h-[90vh] w-[95vw] overflow-y-auto sm:max-w-2xl lg:max-w-3xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold uppercase">Manual Time Entry</DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-zinc-900">Manual Time Entry</DialogTitle>
         </DialogHeader>
 
-        <form id="manual-entry-form" onSubmit={handleSubmit} className="space-y-4">
+        <form id="manual-entry-form" onSubmit={handleSubmit} className="space-y-3">
           <TaskSelector
             tasks={visibleTasks}
             currentTaskId={taskId}
@@ -180,41 +183,42 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
           />
 
           <div>
-            <label className="mb-2 block text-sm font-bold uppercase">Task Title</label>
-            <input
+            <Label className="mb-1.5 block text-[10px] tracking-wider">
+              Task Title <span className="text-[#f2cc0d]">*</span>
+            </Label>
+            <Input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="What did you work on?"
-              className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
               required
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label className="mb-2 block text-sm font-bold uppercase">Date</label>
-              <input
+              <Label className="mb-1.5 block text-[10px] tracking-wider">
+                Date <span className="text-[#f2cc0d]">*</span>
+              </Label>
+              <Input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
                 required
               />
             </div>
             <div>
-              <label className="mb-2 block text-sm font-bold uppercase">Start Time</label>
-              <input
+              <Label className="mb-1.5 block text-[10px] tracking-wider">Start Time</Label>
+              <Input
                 type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
               />
             </div>
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-bold uppercase">Duration (minutes)</label>
+            <Label className="mb-1.5 block text-[10px] tracking-wider">Duration (minutes)</Label>
             <div className="flex gap-2">
               {[15, 30, 45, 60, 90, 120].map((min) => (
                 <button
@@ -222,27 +226,30 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
                   type="button"
                   onClick={() => setDuration(min)}
                   className={cn(
-                    'flex-1 py-2 border border-zinc-200 font-mono text-sm transition-all',
-                    duration === min ? 'bg-primary shadow-sm' : 'bg-white hover:bg-gray-100',
+                    'flex-1 rounded-lg border px-2 py-2 font-mono text-xs transition-all',
+                    duration === min
+                      ? 'bg-[#f2cc0d] border-yellow-400 text-zinc-900'
+                      : 'bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50',
                   )}
                 >
                   {min}m
                 </button>
               ))}
             </div>
-            <input
+            <Input
               type="number"
               value={duration}
               onChange={(e) => setDuration(parseInt(e.target.value) || 0)}
               min={1}
-              className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] mt-2"
+              className="mt-2"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-bold uppercase">
-              Category {taskId && <span className="text-xs opacity-70">(From Task)</span>}
-            </label>
+            <Label className="mb-1.5 flex items-center gap-2 text-[10px] tracking-wider">
+              Category
+              {taskId && <span className="text-[10px] font-normal normal-case tracking-normal text-zinc-400">(from task)</span>}
+            </Label>
             <Select
               value={category}
               onValueChange={(value) => {
@@ -270,9 +277,10 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-bold uppercase">
-              Link to Goal {taskId && goalId && <span className="text-xs opacity-70">(From Task)</span>}
-            </label>
+            <Label className="mb-1.5 flex items-center gap-2 text-[10px] tracking-wider">
+              Link to Goal
+              {taskId && goalId && <span className="text-[10px] font-normal normal-case tracking-normal text-zinc-400">(from task)</span>}
+            </Label>
             <Select
               value={goalId || 'no_goal'}
               onValueChange={(value) => {
@@ -304,18 +312,19 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
           </div>
         </form>
 
-        <DialogFooter className="flex-row gap-4 pt-4">
-          <button type="button" onClick={onClose} className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 flex-1">
+        <DialogFooter className="flex-row gap-3 pt-4">
+          <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             form="manual-entry-form"
+            variant="brand"
             disabled={createEntry.isPending}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-rose-500 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-rose-600 disabled:opacity-50 flex-1"
+            className="flex-1"
           >
             {createEntry.isPending ? 'Adding...' : 'Add Entry'}
-          </button>
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

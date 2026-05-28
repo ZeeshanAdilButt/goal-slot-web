@@ -16,7 +16,9 @@ import { Calendar, Check, Clock, Pencil, Sparkles, Trash2, X } from 'lucide-reac
 
 import { COLOR_OPTIONS } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SearchableSelect } from '@/components/ui/searchable-select'
 import { ConfirmDialog } from '@/components/confirm-dialog'
@@ -229,15 +231,16 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
             {/* Two column layout - responsive: single column on mobile, two columns on md+ */}
             <div className="grid grid-cols-1 gap-x-4 gap-y-4 md:grid-cols-2 md:gap-x-6">
               {/* Left column */}
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {/* Title */}
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Title</label>
-                  <input
+                  <Label className="mb-1.5 block text-[10px] tracking-wider">
+                    Title <span className="text-[#f2cc0d]">*</span>
+                  </Label>
+                  <Input
                     type="text"
                     value={form.title}
                     onChange={(e) => updateField('title', e.target.value)}
-                    className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
                     placeholder="e.g., Learn Rust"
                     required
                   />
@@ -245,7 +248,7 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
 
                 {/* Category */}
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Category</label>
+                  <Label className="mb-1.5 block text-[10px] tracking-wider">Category</Label>
                   <SearchableSelect
                     value={form.category}
                     onChange={(value) => updateField('category', value)}
@@ -262,14 +265,16 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                 {/* Target Hours & Deadline row */}
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
-                    <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Target Hours</label>
+                    <Label className="mb-1.5 block text-[10px] tracking-wider">
+                      Target Hours <span className="text-[#f2cc0d]">*</span>
+                    </Label>
                     <div className="relative">
-                      <Clock className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-                      <input
+                      <Clock className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                      <Input
                         type="number"
                         value={form.targetHours}
                         onChange={(e) => updateField('targetHours', e.target.value)}
-                        className="h-10 w-full rounded-lg border border-zinc-200 bg-white pl-8 pr-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
+                        className="pl-8"
                         placeholder="100"
                         min="1"
                         required
@@ -277,14 +282,14 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                     </div>
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Deadline</label>
+                    <Label className="mb-1.5 block text-[10px] tracking-wider">Deadline</Label>
                     <div className="relative">
-                      <Calendar className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-                      <input
+                      <Calendar className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                      <Input
                         type="date"
                         value={form.deadline}
                         onChange={(e) => updateField('deadline', e.target.value)}
-                        className="h-10 w-full rounded-lg border border-zinc-200 bg-white pl-8 pr-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
+                        className="pl-8"
                       />
                     </div>
                   </div>
@@ -293,9 +298,9 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                 {/* Status - Only show when editing */}
                 {goal && (
                   <div>
-                    <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Status</label>
+                    <Label className="mb-1.5 block text-[10px] tracking-wider">Status</Label>
                     <Select value={form.status} onValueChange={(value) => updateField('status', value as GoalStatus)}>
-                      <SelectTrigger className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]">
+                      <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -311,15 +316,15 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
               </div>
 
               {/* Right column */}
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {/* Labels */}
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Labels</label>
+                  <Label className="mb-1.5 block text-[10px] tracking-wider">Labels</Label>
 
                   {/* Label input with color picker */}
                   <div className="flex flex-col gap-2 sm:flex-row">
                     <div className="relative flex-1">
-                      <input
+                      <Input
                         ref={labelInputRef}
                         type="text"
                         value={labelInput}
@@ -337,7 +342,6 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                           }
                         }}
                         placeholder="Type or click to browse..."
-                        className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
                       />
 
                       {/* Suggestions dropdown - show when focused */}
@@ -351,7 +355,7 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                             <div key={suggestion.id} className="group">
                               {editingLabelId === suggestion.id ? (
                                 // Edit mode
-                                <div className="border-b border-gray-200 p-2">
+                                <div className="border-b border-zinc-200 p-2">
                                   <input
                                     type="text"
                                     value={editingLabelName}
@@ -462,7 +466,7 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                                   setLabelInput('')
                                   setShowLabelSuggestions(false)
                                 }}
-                                className="flex w-full items-center gap-2 border-t border-gray-200 px-3 py-2 text-left text-sm hover:bg-gray-100"
+                                className="flex w-full items-center gap-2 border-t border-zinc-200 px-3 py-2 text-left text-sm hover:bg-gray-100"
                               >
                                 <span className="text-gray-500">Create</span>
                                 <span
@@ -481,8 +485,9 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                     </div>
 
                     {/* Add button */}
-                    <button
+                    <Button
                       type="button"
+                      variant="secondary"
                       onClick={() => {
                         if (labelInput.trim()) {
                           addLabel(labelInput.trim())
@@ -490,15 +495,14 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                         }
                       }}
                       disabled={!labelInput.trim()}
-                      className="inline-flex h-10 items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-900 transition-colors hover:bg-zinc-50 hover:border-zinc-300 disabled:opacity-50"
                     >
                       Add
-                    </button>
+                    </Button>
                   </div>
 
                   {/* Color picker for new labels */}
                   <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                    <span className="text-[10px] text-gray-500">Label Color:</span>
+                    <span className="text-[10px] text-zinc-500">Label Color:</span>
                     {LABEL_COLORS.map((c) => (
                       <button
                         key={c.value}
@@ -542,7 +546,7 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
 
                 {/* Goal Color */}
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Goal Color</label>
+                  <Label className="mb-1.5 block text-[10px] tracking-wider">Goal Color</Label>
                   <div className="flex flex-wrap gap-2">
                     {COLOR_OPTIONS.map((c) => (
                       <button
@@ -550,7 +554,7 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
                         type="button"
                         onClick={() => updateField('color', c)}
                         className={`h-5 w-5 rounded border transition-transform hover:scale-110 ${
-                          form.color === c ? 'ring-2 ring-black ring-offset-1' : 'border-gray-300'
+                          form.color === c ? 'ring-2 ring-zinc-900 ring-offset-1' : 'border-zinc-300'
                         }`}
                         style={{ backgroundColor: c }}
                       />
@@ -562,7 +566,7 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
 
             {/* Description - Full width below two-column layout */}
             <div className="mt-4">
-              <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Description</label>
+              <Label className="mb-1.5 block text-[10px] tracking-wider">Description</Label>
               <div className="bg-white">
                 <TiptapEditor
                   content={form.description}
@@ -575,14 +579,14 @@ export function GoalModal({ isOpen, onClose, goal }: GoalModalProps) {
           </div>
 
           {/* Footer buttons - fixed at bottom */}
-          <div className="mt-5 flex flex-shrink-0 flex-col gap-3 border-t border-zinc-200 px-6 pb-6 pt-4 sm:flex-row-reverse">
-            <button type="submit" disabled={isSubmitting} className="inline-flex flex-1 items-center justify-center rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50">
-              {isSubmitting ? 'Saving...' : goal ? 'Update Goal' : 'Create Goal'}
-            </button>
-            <button type="button" onClick={onClose} className="inline-flex flex-1 items-center justify-center rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-900 transition-colors hover:bg-zinc-50">
+          <DialogFooter className="mt-5 flex flex-shrink-0 flex-col gap-3 border-t border-zinc-200 px-6 pb-6 pt-4 sm:flex-row">
+            <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
               Cancel
-            </button>
-          </div>
+            </Button>
+            <Button type="submit" variant="brand" disabled={isSubmitting} className="flex-1">
+              {isSubmitting ? 'Saving...' : goal ? 'Update Goal' : 'Create Goal'}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
 

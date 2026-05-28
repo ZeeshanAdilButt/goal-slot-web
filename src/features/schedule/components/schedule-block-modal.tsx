@@ -15,6 +15,7 @@ import { cn, DAYS_OF_WEEK_FULL, TIME_OPTIONS } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const generateSeriesId = () => {
@@ -182,9 +183,11 @@ export function ScheduleBlockModal({
           <DialogTitle className="text-xl font-semibold text-zinc-900">{block ? 'Edit Block' : 'New Block'}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Title</label>
+            <Label className="mb-1.5 block text-[10px] tracking-wider">
+              Title <span className="text-[#f2cc0d]">*</span>
+            </Label>
             <Input
               type="text"
               value={title}
@@ -195,7 +198,7 @@ export function ScheduleBlockModal({
           </div>
 
           <div>
-            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{block ? 'Day' : 'Days (select multiple)'}</label>
+            <Label className="mb-1.5 block text-[10px] tracking-wider">{block ? 'Day' : 'Days (select multiple)'}</Label>
             {block ? (
               <Select
                 value={selectedDays[0].toString()}
@@ -236,7 +239,7 @@ export function ScheduleBlockModal({
 
           {isSeriesEdit && (
             <div>
-              <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Apply changes to</label>
+              <Label className="mb-1.5 block text-[10px] tracking-wider">Apply changes to</Label>
               <div className="flex flex-col gap-2 sm:flex-row">
                 {(
                   [
@@ -262,7 +265,7 @@ export function ScheduleBlockModal({
                   </button>
                 ))}
               </div>
-              <p className="mt-2 text-xs text-zinc-500">
+              <p className="mt-1 text-[11px] text-zinc-500">
                 {updateScope === 'series'
                   ? 'Day assignments stay the same; other changes update across every linked block.'
                   : 'Only this specific block will be updated.'}
@@ -271,7 +274,7 @@ export function ScheduleBlockModal({
           )}
 
           <div>
-            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Category</label>
+            <Label className="mb-1.5 block text-[10px] tracking-wider">Category</Label>
             <Select
               value={category}
               onValueChange={(value) => {
@@ -295,9 +298,9 @@ export function ScheduleBlockModal({
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Start Time</label>
+              <Label className="mb-1.5 block text-[10px] tracking-wider">Start Time</Label>
               <Select value={startTime} onValueChange={setStartTime}>
                 <SelectTrigger>
                   <SelectValue placeholder="Start time" />
@@ -312,7 +315,7 @@ export function ScheduleBlockModal({
               </Select>
             </div>
             <div>
-              <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">End Time</label>
+              <Label className="mb-1.5 block text-[10px] tracking-wider">End Time</Label>
               <Select value={endTime} onValueChange={setEndTime}>
                 <SelectTrigger>
                   <SelectValue placeholder="End time" />
@@ -329,7 +332,7 @@ export function ScheduleBlockModal({
           </div>
 
           <div>
-            <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Link to Goal (Optional)</label>
+            <Label className="mb-1.5 block text-[10px] tracking-wider">Link to Goal (Optional)</Label>
             <Select
               value={goalId || 'no_goal'}
               onValueChange={(value) => setGoalId(value === 'no_goal' ? '' : value)}
@@ -353,7 +356,7 @@ export function ScheduleBlockModal({
             <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
               Cancel
             </Button>
-            <Button type="submit" disabled={isSaving} className="flex-1">
+            <Button type="submit" variant="brand" disabled={isSaving} className="flex-1">
               {isSaving ? 'Saving...' : block ? 'Update' : 'Create'}
             </Button>
           </DialogFooter>
