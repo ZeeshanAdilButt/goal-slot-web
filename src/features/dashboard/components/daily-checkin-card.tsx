@@ -13,21 +13,34 @@ import { Label } from '@/components/ui/label'
 import { StatusPill } from '@/components/ui/status-pill'
 import { Textarea } from '@/components/ui/textarea'
 
-const SCALE = [1, 2, 3, 4, 5] as const
-const SCALE_HINTS: Record<'mood' | 'energy' | 'focus', [string, string]> = {
-  mood: ['low', 'great'],
-  energy: ['drained', 'wired'],
-  focus: ['scattered', 'sharp'],
+type DialKey = 'mood' | 'energy' | 'focus'
+
+const DIALS: Record<DialKey, { label: string; hint: [string, string]; emojis: [string, string, string, string, string] }> = {
+  mood: {
+    label: 'Mood',
+    hint: ['low', 'great'],
+    emojis: ['😞', '😕', '😐', '🙂', '😄'],
+  },
+  energy: {
+    label: 'Energy',
+    hint: ['drained', 'wired'],
+    emojis: ['😴', '🥱', '😐', '⚡️', '🔥'],
+  },
+  focus: {
+    label: 'Focus',
+    hint: ['scattered', 'sharp'],
+    emojis: ['🌫️', '😵‍💫', '😐', '🎯', '🧠'],
+  },
 }
 
 interface ScaleRowProps {
-  label: 'Mood' | 'Energy' | 'Focus'
+  dial: DialKey
   value: number | null
   onChange: (v: number) => void
 }
 
-function ScaleRow({ label, value, onChange }: ScaleRowProps) {
-  const hint = SCALE_HINTS[label.toLowerCase() as keyof typeof SCALE_HINTS]
+function ScaleRow({ dial, value, onChange }: ScaleRowProps) {
+  const { label, hint, emojis } = DIALS[dial]
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
@@ -36,8 +49,9 @@ function ScaleRow({ label, value, onChange }: ScaleRowProps) {
           {hint[0]} ↔ {hint[1]}
         </span>
       </div>
-      <div className="flex items-center gap-2">
-        {SCALE.map((n) => {
+      <div className="grid grid-cols-5 gap-2">
+        {emojis.map((emoji, idx) => {
+          const n = idx + 1
           const selected = value === n
           return (
             <button
@@ -45,15 +59,23 @@ function ScaleRow({ label, value, onChange }: ScaleRowProps) {
               type="button"
               onClick={() => onChange(n)}
               aria-pressed={selected}
-              aria-label={`${label} ${n}`}
+              aria-label={`${label} ${n} — ${idx === 0 ? hint[0] : idx === 4 ? hint[1] : ''}`}
               className={cn(
-                'inline-flex h-11 flex-1 items-center justify-center rounded-lg border text-sm font-semibold transition-colors',
+                'group inline-flex h-16 flex-col items-center justify-center gap-0.5 rounded-xl border text-2xl transition-all',
                 selected
-                  ? 'bg-[#f2cc0d] text-zinc-900 border-yellow-400'
-                  : 'bg-zinc-50 border-zinc-200 hover:bg-zinc-100 text-zinc-700',
+                  ? 'bg-[#f2cc0d]/10 border-[#f2cc0d] ring-2 ring-[#f2cc0d]/40 scale-[1.04]'
+                  : 'bg-zinc-50 border-zinc-200 hover:bg-zinc-100 hover:border-zinc-300 hover:scale-[1.02] grayscale-[40%] hover:grayscale-0',
               )}
             >
-              {n}
+              <span className={cn('leading-none transition-transform', selected && 'grayscale-0')}>{emoji}</span>
+              <span
+                className={cn(
+                  'text-[9px] font-semibold tabular-nums',
+                  selected ? 'text-zinc-900' : 'text-zinc-400',
+                )}
+              >
+                {n}
+              </span>
             </button>
           )
         })}
@@ -95,7 +117,8 @@ export function DailyCheckinCard() {
           ✓ Checked in today
         </StatusPill>
         <span className="text-xs text-zinc-500">
-          Mood {todayCheckin.mood} · Energy {todayCheckin.energy} · Focus {todayCheckin.focus}
+          {DIALS.mood.emojis[(todayCheckin.mood ?? 1) - 1]} {DIALS.energy.emojis[(todayCheckin.energy ?? 1) - 1]}{' '}
+          {DIALS.focus.emojis[(todayCheckin.focus ?? 1) - 1]}
         </span>
       </div>
     )
@@ -117,45 +140,53 @@ export function DailyCheckinCard() {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[560px]">
+        <DialogContent className="max-h-[90vh] w-[95vw] overflow-y-auto sm:max-w-2xl lg:max-w-3xl">
           <DialogHeader>
-            <DialogTitle>How did today land?</DialogTitle>
+            <DialogTitle className="text-xl">How did today land?</DialogTitle>
             <DialogDescription>
-              Rate the three dials, then say one thing that helped and one thing that got in the way.
-              You can leave the notes blank.
+              Tap an emoji per dial. Then say one thing that helped and one that got in the way.
+              Notes are optional — write as much or as little as you want.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-5 pt-1">
-            <ScaleRow label="Mood" value={mood} onChange={setMood} />
-            <ScaleRow label="Energy" value={energy} onChange={setEnergy} />
-            <ScaleRow label="Focus" value={focus} onChange={setFocus} />
+          <div className="space-y-6 pt-2">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+              <ScaleRow dial="mood" value={mood} onChange={setMood} />
+              <ScaleRow dial="energy" value={energy} onChange={setEnergy} />
+              <ScaleRow dial="focus" value={focus} onChange={setFocus} />
+            </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="checkin-worked">What worked?</Label>
+                <Label htmlFor="checkin-worked" className="text-sm normal-case tracking-normal">
+                  ✨ What worked?
+                </Label>
                 <Textarea
                   id="checkin-worked"
-                  rows={4}
-                  placeholder="What made today move? A block of deep work, a walk, sleep, talking to someone…"
+                  rows={7}
+                  placeholder="What made today move? A block of deep work, a walk, sleep, talking to someone, a clear next step…"
                   value={worked}
                   onChange={(e) => setWorked(e.target.value)}
+                  className="min-h-[160px] resize-y text-[15px] leading-relaxed"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="checkin-blocked">What blocked you?</Label>
+                <Label htmlFor="checkin-blocked" className="text-sm normal-case tracking-normal">
+                  🪨 What blocked you?
+                </Label>
                 <Textarea
                   id="checkin-blocked"
-                  rows={4}
-                  placeholder="What got in the way? Phone, low energy, an unclear next step, a meeting that drained you…"
+                  rows={7}
+                  placeholder="What got in the way? Phone, low energy, an unclear next step, a meeting that drained you, something on your mind…"
                   value={blocked}
                   onChange={(e) => setBlocked(e.target.value)}
+                  className="min-h-[160px] resize-y text-[15px] leading-relaxed"
                 />
               </div>
             </div>
           </div>
 
-          <DialogFooter className="pt-2">
+          <DialogFooter className="pt-3">
             <Button variant="secondary" onClick={() => setOpen(false)}>
               Later
             </Button>
