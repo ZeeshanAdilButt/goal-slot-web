@@ -135,6 +135,30 @@
   }
 }
 
+/* Journal lamp idle bob — gently lifts the whole lamp 3px so the user
+   sees it as a thing to play with. Stops as soon as they interact. */
+@keyframes lamp-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* Lamp pull-string bead pulse — soft brightness flicker on the bead
+   when the lamp is off, nudging the user toward the click target. */
+@keyframes lamp-bead-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 /* Brand-yellow spark twinkling around the Journal nav icon. Three sparks
    share this keyframe with staggered delays (0s / 1s / 2s) so a star
    shows up roughly every second without all of them firing at once. */

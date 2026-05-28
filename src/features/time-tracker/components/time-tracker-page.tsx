@@ -301,6 +301,31 @@ export function TimeTrackerPage() {
         }
       />
 
+      {/* Hero wrapper. Two soft brand-yellow glow blobs + a faint
+          tabular-numbers grid sit behind the GlassCard so the timer
+          surface reads as the warm centerpiece of the page. Decorations
+          are pointer-events-none + aria-hidden — purely visual. */}
+      <div className="relative">
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+          <div className="absolute -left-16 -top-12 h-56 w-56 rounded-full bg-[#f2cc0d]/30 blur-3xl" />
+          <div className="absolute -right-16 -bottom-12 h-64 w-64 rounded-full bg-[#fff3a8]/40 blur-3xl" />
+          <div
+            className="absolute inset-x-0 top-0 h-px"
+            style={{
+              background:
+                'linear-gradient(90deg, transparent, rgba(242,204,13,0.4) 35%, rgba(242,204,13,0.4) 65%, transparent)',
+            }}
+          />
+          {/* Subtle dot grid */}
+          <div
+            className="absolute inset-0 opacity-[0.08]"
+            style={{
+              backgroundImage:
+                'radial-gradient(circle at 1px 1px, rgba(82,82,91,1) 1px, transparent 0)',
+              backgroundSize: '22px 22px',
+            }}
+          />
+        </div>
       <GlassCard className="timer-glow text-center p-5 sm:p-6">
         <TaskSelector
           tasks={orderedTasks}
@@ -332,6 +357,7 @@ export function TimeTrackerPage() {
           onReset={resetTimer}
         />
       </GlassCard>
+      </div>
 
       <StatsCards recentEntries={recentEntries} />
 

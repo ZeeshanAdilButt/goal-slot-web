@@ -174,17 +174,22 @@ function NoteItem({
           )}
         />
 
-        {/* Expand/Collapse button */}
-        <button
-          onClick={(e) => onToggleExpand(note.id, e)}
-          className={cn(
-            'flex h-5 w-5 shrink-0 items-center justify-center rounded',
-            hasChildren ? 'hover:bg-black/10 dark:hover:bg-white/10' : 'invisible',
-          )}
-        >
-          {hasChildren &&
-            (isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />)}
-        </button>
+        {/* Expand/Collapse button — only on the top-level row. Sub-notes
+            and deeper descendants don't get a caret; the indentation
+            already communicates parent/child, and folding inside a
+            subtree was noisy. */}
+        {depth === 0 ? (
+          <button
+            onClick={(e) => onToggleExpand(note.id, e)}
+            className={cn(
+              'flex h-5 w-5 shrink-0 items-center justify-center rounded',
+              hasChildren ? 'hover:bg-black/10 dark:hover:bg-white/10' : 'invisible',
+            )}
+          >
+            {hasChildren &&
+              (isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />)}
+          </button>
+        ) : null}
 
         {/* Icon — only render when the user picked a custom one. The
             default 📄 fallback was just visual noise on every row. */}
@@ -193,31 +198,12 @@ function NoteItem({
         {/* Title */}
         <span className="flex-1 truncate">{note.title || 'Untitled'}</span>
 
-        {/* Favorite indicator. Clickable so a second click un-favorites
-            without going through the overflow menu. */}
-        {note.isFavorite && (
-          <button
-            type="button"
-            title="Remove from favorites"
-            aria-label="Remove from favorites"
-            onClick={(e) => {
-              e.stopPropagation()
-              onToggleFavorite(note)
-            }}
-            onPointerDown={(e) => e.stopPropagation()}
-            className={cn(
-              'flex h-5 w-5 shrink-0 items-center justify-center rounded transition-colors hover:bg-[#fff7d1]',
-              isSelected && 'hover:bg-black/10',
-            )}
-          >
-            <Star className="h-3.5 w-3.5 fill-current text-yellow-500" />
-          </button>
-        )}
-
-        {/* Inline quick actions: add sub-note + delete. Always render so
-            the row layout doesn't shift on hover (favorite star + title
-            used to slide left). Opacity gates visibility; pointer-events
-            gates interaction. */}
+        {/* Inline quick actions: add sub-note + delete. Render in the
+            row to the LEFT of the favorite star so the star always
+            anchors the right edge. Opacity + pointer-events gate
+            visibility/interaction so the layout doesn't shift on hover.
+            Toggle-favorite gets the same treatment for unfavorited
+            rows so the user can add a favorite from the row directly. */}
         <button
           type="button"
           title="Add sub-note"
@@ -250,70 +236,43 @@ function NoteItem({
         >
           <Trash2 className="h-3.5 w-3.5" />
         </button>
-
-        {/* Overflow menu (favorite / rename / etc) */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-              }}
-              onPointerDown={(e) => e.stopPropagation()}
-              className={cn(
-                'flex h-5 w-5 shrink-0 items-center justify-center rounded opacity-0 group-hover:opacity-100',
-                isSelected ? 'hover:bg-black/10' : 'hover:bg-muted',
-              )}
-            >
-              <MoreHorizontal className="h-3.5 w-3.5" />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-48 p-1" align="start">
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                onCreateSubNote(note.id)
-              }}
-              className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"
-            >
-              <FolderPlus className="h-4 w-4" />
-              Add sub-note
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                onToggleFavorite(note)
-              }}
-              className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"
-            >
-              {note.isFavorite ? (
-                <>
-                  <StarOff className="h-4 w-4" />
-                  Remove from favorites
-                </>
-              ) : (
-                <>
-                  <Star className="h-4 w-4" />
-                  Add to favorites
-                </>
-              )}
-            </button>
-            <hr className="my-1 border-border" />
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                onDelete(note.id)
-              }}
-              className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10"
-            >
-              <Trash2 className="h-4 w-4" />
-              Delete
-            </button>
-          </PopoverContent>
-        </Popover>
+        <button
+          type="button"
+          title={note.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+          aria-label={note.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+          aria-pressed={note.isFavorite}
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggleFavorite(note)
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          className={cn(
+            'flex h-5 w-5 shrink-0 items-center justify-center rounded transition-opacity hover:bg-[#fff7d1]',
+            // Stays put on the far right. When favorited it's always
+            // visible; when not, it reveals on hover (still in the same
+            // slot, so no layout shift) so the user can flag it from
+            // the row without an overflow menu.
+            note.isFavorite
+              ? 'opacity-100'
+              : 'opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto',
+            isSelected && 'hover:bg-black/10',
+          )}
+        >
+          <Star
+            className={cn(
+              'h-3.5 w-3.5',
+              note.isFavorite
+                ? 'fill-current text-yellow-500'
+                : 'text-zinc-400 hover:text-yellow-500',
+            )}
+          />
+        </button>
       </div>
 
-      {/* Children */}
-      {hasChildren && isExpanded && (
+      {/* Children. At depth 0, respect the chevron's collapsed/expanded
+          state. Below the root, always render so the subtree behaves
+          like a flat indented outline once the root is opened. */}
+      {hasChildren && (depth > 0 || isExpanded) && (
         <div>
           {note.children.map((child) => (
             <NoteItem

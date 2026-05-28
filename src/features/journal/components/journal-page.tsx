@@ -2,8 +2,11 @@
 
 import { useState } from 'react'
 
+import { JournalAffirmations } from '@/features/journal/components/journal-affirmations'
 import { JournalEntryEditor } from '@/features/journal/components/journal-entry-editor'
+import { JournalLamp } from '@/features/journal/components/journal-lamp'
 import { JournalSidebar } from '@/features/journal/components/journal-sidebar'
+import { TangleHero } from '@/features/journal/components/tangle-hero'
 import { useJournalEntries } from '@/features/journal/hooks/use-journal-entries'
 import { CalendarDays, PanelLeft, PanelLeftClose } from 'lucide-react'
 
@@ -30,6 +33,7 @@ export function JournalPage() {
   const { entries, selectedEntry, selectedDate, selectDate, upsertContent } = useJournalEntries()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
+  const [lampOn, setLampOn] = useState(true)
   const today = todayKey()
 
   const handleSelect = (date: string) => {
@@ -39,14 +43,23 @@ export function JournalPage() {
 
   return (
     <PageShell className="relative">
-      {/* Ambient lamp glow tucked into the top-right corner of the page —
-          warms the whole surface without pulling attention. Fixed inside
-          the PageShell so it scrolls with content but doesn't block clicks. */}
+      {/* Ambient lamp glow tucked into the top-right corner — bound to the
+          lamp's on/off state. When the lamp is off the whole page cools
+          down and the only thing inviting attention is the lamp itself. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute right-0 top-0 -z-0 h-[420px] w-[420px] -translate-y-32 translate-x-24 opacity-60"
+        className={cn(
+          'pointer-events-none absolute right-0 top-0 -z-0 h-[420px] w-[420px] -translate-y-32 translate-x-24 transition-opacity duration-700',
+          lampOn ? 'opacity-70' : 'opacity-10',
+        )}
       >
         <LampGlow className="h-full w-full" />
+      </div>
+
+      {/* Interactive desk lamp. Click the bulb to toggle the ambient
+          glow. Bobs gently while off + before first interaction. */}
+      <div className="pointer-events-none absolute right-4 top-0 z-10 sm:right-8">
+        <JournalLamp on={lampOn} onToggle={() => setLampOn((v) => !v)} />
       </div>
 
       <PageHeader
@@ -66,10 +79,14 @@ export function JournalPage() {
         }
       />
 
-      <p className="-mt-2 flex items-center gap-2 text-[12px] italic text-[#8a7307]">
+      <div className="-mt-2 flex flex-wrap items-center gap-3 text-[12px] italic text-[#8a7307]">
+        <TangleHero className="h-3 w-24 opacity-90" />
+        <JournalAffirmations />
         <span aria-hidden className="inline-block h-px w-6 bg-[#f2cc0d]/60" />
-        Your safe space. Nothing leaves here unless you say so.
-      </p>
+        <span className="not-italic text-[11px] uppercase tracking-wider text-zinc-400">
+          Your safe space
+        </span>
+      </div>
 
       <div className="relative z-10 flex h-[calc(100vh-13rem)] min-h-[480px] flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white/95 shadow-sm backdrop-blur-[2px]">
         <div className="flex h-10 shrink-0 items-center justify-between border-b border-zinc-200 bg-white px-2">

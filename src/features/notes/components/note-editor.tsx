@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { Check, Copy, Download, Link as LinkIcon, MoreHorizontal, Star, StarOff, Trash2 } from 'lucide-react'
+import { Check, Copy, Download, Link as LinkIcon, MoreHorizontal, Plus, Star, StarOff, Trash2 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -260,11 +260,21 @@ export function NoteEditor({ note, onDelete }: NoteEditorProps) {
       {/* Header */}
       <div className="flex shrink-0 items-center justify-between border-b border-zinc-200 px-2 py-2 md:px-4 md:py-3">
         <div className="flex min-w-0 flex-1 items-center gap-2 md:gap-3">
-          {/* Icon picker */}
+          {/* Icon picker — empty by default. Shows a faint outlined + so
+              the user can still pick an icon, but no 📄 fallback noise. */}
           <Popover open={showIconPicker} onOpenChange={setShowIconPicker}>
             <PopoverTrigger asChild>
-              <button className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-card text-xl transition-colors hover:bg-muted md:h-10 md:w-10 md:text-2xl">
-                {note.icon || '📄'}
+              <button
+                title={note.icon ? 'Change icon' : 'Add an icon'}
+                aria-label={note.icon ? 'Change icon' : 'Add an icon'}
+                className={cn(
+                  'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border text-xl transition-colors md:h-10 md:w-10 md:text-2xl',
+                  note.icon
+                    ? 'border-zinc-200 bg-card hover:bg-muted'
+                    : 'border-dashed border-zinc-200 bg-transparent text-zinc-400 hover:border-zinc-300 hover:text-zinc-600',
+                )}
+              >
+                {note.icon ?? <Plus className="h-4 w-4" />}
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-64 p-2" align="start">
