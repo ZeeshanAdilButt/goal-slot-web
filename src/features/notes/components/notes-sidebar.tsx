@@ -174,11 +174,17 @@ function resolveDropTarget(
   if (!target) return { kind: 'noop', depthDelta: 0, horizontal: false }
   const hoverPosition: DropPosition = dragState.id === overId ? dragState.position : null
 
-  // When axis-locked to Y, a sibling reorder is the user's intent.
-  // Falling back to 'inside' (reparent) just because the row's
-  // onMouseMove hasn't fired yet was the root cause of sibling
-  // reorders silently turning into reparents.
-  if (lockedAxis === 'y') {
+  // Sibling reorder is the default for ANY vertical-dominant drop.
+  // dnd-kit captures the pointer during drag, so each row's
+  // onMouseMove handler stops firing — `dragState.position` is
+  // unreliable mid-drag and was silently turning sibling reorders
+  // into reparents. Treat the drop as a sibling reorder whenever:
+  //   - the axis is locked to Y, OR
+  //   - horizontal delta is below the promote/demote threshold,
+  // unless the captured hover position is explicitly 'inside'.
+  const isVerticalDominant =
+    lockedAxis === 'y' || Math.abs(effectiveDeltaX) < HORIZONTAL_SWIPE_PX
+  if (isVerticalDominant && hoverPosition !== 'inside') {
     const position: 'top' | 'bottom' = hoverPosition === 'top' ? 'top' : 'bottom'
     return {
       kind: 'sibling',
@@ -191,26 +197,16 @@ function resolveDropTarget(
     }
   }
 
-  if (!hoverPosition || hoverPosition === 'inside') {
-    // Reparent under the target row.
-    return {
-      kind: 'reparent',
-      parentTitle: target.title || 'Untitled',
-      depthDelta: 0,
-      horizontal: false,
-      targetId: overId,
-      targetDepth: noteDepth(overId) + 1,
-      position: 'inside',
-    }
-  }
+  // Reparent only when the user explicitly hovered the row's center
+  // (inside zone) — otherwise it's a sibling reorder.
   return {
-    kind: 'sibling',
-    siblingTitle: target.title || 'Untitled',
+    kind: 'reparent',
+    parentTitle: target.title || 'Untitled',
     depthDelta: 0,
     horizontal: false,
     targetId: overId,
-    targetDepth: noteDepth(overId),
-    position: hoverPosition,
+    targetDepth: noteDepth(overId) + 1,
+    position: 'inside',
   }
 }
 

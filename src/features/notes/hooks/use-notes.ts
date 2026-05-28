@@ -150,7 +150,11 @@ export function useDeleteNoteMutation() {
   })
 }
 
-// Reorder notes mutation
+// Reorder notes mutation — optimistic. The drag UI needs to feel
+// instant; waiting for the server roundtrip before the row visibly
+// moves was the user-reported "movements take some time to register"
+// complaint. We apply the parentId/order rewrite to the cache on
+// onMutate, then reconcile in the background.
 export function useReorderNotesMutation() {
   const queryClient = useQueryClient()
 
@@ -158,11 +162,31 @@ export function useReorderNotesMutation() {
     mutationFn: async (data: { noteId: string; parentId: string | null; order: number }[]) => {
       await notesApi.reorder(data)
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: NOTES_QUERY_KEY })
+    onMutate: async (updates) => {
+      await queryClient.cancelQueries({ queryKey: NOTES_QUERY_KEY })
+      const previous = queryClient.getQueryData<Note[]>(NOTES_QUERY_KEY)
+      queryClient.setQueryData<Note[]>(NOTES_QUERY_KEY, (prev) => {
+        if (!prev) return prev
+        const updateById = new Map(updates.map((u) => [u.noteId, u]))
+        return prev.map((n) => {
+          const u = updateById.get(n.id)
+          if (!u) return n
+          return { ...n, parentId: u.parentId, order: u.order }
+        })
+      })
+      return { previous }
     },
-    onError: (error: any) => {
+    onError: (error: any, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(NOTES_QUERY_KEY, context.previous)
+      }
       toast.error(error.response?.data?.message || 'Failed to reorder notes')
+    },
+    // Reconcile in the background — but DON'T refetch right away or
+    // the optimistic ordering can flicker. `inactive` defers until the
+    // query is next observed without active subscribers blocking on it.
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: NOTES_QUERY_KEY, refetchType: 'inactive' })
     },
   })
 }

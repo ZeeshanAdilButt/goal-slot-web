@@ -97,15 +97,33 @@
   }
 }
 
-/* Journal night mode bleeds into the surrounding dashboard chrome so
-   the whole app dims when the user turns on the journal lamp. The
-   journal page sets [data-journal-night="true"] on <html> while
-   mounted + lamp on, and clears it on unmount or lamp off. The journal
-   page itself manages its own dark state via JSX; these rules invert
-   every other surface — dashboard shell, sidebars, page headers,
-   cards, banners, modals, popovers — so the entire app reads as
-   night. Brand-yellow tints (#f2cc0d / #fffbea / #fff7d1 / #fff3a8 /
-   #8a7307) are explicitly preserved as the warm light source. */
+/* Journal night mode — sitewide. Tailwind utility-class overrides
+   were unreliable (layer cascade + JIT compiled class names), so we
+   use the CSS-filter sledgehammer: invert the entire document and
+   hue-rotate 180° to keep warm yellows looking warm (yellow inverts
+   to blue, hue-rotate 180 returns it back to yellow). Media gets a
+   counter-invert + counter-rotate so images / SVGs / videos look
+   normal against the dark chrome. The `journal-no-invert` data flag
+   on a node opts it out of the counter-invert (used by the lamp's
+   own warm glow). */
+html[data-journal-night='true'] {
+  background-color: #09090b;
+}
+html[data-journal-night='true'] body {
+  filter: invert(1) hue-rotate(180deg);
+  background-color: #f4f4f5; /* becomes near-black after invert */
+  transition: filter 0.6s ease;
+}
+html[data-journal-night='true'] img,
+html[data-journal-night='true'] svg,
+html[data-journal-night='true'] video,
+html[data-journal-night='true'] picture,
+html[data-journal-night='true'] [data-no-invert='true'] {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Older, narrower overrides kept for surfaces the filter trick can
+   miss (popover portals occasionally render outside <body>). */
 html[data-journal-night='true'] body,
 html[data-journal-night='true'] [data-sidebar='sidebar'],
 html[data-journal-night='true'] [data-sidebar='inset'] {
