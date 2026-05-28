@@ -39,18 +39,20 @@ export function TangleHero({ className }: TangleHeroProps) {
         <animate
           attributeName="d"
           values={`${TANGLED};${CALM};${CALM};${TANGLED};${TANGLED}`}
-          keyTimes="0;0.4;0.6;0.95;1"
-          dur="10s"
+          keyTimes="0;0.45;0.7;0.95;1"
+          dur="16s"
           repeatCount="indefinite"
           calcMode="spline"
-          keySplines="0.4 0 0.2 1;0 0 1 1;0.4 0 0.2 1;0 0 1 1"
+          keySplines="0.25 0.1 0.25 1;0 0 1 1;0.25 0.1 0.25 1;0 0 1 1"
         />
         <animate
           attributeName="opacity"
-          values="0.65;1;1;0.65;0.65"
-          keyTimes="0;0.4;0.6;0.95;1"
-          dur="10s"
+          values="0.6;1;1;0.6;0.6"
+          keyTimes="0;0.45;0.7;0.95;1"
+          dur="16s"
           repeatCount="indefinite"
+          calcMode="spline"
+          keySplines="0.25 0.1 0.25 1;0 0 1 1;0.25 0.1 0.25 1;0 0 1 1"
         />
       </path>
     </svg>

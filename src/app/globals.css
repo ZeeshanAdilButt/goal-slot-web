@@ -275,9 +275,11 @@ html[data-journal-night='true'] .bg-\[\#fff3a8\] {
   background-color: #4a4218 !important;
 }
 
-/* Gradient backgrounds used in banners (FocusNowBar, etc.) — Tailwind
-   compiles them to inline CSS variables. Replace with a darker warm
-   gradient under dark mode. */
+/* Gradient backgrounds — Tailwind compiles them to inline CSS
+   variables. Override the brand-yellow stops AND the to-white stop
+   that several headers use (`bg-gradient-to-br from-[#fffbea]
+   to-white`) so the gradient doesn't tail off into a bright white
+   strip under dark mode. */
 html.dark .from-\[\#fffbea\],
 html[data-journal-night='true'] .from-\[\#fffbea\] {
   --tw-gradient-from: #2a2410 var(--tw-gradient-from-position) !important;
@@ -291,6 +293,55 @@ html[data-journal-night='true'] .via-\[\#fffbea\] {
 html.dark .to-\[\#fff7d1\],
 html[data-journal-night='true'] .to-\[\#fff7d1\] {
   --tw-gradient-to: #3a3415 var(--tw-gradient-to-position) !important;
+}
+html.dark .to-white,
+html[data-journal-night='true'] .to-white {
+  --tw-gradient-to: #18181b var(--tw-gradient-to-position) !important;
+}
+html.dark .from-white,
+html[data-journal-night='true'] .from-white {
+  --tw-gradient-from: #18181b var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(24, 24, 27, 0) var(--tw-gradient-to-position) !important;
+}
+html.dark .to-zinc-50,
+html[data-journal-night='true'] .to-zinc-50 {
+  --tw-gradient-to: #18181b var(--tw-gradient-to-position) !important;
+}
+
+/* Catch-all for selected/hover backgrounds that use brand-yellow
+   text on cream tint — the cream gets darkened above; the text needs
+   to stay brand-yellow not flip to light zinc. */
+html.dark .text-\[\#8a7307\],
+html[data-journal-night='true'] .text-\[\#8a7307\] {
+  color: #f2cc0d !important;
+}
+
+/* Catch any remaining "primary/foreground" derived from CSS vars
+   that the design system uses for ring/text colours. */
+html.dark .bg-primary,
+html[data-journal-night='true'] .bg-primary {
+  background-color: #f2cc0d !important;
+  color: #18181b !important;
+}
+html.dark .text-primary,
+html[data-journal-night='true'] .text-primary {
+  color: #f2cc0d !important;
+}
+html.dark .bg-muted,
+html[data-journal-night='true'] .bg-muted {
+  background-color: #27272a !important;
+}
+html.dark .text-muted-foreground,
+html[data-journal-night='true'] .text-muted-foreground {
+  color: #a1a1aa !important;
+}
+html.dark .border-border,
+html[data-journal-night='true'] .border-border {
+  border-color: #27272a !important;
+}
+html.dark .bg-card,
+html[data-journal-night='true'] .bg-card {
+  background-color: #18181b !important;
 }
 
 /* Older, narrower overrides kept for surfaces the filter trick can

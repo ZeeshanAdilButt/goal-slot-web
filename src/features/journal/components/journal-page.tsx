@@ -74,18 +74,18 @@ export function JournalPage() {
 
   return (
     <PageShell className="relative">
-      {/* Ambient lamp glow tucked into the top-right corner — bound to the
-          lamp's on/off state. When the lamp is off the whole page cools
-          down and the only thing inviting attention is the lamp itself. */}
-      <div
-        aria-hidden
-        className={cn(
-          'pointer-events-none absolute right-0 top-0 -z-0 h-[420px] w-[420px] -translate-y-32 translate-x-24 transition-opacity duration-700',
-          lampOn ? 'opacity-70' : 'opacity-10',
-        )}
-      >
-        <LampGlow className="h-full w-full" />
-      </div>
+      {/* Ambient lamp glow tucked into the top-right corner — only
+          rendered when the lamp is ON. Otherwise it leaves a faint
+          warm ring on the dark page that reads as an accidental
+          vignette. Hard-hide when off. */}
+      {lampOn && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute right-0 top-0 -z-0 h-[420px] w-[420px] -translate-y-32 translate-x-24 opacity-70 transition-opacity duration-700"
+        >
+          <LampGlow className="h-full w-full" />
+        </div>
+      )}
 
       {/* Time-of-day fixture in the top-right. Daytime → sun shines on
           its own (no toggle, slow ray rotation). Nighttime → bedside
