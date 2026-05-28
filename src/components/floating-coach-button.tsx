@@ -50,7 +50,11 @@ function FloatingCoachButtonInner() {
             : 'border-zinc-200',
         )}
       >
-        {open ? <MessageCircle className="h-5 w-5" /> : <CoachIcon className="h-5 w-5" />}
+        {open ? (
+          <MessageCircle className="h-5 w-5" />
+        ) : (
+          <CoachIcon className="h-7 w-7 [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.55))] motion-safe:animate-[coach-spin-pause_2s_ease-in-out_infinite]" />
+        )}
         {fresh > 0 && !open && (
           <span
             aria-hidden

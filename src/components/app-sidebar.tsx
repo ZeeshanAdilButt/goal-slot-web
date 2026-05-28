@@ -137,11 +137,13 @@ export function AppSidebar() {
                             // even when not active so the habit is the focus.
                             isJournal &&
                               'text-[#f2cc0d] [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.7))_drop-shadow(0_0_10px_rgba(242,204,13,0.35))] motion-safe:animate-[journal-glow_2.4s_ease-in-out_infinite]',
-                            // GoalSlot AI gets a faster, "twinkling" sparkle
-                            // glow so it reads as alive/active rather than
-                            // the journal's slow contemplative pulse.
+                            // GoalSlot AI mark: bumped a notch larger than the
+                            // other lucide nav icons, soft brand-yellow glow,
+                            // and spins one turn then holds for a beat (2s
+                            // cycle), so it reads as "thinking, then settling"
+                            // rather than continuously moving.
                             isCoach &&
-                              '[filter:drop-shadow(0_0_3px_rgba(242,204,13,0.6))] motion-safe:animate-[coach-twinkle_3.6s_ease-in-out_infinite]',
+                              '!h-5 !w-5 group-data-[collapsible=icon]:!h-6 group-data-[collapsible=icon]:!w-6 [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.5))] motion-safe:animate-[coach-spin-pause_2s_ease-in-out_infinite]',
                           )}
                         />
                         <span className="text-sm group-data-[collapsible=icon]:hidden">{item.label}</span>

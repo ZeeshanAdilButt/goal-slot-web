@@ -20,6 +20,11 @@ import {
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
+import {
+  EnergyGlyphIcon,
+  FocusGlyphIcon,
+  MoodGlyphIcon,
+} from '@/components/icons/checkin-glyphs'
 
 export type DialKey = 'mood' | 'energy' | 'focus'
 
@@ -104,8 +109,9 @@ export function ScaleRow({ dial, value, onChange }: ScaleRowProps) {
 
 /**
  * Tiny inline render of a saved check-in (used in summary chips).
- * Letter + number tokens (M3 / E4 / F5) coloured by the value palette so
- * the row reads as a real measurement, not a generic icon strip.
+ * Custom on-brand SVG glyphs (face / bolt / bullseye) paired with the
+ * 1–5 value tinted by the rose→green palette. Same visual language as
+ * the FeatherPenIcon / GoalFlagIcon — not generic lucide swaps.
  */
 export function CheckinSummaryIcons({
   mood,
@@ -118,26 +124,27 @@ export function CheckinSummaryIcons({
   focus: number | null
   className?: string
 }) {
-  const items: { letter: string; v: number | null; title: string }[] = [
-    { letter: 'M', v: mood, title: 'Mood' },
-    { letter: 'E', v: energy, title: 'Energy' },
-    { letter: 'F', v: focus, title: 'Focus' },
+  type Item = { Icon: React.ComponentType<{ className?: string }>; v: number | null; title: string }
+  const items: Item[] = [
+    { Icon: MoodGlyphIcon, v: mood, title: 'Mood' },
+    { Icon: EnergyGlyphIcon, v: energy, title: 'Energy' },
+    { Icon: FocusGlyphIcon, v: focus, title: 'Focus' },
   ]
   return (
     <span className={cn('inline-flex items-center gap-1', className)}>
-      {items.map(({ letter, v, title }) => {
+      {items.map(({ Icon, v, title }, i) => {
         if (v == null) return null
         const palette = VALUE_COLOR[v]
         return (
           <span
-            key={letter}
+            key={i}
             title={`${title}: ${v}/5`}
             className={cn(
-              'inline-flex h-5 items-center gap-0.5 rounded-md border border-zinc-200 bg-white px-1.5 text-[10px] font-bold tabular-nums',
+              'inline-flex h-6 items-center gap-1 rounded-full border border-zinc-200 bg-white pl-1 pr-1.5 text-[11px] font-bold tabular-nums',
               palette.fg,
             )}
           >
-            <span className="text-zinc-500">{letter}</span>
+            <Icon className="h-3.5 w-3.5" />
             <span>{v}</span>
           </span>
         )

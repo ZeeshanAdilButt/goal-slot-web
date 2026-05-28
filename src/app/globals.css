@@ -111,31 +111,19 @@
   }
 }
 
-/* Twinkle for the GoalSlot AI (Coach) sidebar icon: two sharp
-   highlight beats per cycle on top of a dim base — reads as
-   "thinking / alive" rather than a single slow breath. */
-@keyframes coach-twinkle {
-  0%,
+/* GoalSlot AI mark: flips one full turn around the Y axis (horizontal
+   spin like a coin) in the first half of the cycle, then holds for the
+   second half — so it reads as "thinking, then settles". 2s total.
+   Applied to both the sidebar nav icon and the floating Coach button.
+   Disabled under prefers-reduced-motion via the motion-safe utility. */
+@keyframes coach-spin-pause {
+  0% {
+    transform: perspective(220px) rotateY(0deg);
+  }
+  50% {
+    transform: perspective(220px) rotateY(360deg);
+  }
   100% {
-    filter: drop-shadow(0 0 2px rgba(242, 204, 13, 0.45));
-    transform: scale(1);
-  }
-  18% {
-    filter: drop-shadow(0 0 5px rgba(242, 204, 13, 0.95))
-      drop-shadow(0 0 9px rgba(255, 228, 90, 0.55));
-    transform: scale(1.08);
-  }
-  28% {
-    filter: drop-shadow(0 0 2px rgba(242, 204, 13, 0.45));
-    transform: scale(1);
-  }
-  58% {
-    filter: drop-shadow(0 0 4px rgba(242, 204, 13, 0.7))
-      drop-shadow(0 0 8px rgba(255, 228, 90, 0.35));
-    transform: scale(1.04);
-  }
-  72% {
-    filter: drop-shadow(0 0 2px rgba(242, 204, 13, 0.45));
-    transform: scale(1);
+    transform: perspective(220px) rotateY(360deg);
   }
 }
