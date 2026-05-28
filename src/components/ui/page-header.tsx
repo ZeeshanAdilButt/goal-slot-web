@@ -14,20 +14,18 @@ export interface PageHeaderProps {
 
 function PageHeader({ title, eyebrow, description, actions, live, className }: PageHeaderProps) {
   return (
-    <header
-      className={cn(
-        'flex flex-wrap items-center justify-between gap-x-4 gap-y-1',
-        className,
-      )}
-    >
-      <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-0.5">
-        <div className="flex items-baseline gap-2">
+    <header className={cn('space-y-1', className)}>
+      {/* Row 1: title (and eyebrow / live pill) on the left, actions
+          anchored to the right. justify-between keeps actions on the
+          right edge even when the title is short. */}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <div className="flex min-w-0 items-baseline gap-2">
           {eyebrow && (
             <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
               {eyebrow}
             </span>
           )}
-          <h1 className="text-lg font-bold leading-tight tracking-tight text-zinc-900 sm:text-xl">
+          <h1 className="truncate text-lg font-bold leading-tight tracking-tight text-zinc-900 sm:text-xl">
             {title}
           </h1>
           {live && (
@@ -36,12 +34,14 @@ function PageHeader({ title, eyebrow, description, actions, live, className }: P
             </StatusPill>
           )}
         </div>
-        {description && (
-          <p className="max-w-2xl text-xs leading-snug text-zinc-500">{description}</p>
+        {actions && (
+          <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
         )}
       </div>
-      {actions && (
-        <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
+      {/* Row 2: description as a secondary line so it never pushes the
+          right-side actions to wrap below. */}
+      {description && (
+        <p className="max-w-2xl text-xs leading-snug text-zinc-500">{description}</p>
       )}
     </header>
   )
