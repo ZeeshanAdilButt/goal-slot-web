@@ -33,6 +33,7 @@ import {
 import { CoachIcon } from '@/components/icons/coach-icon'
 import { FeatherPenIcon } from '@/components/icons/feather-pen-icon'
 import { NotebookIcon } from '@/components/icons/notebook-icon'
+import { useQueryClient } from '@tanstack/react-query'
 import { useGoalsQuery } from '@/features/goals/hooks/use-goals-queries'
 import { useTasksQuery } from '@/features/tasks/hooks/use-tasks-queries'
 import type { Task } from '@/features/time-tracker/utils/types'
@@ -89,60 +90,80 @@ const ADMIN_COMMANDS: Array<Omit<Command, 'group'> & { group: 'Admin' }> = [
 ]
 
 /**
- * Single-token scorer. Returns 0 for no hit; higher = better.
- *   - 2000+: full string starts with the token
- *   - 1500+: any whitespace-bounded word starts with the token
- *   - 1000+: substring anywhere
+ * Bulletproof match + score for a command.
  *
- * NO subsequence matching (last version surfaced "Tasks" for "tracking"
- * because of shared letters — confused users more than it helped).
+ * Rule #1 (the airtight filter): every whitespace-separated word in the
+ * query MUST appear as a substring somewhere in the command's searchable
+ * text (label + hint + keywords joined). If even one word is missing,
+ * the command does NOT match and is removed from the result set —
+ * regardless of any partial overlap on other fields.
  *
- * The earlier-index-is-better bonuses keep ordering stable across ties.
+ * Rule #2 (the scorer): for matched commands we hand out additive
+ * bonuses, biggest first:
+ *   +4000  whole query is a prefix of the label
+ *   +3000  whole query appears anywhere in the label
+ *   +2000  per query word that prefixes ANY word in the label
+ *   +1000  per query word that appears as substring in the label
+ *   +500   per query word that appears anywhere in hint or keywords
+ *   -labelLength (so shorter labels beat longer for equal-tier hits)
+ *
+ * This avoids the historical bugs: no subsequence (which falsely matched
+ * "tracking" → "Tasks"), no token-OR (which let one word's hit pull in
+ * a command that totally missed the other word), no asymmetric scoring
+ * paths that diverged from the filter (which let items leak through
+ * with score > 0 when they shouldn't have matched).
  */
-function tokenScore(token: string, text: string): number {
-  if (!token || !text) return 0
-  if (text.startsWith(token)) return 2000 + (50 - Math.min(text.length, 50))
-  const words = text.split(/[\s/_\-.·:]+/)
-  for (let i = 0; i < words.length; i++) {
-    if (words[i].startsWith(token)) {
-      return 1500 + (40 - Math.min(i, 40)) * 5
-    }
-  }
-  const idx = text.indexOf(token)
-  if (idx !== -1) return 1000 + (50 - Math.min(idx, 50))
-  return 0
+interface ScoredCommand {
+  cmd: Command
+  score: number
 }
 
-/**
- * Whole-query scorer. Handles multi-word input properly:
- *   - One token: just use tokenScore on the full text.
- *   - Multiple tokens: EVERY token must hit somewhere; the final score
- *     is the average so a perfect 2-of-2 still ranks higher than a
- *     loose 1-of-3 match. Whole-query prefix on the text gets a big
- *     bonus so "include both" → an item literally starting with
- *     "include both …" outranks any per-token combination.
- */
-function textMatch(query: string, text: string | undefined | null): number {
-  if (!query || !text) return 0
+function scoreCommand(query: string, cmd: Command): number {
   const q = query.toLowerCase().trim()
-  const t = text.toLowerCase()
   if (!q) return 0
-  // Whole-query prefix wins above all per-token combinations.
-  if (t.startsWith(q)) return 3000 + (50 - Math.min(t.length, 50))
-  // Whole-query substring beats split scoring too — it means the user
-  // typed a phrase that appears verbatim in the label.
-  if (t.includes(q)) return 2500 + (50 - Math.min(t.indexOf(q), 50))
-  const tokens = q.split(/\s+/).filter(Boolean)
-  if (tokens.length === 0) return 0
-  if (tokens.length === 1) return tokenScore(tokens[0], t)
-  // Multi-token: AND all tokens. Bail on first miss.
-  let total = 0
-  for (const tok of tokens) {
-    const s = tokenScore(tok, t)
-    if (s === 0) return 0
-    total += s
+
+  const label = (cmd.label ?? '').toLowerCase()
+  const hint = (cmd.hint ?? '').toLowerCase()
+  const keywords = (cmd.keywords ?? '').toLowerCase()
+  const haystack = `${label} ${hint} ${keywords}`
+
+  // Rule #1: every query word must appear somewhere in the haystack.
+  // This is the only gate that decides whether the item appears at all.
+  const queryWords = q.split(/\s+/).filter(Boolean)
+  if (queryWords.length === 0) return 0
+  for (const w of queryWords) {
+    if (!haystack.includes(w)) return 0
   }
-  return Math.round(total / tokens.length)
+
+  // Rule #2: additive scoring on the matched item.
+  let score = 0
+
+  if (label.startsWith(q)) score += 4000
+  else if (label.includes(q)) score += 3000
+
+  const labelWords = label.split(/[\s/_\-.·:]+/).filter(Boolean)
+  for (const qw of queryWords) {
+    let bestForThisWord = 0
+    for (const lw of labelWords) {
+      if (lw.startsWith(qw)) {
+        bestForThisWord = Math.max(bestForThisWord, 2000)
+        break
+      }
+    }
+    if (bestForThisWord === 0 && label.includes(qw)) {
+      bestForThisWord = 1000
+    }
+    if (bestForThisWord === 0 && (hint.includes(qw) || keywords.includes(qw))) {
+      bestForThisWord = 500
+    }
+    score += bestForThisWord
+  }
+
+  // Shorter labels win on equal tiers — "Goals" beats "Goal Setting and
+  // Reflection Practices" when the query is "goal".
+  score -= Math.min(label.length, 60)
+
+  return score
 }
 
 export function CommandPalette({
@@ -154,14 +175,25 @@ export function CommandPalette({
 }: CommandPaletteProps) {
   const router = useRouter()
   const isAdmin = useIsAdmin()
-  // Share React Query cache with the rest of the app — if goals/tasks
-  // are already loaded on the current page there's no extra request.
-  // Pull ALL tasks (no status filter) so the user can also find DONE
-  // ones in the palette; the previous BACKLOG/TODO/DOING filter made
-  // completed work invisible, which was the actual cause of "fix
-  // doesn't show my fix tasks" — they were all marked done.
+  const queryClient = useQueryClient()
+  // ALL tasks (no status filter) so DONE tasks are searchable too.
+  // Was the cause of "fix doesn't show my fix tasks" — they were
+  // all marked done and previously filtered out.
   const { data: goals = [] } = useGoalsQuery()
   const { data: tasks = [] } = useTasksQuery()
+
+  // Force-refresh goals + tasks every time the palette opens. Without
+  // this the user's most-recently-added goal/task can be invisible
+  // until they refresh the whole page (the symptom they reported:
+  // "only works after I refresh"). Invalidate is cheap because the
+  // queries are gated by enabled-on-open via downstream pages and the
+  // refetch happens in the background while the palette renders
+  // whatever's already cached.
+  useEffect(() => {
+    if (!open) return
+    queryClient.invalidateQueries({ queryKey: ['goals'] })
+    queryClient.invalidateQueries({ queryKey: ['tasks'] })
+  }, [open, queryClient])
 
   const [query, setQuery] = useState('')
   const [highlightedIdx, setHighlightedIdx] = useState(0)
@@ -248,38 +280,30 @@ export function CommandPalette({
   const filtered = useMemo(() => {
     const q = query.trim()
     if (!q) {
-      // No query: show the curated default order (quick actions, pages,
-      // admin) and skip the huge goal/task lists to avoid wall-of-text.
+      // No query: show curated defaults (quick actions, pages, admin)
+      // and skip the goal/task lists so the user doesn't get a
+      // wall-of-text on first focus.
       return allCommands.filter(
         (c) => c.group === 'Quick actions' || c.group === 'Pages' || c.group === 'Admin',
       )
     }
-    // Group priority — small tie-breakers ONLY. Keep these tight so
-    // they don't override a strong label match. The previous values
-    // (Pages 6 > Tasks 5 > Goals 3) meant typing "goal" surfaced the
-    // static Goals page above the user's own goal named "Goal X"
-    // even when both matched the label identically. User data is
-    // what the search is FOR — bump tasks/goals above pages so a tie
-    // goes to the personalised item. Quick actions still rank top
-    // because they're always-correct navigations.
+    // Tiny per-group bonus, applied AFTER the airtight word filter, so
+    // ties go to user data (Tasks > Goals > Pages). Quick actions
+    // outrank everything because they're always-correct shortcuts.
     const GROUP_BONUS: Record<Command['group'], number> = {
-      'Quick actions': 12,
-      Tasks: 10,
-      Goals: 9,
-      Pages: 6,
-      Admin: 4,
+      'Quick actions': 50,
+      Tasks: 30,
+      Goals: 20,
+      Pages: 10,
+      Admin: 5,
     }
-    const scored = allCommands
-      .map((cmd) => {
-        const labelScore = textMatch(q, cmd.label)
-        const hintScore = textMatch(q, cmd.hint) * 0.5
-        const keywordScore = textMatch(q, cmd.keywords) * 0.5
-        const best = Math.max(labelScore, hintScore, keywordScore)
-        if (best === 0) return { cmd, score: 0 }
-        return { cmd, score: best + GROUP_BONUS[cmd.group] }
-      })
-      .filter((s) => s.score > 0)
-      .sort((a, b) => b.score - a.score)
+    const scored: ScoredCommand[] = []
+    for (const cmd of allCommands) {
+      const base = scoreCommand(q, cmd)
+      if (base <= 0) continue // hard gate — never surface a non-matching command
+      scored.push({ cmd, score: base + (GROUP_BONUS[cmd.group] ?? 0) })
+    }
+    scored.sort((a, b) => b.score - a.score)
     return scored.map((s) => s.cmd)
   }, [allCommands, query])
 
