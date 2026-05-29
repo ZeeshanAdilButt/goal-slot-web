@@ -89,37 +89,60 @@ const ADMIN_COMMANDS: Array<Omit<Command, 'group'> & { group: 'Admin' }> = [
 ]
 
 /**
- * Tiered text match. Returns 0 for no hit, higher = better:
- *   - 1000+: exact prefix on the text
- *   - 800+ : prefix on any whitespace-delimited word
- *   - 500+ : substring anywhere
- *   - 0    : no substring or word-prefix hit (we deliberately do NOT do
- *            subsequence matching — it surfaces "Tasks" for "tracking"
- *            because t-a-s-... shares letters with t-r-a-..., which is
- *            confusing more than helpful).
+ * Single-token scorer. Returns 0 for no hit; higher = better.
+ *   - 2000+: full string starts with the token
+ *   - 1500+: any whitespace-bounded word starts with the token
+ *   - 1000+: substring anywhere
  *
- * The cheap "earlier index is better" subtraction inside each tier gives
- * stable ordering when several items hit the same tier.
+ * NO subsequence matching (last version surfaced "Tasks" for "tracking"
+ * because of shared letters — confused users more than it helped).
+ *
+ * The earlier-index-is-better bonuses keep ordering stable across ties.
  */
-function textMatch(query: string, text: string | undefined | null): number {
-  if (!query) return 0
-  if (!text) return 0
-  const q = query.toLowerCase()
-  const t = text.toLowerCase()
-  if (t.startsWith(q)) return 1000 + (50 - Math.min(t.length, 50))
-  // word-prefix: any whitespace-bounded token starts with the query
-  const words = t.split(/[\s/_\-.·]+/)
-  let bestWordIdx = -1
+function tokenScore(token: string, text: string): number {
+  if (!token || !text) return 0
+  if (text.startsWith(token)) return 2000 + (50 - Math.min(text.length, 50))
+  const words = text.split(/[\s/_\-.·:]+/)
   for (let i = 0; i < words.length; i++) {
-    if (words[i].startsWith(q)) {
-      bestWordIdx = i
-      break
+    if (words[i].startsWith(token)) {
+      return 1500 + (40 - Math.min(i, 40)) * 5
     }
   }
-  if (bestWordIdx !== -1) return 800 + (20 - Math.min(bestWordIdx, 20))
-  const idx = t.indexOf(q)
-  if (idx !== -1) return 500 + (50 - Math.min(idx, 50))
+  const idx = text.indexOf(token)
+  if (idx !== -1) return 1000 + (50 - Math.min(idx, 50))
   return 0
+}
+
+/**
+ * Whole-query scorer. Handles multi-word input properly:
+ *   - One token: just use tokenScore on the full text.
+ *   - Multiple tokens: EVERY token must hit somewhere; the final score
+ *     is the average so a perfect 2-of-2 still ranks higher than a
+ *     loose 1-of-3 match. Whole-query prefix on the text gets a big
+ *     bonus so "include both" → an item literally starting with
+ *     "include both …" outranks any per-token combination.
+ */
+function textMatch(query: string, text: string | undefined | null): number {
+  if (!query || !text) return 0
+  const q = query.toLowerCase().trim()
+  const t = text.toLowerCase()
+  if (!q) return 0
+  // Whole-query prefix wins above all per-token combinations.
+  if (t.startsWith(q)) return 3000 + (50 - Math.min(t.length, 50))
+  // Whole-query substring beats split scoring too — it means the user
+  // typed a phrase that appears verbatim in the label.
+  if (t.includes(q)) return 2500 + (50 - Math.min(t.indexOf(q), 50))
+  const tokens = q.split(/\s+/).filter(Boolean)
+  if (tokens.length === 0) return 0
+  if (tokens.length === 1) return tokenScore(tokens[0], t)
+  // Multi-token: AND all tokens. Bail on first miss.
+  let total = 0
+  for (const tok of tokens) {
+    const s = tokenScore(tok, t)
+    if (s === 0) return 0
+    total += s
+  }
+  return Math.round(total / tokens.length)
 }
 
 export function CommandPalette({
@@ -231,17 +254,18 @@ export function CommandPalette({
         (c) => c.group === 'Quick actions' || c.group === 'Pages' || c.group === 'Admin',
       )
     }
-    // Group priority — lets us tie-break across tiers so that a query
-    // matching a quick action ("tracking" → "Start tracking…") outranks
-    // a same-tier hit on a goal/task with the same word. Larger = more
-    // important. Tasks slightly outrank goals so the user's actionable
-    // work surfaces above their long-term targets.
+    // Group priority — small tie-breakers ONLY. Keep these tight so
+    // they don't override a strong label match. Earlier the bonuses
+    // were +300/+400 which let a Page substring-match outrank a Task
+    // word-prefix match — the user's task got buried under noise.
+    // With the new tokenScore tiers (2000/1500/1000), single-digit
+    // bonuses are enough to break ties without distorting ranks.
     const GROUP_BONUS: Record<Command['group'], number> = {
-      'Quick actions': 400,
-      Pages: 300,
-      Admin: 200,
-      Tasks: 100,
-      Goals: 50,
+      'Quick actions': 8,
+      Pages: 6,
+      Admin: 4,
+      Tasks: 5,
+      Goals: 3,
     }
     const scored = allCommands
       .map((cmd) => {
@@ -268,8 +292,17 @@ export function CommandPalette({
     return buckets
   }, [filtered])
 
-  // Re-clamp the highlighted index whenever the result set shrinks (e.g.
-  // user typed something that filtered the list down).
+  // Reset to the top match every time the query changes — autocomplete
+  // expectation: as the user types, the new #1 is what Enter opens.
+  // Without this, the highlight stays on whatever ordinal index the
+  // user last arrowed to (or the last result index after a clamp),
+  // which feels broken when the list reorders under them.
+  useEffect(() => {
+    setHighlightedIdx(0)
+  }, [query])
+
+  // Defensive clamp if the list shrinks below the current index for
+  // any other reason (e.g. background data refetch dropping items).
   useEffect(() => {
     if (highlightedIdx >= filtered.length) {
       setHighlightedIdx(filtered.length > 0 ? filtered.length - 1 : 0)
