@@ -1,17 +1,12 @@
 'use client'
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
+import { Command } from 'cmdk'
+import { useQueryClient } from '@tanstack/react-query'
 import {
-  ArrowRight,
   BarChart3,
   Calendar,
   CheckSquare,
@@ -33,117 +28,127 @@ import {
 import { CoachIcon } from '@/components/icons/coach-icon'
 import { FeatherPenIcon } from '@/components/icons/feather-pen-icon'
 import { NotebookIcon } from '@/components/icons/notebook-icon'
-import { useQueryClient } from '@tanstack/react-query'
 import { useGoalsQuery } from '@/features/goals/hooks/use-goals-queries'
 import { useTasksQuery } from '@/features/tasks/hooks/use-tasks-queries'
 import type { Task } from '@/features/time-tracker/utils/types'
 import type { Goal } from '@/features/goals/utils/types'
 import { useIsAdmin } from '@/lib/store'
 import { useDismissable } from '@/lib/use-dismissable'
-import { cn } from '@/lib/utils'
 
-type IconLike =
-  | LucideIcon
-  | ((props: { className?: string }) => React.ReactElement)
+/**
+ * Ctrl/Cmd+K command palette.
+ *
+ * Built on `cmdk` (the Radix-team primitive used by Linear, Vercel,
+ * GitHub Copilot, etc.) so state, keyboard nav, and filtering are
+ * handled by a well-tested library instead of our own re-rolled logic.
+ * Our previous hand-rolled implementation kept introducing edge-case
+ * bugs (stale state on close/reopen, hint-only matches ranking above
+ * label matches, scroll-jitter feedback loops) — moving to cmdk
+ * eliminates that entire class.
+ *
+ * The only logic we add on top is:
+ *   - A custom `filter` function that implements TIERED scoring so a
+ *     label hit always outranks a hint/keyword hit (cmdk's default
+ *     fuzzy filter ranks roughly by character overlap which lets a
+ *     keyword-only match creep above a label substring match).
+ *   - A `key` on the Command root that bumps every time the palette
+ *     opens, forcing cmdk to fully reset its internal search/value
+ *     state. Cheap, completely eliminates the "stale state on reopen"
+ *     class of bugs that we kept hitting.
+ *   - Bridge to existing floating panels via window CustomEvents so
+ *     Start tracking / Ask the Coach / Daily check-in trigger the
+ *     already-mounted UIs.
+ */
 
-interface Command {
+type IconLike = LucideIcon | ((props: { className?: string }) => React.ReactElement)
+
+interface PaletteItem {
   id: string
   label: string
   hint?: string
-  group: 'Quick actions' | 'Pages' | 'Admin' | 'Goals' | 'Tasks'
+  /** Free-text used by the filter only — never shown. */
   keywords?: string
+  group: 'Quick actions' | 'Pages' | 'Admin' | 'Goals' | 'Tasks'
   icon: IconLike
-  /** Either a navigation target… */
   href?: string
-  /** …or an action invoked on Enter / click. */
   onSelect?: () => void
 }
 
 interface CommandPaletteProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  /** Quick-action callbacks wired from the layout so the palette doesn't
-      need to know how those floating panels are implemented. */
   onStartTracking?: () => void
   onOpenCoach?: () => void
   onOpenCheckin?: () => void
 }
 
-const PAGE_COMMANDS: Array<Omit<Command, 'group'> & { group: 'Pages' }> = [
-  { id: 'page-dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard', group: 'Pages', keywords: 'home overview' },
-  { id: 'page-goals', label: 'Goals', icon: Flag, href: '/dashboard/goals', group: 'Pages', keywords: 'objectives okrs' },
-  { id: 'page-schedule', label: 'Schedule', icon: Calendar, href: '/dashboard/schedule', group: 'Pages', keywords: 'calendar week blocks' },
-  { id: 'page-tasks', label: 'Tasks', icon: CheckSquare, href: '/dashboard/tasks', group: 'Pages', keywords: 'todo backlog' },
-  { id: 'page-tracker', label: 'Time Tracker', icon: Clock, href: '/dashboard/time-tracker', group: 'Pages', keywords: 'timer pomodoro' },
-  { id: 'page-journal', label: 'Journal', icon: FeatherPenIcon, href: '/dashboard/journal', group: 'Pages', keywords: 'write reflect notes' },
-  { id: 'page-coach', label: 'GoalSlot AI', icon: CoachIcon, href: '/dashboard/coach', group: 'Pages', keywords: 'coach ai assistant' },
-  { id: 'page-notes', label: 'Notes', icon: NotebookIcon, href: '/dashboard/notes', group: 'Pages', keywords: 'docs writeup' },
-  { id: 'page-reports', label: 'Reports', icon: BarChart3, href: '/dashboard/reports', group: 'Pages', keywords: 'analytics stats' },
-  { id: 'page-export', label: 'Export Reports', icon: Download, href: '/dashboard/reports/export', group: 'Pages', keywords: 'csv download' },
-  { id: 'page-sharing', label: 'Sharing', icon: Share2, href: '/dashboard/sharing', group: 'Pages', keywords: 'public share' },
+// ---------------------------------------------------------------------------
+// Static command sets
+// ---------------------------------------------------------------------------
+
+const PAGE_ITEMS: PaletteItem[] = [
+  { id: 'page-dashboard',  label: 'Dashboard',      icon: LayoutDashboard, href: '/dashboard',                 group: 'Pages', keywords: 'home overview' },
+  { id: 'page-goals',      label: 'Goals',          icon: Flag,            href: '/dashboard/goals',           group: 'Pages', keywords: 'objectives okrs' },
+  { id: 'page-schedule',   label: 'Schedule',       icon: Calendar,        href: '/dashboard/schedule',        group: 'Pages', keywords: 'calendar week blocks' },
+  { id: 'page-tasks',      label: 'Tasks',          icon: CheckSquare,     href: '/dashboard/tasks',           group: 'Pages', keywords: 'todo backlog' },
+  { id: 'page-tracker',    label: 'Time Tracker',   icon: Clock,           href: '/dashboard/time-tracker',    group: 'Pages', keywords: 'timer pomodoro' },
+  { id: 'page-journal',    label: 'Journal',        icon: FeatherPenIcon,  href: '/dashboard/journal',         group: 'Pages', keywords: 'write reflect' },
+  { id: 'page-coach',      label: 'GoalSlot AI',    icon: CoachIcon,       href: '/dashboard/coach',           group: 'Pages', keywords: 'coach ai assistant' },
+  { id: 'page-notes',      label: 'Notes',          icon: NotebookIcon,    href: '/dashboard/notes',           group: 'Pages', keywords: 'docs writeup' },
+  { id: 'page-reports',    label: 'Reports',        icon: BarChart3,       href: '/dashboard/reports',         group: 'Pages', keywords: 'analytics stats' },
+  { id: 'page-export',     label: 'Export Reports', icon: Download,        href: '/dashboard/reports/export',  group: 'Pages', keywords: 'csv download' },
+  { id: 'page-sharing',    label: 'Sharing',        icon: Share2,          href: '/dashboard/sharing',         group: 'Pages', keywords: 'public share' },
 ]
 
-const ADMIN_COMMANDS: Array<Omit<Command, 'group'> & { group: 'Admin' }> = [
-  { id: 'admin-users', label: 'Users', icon: Users, href: '/dashboard/admin/users', group: 'Admin' },
-  { id: 'admin-feedback', label: 'Feedback', icon: MessageSquare, href: '/dashboard/admin/feedback', group: 'Admin' },
-  { id: 'admin-release', label: 'Release Notes', icon: Megaphone, href: '/dashboard/admin/release-notes', group: 'Admin' },
+const ADMIN_ITEMS: PaletteItem[] = [
+  { id: 'admin-users',         label: 'Users',         icon: Users,         href: '/dashboard/admin/users',         group: 'Admin' },
+  { id: 'admin-feedback',      label: 'Feedback',      icon: MessageSquare, href: '/dashboard/admin/feedback',      group: 'Admin' },
+  { id: 'admin-release-notes', label: 'Release Notes', icon: Megaphone,     href: '/dashboard/admin/release-notes', group: 'Admin' },
 ]
 
-/**
- * Tiered scorer — kept in sync with scripts/palette-test.mjs (94+
- * cases there must pass before shipping). The design fixes a long-
- * standing class of bugs where a goal/task whose CATEGORY contained
- * the query word (a hint/keyword hit) outranked a Page or Quick
- * action with the query as a real LABEL match.
- *
- * Rule #1 (HARD GATE): every whitespace-separated word in the query
- * MUST appear as a substring somewhere in label + hint + keywords.
- * One miss = zero score = filtered out.
- *
- * Rule #2 (TIERED, not additive): the strongest tier the LABEL hits
- * dominates the score. Hint/keyword-only matches sit at the bottom
- * tier and can never push a hint hit above a label substring hit:
- *
- *   1,000,000  label exactly equals the query
- *     500,000  label starts with the full query
- *     100,000  any label word starts with any query word
- *      50,000  every query word is a substring of the label
- *       1,000  hint/keywords contain query words (no label hit)
- *
- *   minus min(labelLength, 100) so shorter labels win on equal tiers
- *   +100 if hint/keywords also hit the full query (multi-signal bonus)
- */
-interface ScoredCommand {
-  cmd: Command
-  score: number
+// ---------------------------------------------------------------------------
+// Tiered scorer — used as cmdk's custom filter. Same tier values as the
+// scripts/palette-test.mjs harness (94+ cases passing).
+// ---------------------------------------------------------------------------
+
+const TIER_LABEL_EXACT       = 1_000_000
+const TIER_LABEL_PREFIX      =   500_000
+const TIER_LABEL_WORD_PREFIX =   100_000
+const TIER_LABEL_SUBSTRING   =    50_000
+const TIER_HINT_KEYWORD_HIT  =     1_000
+
+const GROUP_BONUS: Record<PaletteItem['group'], number> = {
+  'Quick actions': 50,
+  Tasks: 30,
+  Goals: 20,
+  Pages: 10,
+  Admin: 5,
 }
 
-const TIER_LABEL_EXACT = 1_000_000
-const TIER_LABEL_PREFIX = 500_000
-const TIER_LABEL_WORD_PREFIX = 100_000
-const TIER_LABEL_SUBSTRING = 50_000
-const TIER_HINT_KEYWORD_HIT = 1_000
+interface ItemMeta {
+  label: string
+  hint?: string
+  keywords?: string
+  group: PaletteItem['group']
+}
 
-function scoreCommand(query: string, cmd: Command): number {
+function scoreItem(query: string, meta: ItemMeta): number {
   const q = query.toLowerCase().trim()
   if (!q) return 0
 
-  const label = (cmd.label ?? '').toLowerCase()
-  const hint = (cmd.hint ?? '').toLowerCase()
-  const keywords = (cmd.keywords ?? '').toLowerCase()
+  const label = meta.label.toLowerCase()
+  const hint = (meta.hint ?? '').toLowerCase()
+  const keywords = (meta.keywords ?? '').toLowerCase()
 
   const queryWords = q.split(/\s+/).filter(Boolean)
   if (queryWords.length === 0) return 0
 
-  // HARD GATE: every query word must appear somewhere in the haystack.
+  // HARD GATE: every query word must appear somewhere in label/hint/keywords.
   const haystack = `${label} ${hint} ${keywords}`
   for (const w of queryWords) {
     if (!haystack.includes(w)) return 0
   }
 
-  // Resolve which tier the LABEL hits. Highest tier wins; no addition
-  // across tiers (an additive scheme let hint-only matches creep past
-  // weak label hits).
   let labelTier = 0
   if (label === q) {
     labelTier = TIER_LABEL_EXACT
@@ -192,9 +197,12 @@ function scoreCommand(query: string, cmd: Command): number {
     score = TIER_HINT_KEYWORD_HIT
     score -= Math.min(label.length, 100)
   }
-
-  return score
+  return score + (GROUP_BONUS[meta.group] ?? 0)
 }
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 
 export function CommandPalette({
   open,
@@ -206,46 +214,32 @@ export function CommandPalette({
   const router = useRouter()
   const isAdmin = useIsAdmin()
   const queryClient = useQueryClient()
-  // ALL tasks (no status filter) so DONE tasks are searchable too.
-  // Was the cause of "fix doesn't show my fix tasks" — they were
-  // all marked done and previously filtered out.
   const { data: goals = [] } = useGoalsQuery()
   const { data: tasks = [] } = useTasksQuery()
 
-  // Force-refresh goals + tasks every time the palette opens. Without
-  // this the user's most-recently-added goal/task can be invisible
-  // until they refresh the whole page (the symptom they reported:
-  // "only works after I refresh"). Invalidate is cheap because the
-  // queries are gated by enabled-on-open via downstream pages and the
-  // refetch happens in the background while the palette renders
-  // whatever's already cached.
+  // Bump a counter every time the palette opens. We pass it into the
+  // cmdk Command's `key` so the entire library state — search input,
+  // selected item, expanded groups — is thrown away and rebuilt fresh
+  // on every open. Eliminates the entire "stale state on reopen" class
+  // of bugs that hand-rolled state kept reintroducing.
+  const [openCounter, setOpenCounter] = useState(0)
+  useEffect(() => {
+    if (open) setOpenCounter((c) => c + 1)
+  }, [open])
+
+  // Refresh goals + tasks on every open so the just-created item is
+  // searchable without requiring a full page refresh.
   useEffect(() => {
     if (!open) return
     queryClient.invalidateQueries({ queryKey: ['goals'] })
     queryClient.invalidateQueries({ queryKey: ['tasks'] })
   }, [open, queryClient])
 
-  const [query, setQuery] = useState('')
-  const [highlightedIdx, setHighlightedIdx] = useState(0)
-  const inputRef = useRef<HTMLInputElement | null>(null)
-  const listRef = useRef<HTMLDivElement | null>(null)
-
-  // BULLETPROOF state reset — fire on EVERY open transition (both
-  // directions) so a stale query from a previous open can never bleed
-  // into the next. Previous version only reset on open=true; that was
-  // fine in theory but allowed an edge where re-open before the
-  // useEffect's cleanup ran left `query` non-empty.
-  useEffect(() => {
-    setQuery('')
-    setHighlightedIdx(0)
-    if (open) {
-      const id = window.setTimeout(() => inputRef.current?.focus(), 30)
-      return () => window.clearTimeout(id)
-    }
-  }, [open])
-
-  const allCommands = useMemo<Command[]>(() => {
-    const quick: Command[] = []
+  // Build the items list. Memoised on the queries + admin flag so we
+  // don't rebuild on every keystroke (cmdk does its own re-render
+  // cycle for the input value).
+  const items = useMemo<PaletteItem[]>(() => {
+    const quick: PaletteItem[] = []
     if (onStartTracking) {
       quick.push({
         id: 'qa-start-tracking',
@@ -280,11 +274,7 @@ export function CommandPalette({
       })
     }
 
-    // No artificial slice cap — let every goal/task be searchable.
-    // The fuzzy match filter trims to whatever the user actually
-    // queried for. For users with thousands of completed tasks we
-    // can revisit, but 25/40 was so tight it hid even small libraries.
-    const goalCommands: Command[] = (goals as Goal[]).map((g: Goal) => ({
+    const goalItems: PaletteItem[] = (goals as Goal[]).map((g: Goal) => ({
       id: `goal-${g.id}`,
       label: g.title,
       hint: `Goal · ${g.category ?? 'uncategorised'}`,
@@ -294,7 +284,7 @@ export function CommandPalette({
       href: `/dashboard/goals?goal=${encodeURIComponent(g.id)}`,
     }))
 
-    const taskCommands: Command[] = (tasks as Task[]).map((t: Task) => ({
+    const taskItems: PaletteItem[] = (tasks as Task[]).map((t: Task) => ({
       id: `task-${t.id}`,
       label: t.title,
       hint: t.goal?.title ? `Task · ${t.goal.title}` : 'Task',
@@ -304,169 +294,62 @@ export function CommandPalette({
       href: `/dashboard/tasks?task=${encodeURIComponent(t.id)}`,
     }))
 
-    const pages = PAGE_COMMANDS as Command[]
-    const admin = isAdmin ? (ADMIN_COMMANDS as Command[]) : []
-
-    return [...quick, ...pages, ...admin, ...goalCommands, ...taskCommands]
+    return [...quick, ...PAGE_ITEMS, ...(isAdmin ? ADMIN_ITEMS : []), ...goalItems, ...taskItems]
   }, [goals, tasks, isAdmin, onStartTracking, onOpenCoach, onOpenCheckin])
 
-  const filtered = useMemo(() => {
-    const q = query.trim()
-    if (!q) {
-      // No query: show curated defaults (quick actions, pages, admin)
-      // and skip the goal/task lists so the user doesn't get a
-      // wall-of-text on first focus.
-      return allCommands.filter(
-        (c) => c.group === 'Quick actions' || c.group === 'Pages' || c.group === 'Admin',
-      )
+  // Build a lookup so cmdk's filter (which only sees the item's `value`
+  // prop) can find back to the item meta we need for tiered scoring.
+  // The value passed to cmdk encodes the item id; we read meta from
+  // here when the filter callback runs.
+  const itemMeta = useMemo(() => {
+    const m = new Map<string, ItemMeta>()
+    for (const it of items) {
+      m.set(it.id, { label: it.label, hint: it.hint, keywords: it.keywords, group: it.group })
     }
-    // Tiny per-group bonus, applied AFTER the airtight word filter, so
-    // ties go to user data (Tasks > Goals > Pages). Quick actions
-    // outrank everything because they're always-correct shortcuts.
-    const GROUP_BONUS: Record<Command['group'], number> = {
-      'Quick actions': 50,
-      Tasks: 30,
-      Goals: 20,
-      Pages: 10,
-      Admin: 5,
-    }
-    const scored: ScoredCommand[] = []
-    for (const cmd of allCommands) {
-      const base = scoreCommand(q, cmd)
-      if (base <= 0) continue // hard gate — never surface a non-matching command
-      scored.push({ cmd, score: base + (GROUP_BONUS[cmd.group] ?? 0) })
-    }
-    scored.sort((a, b) => b.score - a.score)
-    return scored.map((s) => s.cmd)
-  }, [allCommands, query])
+    return m
+  }, [items])
 
-  // Group preserving the order of `filtered`.
+  // cmdk filter signature: (value, search, keywords?) => score (0 = no match)
+  // Higher score = ranked higher. We ignore the keywords arg cmdk passes
+  // because we already plug everything we need into the scorer.
+  const filter = useCallback(
+    (value: string, search: string): number => {
+      const meta = itemMeta.get(value)
+      if (!meta) return 0
+      return scoreItem(search, meta)
+    },
+    [itemMeta],
+  )
+
+  // Group items by their group field. The order of buckets matches
+  // the order items are rendered for the empty/default state. cmdk
+  // hides empty groups automatically when its filter returns 0 for
+  // every item in them.
   const grouped = useMemo(() => {
-    const buckets: Array<{ group: Command['group']; items: Command[] }> = []
-    for (const cmd of filtered) {
-      const last = buckets[buckets.length - 1]
-      if (last && last.group === cmd.group) last.items.push(cmd)
-      else buckets.push({ group: cmd.group, items: [cmd] })
-    }
-    return buckets
-  }, [filtered])
-
-  // Reset to the top match every time the query changes — autocomplete
-  // expectation: as the user types, the new #1 is what Enter opens.
-  // Without this, the highlight stays on whatever ordinal index the
-  // user last arrowed to (or the last result index after a clamp),
-  // which feels broken when the list reorders under them.
-  useEffect(() => {
-    setHighlightedIdx(0)
-  }, [query])
-
-  // Defensive clamp if the list shrinks below the current index for
-  // any other reason (e.g. background data refetch dropping items).
-  useEffect(() => {
-    if (highlightedIdx >= filtered.length) {
-      setHighlightedIdx(filtered.length > 0 ? filtered.length - 1 : 0)
-    }
-  }, [filtered.length, highlightedIdx])
+    const order: PaletteItem['group'][] = ['Quick actions', 'Pages', 'Admin', 'Goals', 'Tasks']
+    const buckets = new Map<PaletteItem['group'], PaletteItem[]>()
+    for (const g of order) buckets.set(g, [])
+    for (const it of items) buckets.get(it.group)?.push(it)
+    return order
+      .map((g) => ({ group: g, items: buckets.get(g) ?? [] }))
+      .filter((b) => b.items.length > 0)
+  }, [items])
 
   const handleSelect = useCallback(
-    (cmd: Command) => {
-      // Close FIRST, then navigate — closing during navigation can race
-      // with Next's route transition on slow networks.
+    (item: PaletteItem) => {
       onOpenChange(false)
-      // Use setTimeout to let React flush the close state before we push.
-      // Without this, the palette occasionally "swallows" the navigation
-      // on the same render tick.
+      // Defer to next tick so cmdk + dialog state flushes before nav.
       window.setTimeout(() => {
-        if (cmd.onSelect) {
-          cmd.onSelect()
-        } else if (cmd.href) {
-          router.push(cmd.href)
-        }
+        if (item.onSelect) item.onSelect()
+        else if (item.href) router.push(item.href)
       }, 0)
     },
     [onOpenChange, router],
   )
 
-  // Refs so the keydown handler always reads the latest filtered list and
-  // highlighted index — React batching means the closure captured at
-  // render time can be stale by the time Enter fires after a fast keypress.
-  const filteredRef = useRef(filtered)
-  filteredRef.current = filtered
-  const highlightedIdxRef = useRef(highlightedIdx)
-  highlightedIdxRef.current = highlightedIdx
-
-  const handleInputKeyDown = useCallback(
-    (event: React.KeyboardEvent<HTMLInputElement>) => {
-      if (event.key === 'ArrowDown') {
-        event.preventDefault()
-        setHighlightedIdx((i) =>
-          Math.min(i + 1, Math.max(0, filteredRef.current.length - 1)),
-        )
-      } else if (event.key === 'ArrowUp') {
-        event.preventDefault()
-        setHighlightedIdx((i) => Math.max(i - 1, 0))
-      } else if (event.key === 'Enter') {
-        event.preventDefault()
-        const list = filteredRef.current
-        const idx = Math.min(highlightedIdxRef.current, list.length - 1)
-        const cmd = list[idx >= 0 ? idx : 0]
-        if (cmd) handleSelect(cmd)
-      } else if (event.key === 'Escape') {
-        // Tiered Escape (Linear / VS Code pattern):
-        //   first press with text in the input -> clear the text and
-        //     reset the highlight (returns the palette to its empty
-        //     state with quick actions / pages / admin showing)
-        //   second press (or first press when input is already empty)
-        //     -> close the palette entirely.
-        // We swallow the event in the "clear" case so useDismissable's
-        // document-level Escape listener doesn't ALSO close the palette
-        // in the same keystroke.
-        if (query.length > 0) {
-          event.preventDefault()
-          event.stopPropagation()
-          // Stop the document-level Escape listener in useDismissable
-          // from also firing — without this both clear AND close run on
-          // the same keystroke and the user only gets "close".
-          event.nativeEvent.stopImmediatePropagation()
-          setQuery('')
-          setHighlightedIdx(0)
-        }
-        // else: let useDismissable handle the close
-      }
-    },
-    [handleSelect, query],
-  )
-
-  // Keep the highlighted row in view as the user arrows through.
-  // CRITICAL: do NOT use Element.scrollIntoView() here — `block: 'nearest'`
-  // walks ALL scrollable ancestors (including the window) which on a tall
-  // page causes the viewport to jump. That triggered a feedback loop with
-  // onMouseMove on the rows (cursor was suddenly over a different row →
-  // setHighlightedIdx → re-scroll → repeat). We scroll the list element
-  // itself manually instead.
-  useEffect(() => {
-    const list = listRef.current
-    if (!list) return
-    const el = list.querySelector<HTMLElement>(
-      `[data-cmd-index="${highlightedIdx}"]`,
-    )
-    if (!el) return
-    const elTop = el.offsetTop
-    const elBottom = elTop + el.offsetHeight
-    const viewTop = list.scrollTop
-    const viewBottom = viewTop + list.clientHeight
-    if (elTop < viewTop) {
-      list.scrollTop = elTop
-    } else if (elBottom > viewBottom) {
-      list.scrollTop = elBottom - list.clientHeight
-    }
-  }, [highlightedIdx])
-
   const dismissRef = useDismissable<HTMLDivElement>(open, () => onOpenChange(false))
 
   if (!open) return null
-
-  let runningIndex = 0
 
   return (
     <div
@@ -475,182 +358,138 @@ export function CommandPalette({
     >
       <div
         ref={dismissRef}
-        role="dialog"
-        aria-label="Command palette"
-        aria-modal="true"
         className="w-full max-w-xl overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-2xl ring-1 ring-zinc-900/5"
       >
-        <div className="flex items-center gap-2 border-b border-zinc-100 px-3 py-2.5">
-          <Search aria-hidden className="h-4 w-4 shrink-0 text-zinc-400" />
-          <input
-            ref={inputRef}
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleInputKeyDown}
-            placeholder="Search pages, goals, tasks…  press Enter to open"
-            className="h-7 w-full bg-transparent text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none"
-          />
-          {query && (
-            <button
-              type="button"
-              onClick={() => {
-                setQuery('')
-                setHighlightedIdx(0)
-                inputRef.current?.focus()
-              }}
-              aria-label="Clear search"
-              title="Clear search"
-              className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
-            >
-              ×
-            </button>
-          )}
-          <kbd className="hidden shrink-0 rounded border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-zinc-500 sm:inline">
-            Esc
-          </kbd>
-        </div>
+        <Command
+          // key={openCounter} forces cmdk to fully remount on each open
+          // so search/selected/internal state can't bleed between sessions.
+          key={openCounter}
+          label="Command Palette"
+          filter={filter}
+          // Loop arrow keys (top -> bottom -> top) — small UX win.
+          loop
+          className="flex flex-col"
+        >
+          <PaletteHeader />
 
-        <div ref={listRef} className="max-h-[60vh] overflow-y-auto py-1">
-          {filtered.length === 0 ? (
-            <div className="px-4 py-8 text-center text-sm text-zinc-500">
-              Nothing matches “{query}”
-            </div>
-          ) : (
-            grouped.map((bucket) => (
-              <div key={bucket.group}>
-                <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                  {bucket.group}
-                </div>
-                <div>
-                  {bucket.items.map((cmd) => {
-                    const idx = runningIndex++
-                    const isActive = idx === highlightedIdx
-                    const Icon = cmd.icon
-                    return (
-                      <CommandRow
-                        key={cmd.id}
-                        cmd={cmd}
-                        index={idx}
-                        active={isActive}
-                        onHover={() => setHighlightedIdx(idx)}
-                        onSelect={() => handleSelect(cmd)}
-                        Icon={Icon}
-                      />
-                    )
-                  })}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+          <Command.List className="max-h-[60vh] overflow-y-auto py-1">
+            <Command.Empty className="px-4 py-8 text-center text-sm text-zinc-500">
+              Nothing matches. Try a different word.
+            </Command.Empty>
 
-        <div className="flex items-center justify-between gap-3 border-t border-zinc-100 bg-zinc-50/80 px-3 py-1.5 text-[10.5px] text-zinc-500">
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-1">
-              <kbd className="rounded border border-zinc-200 bg-white px-1 py-0.5 font-mono text-[10px] text-zinc-600">↑</kbd>
-              <kbd className="rounded border border-zinc-200 bg-white px-1 py-0.5 font-mono text-[10px] text-zinc-600">↓</kbd>
-              navigate
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <kbd className="inline-flex items-center rounded border border-zinc-200 bg-white px-1 py-0.5 font-mono text-[10px] text-zinc-600">
-                <CornerDownLeft className="h-2.5 w-2.5" />
-              </kbd>
-              open
-            </span>
-          </div>
-          <span className="inline-flex items-center gap-1 font-mono">
-            <kbd className="rounded border border-zinc-200 bg-white px-1 py-0.5 text-[10px] text-zinc-600">⌘</kbd>
-            <kbd className="rounded border border-zinc-200 bg-white px-1 py-0.5 text-[10px] text-zinc-600">K</kbd>
-          </span>
-        </div>
+            {grouped.map((bucket) => (
+              <Command.Group
+                key={bucket.group}
+                heading={bucket.group}
+                className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-2 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-zinc-400"
+              >
+                {bucket.items.map((it) => (
+                  <CommandRowInner key={it.id} item={it} onSelect={() => handleSelect(it)} />
+                ))}
+              </Command.Group>
+            ))}
+          </Command.List>
+
+          <PaletteFooter />
+        </Command>
       </div>
     </div>
   )
 }
 
-function CommandRow({
-  cmd,
-  index,
-  active,
-  onHover,
-  onSelect,
-  Icon,
-}: {
-  cmd: Command
-  index: number
-  active: boolean
-  onHover: () => void
-  onSelect: () => void
-  Icon: IconLike
-}) {
-  // Pages and admin entries get a real Link so cmd-click / middle-click
-  // opens in a new tab; quick actions and dynamic goal/task entries
-  // route through onSelect because they may run callbacks (or just to
-  // keep dynamic IDs from leaking into prefetched routes).
-  const isLink = !!cmd.href && !cmd.onSelect && cmd.group !== 'Goals' && cmd.group !== 'Tasks'
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
 
+function PaletteHeader() {
+  return (
+    <div className="flex items-center gap-2 border-b border-zinc-100 px-3 py-2.5">
+      <Search aria-hidden className="h-4 w-4 shrink-0 text-zinc-400" />
+      <Command.Input
+        autoFocus
+        placeholder="Search pages, goals, tasks…  press Enter to open"
+        className="h-7 w-full bg-transparent text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none"
+      />
+      <kbd className="hidden shrink-0 rounded border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-zinc-500 sm:inline">
+        Esc
+      </kbd>
+    </div>
+  )
+}
+
+function PaletteFooter() {
+  return (
+    <div className="flex items-center justify-between gap-3 border-t border-zinc-100 bg-zinc-50/80 px-3 py-1.5 text-[10.5px] text-zinc-500">
+      <div className="flex items-center gap-3">
+        <span className="inline-flex items-center gap-1">
+          <kbd className="rounded border border-zinc-200 bg-white px-1 py-0.5 font-mono text-[10px] text-zinc-600">↑</kbd>
+          <kbd className="rounded border border-zinc-200 bg-white px-1 py-0.5 font-mono text-[10px] text-zinc-600">↓</kbd>
+          navigate
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <kbd className="inline-flex items-center rounded border border-zinc-200 bg-white px-1 py-0.5 font-mono text-[10px] text-zinc-600">
+            <CornerDownLeft className="h-2.5 w-2.5" />
+          </kbd>
+          open
+        </span>
+      </div>
+      <span className="inline-flex items-center gap-1 font-mono">
+        <kbd className="rounded border border-zinc-200 bg-white px-1 py-0.5 text-[10px] text-zinc-600">⌘</kbd>
+        <kbd className="rounded border border-zinc-200 bg-white px-1 py-0.5 text-[10px] text-zinc-600">K</kbd>
+      </span>
+    </div>
+  )
+}
+
+function CommandRowInner({
+  item,
+  onSelect,
+}: {
+  item: PaletteItem
+  onSelect: () => void
+}) {
+  const Icon = item.icon
   const inner = (
     <>
-      <Icon
-        className={cn('h-4 w-4 shrink-0 text-zinc-500', active && 'text-zinc-900')}
-      />
-      <span className="min-w-0 flex-1 truncate text-sm text-zinc-900">
-        {cmd.label}
-      </span>
-      {cmd.hint && (
-        <span className="hidden truncate text-[11px] text-zinc-500 sm:inline">
-          {cmd.hint}
-        </span>
+      <Icon className="h-4 w-4 shrink-0 text-zinc-500 [&[data-selected=true]_&]:text-zinc-900" />
+      <span className="min-w-0 flex-1 truncate text-sm text-zinc-900">{item.label}</span>
+      {item.hint && (
+        <span className="hidden truncate text-[11px] text-zinc-500 sm:inline">{item.hint}</span>
       )}
-      <ArrowRight
-        className={cn(
-          'h-3.5 w-3.5 shrink-0 text-zinc-300 transition-opacity',
-          active ? 'opacity-100' : 'opacity-0',
-        )}
-      />
     </>
   )
 
-  const rowClass = cn(
-    'flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors',
-    active ? 'bg-[#fff7d1]' : 'hover:bg-zinc-50',
-  )
-
-  if (isLink && cmd.href) {
-    return (
-      <Link
-        href={cmd.href}
-        data-cmd-index={index}
-        onMouseMove={onHover}
-        onClick={(e) => {
-          // Plain click goes through our onSelect to close the palette;
-          // cmd/ctrl/middle-click let the browser open a new tab as usual.
-          if (e.metaKey || e.ctrlKey || e.button === 1) return
-          e.preventDefault()
-          onSelect()
-        }}
-        className={rowClass}
-      >
-        {inner}
-      </Link>
-    )
-  }
+  // For real links (Pages / Admin) we wrap in a Next Link inside the
+  // Command.Item so cmd-click / middle-click open in new tab as
+  // expected. Quick actions and dynamic goal/task entries just call
+  // onSelect on cmdk's value-select event.
+  const isLink = !!item.href && !item.onSelect && item.group !== 'Goals' && item.group !== 'Tasks'
 
   return (
-    <button
-      type="button"
-      data-cmd-index={index}
-      // onMouseMove (not onMouseEnter) — when the result list re-renders
-      // as the user types, rows can land under a stationary cursor and
-      // fire spurious mouseenter events, which previously kicked off a
-      // scroll/highlight feedback loop. onMouseMove only fires on
-      // actual cursor motion so layout shifts are inert.
-      onMouseMove={onHover}
-      onClick={onSelect}
-      className={rowClass}
+    <Command.Item
+      // cmdk uses `value` for filtering — we feed it the id and look
+      // the meta back up in our custom filter via itemMeta map.
+      value={item.id}
+      onSelect={() => onSelect()}
+      className="flex w-full cursor-pointer items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-zinc-50 data-[selected=true]:bg-[#fff7d1]"
     >
-      {inner}
-    </button>
+      {isLink && item.href ? (
+        <Link
+          href={item.href}
+          onClick={(e) => {
+            // Plain click goes through onSelect to close the palette;
+            // cmd / ctrl / middle-click let the browser open in a new tab.
+            if (e.metaKey || e.ctrlKey || e.button === 1) return
+            e.preventDefault()
+            onSelect()
+          }}
+          className="flex w-full items-center gap-2.5"
+        >
+          {inner}
+        </Link>
+      ) : (
+        inner
+      )}
+    </Command.Item>
   )
 }
