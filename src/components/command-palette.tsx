@@ -326,12 +326,28 @@ export function CommandPalette({
   )
 
   // Keep the highlighted row in view as the user arrows through.
+  // CRITICAL: do NOT use Element.scrollIntoView() here — `block: 'nearest'`
+  // walks ALL scrollable ancestors (including the window) which on a tall
+  // page causes the viewport to jump. That triggered a feedback loop with
+  // onMouseMove on the rows (cursor was suddenly over a different row →
+  // setHighlightedIdx → re-scroll → repeat). We scroll the list element
+  // itself manually instead.
   useEffect(() => {
-    if (!listRef.current) return
-    const el = listRef.current.querySelector<HTMLElement>(
+    const list = listRef.current
+    if (!list) return
+    const el = list.querySelector<HTMLElement>(
       `[data-cmd-index="${highlightedIdx}"]`,
     )
-    el?.scrollIntoView({ block: 'nearest' })
+    if (!el) return
+    const elTop = el.offsetTop
+    const elBottom = elTop + el.offsetHeight
+    const viewTop = list.scrollTop
+    const viewBottom = viewTop + list.clientHeight
+    if (elTop < viewTop) {
+      list.scrollTop = elTop
+    } else if (elBottom > viewBottom) {
+      list.scrollTop = elBottom - list.clientHeight
+    }
   }, [highlightedIdx])
 
   const dismissRef = useDismissable<HTMLDivElement>(open, () => onOpenChange(false))
@@ -479,7 +495,7 @@ function CommandRow({
       <Link
         href={cmd.href}
         data-cmd-index={index}
-        onMouseEnter={onHover}
+        onMouseMove={onHover}
         onClick={(e) => {
           // Plain click goes through our onSelect to close the palette;
           // cmd/ctrl/middle-click let the browser open a new tab as usual.
@@ -498,7 +514,12 @@ function CommandRow({
     <button
       type="button"
       data-cmd-index={index}
-      onMouseEnter={onHover}
+      // onMouseMove (not onMouseEnter) — when the result list re-renders
+      // as the user types, rows can land under a stationary cursor and
+      // fire spurious mouseenter events, which previously kicked off a
+      // scroll/highlight feedback loop. onMouseMove only fires on
+      // actual cursor motion so layout shifts are inert.
+      onMouseMove={onHover}
       onClick={onSelect}
       className={rowClass}
     >

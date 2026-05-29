@@ -88,10 +88,13 @@ export function JournalSidebar({ entries, selectedDate, onSelect, onDelete }: Jo
     return ordered
   }, [entries, today, range])
 
-  const handleRangeChange = (next: DateRange | undefined) => {
+  // Range is now driven only by the preset chips below. The calendar
+  // itself runs in single-day mode so that clicking a past date opens
+  // (and creates, if missing) that day's entry on the first click —
+  // previously range mode trapped the user into picking two days
+  // before anything happened, which read as "can't add earlier days."
+  const applyRangePreset = (next: DateRange | undefined) => {
     setRange(next)
-    // When the user has picked a full range with a single entry inside,
-    // auto-open that entry so the editor follows the filter.
     if (next?.from && next.to) {
       const fromKey = toDateKey(next.from)
       const toKey = toDateKey(next.to)
@@ -99,9 +102,13 @@ export function JournalSidebar({ entries, selectedDate, onSelect, onDelete }: Jo
         .filter((e) => e.date >= fromKey && e.date <= toKey)
         .sort((a, b) => (a.date < b.date ? 1 : -1))
       if (hits.length > 0) onSelect(hits[0].date)
-    } else if (next?.from && !next.to) {
-      onSelect(toDateKey(next.from))
     }
+  }
+
+  const handleDayPick = (day: Date | undefined) => {
+    if (!day) return
+    setRange(undefined)
+    onSelect(toDateKey(day))
   }
 
   // Quick presets the user can click to set a common date range on the
@@ -215,7 +222,7 @@ export function JournalSidebar({ entries, selectedDate, onSelect, onDelete }: Jo
                 key={p.key}
                 type="button"
                 title={p.full}
-                onClick={() => handleRangeChange(p.build())}
+                onClick={() => applyRangePreset(p.build())}
                 className={cn(
                   'rounded-md px-1 py-1 text-[10px] font-bold uppercase tracking-wider transition-all',
                   isActive
@@ -250,17 +257,25 @@ export function JournalSidebar({ entries, selectedDate, onSelect, onDelete }: Jo
           </button>
         </div>
         <DayPicker
-          mode="range"
+          mode="single"
           month={viewMonth}
           onMonthChange={setViewMonth}
-          selected={range}
-          onSelect={handleRangeChange}
+          selected={selectedDateObj}
+          onSelect={handleDayPick}
           disabled={{ after: new Date() }}
-          modifiers={{ hasEntry: entryDates, thisWeek: thisWeekDates }}
+          modifiers={{
+            hasEntry: entryDates,
+            thisWeek: thisWeekDates,
+            inRange:
+              range?.from && range.to
+                ? { from: range.from, to: range.to }
+                : undefined,
+          }}
           modifiersClassNames={{
             hasEntry:
               'relative after:absolute after:bottom-0.5 after:left-1/2 after:h-1 after:w-1 after:-translate-x-1/2 after:rounded-full after:bg-[#f2cc0d]',
             thisWeek: 'bg-[#fffbea]',
+            inRange: 'bg-[#f2cc0d]/10',
           }}
           showOutsideDays={false}
           classNames={{
@@ -279,9 +294,7 @@ export function JournalSidebar({ entries, selectedDate, onSelect, onDelete }: Jo
             day_button:
               'h-7 w-full rounded text-[11px] font-medium text-zinc-700 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40',
             today: 'font-bold text-[#8a7307]',
-            range_start: '[&_button]:!bg-[#f2cc0d] [&_button]:!text-zinc-900 rounded-l',
-            range_end: '[&_button]:!bg-[#f2cc0d] [&_button]:!text-zinc-900 rounded-r',
-            range_middle: 'bg-[#f2cc0d]/20',
+            selected: '[&_button]:!bg-[#f2cc0d] [&_button]:!text-zinc-900 rounded',
           }}
         />
         {range?.from && (

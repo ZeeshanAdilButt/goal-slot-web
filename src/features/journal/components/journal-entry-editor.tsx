@@ -177,16 +177,33 @@ export function JournalEntryEditor({ entry, onSaveContent }: JournalEntryEditorP
       {/* Untangle helper — a one-line invitation that turns into a
           dialog of starter prompts. Sits between the header and the
           editor so it's visible whenever the user opens the entry,
-          without competing with the writing surface. */}
-      <div className="flex items-center gap-2 border-b border-zinc-100 bg-zinc-50/60 px-5 py-2">
-        <p className="hidden flex-1 text-[11px] leading-snug text-zinc-500 sm:block">
-          Stuck? A feeling is usually a question your mind is trying to
-          ask — pick a prompt to untangle it.
+          without competing with the writing surface. Brand-yellow
+          glow + slow breathing pulse so the tip catches the eye on
+          first visit without being a popup. */}
+      <div className="relative flex flex-wrap items-center gap-2 overflow-hidden border-b border-[#f2cc0d]/30 bg-gradient-to-r from-[#fffbea] via-[#fff7d1]/70 to-[#fffbea] px-5 py-3">
+        {/* Soft animated glow — a low-opacity yellow halo that
+            breathes in and out behind the text. Pointer-events-none
+            so it never blocks clicks on the button next to it. */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -left-12 top-1/2 h-32 w-32 -translate-y-1/2 rounded-full bg-[#f2cc0d]/30 blur-3xl motion-safe:animate-[journal-glow_4.8s_ease-in-out_infinite]"
+        />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -right-16 top-1/2 h-40 w-40 -translate-y-1/2 rounded-full bg-[#f2cc0d]/20 blur-3xl motion-safe:animate-[journal-glow_4.8s_ease-in-out_infinite] motion-safe:[animation-delay:2.4s]"
+        />
+        <p className="relative z-10 hidden flex-1 text-[13px] font-medium leading-snug text-zinc-800 sm:block">
+          <span className="inline-block motion-safe:animate-[pen-tilt_3.2s_ease-in-out_infinite] origin-bottom-left mr-1">✨</span>
+          <span className="font-semibold text-zinc-900">Stuck?</span>{' '}
+          A feeling is usually a question your mind is trying to ask —
+          <span className="text-[#8a7307]"> pick a prompt to untangle it.</span>
         </p>
-        <p className="flex-1 text-[11px] leading-snug text-zinc-500 sm:hidden">
-          Stuck on what to write?
+        <p className="relative z-10 flex-1 text-[13px] font-medium leading-snug text-zinc-800 sm:hidden">
+          <span className="font-semibold text-zinc-900">Stuck?</span> Untangle a feeling →
         </p>
-        <JournalUntangle onInsertPrompt={handleInsertPrompt} />
+        <div className="relative z-10">
+          <JournalUntangle onInsertPrompt={handleInsertPrompt} />
+        </div>
       </div>
 
       <div className="min-w-0 overflow-x-auto px-2 py-3 sm:px-4">

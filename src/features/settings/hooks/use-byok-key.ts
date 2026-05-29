@@ -191,6 +191,12 @@ export function useByokKey() {
 
   return {
     ...state,
+    // `isLoading` is true on the very first fetch — consumers should
+    // gate the "no key saved" UI on it, otherwise that branch flashes
+    // for one render before the real data arrives. `isResolved` is the
+    // friendlier inverse for the same purpose.
+    isLoading: query.isLoading,
+    isResolved: !query.isLoading,
     saveKey,
     deleteKey,
     updateBudget,

@@ -810,8 +810,12 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
 // Page
 // ---------------------------------------------------------------------------
 export function CoachPage() {
-  const { status, provider } = useByokKey()
+  const { status, provider, isResolved } = useByokKey()
   const hasKey = status === 'active'
+  // Don't render the "no key saved" branch until the byok-key query
+  // resolves — otherwise the form flashes for one render on every
+  // mount before the real status arrives.
+  const showNoKey = isResolved && !hasKey
   const providerLabel = PROVIDER_META[provider].label
 
   const [period, setPeriod] = useState<CoachScopePeriod>('week')
@@ -881,7 +885,7 @@ export function CoachPage() {
           </div>
         </div>
       )}
-      {!hasKey && (
+      {showNoKey && (
         <div className="flex items-center justify-end">
           <span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-zinc-300 bg-white px-2.5 text-[11px] font-semibold tracking-tight text-zinc-700">
             <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-zinc-400" />
@@ -893,7 +897,7 @@ export function CoachPage() {
       {/* Compact tiles row: capabilities, narrative, active practice — collapsed by default to keep chat front-and-center. */}
       {hasKey && scopeKey && <CoachOverviewTiles scopeKey={scopeKey} />}
 
-      {!hasKey && (
+      {showNoKey && (
         <GlassCard padded>
           <EmptyState
             icon={<KeyRound />}
