@@ -90,33 +90,39 @@ const ADMIN_COMMANDS: Array<Omit<Command, 'group'> & { group: 'Admin' }> = [
 ]
 
 /**
- * Bulletproof match + score for a command.
+ * Tiered scorer — kept in sync with scripts/palette-test.mjs (94+
+ * cases there must pass before shipping). The design fixes a long-
+ * standing class of bugs where a goal/task whose CATEGORY contained
+ * the query word (a hint/keyword hit) outranked a Page or Quick
+ * action with the query as a real LABEL match.
  *
- * Rule #1 (the airtight filter): every whitespace-separated word in the
- * query MUST appear as a substring somewhere in the command's searchable
- * text (label + hint + keywords joined). If even one word is missing,
- * the command does NOT match and is removed from the result set —
- * regardless of any partial overlap on other fields.
+ * Rule #1 (HARD GATE): every whitespace-separated word in the query
+ * MUST appear as a substring somewhere in label + hint + keywords.
+ * One miss = zero score = filtered out.
  *
- * Rule #2 (the scorer): for matched commands we hand out additive
- * bonuses, biggest first:
- *   +4000  whole query is a prefix of the label
- *   +3000  whole query appears anywhere in the label
- *   +2000  per query word that prefixes ANY word in the label
- *   +1000  per query word that appears as substring in the label
- *   +500   per query word that appears anywhere in hint or keywords
- *   -labelLength (so shorter labels beat longer for equal-tier hits)
+ * Rule #2 (TIERED, not additive): the strongest tier the LABEL hits
+ * dominates the score. Hint/keyword-only matches sit at the bottom
+ * tier and can never push a hint hit above a label substring hit:
  *
- * This avoids the historical bugs: no subsequence (which falsely matched
- * "tracking" → "Tasks"), no token-OR (which let one word's hit pull in
- * a command that totally missed the other word), no asymmetric scoring
- * paths that diverged from the filter (which let items leak through
- * with score > 0 when they shouldn't have matched).
+ *   1,000,000  label exactly equals the query
+ *     500,000  label starts with the full query
+ *     100,000  any label word starts with any query word
+ *      50,000  every query word is a substring of the label
+ *       1,000  hint/keywords contain query words (no label hit)
+ *
+ *   minus min(labelLength, 100) so shorter labels win on equal tiers
+ *   +100 if hint/keywords also hit the full query (multi-signal bonus)
  */
 interface ScoredCommand {
   cmd: Command
   score: number
 }
+
+const TIER_LABEL_EXACT = 1_000_000
+const TIER_LABEL_PREFIX = 500_000
+const TIER_LABEL_WORD_PREFIX = 100_000
+const TIER_LABEL_SUBSTRING = 50_000
+const TIER_HINT_KEYWORD_HIT = 1_000
 
 function scoreCommand(query: string, cmd: Command): number {
   const q = query.toLowerCase().trim()
@@ -125,43 +131,67 @@ function scoreCommand(query: string, cmd: Command): number {
   const label = (cmd.label ?? '').toLowerCase()
   const hint = (cmd.hint ?? '').toLowerCase()
   const keywords = (cmd.keywords ?? '').toLowerCase()
-  const haystack = `${label} ${hint} ${keywords}`
 
-  // Rule #1: every query word must appear somewhere in the haystack.
-  // This is the only gate that decides whether the item appears at all.
   const queryWords = q.split(/\s+/).filter(Boolean)
   if (queryWords.length === 0) return 0
+
+  // HARD GATE: every query word must appear somewhere in the haystack.
+  const haystack = `${label} ${hint} ${keywords}`
   for (const w of queryWords) {
     if (!haystack.includes(w)) return 0
   }
 
-  // Rule #2: additive scoring on the matched item.
-  let score = 0
-
-  if (label.startsWith(q)) score += 4000
-  else if (label.includes(q)) score += 3000
-
-  const labelWords = label.split(/[\s/_\-.·:]+/).filter(Boolean)
-  for (const qw of queryWords) {
-    let bestForThisWord = 0
+  // Resolve which tier the LABEL hits. Highest tier wins; no addition
+  // across tiers (an additive scheme let hint-only matches creep past
+  // weak label hits).
+  let labelTier = 0
+  if (label === q) {
+    labelTier = TIER_LABEL_EXACT
+  } else if (label.startsWith(q)) {
+    labelTier = TIER_LABEL_PREFIX
+  } else {
+    const labelWords = label.split(/[\s/_\-.·:]+/).filter(Boolean)
+    let hasWordPrefix = false
     for (const lw of labelWords) {
-      if (lw.startsWith(qw)) {
-        bestForThisWord = Math.max(bestForThisWord, 2000)
-        break
+      for (const qw of queryWords) {
+        if (lw.startsWith(qw)) {
+          hasWordPrefix = true
+          break
+        }
       }
+      if (hasWordPrefix) break
     }
-    if (bestForThisWord === 0 && label.includes(qw)) {
-      bestForThisWord = 1000
+    if (hasWordPrefix) {
+      labelTier = TIER_LABEL_WORD_PREFIX
+    } else {
+      let allWordsInLabel = true
+      for (const qw of queryWords) {
+        if (!label.includes(qw)) {
+          allWordsInLabel = false
+          break
+        }
+      }
+      if (allWordsInLabel) labelTier = TIER_LABEL_SUBSTRING
     }
-    if (bestForThisWord === 0 && (hint.includes(qw) || keywords.includes(qw))) {
-      bestForThisWord = 500
-    }
-    score += bestForThisWord
   }
 
-  // Shorter labels win on equal tiers — "Goals" beats "Goal Setting and
-  // Reflection Practices" when the query is "goal".
-  score -= Math.min(label.length, 60)
+  const hitsHintOrKeyword = (() => {
+    if (labelTier > 0) return false
+    for (const qw of queryWords) {
+      if (hint.includes(qw) || keywords.includes(qw)) return true
+    }
+    return false
+  })()
+
+  let score = 0
+  if (labelTier > 0) {
+    score = labelTier
+    score -= Math.min(label.length, 100)
+    if (hint.includes(q) || keywords.includes(q)) score += 100
+  } else if (hitsHintOrKeyword) {
+    score = TIER_HINT_KEYWORD_HIT
+    score -= Math.min(label.length, 100)
+  }
 
   return score
 }
@@ -200,12 +230,15 @@ export function CommandPalette({
   const inputRef = useRef<HTMLInputElement | null>(null)
   const listRef = useRef<HTMLDivElement | null>(null)
 
-  // Reset on each open
+  // BULLETPROOF state reset — fire on EVERY open transition (both
+  // directions) so a stale query from a previous open can never bleed
+  // into the next. Previous version only reset on open=true; that was
+  // fine in theory but allowed an edge where re-open before the
+  // useEffect's cleanup ran left `query` non-empty.
   useEffect(() => {
+    setQuery('')
+    setHighlightedIdx(0)
     if (open) {
-      setQuery('')
-      setHighlightedIdx(0)
-      // focus next tick so the dialog has time to mount
       const id = window.setTimeout(() => inputRef.current?.focus(), 30)
       return () => window.clearTimeout(id)
     }
@@ -378,10 +411,30 @@ export function CommandPalette({
         const idx = Math.min(highlightedIdxRef.current, list.length - 1)
         const cmd = list[idx >= 0 ? idx : 0]
         if (cmd) handleSelect(cmd)
+      } else if (event.key === 'Escape') {
+        // Tiered Escape (Linear / VS Code pattern):
+        //   first press with text in the input -> clear the text and
+        //     reset the highlight (returns the palette to its empty
+        //     state with quick actions / pages / admin showing)
+        //   second press (or first press when input is already empty)
+        //     -> close the palette entirely.
+        // We swallow the event in the "clear" case so useDismissable's
+        // document-level Escape listener doesn't ALSO close the palette
+        // in the same keystroke.
+        if (query.length > 0) {
+          event.preventDefault()
+          event.stopPropagation()
+          // Stop the document-level Escape listener in useDismissable
+          // from also firing — without this both clear AND close run on
+          // the same keystroke and the user only gets "close".
+          event.nativeEvent.stopImmediatePropagation()
+          setQuery('')
+          setHighlightedIdx(0)
+        }
+        // else: let useDismissable handle the close
       }
-      // Escape is handled by useDismissable on the panel root.
     },
-    [handleSelect],
+    [handleSelect, query],
   )
 
   // Keep the highlighted row in view as the user arrows through.
@@ -438,6 +491,21 @@ export function CommandPalette({
             placeholder="Search pages, goals, tasks…  press Enter to open"
             className="h-7 w-full bg-transparent text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none"
           />
+          {query && (
+            <button
+              type="button"
+              onClick={() => {
+                setQuery('')
+                setHighlightedIdx(0)
+                inputRef.current?.focus()
+              }}
+              aria-label="Clear search"
+              title="Clear search"
+              className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
+            >
+              ×
+            </button>
+          )}
           <kbd className="hidden shrink-0 rounded border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-zinc-500 sm:inline">
             Esc
           </kbd>
