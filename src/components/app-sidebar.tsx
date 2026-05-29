@@ -141,23 +141,26 @@ export function AppSidebar() {
                             )}
                           />
                         ) : isCoach ? (
-                          // GoalSlot AI: bigger than the other lucide nav
-                          // icons; coin-flips every 2s and is surrounded by
-                          // three tiny brand-yellow stars twinkling on
-                          // staggered 3s delays so a spark fires every ~1s.
-                          <span className="relative inline-flex h-6 w-6 items-center justify-center group-data-[collapsible=icon]:-ml-1 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
+                          // GoalSlot AI: the wrapper now claims the SAME
+                          // 4x4 layout box as every other lucide nav icon
+                          // so the column of icons (and labels next to
+                          // them) lines up exactly. The icon itself
+                          // remains visually larger via absolute
+                          // positioning + overflow-visible so the brand
+                          // moment doesn't get lost. Sparks stay absolute.
+                          <span className="relative inline-flex h-4 w-4 shrink-0 items-center justify-center [overflow:visible] group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5">
                             <item.icon
                               className={cn(
-                                'h-6 w-6 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7 [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.6))]',
+                                'absolute h-6 w-6 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7 [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.6))]',
                               )}
                             />
-                            <JournalSpark className="absolute -right-1 -top-1 h-2 w-2 motion-safe:animate-[journal-spark_3s_ease-in-out_infinite]" />
+                            <JournalSpark className="absolute -right-1.5 -top-1.5 h-2 w-2 motion-safe:animate-[journal-spark_3s_ease-in-out_infinite]" />
                             <JournalSpark
-                              className="absolute -left-1 top-1 h-1.5 w-1.5 motion-safe:animate-[journal-spark_3s_ease-in-out_infinite]"
+                              className="absolute -left-1.5 top-0 h-1.5 w-1.5 motion-safe:animate-[journal-spark_3s_ease-in-out_infinite]"
                               style={{ animationDelay: '1s' }}
                             />
                             <JournalSpark
-                              className="absolute -bottom-1 right-0 h-1.5 w-1.5 motion-safe:animate-[journal-spark_3s_ease-in-out_infinite]"
+                              className="absolute -bottom-1.5 right-0 h-1.5 w-1.5 motion-safe:animate-[journal-spark_3s_ease-in-out_infinite]"
                               style={{ animationDelay: '2s' }}
                             />
                           </span>
