@@ -154,14 +154,14 @@ export function CommandPalette({
 }: CommandPaletteProps) {
   const router = useRouter()
   const isAdmin = useIsAdmin()
-  // These hooks share React Query cache with the rest of the app, so when
-  // the user opens the palette on a page that already loaded goals/tasks
-  // there's no extra request — and if they're not loaded yet, the palette
-  // just starts empty for a tick and fills in on resolution.
+  // Share React Query cache with the rest of the app — if goals/tasks
+  // are already loaded on the current page there's no extra request.
+  // Pull ALL tasks (no status filter) so the user can also find DONE
+  // ones in the palette; the previous BACKLOG/TODO/DOING filter made
+  // completed work invisible, which was the actual cause of "fix
+  // doesn't show my fix tasks" — they were all marked done.
   const { data: goals = [] } = useGoalsQuery()
-  const { data: tasks = [] } = useTasksQuery({
-    statuses: ['BACKLOG', 'TODO', 'DOING'],
-  })
+  const { data: tasks = [] } = useTasksQuery()
 
   const [query, setQuery] = useState('')
   const [highlightedIdx, setHighlightedIdx] = useState(0)
@@ -215,11 +215,11 @@ export function CommandPalette({
       })
     }
 
-    // /dashboard/goals/[id] doesn't exist as a route yet — link to the
-    // goals list with a query param so the page can scroll/highlight if
-    // it wants to later. Without the param at minimum we still land on
-    // the right page.
-    const goalCommands: Command[] = (goals as Goal[]).slice(0, 25).map((g: Goal) => ({
+    // No artificial slice cap — let every goal/task be searchable.
+    // The fuzzy match filter trims to whatever the user actually
+    // queried for. For users with thousands of completed tasks we
+    // can revisit, but 25/40 was so tight it hid even small libraries.
+    const goalCommands: Command[] = (goals as Goal[]).map((g: Goal) => ({
       id: `goal-${g.id}`,
       label: g.title,
       hint: `Goal · ${g.category ?? 'uncategorised'}`,
@@ -229,7 +229,7 @@ export function CommandPalette({
       href: `/dashboard/goals?goal=${encodeURIComponent(g.id)}`,
     }))
 
-    const taskCommands: Command[] = (tasks as Task[]).slice(0, 40).map((t: Task) => ({
+    const taskCommands: Command[] = (tasks as Task[]).map((t: Task) => ({
       id: `task-${t.id}`,
       label: t.title,
       hint: t.goal?.title ? `Task · ${t.goal.title}` : 'Task',
@@ -255,17 +255,19 @@ export function CommandPalette({
       )
     }
     // Group priority — small tie-breakers ONLY. Keep these tight so
-    // they don't override a strong label match. Earlier the bonuses
-    // were +300/+400 which let a Page substring-match outrank a Task
-    // word-prefix match — the user's task got buried under noise.
-    // With the new tokenScore tiers (2000/1500/1000), single-digit
-    // bonuses are enough to break ties without distorting ranks.
+    // they don't override a strong label match. The previous values
+    // (Pages 6 > Tasks 5 > Goals 3) meant typing "goal" surfaced the
+    // static Goals page above the user's own goal named "Goal X"
+    // even when both matched the label identically. User data is
+    // what the search is FOR — bump tasks/goals above pages so a tie
+    // goes to the personalised item. Quick actions still rank top
+    // because they're always-correct navigations.
     const GROUP_BONUS: Record<Command['group'], number> = {
-      'Quick actions': 8,
+      'Quick actions': 12,
+      Tasks: 10,
+      Goals: 9,
       Pages: 6,
       Admin: 4,
-      Tasks: 5,
-      Goals: 3,
     }
     const scored = allCommands
       .map((cmd) => {

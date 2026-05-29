@@ -19,6 +19,7 @@ import {
   coachApi,
   goalsApi,
   scheduleApi,
+  timeEntriesApi,
   type CoachProposalAction,
   type CoachProposalActionType,
   type CoachProposalBlock,
@@ -77,6 +78,26 @@ function findGoal(queryClient: QueryClient, id: string): any | undefined {
   for (const [, data] of lists) {
     if (Array.isArray(data)) {
       const hit = data.find((g: any) => g?.id === id)
+      if (hit) return hit
+    }
+  }
+  return undefined
+}
+
+/**
+ * Look up an existing time entry by id from any time-tracker query cache.
+ * The proposal card eagerly fetches the last 30 days into the dedicated
+ * `['time-tracker', 'coach-lookup']` key, but we also scan any other
+ * time-tracker keys that may have a list of entries — saves a roundtrip
+ * if the user came from the time tracker page where entries were already
+ * loaded.
+ */
+function findTimeEntry(queryClient: QueryClient, id: string): any | undefined {
+  const lists = queryClient.getQueriesData<any>({ queryKey: ['time-tracker'] })
+  for (const [, data] of lists) {
+    const candidates = Array.isArray(data) ? data : (data as any)?.items
+    if (Array.isArray(candidates)) {
+      const hit = candidates.find((e: any) => e?.id === id)
       if (hit) return hit
     }
   }
@@ -220,12 +241,48 @@ function describeAction(
     }
     case 'UPDATE_TIME_ENTRY':
     case 'DELETE_TIME_ENTRY': {
-      const subject = id ? `Time entry ${id.slice(0, 8)}` : 'Time entry'
-      if (action.type === 'DELETE_TIME_ENTRY') return { subject, detail: 'Delete this entry.' }
+      // Look up the entry from the cache (the proposal card eagerly
+      // preloads the last 200 recent entries on mount) and render its
+      // task name + original date + duration as the subject. Falls
+      // back to "Time entry" without an id slice — a meaningless hex
+      // dump is worse than no detail, because the user can't act on it.
+      const existing = id ? findTimeEntry(queryClient, id) : undefined
+      const subjectBits: string[] = []
+      if (existing?.taskName || existing?.taskTitle) {
+        subjectBits.push(`"${existing.taskName || existing.taskTitle}"`)
+      }
+      if (typeof existing?.duration === 'number') {
+        const dur = existing.duration as number
+        const h = Math.floor(dur / 60)
+        const m = dur % 60
+        subjectBits.push(h && m ? `${h}h ${m}m` : h ? `${h}h` : `${m}m`)
+      }
+      if (typeof existing?.date === 'string') {
+        const d = new Date(existing.date)
+        if (!Number.isNaN(d.getTime())) {
+          subjectBits.push(
+            d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+          )
+        }
+      }
+      const subject = subjectBits.length ? subjectBits.join(' · ') : 'Time entry'
+
+      if (action.type === 'DELETE_TIME_ENTRY') {
+        return { subject, detail: 'Delete this entry.' }
+      }
+
+      // Pretty-print the new date so users see "Change date to May 29"
+      // instead of "Change date to 2026-05-29".
+      const fmtDate = (s: string): string => {
+        const d = new Date(`${s}T00:00:00`)
+        return Number.isNaN(d.getTime())
+          ? s
+          : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+      }
       const bits: string[] = []
       if (typeof p.taskName === 'string') bits.push(`name to "${p.taskName}"`)
       if (typeof p.duration === 'number') bits.push(`duration to ${p.duration}m`)
-      if (typeof p.date === 'string') bits.push(`date to ${p.date}`)
+      if (typeof p.date === 'string') bits.push(`date to ${fmtDate(p.date)}`)
       return { subject, detail: bits.length ? `Change ${bits.join(', ')}.` : 'Update this entry.' }
     }
 
@@ -312,6 +369,21 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
   useQuery({
     queryKey: ['goals', 'list', undefined],
     queryFn: async () => (await goalsApi.getAll({})).data,
+    staleTime: 0,
+    refetchOnMount: 'always',
+  })
+  // Eager fetch of the last 30 days of time entries so UPDATE_TIME_ENTRY
+  // / DELETE_TIME_ENTRY proposals can render the entry's task name +
+  // date + duration in the subject — previously they showed a meaningless
+  // 8-char UUID slice ("Time entry 018b5aa9") and the user had no way
+  // to verify which entry the AI picked before clicking Apply.
+  useQuery({
+    queryKey: ['time-tracker', 'coach-lookup'],
+    queryFn: async () => {
+      const res = await timeEntriesApi.getRecent({ page: 1, pageSize: 200 })
+      const data = res.data as any
+      return Array.isArray(data) ? data : data?.items ?? []
+    },
     staleTime: 0,
     refetchOnMount: 'always',
   })
