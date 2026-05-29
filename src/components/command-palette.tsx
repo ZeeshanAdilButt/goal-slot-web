@@ -192,6 +192,10 @@ export function CommandPalette({
       })
     }
 
+    // /dashboard/goals/[id] doesn't exist as a route yet — link to the
+    // goals list with a query param so the page can scroll/highlight if
+    // it wants to later. Without the param at minimum we still land on
+    // the right page.
     const goalCommands: Command[] = (goals as Goal[]).slice(0, 25).map((g: Goal) => ({
       id: `goal-${g.id}`,
       label: g.title,
@@ -199,7 +203,7 @@ export function CommandPalette({
       icon: Flag,
       group: 'Goals',
       keywords: g.category ?? '',
-      href: `/dashboard/goals/${g.id}`,
+      href: `/dashboard/goals?goal=${encodeURIComponent(g.id)}`,
     }))
 
     const taskCommands: Command[] = (tasks as Task[]).slice(0, 40).map((t: Task) => ({
@@ -209,7 +213,7 @@ export function CommandPalette({
       icon: CheckSquare,
       group: 'Tasks',
       keywords: `${t.goal?.title ?? ''} ${t.category ?? ''}`,
-      href: '/dashboard/tasks',
+      href: `/dashboard/tasks?task=${encodeURIComponent(t.id)}`,
     }))
 
     const pages = PAGE_COMMANDS as Command[]
@@ -274,30 +278,52 @@ export function CommandPalette({
 
   const handleSelect = useCallback(
     (cmd: Command) => {
+      // Close FIRST, then navigate — closing during navigation can race
+      // with Next's route transition on slow networks.
       onOpenChange(false)
-      if (cmd.onSelect) {
-        cmd.onSelect()
-      } else if (cmd.href) {
-        router.push(cmd.href)
-      }
+      // Use setTimeout to let React flush the close state before we push.
+      // Without this, the palette occasionally "swallows" the navigation
+      // on the same render tick.
+      window.setTimeout(() => {
+        if (cmd.onSelect) {
+          cmd.onSelect()
+        } else if (cmd.href) {
+          router.push(cmd.href)
+        }
+      }, 0)
     },
     [onOpenChange, router],
   )
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'ArrowDown') {
-      event.preventDefault()
-      setHighlightedIdx((i) => Math.min(i + 1, Math.max(0, filtered.length - 1)))
-    } else if (event.key === 'ArrowUp') {
-      event.preventDefault()
-      setHighlightedIdx((i) => Math.max(i - 1, 0))
-    } else if (event.key === 'Enter') {
-      event.preventDefault()
-      const cmd = filtered[highlightedIdx]
-      if (cmd) handleSelect(cmd)
-    }
-    // Escape is handled by useDismissable on the panel root.
-  }
+  // Refs so the keydown handler always reads the latest filtered list and
+  // highlighted index — React batching means the closure captured at
+  // render time can be stale by the time Enter fires after a fast keypress.
+  const filteredRef = useRef(filtered)
+  filteredRef.current = filtered
+  const highlightedIdxRef = useRef(highlightedIdx)
+  highlightedIdxRef.current = highlightedIdx
+
+  const handleInputKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === 'ArrowDown') {
+        event.preventDefault()
+        setHighlightedIdx((i) =>
+          Math.min(i + 1, Math.max(0, filteredRef.current.length - 1)),
+        )
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault()
+        setHighlightedIdx((i) => Math.max(i - 1, 0))
+      } else if (event.key === 'Enter') {
+        event.preventDefault()
+        const list = filteredRef.current
+        const idx = Math.min(highlightedIdxRef.current, list.length - 1)
+        const cmd = list[idx >= 0 ? idx : 0]
+        if (cmd) handleSelect(cmd)
+      }
+      // Escape is handled by useDismissable on the panel root.
+    },
+    [handleSelect],
+  )
 
   // Keep the highlighted row in view as the user arrows through.
   useEffect(() => {
@@ -324,7 +350,6 @@ export function CommandPalette({
         role="dialog"
         aria-label="Command palette"
         aria-modal="true"
-        onKeyDown={handleKeyDown}
         className="w-full max-w-xl overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-2xl ring-1 ring-zinc-900/5"
       >
         <div className="flex items-center gap-2 border-b border-zinc-100 px-3 py-2.5">
@@ -334,6 +359,7 @@ export function CommandPalette({
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleInputKeyDown}
             placeholder="Search pages, goals, tasks…  press Enter to open"
             className="h-7 w-full bg-transparent text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none"
           />

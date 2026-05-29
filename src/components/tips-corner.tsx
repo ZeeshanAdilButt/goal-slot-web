@@ -298,55 +298,76 @@ function TipPill({
   onDismiss: () => void
   onMute: () => void
 }) {
-  const content = (
-    <div className="flex items-start gap-2.5 px-3 py-2">
-      <span aria-hidden className="mt-0.5 text-base leading-none">
+  const body = (
+    <div className="flex items-start gap-2.5 px-3 py-2.5">
+      <span aria-hidden className="mt-px text-[15px] leading-none opacity-90">
         {tip.emoji}
       </span>
-      <div className="min-w-0 flex-1 pr-1 text-[12px] leading-snug text-zinc-700">
+      <div className="min-w-0 flex-1 text-[12.5px] leading-[1.45] text-zinc-700">
         {tip.text}
+        {tip.href && (
+          <span className="ml-1 text-[11px] text-zinc-400">→</span>
+        )}
       </div>
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation()
-          e.preventDefault()
-          onDismiss()
-        }}
-        aria-label="Dismiss tip"
-        className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
-      >
-        <X className="h-3 w-3" />
-      </button>
     </div>
   )
 
   return (
     <motion.div
-      initial={{ x: -24, opacity: 0, scale: 0.96 }}
-      animate={{ x: 0, opacity: 1, scale: 1 }}
-      exit={{ x: -16, opacity: 0, scale: 0.98 }}
-      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="pointer-events-auto"
+      initial={{ x: -20, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: -12, opacity: 0 }}
+      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+      className="group/tip pointer-events-auto relative"
     >
-      <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white/95 shadow-lg ring-1 ring-zinc-900/5 backdrop-blur max-w-[min(22rem,calc(100vw-2rem))]">
+      <div className="relative overflow-hidden rounded-lg border border-zinc-200/80 bg-white/85 shadow-[0_4px_20px_-8px_rgba(0,0,0,0.18)] backdrop-blur-md max-w-[min(22rem,calc(100vw-2rem))]">
+        {/* Subtle left accent so the eye finds the tip without it
+            being shouty — same hue as the brand yellow but at low
+            saturation so it reads as a quiet whisper, not a banner. */}
+        <span
+          aria-hidden
+          className="absolute inset-y-0 left-0 w-[2px] bg-gradient-to-b from-[#f2cc0d]/0 via-[#f2cc0d]/40 to-[#f2cc0d]/0"
+        />
+
         {tip.href ? (
           <Link
             href={tip.href}
             onClick={onDismiss}
-            className="block transition-colors hover:bg-zinc-50"
+            className="block transition-colors hover:bg-zinc-50/70"
           >
-            {content}
+            {body}
           </Link>
         ) : (
-          content
+          body
         )}
+
+        {/* Close button only shows on hover so the resting state is
+            uncluttered. Mute is buried in a tooltip-style title attr
+            on a second tiny icon — keeps the surface tiny. */}
         <button
           type="button"
-          onClick={onMute}
-          className="block w-full border-t border-zinc-100 bg-zinc-50/60 px-3 py-1 text-left text-[10px] font-medium text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600"
+          onClick={(e) => {
+            e.stopPropagation()
+            e.preventDefault()
+            onDismiss()
+          }}
+          aria-label="Dismiss tip"
+          className="absolute right-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded text-zinc-300 opacity-0 transition-all hover:bg-zinc-100 hover:text-zinc-600 group-hover/tip:opacity-100"
         >
-          Stop showing tips
+          <X className="h-3 w-3" />
+        </button>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            e.preventDefault()
+            onMute()
+          }}
+          title="Stop showing tips"
+          aria-label="Stop showing tips"
+          className="absolute bottom-1 right-1.5 text-[9px] font-medium text-zinc-300 opacity-0 transition-opacity hover:text-zinc-500 group-hover/tip:opacity-100"
+        >
+          mute
         </button>
       </div>
     </motion.div>
@@ -355,7 +376,7 @@ function TipPill({
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="inline-flex h-4 items-center rounded border border-zinc-200 bg-zinc-50 px-1 font-mono text-[10px] text-zinc-700">
+    <kbd className="inline-flex h-[15px] items-center rounded border border-zinc-200 bg-zinc-50 px-[3px] font-mono text-[10px] text-zinc-600">
       {children}
     </kbd>
   )

@@ -7,6 +7,7 @@ import { Check, Loader2 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { TiptapEditor } from '@/components/tiptap-editor/tiptap-editor'
+import { JournalUntangle } from '@/features/journal/components/journal-untangle'
 
 interface JournalEntryEditorProps {
   entry: JournalEntry | null
@@ -75,6 +76,25 @@ export function JournalEntryEditor({ entry, onSaveContent }: JournalEntryEditorP
   const [liveContent, setLiveContent] = useState<string>(entry?.content ?? '')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const dateRef = useRef<string | null>(null)
+  // Hold the live Tiptap editor instance so the "Untangle" prompts can
+  // be inserted at the cursor without re-mounting the editor.
+  const editorRef = useRef<any>(null)
+
+  const handleInsertPrompt = useCallback(
+    (html: string) => {
+      const ed = editorRef.current
+      if (!ed) return
+      // Append to the end of the document — keeps existing content
+      // intact and the cursor lands inside the trailing empty paragraph
+      // baked into the prompt HTML.
+      ed.chain().focus('end').insertContent(html).run()
+    },
+    [],
+  )
+
+  const handleEditorReady = useCallback((ed: any) => {
+    editorRef.current = ed
+  }, [])
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 30_000)
@@ -154,11 +174,27 @@ export function JournalEntryEditor({ entry, onSaveContent }: JournalEntryEditorP
         </div>
       </div>
 
+      {/* Untangle helper — a one-line invitation that turns into a
+          dialog of starter prompts. Sits between the header and the
+          editor so it's visible whenever the user opens the entry,
+          without competing with the writing surface. */}
+      <div className="flex items-center gap-2 border-b border-zinc-100 bg-zinc-50/60 px-5 py-2">
+        <p className="hidden flex-1 text-[11px] leading-snug text-zinc-500 sm:block">
+          Stuck? A feeling is usually a question your mind is trying to
+          ask — pick a prompt to untangle it.
+        </p>
+        <p className="flex-1 text-[11px] leading-snug text-zinc-500 sm:hidden">
+          Stuck on what to write?
+        </p>
+        <JournalUntangle onInsertPrompt={handleInsertPrompt} />
+      </div>
+
       <div className="min-w-0 overflow-x-auto px-2 py-3 sm:px-4">
         <TiptapEditor
           key={entry?.id ?? effectiveDate}
           content={entry?.content ?? ''}
           onChange={handleChange}
+          onReady={handleEditorReady}
           placeholder={promptForDate(effectiveDate)}
           className="min-h-[420px] border-none shadow-none"
         />

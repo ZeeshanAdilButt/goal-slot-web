@@ -93,17 +93,12 @@ export function DailyCheckinBanner() {
           onClick={() => setOpen(true)}
           aria-label="How did today land? Open the daily check-in."
           title="How did today land?"
-          className="relative inline-flex items-center gap-2 rounded-full border border-[#f2cc0d]/60 bg-white/95 px-2.5 py-1.5 text-[12px] font-semibold text-zinc-800 shadow-lg ring-1 ring-[#f2cc0d]/30 backdrop-blur transition-all hover:border-[#f2cc0d] hover:bg-[#fff7d1] hover:pr-3.5 hover:shadow-xl"
+          className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white/95 px-2.5 py-1.5 text-[12px] font-medium text-zinc-700 shadow-sm backdrop-blur transition-all hover:border-zinc-300 hover:bg-white hover:text-zinc-900 hover:shadow-md"
         >
-          <span aria-hidden className="text-base leading-none motion-safe:animate-[pulse_2.6s_ease-in-out_infinite]">
+          <span aria-hidden className="text-base leading-none">
             🌤️
           </span>
-          <span
-            aria-hidden
-            className="absolute -right-0.5 -top-0.5 inline-flex h-2 w-2 motion-safe:animate-ping rounded-full bg-[#f2cc0d] opacity-80"
-          />
-          <span aria-hidden className="absolute -right-0.5 -top-0.5 inline-flex h-2 w-2 rounded-full bg-[#f2cc0d]" />
-          <span className="hidden text-[11px] font-semibold uppercase tracking-wider text-[#8a7307] sm:inline">
+          <span className="hidden text-[11px] font-medium text-zinc-600 sm:inline">
             Check in
           </span>
         </button>

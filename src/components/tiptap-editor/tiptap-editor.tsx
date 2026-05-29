@@ -71,6 +71,13 @@ interface TiptapEditorProps {
   placeholder?: string
   className?: string
   editable?: boolean
+  /**
+   * Called once when the underlying Tiptap editor is mounted, with the
+   * editor instance. Lets callers run commands (insertContent, focus,
+   * setContent…) without re-mounting via key changes. Receives null on
+   * unmount so callers can drop their reference.
+   */
+  onReady?: (editor: ReturnType<typeof useEditor> | null) => void
 }
 
 export function TiptapEditor({
@@ -79,6 +86,7 @@ export function TiptapEditor({
   placeholder = "Type '/' for commands...",
   className,
   editable = true,
+  onReady,
 }: TiptapEditorProps) {
   const [isCopied, setIsCopied] = useState(false)
   const [isInTable, setIsInTable] = useState(false)
@@ -216,6 +224,14 @@ export function TiptapEditor({
       setIsInTable(editor.isActive('table'))
     },
   })
+
+  // Expose the editor instance to callers that need to run commands
+  // (insertContent, focus, etc.) without re-mounting via key changes.
+  useEffect(() => {
+    if (!onReady) return
+    onReady(editor ?? null)
+    return () => onReady(null)
+  }, [editor, onReady])
 
   // Handle keyboard shortcuts
   useEffect(() => {
