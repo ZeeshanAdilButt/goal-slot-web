@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { useDailyCheckin } from '@/features/dashboard/hooks/use-daily-checkin'
-import { Pencil, Sparkles } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Pencil } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { Button } from '@/components/ui/button'
@@ -24,6 +25,24 @@ export function DailyCheckinCard() {
   const [focus, setFocus] = useState<number | null>(null)
   const [blocked, setBlocked] = useState('')
   const [worked, setWorked] = useState('')
+
+  // Bridge for the Ctrl+K command palette: dispatch `goalslot:open-checkin`
+  // on window to open the check-in dialog. If the user already checked in
+  // we pre-fill (edit flow); otherwise we open a fresh form.
+  useEffect(() => {
+    const handler = () => {
+      if (todayCheckin) {
+        setMood(todayCheckin.mood)
+        setEnergy(todayCheckin.energy)
+        setFocus(todayCheckin.focus)
+        setBlocked(todayCheckin.blocked ?? '')
+        setWorked(todayCheckin.worked ?? '')
+      }
+      setOpen(true)
+    }
+    window.addEventListener('goalslot:open-checkin', handler as EventListener)
+    return () => window.removeEventListener('goalslot:open-checkin', handler as EventListener)
+  }, [todayCheckin])
 
   const canSubmit = mood !== null && energy !== null && focus !== null
 
@@ -161,18 +180,60 @@ export function DailyCheckinCard() {
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#f2cc0d]/30 bg-[#f2cc0d]/5 px-4 py-3">
-        <div className="space-y-0.5">
-          <p className="text-sm font-semibold text-zinc-900">How did today land?</p>
-          <p className="text-xs text-zinc-600">
-            30 seconds. Mood, energy, focus, and what helped or got in the way. The Coach reads this.
-          </p>
+      {/* Floating teaser — slides in from the top-right, sits clear of the
+          top bar / banners, and stays out of the way until the user wants
+          it. Default state is just an emoji + dot so it doesn't compete
+          with page content; hovering reveals what it's for. Click anywhere
+          on the teaser opens the full check-in dialog. */}
+      <motion.div
+        initial={{ x: 80, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+        className="group fixed right-3 top-24 z-30 sm:right-5 sm:top-28"
+      >
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label="How did today land? Open the daily check-in."
+          title="How did today land?"
+          className="relative inline-flex items-center gap-2 rounded-full border border-[#f2cc0d]/60 bg-white/95 px-2.5 py-1.5 text-[12px] font-semibold text-zinc-800 shadow-lg ring-1 ring-[#f2cc0d]/30 backdrop-blur transition-all hover:border-[#f2cc0d] hover:bg-[#fff7d1] hover:pr-3.5 hover:shadow-xl"
+        >
+          <span aria-hidden className="text-base leading-none motion-safe:animate-[pulse_2.6s_ease-in-out_infinite]">
+            🌤️
+          </span>
+          <span
+            aria-hidden
+            className="absolute -right-0.5 -top-0.5 inline-flex h-2 w-2 motion-safe:animate-ping rounded-full bg-[#f2cc0d] opacity-80"
+          />
+          <span aria-hidden className="absolute -right-0.5 -top-0.5 inline-flex h-2 w-2 rounded-full bg-[#f2cc0d]" />
+          <span className="hidden text-[11px] font-semibold uppercase tracking-wider text-[#8a7307] sm:inline">
+            Check in
+          </span>
+        </button>
+
+        {/* Hover reveal — the full pitch, anchored under the teaser.
+            pointer-events-none on the wrapper plus the group/hover
+            transition means it appears smoothly without blocking the
+            content underneath when collapsed. */}
+        <div className="pointer-events-none absolute right-0 top-full mt-2 w-[min(20rem,calc(100vw-1.5rem))] origin-top-right scale-95 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:scale-100 group-hover:opacity-100">
+          <div className="rounded-xl border border-[#f2cc0d]/40 bg-white p-3 text-left shadow-2xl ring-1 ring-zinc-900/5">
+            <p className="text-sm font-semibold text-zinc-900">How did today land?</p>
+            <p className="mt-0.5 text-[11.5px] leading-relaxed text-zinc-600">
+              30 seconds. Mood, energy, focus, and what helped or got in
+              the way. The Coach reads this.
+            </p>
+            <Button
+              type="button"
+              variant="brand"
+              size="sm"
+              onClick={() => setOpen(true)}
+              className="mt-2 w-full"
+            >
+              Open check-in
+            </Button>
+          </div>
         </div>
-        <Button variant="brand" size="sm" onClick={() => setOpen(true)}>
-          <Sparkles className="h-3.5 w-3.5" />
-          Check in
-        </Button>
-      </div>
+      </motion.div>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[90vh] w-[95vw] overflow-y-auto sm:max-w-xl lg:max-w-2xl">

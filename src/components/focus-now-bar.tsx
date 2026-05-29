@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 
 import { useTimeTrackerData } from '@/features/time-tracker/hooks/use-time-tracker-queries'
@@ -11,6 +11,7 @@ import {
 import { ArrowRight, ChevronDown, Clock } from 'lucide-react'
 
 import { cn, formatTime12h } from '@/lib/utils'
+import { useDismissable } from '@/lib/use-dismissable'
 import { GoalFlagIcon } from '@/components/icons/goal-flag-icon'
 
 /** "14:00" -> "2 PM", "14:30" -> "2:30 PM". Drops :00 when on the hour. */
@@ -54,6 +55,13 @@ export function FocusNowBar() {
   const { weeklySchedule } = useTimeTrackerData()
   const [now, setNow] = useState(() => new Date())
   const [expanded, setExpanded] = useState(false)
+  const upNextTriggerRef = useRef<HTMLButtonElement | null>(null)
+  const upNextIgnoreRefs = useMemo(() => [upNextTriggerRef], [])
+  const upNextPanelRef = useDismissable<HTMLDivElement>(
+    expanded,
+    () => setExpanded(false),
+    upNextIgnoreRefs,
+  )
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 30_000)
@@ -133,6 +141,7 @@ export function FocusNowBar() {
           {upcoming && upcomingLabel && (
             <button
               type="button"
+              ref={upNextTriggerRef}
               onClick={() => setExpanded((v) => !v)}
               aria-expanded={expanded}
               className="inline-flex items-center gap-1.5 rounded-md border border-zinc-900 bg-zinc-900 px-2.5 py-1 text-[11px] font-semibold tracking-tight text-white transition-colors hover:bg-zinc-800"
@@ -167,7 +176,10 @@ export function FocusNowBar() {
           natural height and the dark card visually separates. Right-
           aligned, fixed-width, distinct dark card. */}
       {expanded && upcomingList.length > 0 && (
-        <div className="absolute right-3 top-full z-40 mt-2 w-[min(28rem,calc(100vw-1.5rem))]">
+        <div
+          ref={upNextPanelRef}
+          className="absolute right-3 top-full z-40 mt-2 w-[min(28rem,calc(100vw-1.5rem))]"
+        >
           <div className="overflow-hidden rounded-xl border border-zinc-900 bg-zinc-950 text-white shadow-2xl ring-1 ring-zinc-800">
             <div className="flex items-center justify-between border-b border-zinc-800 px-3 py-2">
               <div className="flex items-center gap-2">

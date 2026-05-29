@@ -66,6 +66,23 @@ export function TimeEntryBanner() {
     }
   }, [timerState, startTimestamp, pausedElapsedTime])
 
+  // Bridge for the Ctrl+K command palette: dispatch
+  // `goalslot:start-tracking` on window to open the quick-start popover.
+  // Only acts when the timer is stopped — the popover isn't rendered
+  // while a session is in progress and starting a second one would clash
+  // with the running entry.
+  useEffect(() => {
+    const handler = () => {
+      if (timerState === 'STOPPED') {
+        setStartPopoverOpen(true)
+      } else {
+        toast('A timer is already running. Stop it first.', { icon: '⏱️' })
+      }
+    }
+    window.addEventListener('goalslot:start-tracking', handler as EventListener)
+    return () => window.removeEventListener('goalslot:start-tracking', handler as EventListener)
+  }, [timerState])
+
   if (timerState === 'STOPPED') {
     // Always-on quick shortcut bar so users can start tracking, log time,
     // or capture a note from any dashboard page without navigating first.

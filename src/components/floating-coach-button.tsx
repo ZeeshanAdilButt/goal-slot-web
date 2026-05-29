@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 
 import { useCoachInsights } from '@/features/coach/hooks/use-coach-insights'
@@ -32,6 +32,14 @@ function FloatingCoachButtonInner() {
   const { insights } = useCoachInsights('PROPOSED')
   const fresh = insights.length
   const [open, setOpen] = useState(false)
+
+  // Bridge for the Ctrl+K command palette: any code can dispatch
+  // `goalslot:open-coach` on window and the floating chat opens.
+  useEffect(() => {
+    const handler = () => setOpen(true)
+    window.addEventListener('goalslot:open-coach', handler as EventListener)
+    return () => window.removeEventListener('goalslot:open-coach', handler as EventListener)
+  }, [])
 
   return (
     <>

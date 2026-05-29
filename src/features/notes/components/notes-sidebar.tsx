@@ -1285,6 +1285,41 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
         </button>
       </div>
 
+      {/* Multi-select discoverability — the floating delete bar at the
+          bottom of a long list isn't obvious. A persistent hint above
+          the tree teaches the shortcut, and an inline selection chip
+          at the top mirrors the bottom bar's count + delete so users
+          don't have to scroll to act on a selection. */}
+      {multiSelectIds.size === 0 ? (
+        <div className="hidden px-3 pb-1.5 text-[10.5px] leading-tight text-muted-foreground sm:block">
+          Tip: hold <kbd className="rounded border border-zinc-200 bg-white px-1 py-0.5 font-mono text-[10px] text-zinc-700">Ctrl</kbd> /<kbd className="rounded border border-zinc-200 bg-white px-1 py-0.5 font-mono text-[10px] text-zinc-700">⌘</kbd> + click to select multiple notes.
+        </div>
+      ) : (
+        <div className="mx-3 mb-2 flex items-center justify-between gap-2 rounded-md border border-zinc-900 bg-zinc-900 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm">
+          <span className="inline-flex items-center gap-1.5">
+            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[#f2cc0d]" />
+            {multiSelectIds.size} selected
+          </span>
+          <span className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={clearMultiSelect}
+              className="rounded px-1.5 py-0.5 text-[10px] text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-white"
+            >
+              Clear
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowBulkDeleteConfirm(true)}
+              className="inline-flex items-center gap-1 rounded bg-rose-500 px-1.5 py-0.5 text-[10px] font-semibold text-white transition-colors hover:bg-rose-600"
+            >
+              <Trash2 className="h-3 w-3" />
+              Delete
+            </button>
+          </span>
+        </div>
+      )}
+
       {/* Notes tree */}
       <DndContext
         sensors={sensors}

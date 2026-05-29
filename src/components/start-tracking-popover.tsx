@@ -9,6 +9,7 @@ import { toast } from 'react-hot-toast'
 import { useTimeTrackerData } from '@/features/time-tracker/hooks/use-time-tracker-queries'
 import { findScheduleBlockForDateTime } from '@/features/time-tracker/utils/schedule'
 import type { Task } from '@/features/time-tracker/utils/types'
+import { useDismissable } from '@/lib/use-dismissable'
 
 interface StartTrackingPopoverProps {
   open: boolean
@@ -57,6 +58,16 @@ export function StartTrackingPopover({ open, onClose }: StartTrackingPopoverProp
     return base.filter((t: Task) => t.title.toLowerCase().includes(q)).slice(0, 12)
   }, [tasks, query, activeBlock])
 
+  // When the active schedule block has a linked goal but no tasks exist
+  // for that goal, surface a small hint above the list so the user
+  // understands why they don't see anything "on now" — but keep showing
+  // the rest of their tasks so they can still pick one quickly.
+  const activeGoalHasNoTasks = useMemo(() => {
+    if (!activeBlock?.goalId) return false
+    const base: Task[] = tasks ?? []
+    return !base.some((t) => t.goalId === activeBlock.goalId)
+  }, [tasks, activeBlock])
+
   const startWithTask = (task: Task) => {
     start(
       task.title,
@@ -80,10 +91,13 @@ export function StartTrackingPopover({ open, onClose }: StartTrackingPopoverProp
     onClose()
   }
 
+  const dismissRef = useDismissable<HTMLDivElement>(open, onClose)
+
   if (!open) return null
 
   return (
     <div
+      ref={dismissRef}
       role="dialog"
       aria-label="Start tracking"
       className="fixed bottom-20 right-4 z-50 flex w-[min(380px,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl"
@@ -129,6 +143,15 @@ export function StartTrackingPopover({ open, onClose }: StartTrackingPopoverProp
       </div>
 
       <div className="max-h-72 overflow-y-auto">
+        {activeGoalHasNoTasks && !query && (
+          <div className="border-b border-amber-100 bg-amber-50/60 px-3 py-2 text-[11px] text-amber-800">
+            No tasks yet for the active goal
+            {activeBlock?.goal?.title ? (
+              <> <span className="font-semibold">({activeBlock.goal.title})</span></>
+            ) : null}
+            . Other tasks shown below — or type a custom title at the bottom.
+          </div>
+        )}
         {!tasks ? (
           <div className="flex items-center justify-center gap-2 px-3 py-6 text-xs text-zinc-500">
             <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading tasks...

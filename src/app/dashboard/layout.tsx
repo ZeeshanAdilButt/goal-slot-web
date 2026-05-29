@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useMemo } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 import { ReleaseNoteBanner } from '@/features/release-notes/components/release-note-banner'
@@ -11,6 +11,7 @@ import { useAuthStore } from '@/lib/store'
 import { useApplyTheme as _useApplyTheme } from '@/lib/use-theme'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
+import { CommandPalette } from '@/components/command-palette'
 import { DailyCheckinBanner } from '@/components/daily-checkin-banner'
 import { GoalSlotSpinner } from '@/components/goalslot-logo'
 import { FocusNowBar } from '@/components/focus-now-bar'
@@ -40,6 +41,40 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     }
   }, [isLoading, isAuthenticated, router, returnTo])
 
+  // Global Cmd/Ctrl+K opens the command palette. We swallow the event so
+  // the browser's own "search bookmarks" shortcut doesn't fire. Plain `/`
+  // is intentionally NOT bound here — too easy to trigger from inputs.
+  const [paletteOpen, setPaletteOpen] = useState(false)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault()
+        setPaletteOpen((v) => !v)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  const fireStartTracking = useCallback(() => {
+    window.dispatchEvent(new CustomEvent('goalslot:start-tracking'))
+  }, [])
+  const fireOpenCoach = useCallback(() => {
+    window.dispatchEvent(new CustomEvent('goalslot:open-coach'))
+  }, [])
+  const fireOpenCheckin = useCallback(() => {
+    // DailyCheckinCard only mounts on /dashboard. Route there so the
+    // listener exists, then dispatch on the next tick.
+    if (!pathname?.endsWith('/dashboard')) {
+      router.push('/dashboard')
+      window.setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('goalslot:open-checkin'))
+      }, 250)
+    } else {
+      window.dispatchEvent(new CustomEvent('goalslot:open-checkin'))
+    }
+  }, [pathname, router])
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#fafafa]">
@@ -65,6 +100,13 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         <ReleaseNoteBanner />
         <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
       </SidebarInset>
+      <CommandPalette
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+        onStartTracking={fireStartTracking}
+        onOpenCoach={fireOpenCoach}
+        onOpenCheckin={fireOpenCheckin}
+      />
     </SidebarProvider>
   )
 }

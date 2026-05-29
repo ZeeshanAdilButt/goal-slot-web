@@ -21,6 +21,7 @@ import {
   type CoachStreamChunk,
 } from '@/lib/api'
 import { cn } from '@/lib/utils'
+import { useDismissable } from '@/lib/use-dismissable'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { CoachIcon } from '@/components/icons/coach-icon'
 import { CoachMarkdown } from '@/features/coach/components/coach-markdown'
@@ -221,10 +222,17 @@ export function FloatingCoachPopover({ open, onClose }: FloatingCoachPopoverProp
     void handleSend(input)
   }
 
+  // Only dismiss on outside-click when no nested ConfirmDialog is open —
+  // otherwise clicking the confirm button (rendered in a portal outside
+  // this ref) would also close the parent popover and lose the streamed
+  // chat state. Same goes for Escape: let the dialog handle its own.
+  const dismissRef = useDismissable<HTMLDivElement>(open && !confirmClear, onClose)
+
   if (!open) return null
 
   return (
     <div
+      ref={dismissRef}
       className="fixed bottom-20 right-4 z-50 flex h-[min(560px,calc(100vh-7rem))] w-[min(380px,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl"
       role="dialog"
       aria-label="Coach quick chat"
