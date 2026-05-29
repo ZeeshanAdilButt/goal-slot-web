@@ -88,22 +88,38 @@ const ADMIN_COMMANDS: Array<Omit<Command, 'group'> & { group: 'Admin' }> = [
   { id: 'admin-release', label: 'Release Notes', icon: Megaphone, href: '/dashboard/admin/release-notes', group: 'Admin' },
 ]
 
-function fuzzyMatch(query: string, text: string): number {
-  // Tiny "subsequence + word-prefix" scorer. Returns 0 for no match, higher
-  // = better. Cheap; we re-rank every keystroke and the corpus is tiny.
-  if (!query) return 1
+/**
+ * Tiered text match. Returns 0 for no hit, higher = better:
+ *   - 1000+: exact prefix on the text
+ *   - 800+ : prefix on any whitespace-delimited word
+ *   - 500+ : substring anywhere
+ *   - 0    : no substring or word-prefix hit (we deliberately do NOT do
+ *            subsequence matching — it surfaces "Tasks" for "tracking"
+ *            because t-a-s-... shares letters with t-r-a-..., which is
+ *            confusing more than helpful).
+ *
+ * The cheap "earlier index is better" subtraction inside each tier gives
+ * stable ordering when several items hit the same tier.
+ */
+function textMatch(query: string, text: string | undefined | null): number {
+  if (!query) return 0
+  if (!text) return 0
   const q = query.toLowerCase()
   const t = text.toLowerCase()
-  if (t.startsWith(q)) return 1000 - t.length
-  if (t.includes(q)) return 500 - t.indexOf(q)
-  // subsequence scan
-  let ti = 0
-  for (let qi = 0; qi < q.length; qi++) {
-    while (ti < t.length && t[ti] !== q[qi]) ti++
-    if (ti === t.length) return 0
-    ti++
+  if (t.startsWith(q)) return 1000 + (50 - Math.min(t.length, 50))
+  // word-prefix: any whitespace-bounded token starts with the query
+  const words = t.split(/[\s/_\-.·]+/)
+  let bestWordIdx = -1
+  for (let i = 0; i < words.length; i++) {
+    if (words[i].startsWith(q)) {
+      bestWordIdx = i
+      break
+    }
   }
-  return 100
+  if (bestWordIdx !== -1) return 800 + (20 - Math.min(bestWordIdx, 20))
+  const idx = t.indexOf(q)
+  if (idx !== -1) return 500 + (50 - Math.min(idx, 50))
+  return 0
 }
 
 export function CommandPalette({
@@ -211,12 +227,26 @@ export function CommandPalette({
         (c) => c.group === 'Quick actions' || c.group === 'Pages' || c.group === 'Admin',
       )
     }
+    // Group priority — lets us tie-break across tiers so that a query
+    // matching a quick action ("tracking" → "Start tracking…") outranks
+    // a same-tier hit on a goal/task with the same word. Larger = more
+    // important. Tasks slightly outrank goals so the user's actionable
+    // work surfaces above their long-term targets.
+    const GROUP_BONUS: Record<Command['group'], number> = {
+      'Quick actions': 400,
+      Pages: 300,
+      Admin: 200,
+      Tasks: 100,
+      Goals: 50,
+    }
     const scored = allCommands
       .map((cmd) => {
-        const labelScore = fuzzyMatch(q, cmd.label) * 2
-        const keywordScore = cmd.keywords ? fuzzyMatch(q, cmd.keywords) : 0
-        const hintScore = cmd.hint ? fuzzyMatch(q, cmd.hint) * 0.5 : 0
-        return { cmd, score: labelScore + keywordScore + hintScore }
+        const labelScore = textMatch(q, cmd.label)
+        const hintScore = textMatch(q, cmd.hint) * 0.5
+        const keywordScore = textMatch(q, cmd.keywords) * 0.5
+        const best = Math.max(labelScore, hintScore, keywordScore)
+        if (best === 0) return { cmd, score: 0 }
+        return { cmd, score: best + GROUP_BONUS[cmd.group] }
       })
       .filter((s) => s.score > 0)
       .sort((a, b) => b.score - a.score)

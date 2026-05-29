@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { ScaleRow } from '@/features/dashboard/components/checkin-dials'
 import { useDailyCheckin } from '@/features/dashboard/hooks/use-daily-checkin'
+import { motion } from 'framer-motion'
 import { toast } from 'react-hot-toast'
 
 import { Button } from '@/components/ui/button'
@@ -19,10 +20,16 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 
 /**
- * Site-wide top banner that nudges the user to log today's check-in.
- * Renders on every dashboard page (mounted in dashboard/layout.tsx) until
- * today's check-in is logged, then hides. Tap "Check in" to open the same
- * 3-dial modal the dashboard card uses, keeping the data path identical.
+ * Floating daily check-in teaser. Sits top-right on every dashboard page
+ * (mounted from dashboard/layout.tsx, replacing the old wall-eating banner
+ * that lived under the focus bar). Default state is just an emoji + pulse
+ * dot so it doesn't compete with page content; hovering reveals the full
+ * pitch + a button. Clicking the pill opens the same 3-dial dialog.
+ *
+ * Component name kept as `DailyCheckinBanner` so the layout import path
+ * doesn't need to change — the visual treatment is the only thing that's
+ * different. Also wires the `goalslot:open-checkin` bridge for the
+ * Ctrl+K command palette.
  */
 export function DailyCheckinBanner() {
   const { todayCheckin, submit } = useDailyCheckin()
@@ -33,7 +40,23 @@ export function DailyCheckinBanner() {
   const [worked, setWorked] = useState('')
   const [blocked, setBlocked] = useState('')
 
-  if (todayCheckin) return null
+  // Bridge for the Ctrl+K command palette: any code can dispatch
+  // `goalslot:open-checkin` on window and the check-in dialog opens.
+  // Pre-fills if the user already checked in so it works as an edit flow.
+  useEffect(() => {
+    const handler = () => {
+      if (todayCheckin) {
+        setMood(todayCheckin.mood)
+        setEnergy(todayCheckin.energy)
+        setFocus(todayCheckin.focus)
+        setBlocked(todayCheckin.blocked ?? '')
+        setWorked(todayCheckin.worked ?? '')
+      }
+      setOpen(true)
+    }
+    window.addEventListener('goalslot:open-checkin', handler as EventListener)
+    return () => window.removeEventListener('goalslot:open-checkin', handler as EventListener)
+  }, [todayCheckin])
 
   const canSubmit = mood !== null && energy !== null && focus !== null
 
@@ -52,31 +75,58 @@ export function DailyCheckinBanner() {
     setWorked('')
   }
 
+  // If today is already checked in, the teaser hides. The dashboard-page
+  // still shows a small inline "Checked in · today" pill via
+  // DailyCheckinCard, so there's no loss of affordance.
+  if (todayCheckin) return null
+
   return (
     <>
-      <div className="border-b border-[#f2cc0d]/30 bg-[#fffbea]">
-        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
-          <div className="flex items-center gap-2.5">
-            <span
-              aria-hidden
-              className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#f2cc0d] text-[12px] font-bold text-zinc-900"
-            >
-              ?
-            </span>
-            <div className="min-w-0">
-              <p className="text-[13px] font-semibold leading-tight text-zinc-900">
-                How did today land?
-              </p>
-              <p className="hidden text-[11px] leading-tight text-zinc-600 sm:block">
-                30 seconds. Mood, energy, focus, and what helped or got in the way. The Coach reads this.
-              </p>
-            </div>
-          </div>
-          <Button variant="brand" size="sm" onClick={() => setOpen(true)}>
+      <motion.div
+        initial={{ x: 80, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+        className="group fixed right-3 top-24 z-30 sm:right-5 sm:top-28"
+      >
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label="How did today land? Open the daily check-in."
+          title="How did today land?"
+          className="relative inline-flex items-center gap-2 rounded-full border border-[#f2cc0d]/60 bg-white/95 px-2.5 py-1.5 text-[12px] font-semibold text-zinc-800 shadow-lg ring-1 ring-[#f2cc0d]/30 backdrop-blur transition-all hover:border-[#f2cc0d] hover:bg-[#fff7d1] hover:pr-3.5 hover:shadow-xl"
+        >
+          <span aria-hidden className="text-base leading-none motion-safe:animate-[pulse_2.6s_ease-in-out_infinite]">
+            🌤️
+          </span>
+          <span
+            aria-hidden
+            className="absolute -right-0.5 -top-0.5 inline-flex h-2 w-2 motion-safe:animate-ping rounded-full bg-[#f2cc0d] opacity-80"
+          />
+          <span aria-hidden className="absolute -right-0.5 -top-0.5 inline-flex h-2 w-2 rounded-full bg-[#f2cc0d]" />
+          <span className="hidden text-[11px] font-semibold uppercase tracking-wider text-[#8a7307] sm:inline">
             Check in
-          </Button>
+          </span>
+        </button>
+
+        <div className="pointer-events-none absolute right-0 top-full mt-2 w-[min(20rem,calc(100vw-1.5rem))] origin-top-right scale-95 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:scale-100 group-hover:opacity-100">
+          <div className="rounded-xl border border-[#f2cc0d]/40 bg-white p-3 text-left shadow-2xl ring-1 ring-zinc-900/5">
+            <p className="text-sm font-semibold text-zinc-900">How did today land?</p>
+            <p className="mt-0.5 text-[11.5px] leading-relaxed text-zinc-600">
+              30 seconds. Mood, energy, focus, and what helped or got in
+              the way. The Coach reads this.
+            </p>
+            <Button
+              type="button"
+              variant="brand"
+              size="sm"
+              onClick={() => setOpen(true)}
+              className="mt-2 w-full"
+            >
+              Open check-in
+            </Button>
+          </div>
         </div>
-      </div>
+      </motion.div>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[90vh] w-[95vw] overflow-y-auto sm:max-w-xl lg:max-w-2xl">

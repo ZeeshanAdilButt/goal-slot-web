@@ -16,6 +16,7 @@ import { DailyCheckinBanner } from '@/components/daily-checkin-banner'
 import { GoalSlotSpinner } from '@/components/goalslot-logo'
 import { FocusNowBar } from '@/components/focus-now-bar'
 import { TimeEntryBanner } from '@/components/time-entry-banner'
+import { TipsCorner } from '@/components/tips-corner'
 
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -107,6 +108,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         onOpenCoach={fireOpenCoach}
         onOpenCheckin={fireOpenCheckin}
       />
+      <TipsCorner />
     </SidebarProvider>
   )
 }
