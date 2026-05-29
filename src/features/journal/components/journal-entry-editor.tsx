@@ -84,12 +84,31 @@ export function JournalEntryEditor({ entry, onSaveContent }: JournalEntryEditorP
     (html: string) => {
       const ed = editorRef.current
       if (!ed) return
-      // Append to the end of the document — keeps existing content
-      // intact and the cursor lands inside the trailing empty paragraph
-      // baked into the prompt HTML.
-      ed.chain().focus('end').insertContent(html).run()
+      const date = dateRef.current
+      // Insert at the current selection (the cursor where the user
+      // left it when they opened the Untangle dialog — Tiptap's
+      // ProseMirror selection persists even when DOM focus moves
+      // away). We do NOT use focus('end') because that would override
+      // the cursor and trap inserts at the bottom of long entries.
+      ed.chain().focus().insertContent(html).run()
+      // Save immediately instead of waiting for the autosave debounce
+      // (500ms). If the user refreshes within that window — common
+      // when they're proud of the new section and want to share it —
+      // the unsaved insert is lost. Cancel any pending debounce so we
+      // don't double-write the same content.
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current)
+        debounceRef.current = null
+      }
+      const next = ed.getHTML()
+      setLiveContent(next)
+      if (date) {
+        onSaveContent(date, next)
+        setSavedAt(Date.now())
+        setPendingSave(false)
+      }
     },
-    [],
+    [onSaveContent],
   )
 
   const handleEditorReady = useCallback((ed: any) => {

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-import { Sparkles, X } from 'lucide-react'
+import { ChevronDown, Sparkles, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -17,15 +17,20 @@ import { cn } from '@/lib/utils'
 /**
  * "Untangle a feeling" — small companion for the journal editor. Pitches
  * the user a single framing (a feeling is a question your mind is trying
- * to ask) and offers a set of starter prompts they can drop into today's
- * entry with a click.
+ * to ask) and offers a set of starter prompts.
  *
- * The prompts are deliberately written in universal, secular language so
- * that anyone can use them — but each one is anchored in a classical
- * Islamic principle (tawakkul, sabr, niyyah, shukr, muhasabah, qadar,
- * tawba, rida, ihsan, dhikr) that the user doesn't have to know about
- * to benefit from. The internal `principle` field is for our own
- * bookkeeping; only `title` and `body` reach the UI.
+ * UX:
+ *   - Each prompt shows as a collapsed card with just the title.
+ *   - Clicking the card EXPANDS it to reveal the full body and an
+ *     "Insert at cursor" button — no accidental inserts, the user gets
+ *     to read the full prompt first.
+ *   - "Insert at cursor" drops the prompt into the journal at wherever
+ *     the cursor was when the dialog opened (Tiptap's selection is
+ *     preserved even when DOM focus moves to the dialog).
+ *
+ * Prompts are written in universal, secular language but each anchors
+ * in a classical Islamic principle (niyyah, sabr, shukr, tawakkul,
+ * qadar, muhasabah, tawba, rida, ihsan, dhikr) — bookkeeping, not UI.
  */
 
 type UntanglePrompt = {
@@ -109,15 +114,21 @@ const PROMPTS: UntanglePrompt[] = [
   },
 ]
 
+/**
+ * Render a prompt as plain editor-safe HTML. Uses only paragraphs +
+ * inline emphasis so the journal editor's default typography handles
+ * it cleanly — earlier versions used h3 + blockquote which collided
+ * with the editor's heading/quote spacing and pushed surrounding
+ * content out of view.
+ */
 function promptToHtml(p: UntanglePrompt): string {
-  // Insert as a heading with the prompt title + a blockquote with the
-  // body + an empty paragraph for the user to start writing in. The
-  // empty paragraph at the end is critical — without it the cursor
-  // lands inside the blockquote and the user types into the prompt
-  // text itself.
   const safeTitle = p.title.replace(/</g, '&lt;')
   const safeBody = p.body.replace(/</g, '&lt;')
-  return `<h3>${safeTitle}</h3><blockquote><p><em>${safeBody}</em></p></blockquote><p></p>`
+  return (
+    `<p><strong>${safeTitle}</strong></p>` +
+    `<p><em>${safeBody}</em></p>` +
+    `<p></p>`
+  )
 }
 
 interface JournalUntangleProps {
@@ -126,18 +137,16 @@ interface JournalUntangleProps {
 
 export function JournalUntangle({ onInsertPrompt }: JournalUntangleProps) {
   const [open, setOpen] = useState(false)
-  const [hoveredId, setHoveredId] = useState<string | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
-  const handlePick = (p: UntanglePrompt) => {
+  const handleInsert = (p: UntanglePrompt) => {
     onInsertPrompt(promptToHtml(p))
     setOpen(false)
+    setExpandedId(null)
   }
 
   return (
     <>
-      {/* Inline tip above the editor. Whispers the framing without
-          taking up much vertical space. Clicking opens the prompts
-          dialog. The "Untangle" label is the primary affordance. */}
       <button
         type="button"
         onClick={() => setOpen(true)}
@@ -152,45 +161,73 @@ export function JournalUntangle({ onInsertPrompt }: JournalUntangleProps) {
         </span>
       </button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={open}
+        onOpenChange={(next) => {
+          setOpen(next)
+          if (!next) setExpandedId(null)
+        }}
+      >
         <DialogContent className="max-h-[88vh] w-[95vw] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg">
               A feeling is a question your mind is trying to ask
             </DialogTitle>
             <DialogDescription className="text-sm leading-relaxed text-zinc-600">
-              When something tangles inside, the way out usually isn’t to
-              push it down — it’s to untangle it by turning it into a
-              question you can actually sit with and answer. Pick a
-              starting prompt; it’ll drop straight into today’s entry.
+              Click a prompt to read it. If it fits, hit{' '}
+              <span className="font-semibold text-zinc-700">Insert at cursor</span>{' '}
+              and it'll drop into your entry exactly where you were typing.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <div className="mt-2 flex flex-col gap-2">
             {PROMPTS.map((p) => {
-              const isHovered = hoveredId === p.id
+              const isExpanded = expandedId === p.id
               return (
-                <button
+                <div
                   key={p.id}
-                  type="button"
-                  onMouseEnter={() => setHoveredId(p.id)}
-                  onMouseLeave={() => setHoveredId((cur) => (cur === p.id ? null : cur))}
-                  onClick={() => handlePick(p)}
                   className={cn(
-                    'group flex flex-col gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-left transition-all hover:border-[#f2cc0d] hover:bg-[#fffbea] hover:shadow-sm',
-                    isHovered && 'border-[#f2cc0d] bg-[#fffbea]',
+                    'overflow-hidden rounded-lg border transition-all',
+                    isExpanded
+                      ? 'border-[#f2cc0d] bg-[#fffbea] shadow-sm'
+                      : 'border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50',
                   )}
                 >
-                  <span className="text-[13px] font-semibold leading-snug text-zinc-900">
-                    {p.title}
-                  </span>
-                  <span className="text-[11.5px] leading-snug text-zinc-600">
-                    {p.body}
-                  </span>
-                  <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-[#8a7307] opacity-0 transition-opacity group-hover:opacity-100">
-                    Insert into today's entry →
-                  </span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(isExpanded ? null : p.id)}
+                    aria-expanded={isExpanded}
+                    className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left"
+                  >
+                    <span className="flex-1 text-[13px] font-semibold leading-snug text-zinc-900">
+                      {p.title}
+                    </span>
+                    <ChevronDown
+                      className={cn(
+                        'h-4 w-4 shrink-0 text-zinc-400 transition-transform',
+                        isExpanded && 'rotate-180 text-[#8a7307]',
+                      )}
+                    />
+                  </button>
+
+                  {isExpanded && (
+                    <div className="flex flex-col gap-3 border-t border-[#f2cc0d]/40 bg-white/60 px-3 py-3">
+                      <p className="text-[12.5px] leading-relaxed text-zinc-700">
+                        {p.body}
+                      </p>
+                      <div className="flex justify-end">
+                        <Button
+                          type="button"
+                          variant="brand"
+                          size="sm"
+                          onClick={() => handleInsert(p)}
+                        >
+                          Insert at cursor
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )
             })}
           </div>
@@ -205,7 +242,10 @@ export function JournalUntangle({ onInsertPrompt }: JournalUntangleProps) {
               type="button"
               variant="secondary"
               size="sm"
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                setOpen(false)
+                setExpandedId(null)
+              }}
             >
               <X className="h-3.5 w-3.5" />
               Close

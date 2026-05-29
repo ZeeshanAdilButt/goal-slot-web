@@ -146,7 +146,10 @@ const STORAGE_SEEN = 'goalslot.tips.seen.v1'
 const STORAGE_MUTED = 'goalslot.tips.muted.v1'
 const FIRST_DELAY_MS = 25_000
 const INTERVAL_MS = 180_000 // 3 minutes between tips
-const AUTO_DISMISS_MS = 12_000
+// Tips no longer auto-dismiss — the user has to click X (or "mute"
+// to silence the channel entirely). Previous 12-second auto-dismiss
+// felt rushed; users were closing the tab before they finished
+// reading.
 
 function readSeen(): Set<string> {
   if (typeof window === 'undefined') return new Set()
@@ -201,30 +204,26 @@ export function TipsCorner() {
   const [current, setCurrent] = useState<Tip | null>(null)
   const seenRef = useRef<Set<string>>(new Set())
   const intervalRef = useRef<number | null>(null)
-  const autoDismissRef = useRef<number | null>(null)
   const mutedRef = useRef(false)
-
-  const clearAutoDismiss = useCallback(() => {
-    if (autoDismissRef.current) {
-      window.clearTimeout(autoDismissRef.current)
-      autoDismissRef.current = null
-    }
-  }, [])
+  // Mirror `current` into a ref so the interval callback can check
+  // "is there still a tip on screen?" without re-binding the interval
+  // every render.
+  const currentRef = useRef<Tip | null>(null)
+  currentRef.current = current
 
   const surface = useCallback(() => {
     if (mutedRef.current) return
     if (document.hidden) return
+    // Don't replace a tip the user is still reading. If `current` is
+    // non-null they haven't dismissed it yet — skip this tick and try
+    // again on the next interval.
+    if (currentRef.current) return
     const next = pickNextTip(seenRef.current)
     if (!next) return
     setCurrent(next)
-    clearAutoDismiss()
-    autoDismissRef.current = window.setTimeout(() => {
-      setCurrent(null)
-    }, AUTO_DISMISS_MS)
-  }, [clearAutoDismiss])
+  }, [])
 
-  // Mark the visible tip as seen when it leaves the screen — counts both
-  // auto-dismiss and explicit close.
+  // Mark the visible tip as seen when the user closes it.
   const handleDismiss = useCallback(() => {
     setCurrent((cur) => {
       if (cur) {
@@ -233,19 +232,17 @@ export function TipsCorner() {
       }
       return null
     })
-    clearAutoDismiss()
-  }, [clearAutoDismiss])
+  }, [])
 
   const handleMute = useCallback(() => {
     mutedRef.current = true
     setMuted()
     setCurrent(null)
-    clearAutoDismiss()
     if (intervalRef.current) {
       window.clearInterval(intervalRef.current)
       intervalRef.current = null
     }
-  }, [clearAutoDismiss])
+  }, [])
 
   useEffect(() => {
     seenRef.current = readSeen()
@@ -263,9 +260,8 @@ export function TipsCorner() {
         window.clearInterval(intervalRef.current)
         intervalRef.current = null
       }
-      clearAutoDismiss()
     }
-  }, [surface, clearAutoDismiss])
+  }, [surface])
 
   // Persist seen whenever current changes from a tip to null (we mark
   // as seen in handleDismiss already, but auto-dismiss after the tip's
