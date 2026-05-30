@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import toast from 'react-hot-toast'
 
@@ -9,12 +9,10 @@ import {
   type CollisionDetection,
   DndContext,
   DragEndEvent,
-  DragMoveEvent,
   DragOverEvent,
   DragOverlay,
   DragStartEvent,
   MeasuringStrategy,
-  type Modifier,
   MouseSensor,
   pointerWithin,
   TouchSensor,
@@ -99,179 +97,48 @@ interface NotesSidebarProps {
   className?: string
 }
 
-type DropPosition = 'top' | 'inside' | 'bottom' | null
+/**
+ * OneNote-style drop model. A drag in flight resolves to exactly one
+ * of three zones on whichever row the pointer is over:
+ *   - 'above'   → drop as previous sibling of target
+ *   - 'inside'  → drop as last child of target (target auto-expands)
+ *   - 'below'   → drop as next sibling of target
+ *
+ * Zone is decided purely from the pointer's Y position inside the
+ * target's bounding rect: top 25% = above, middle 50% = inside,
+ * bottom 25% = below. No horizontal swipe, no axis lock, no implicit
+ * promote/demote — those were unintuitive and the source of "the
+ * preview said X but the drop did Y" bugs. To un-nest, drag a
+ * sub-note onto the above/below zone of any top-level note (or onto
+ * the dedicated root-drop zones rendered at the very top and bottom
+ * of the tree).
+ */
+type DropZone = 'above' | 'inside' | 'below'
 
-// Threshold (px) for horizontal-swipe promote/demote. Mirrored in
-// handleDragEnd so the live preview always agrees with the on-drop
-// behaviour. Lifted to module scope so resolveDropTarget can reuse it.
-const HORIZONTAL_SWIPE_PX = 40
-
-// Once the user has moved more than this many px (in any direction) we
-// snap-lock the drag to its dominant axis. OneNote-style: if they
-// started moving down, only vertical drops are valid until release.
-const AXIS_LOCK_PX = 8
-
-type DragAxis = 'x' | 'y' | null
-
-// Modifier factory: zero out the non-locked axis so the dnd-kit ghost
-// only translates along the locked axis. Returned per-render so the
-// closure captures the latest axis without restarting the drag.
-const verticalOnlyModifier: Modifier = ({ transform }) => ({ ...transform, x: 0 })
-const horizontalOnlyModifier: Modifier = ({ transform }) => ({ ...transform, y: 0 })
-
-type DropIntentKind = 'sub-note' | 'promote' | 'sibling' | 'reparent' | 'noop' | 'not-allowed'
-
-interface ResolvedDropTarget {
-  kind: DropIntentKind
-  parentTitle?: string
-  siblingTitle?: string
-  // -1 = promote (less indented), 0 = stay, 1 = demote (more indented).
-  depthDelta: -1 | 0 | 1
-  // Whether the resolution is a horizontal-swipe (drag on the dragged
-  // row itself) vs a positional drop on another row. The preview
-  // indicator renders differently for the two.
-  horizontal: boolean
-  // For positional drops, which row the indicator should "attach" to
-  // and at what depth in the tree it should visually appear.
-  targetId?: string
-  targetDepth?: number
-  position?: DropPosition
+interface DropTarget {
+  /** dnd-kit droppable id — usually a note id, or one of ROOT_TOP_ID / ROOT_BOTTOM_ID. */
+  id: string
+  zone: DropZone
 }
 
-// Pure resolver: predicts what handleDragEnd will do given the
-// current drag inputs. Used by both the live preview pill and the
-// on-drop path, so the user sees exactly what they're about to get.
-//
-// `lockedAxis` short-circuits classification: when locked to 'y' we
-// ignore horizontal delta entirely (no promote/demote), and when
-// locked to 'x' we ignore vertical position (no sibling/inside).
-function resolveDropTarget(
-  activeId: string | null,
-  overId: string | null,
-  deltaX: number,
-  notes: Note[],
-  dragState: { id: string; position: DropPosition },
-  lockedAxis: DragAxis,
-  descendantIds?: Set<string>,
-): ResolvedDropTarget {
-  if (!activeId) return { kind: 'noop', depthDelta: 0, horizontal: false }
-  const dragged = notes.find((n) => n.id === activeId)
-  if (!dragged) return { kind: 'noop', depthDelta: 0, horizontal: false }
-  // Cycle guard: if the user is hovering one of the dragged note's own
-  // descendants (or itself), surface a "not-allowed" preview so the
-  // pill warns them BEFORE they release and we silently no-op. We
-  // still defer the actual rejection to handleDragEnd, which re-checks
-  // the guard against the fresh cache.
-  const descendants = descendantIds ?? findDescendantIds(activeId, notes)
-  if (overId && overId !== activeId && descendants.has(overId)) {
-    const target = notes.find((n) => n.id === overId)
-    return {
-      kind: 'not-allowed',
-      parentTitle: target?.title || 'Untitled',
-      depthDelta: 0,
-      horizontal: false,
-      targetId: overId,
-    }
-  }
+/** Synthetic droppable ids for the "drop as first/last root note" zones. */
+const ROOT_TOP_ID = '__root_top__'
+const ROOT_BOTTOM_ID = '__root_bottom__'
 
-  const noteDepth = (id: string | null): number => {
-    let d = 0
-    let cur = id ? notes.find((n) => n.id === id) : null
-    while (cur?.parentId) {
-      d += 1
-      const pid: string = cur.parentId
-      cur = notes.find((n) => n.id === pid) ?? null
-    }
-    return d
-  }
+/** Auto-expand a collapsed target after the pointer has hovered its
+ *  inside-zone for this many ms. Matches Notion / Linear cadence. */
+const AUTO_EXPAND_HOVER_MS = 600
 
-  // Horizontal swipe takes precedence when the user isn't hovering
-  // a different row (mirrors handleDragEnd's guard). When locked to
-  // the vertical axis, horizontal delta is ignored outright — a pure
-  // up/down drag must never accidentally promote/demote.
-  const effectiveDeltaX = lockedAxis === 'y' ? 0 : deltaX
-  const horizontalSwipe =
-    lockedAxis !== 'y' && Math.abs(effectiveDeltaX) >= HORIZONTAL_SWIPE_PX
-  const hoveringSelfOrNone = !overId || overId === activeId
-  if (horizontalSwipe && hoveringSelfOrNone) {
-    const draggedDepth = noteDepth(dragged.id)
-    if (effectiveDeltaX > 0) {
-      // Demote: become child of previous sibling.
-      const siblings = notes
-        .filter((n) => n.parentId === (dragged.parentId ?? null))
-        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-      const idx = siblings.findIndex((n) => n.id === dragged.id)
-      const prev = idx > 0 ? siblings[idx - 1] : null
-      if (prev) {
-        return {
-          kind: 'sub-note',
-          parentTitle: prev.title || 'Untitled',
-          depthDelta: 1,
-          horizontal: true,
-          targetId: dragged.id,
-          targetDepth: draggedDepth + 1,
-        }
-      }
-    } else {
-      // Promote: become sibling of current parent.
-      const parent = dragged.parentId
-        ? notes.find((n) => n.id === dragged.parentId)
-        : null
-      if (parent) {
-        return {
-          kind: 'promote',
-          depthDelta: -1,
-          horizontal: true,
-          targetId: dragged.id,
-          targetDepth: Math.max(0, draggedDepth - 1),
-        }
-      }
-    }
-    return { kind: 'noop', depthDelta: 0, horizontal: true }
-  }
-
-  // Positional drop (top / inside / bottom on another row).
-  if (!overId || overId === activeId) {
-    return { kind: 'noop', depthDelta: 0, horizontal: false }
-  }
-  const target = notes.find((n) => n.id === overId)
-  if (!target) return { kind: 'noop', depthDelta: 0, horizontal: false }
-  const hoverPosition: DropPosition = dragState.id === overId ? dragState.position : null
-
-  // Sibling reorder is the default for ANY vertical-dominant drop.
-  // dnd-kit captures the pointer during drag, so each row's
-  // onMouseMove handler stops firing — `dragState.position` is
-  // unreliable mid-drag and was silently turning sibling reorders
-  // into reparents. Treat the drop as a sibling reorder whenever:
-  //   - the axis is locked to Y, OR
-  //   - horizontal delta is below the promote/demote threshold,
-  // unless the captured hover position is explicitly 'inside'.
-  const isVerticalDominant =
-    lockedAxis === 'y' || Math.abs(effectiveDeltaX) < HORIZONTAL_SWIPE_PX
-  if (isVerticalDominant && hoverPosition !== 'inside') {
-    const position: 'top' | 'bottom' = hoverPosition === 'top' ? 'top' : 'bottom'
-    return {
-      kind: 'sibling',
-      siblingTitle: target.title || 'Untitled',
-      depthDelta: 0,
-      horizontal: false,
-      targetId: overId,
-      targetDepth: noteDepth(overId),
-      position,
-    }
-  }
-
-  // Reparent only when the user explicitly hovered the row's center
-  // (inside zone) — otherwise it's a sibling reorder.
-  return {
-    kind: 'reparent',
-    parentTitle: target.title || 'Untitled',
-    depthDelta: 0,
-    horizontal: false,
-    targetId: overId,
-    targetDepth: noteDepth(overId) + 1,
-    position: 'inside',
-  }
+/**
+ * Decide the drop zone from where the pointer is inside the target's
+ * bounding rect. Pure math, no React, no state.
+ */
+function zoneFromPointer(pointerY: number, rect: DOMRect): DropZone {
+  if (rect.height <= 0) return 'inside'
+  const rel = (pointerY - rect.top) / rect.height
+  if (rel < 0.25) return 'above'
+  if (rel > 0.75) return 'below'
+  return 'inside'
 }
 
 interface NoteItemProps {
@@ -287,17 +154,9 @@ interface NoteItemProps {
   onToggleFavorite: (note: Note) => void
   onDelete: (id: string) => void
   multiSelectIds: Set<string>
-  // Live preview hint forwarded from the sidebar's onDragOver. When
-  // this row is the resolved drop target, we render an extra preview
-  // indicator shifted to the resolved depth so the user sees exactly
-  // where the note will land before they release.
-  preview?: ResolvedDropTarget | null
-  // Active drag's resolved zone for THIS row (top/inside/bottom). The
-  // parent computes this from dnd-kit rects in onDragOver, so we no
-  // longer need per-row mousemove (which dnd-kit's pointer capture
-  // suppresses mid-drag anyway). null when this row isn't the active
-  // drop target.
-  activeDropZone: DropPosition
+  /** Global active drop target (forwarded down so recursive children
+   *  can each decide if THEY are the target). null when no drag. */
+  activeDropTarget: DropTarget | null
   className?: string
 }
 
@@ -314,31 +173,22 @@ function NoteItem({
   onToggleFavorite,
   onDelete,
   multiSelectIds,
-  preview,
-  activeDropZone,
+  activeDropTarget,
   className,
 }: NoteItemProps) {
+  const dropZone: DropZone | null =
+    activeDropTarget && activeDropTarget.id === note.id ? activeDropTarget.zone : null
   const { attributes, listeners, setNodeRef, isDragging, transform } = useDraggable({
     id: note.id,
     data: note,
   })
 
-  // Disable the droppable on the row currently being dragged. Without
-  // this, dnd-kit will report the dragged note as `over` itself when
-  // the user hasn't moved far, polluting the collision results and
-  // causing spurious self-targeted previews.
-  const { isOver, setNodeRef: setDroppableRef } = useDroppable({
+  // The dragged row disables its own droppable so it never targets itself.
+  const { setNodeRef: setDroppableRef } = useDroppable({
     id: note.id,
     data: note,
     disabled: isDragging,
   })
-
-  const elementRef = useRef<HTMLDivElement | null>(null)
-
-  // Drop zone for THIS row is whatever the parent resolved from rects.
-  // Falls back to `inside` for the legacy ring style when the parent
-  // hasn't resolved a zone yet but dnd-kit reports the row as hovered.
-  const dropPosition: DropPosition = isOver ? activeDropZone ?? 'inside' : null
 
   const style = transform
     ? {
@@ -348,29 +198,19 @@ function NoteItem({
       }
     : undefined
 
-  // Recursive render helper for children
   const hasChildren = note.children.length > 0
 
-  // Live preview indicator. Active when this row is the resolved
-  // target of the in-flight drag. We expose it as a CSS left offset
-  // so the yellow guideline visually snaps to the resolved depth —
-  // e.g. promote pulls it left, demote pushes it right.
-  const showPreview = !!preview && preview.targetId === note.id && preview.kind !== 'noop'
-  const previewLeftPx = showPreview ? Math.max(0, (preview!.targetDepth ?? depth)) * 12 + 8 : 0
-  const previewPosition: 'top' | 'bottom' | 'inside' =
-    preview?.position ??
-    (preview?.kind === 'sub-note' || preview?.kind === 'reparent' ? 'inside' : 'bottom')
-
-  // The entire row owns the drag listeners + droppable. User wants the
-  // cross-arrow move cursor on the whole row and to grab from anywhere
-  // — no dedicated handle. Click still selects (axis-lock + 4px
-  // activator constraint together keep tiny clicks from registering as
-  // drags).
+  // Whole row owns drag listeners + droppable — grab from anywhere.
   const setRowRef = (node: HTMLDivElement | null) => {
     setNodeRef(node)
     setDroppableRef(node)
-    elementRef.current = node
   }
+
+  // Indent offset for the drop indicator lines so they visually
+  // align with the target's own indent depth (OneNote pattern: the
+  // insertion line tells you both where AND at what level the note
+  // will land).
+  const indentPx = depth * 12 + 8
 
   return (
     <div className={className}>
@@ -379,59 +219,36 @@ function NoteItem({
         {...attributes}
         {...listeners}
         style={{
-          paddingLeft: `${depth * 12 + 8}px`,
+          paddingLeft: `${indentPx}px`,
           ...style,
         }}
         className={cn(
           'group relative flex items-center gap-1 rounded-md px-2 py-1.5 text-sm transition-[background-color,box-shadow,transform] duration-150 select-none cursor-move',
           isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-zinc-50',
-          // Multi-select highlight (ctrl/cmd-click): brand-yellow tint
-          // + ring so the marked-for-action notes are obvious without
-          // colliding with the single-select highlight.
           isMultiSelected && !isSelected && 'bg-[#fff7d1] ring-1 ring-[#f2cc0d]/60',
-          isOver && dropPosition === 'inside' && 'bg-[#f2cc0d]/15 ring-2 ring-[#f2cc0d] ring-inset',
+          // INSIDE drop zone — soft brand-yellow tint + ring across the
+          // whole row so it's unmistakable that the dragged note will
+          // become a child of this one.
+          dropZone === 'inside' && 'bg-[#f2cc0d]/20 ring-2 ring-[#f2cc0d] ring-inset',
         )}
         onClick={(e) => onSelect(note, e.ctrlKey || e.metaKey)}
       >
-        {/* Drop Indicators, animated yellow bar for top/bottom inserts */}
-        <div
-          className={cn(
-            'pointer-events-none absolute left-1 right-1 top-0 z-50 h-[3px] rounded-full bg-[#f2cc0d] shadow-[0_0_6px_rgba(242,204,13,0.6)] transition-opacity duration-100',
-            isOver && dropPosition === 'top' ? 'opacity-100' : 'opacity-0',
-          )}
-        />
-        <div
-          className={cn(
-            'pointer-events-none absolute bottom-0 left-1 right-1 z-50 h-[3px] rounded-full bg-[#f2cc0d] shadow-[0_0_6px_rgba(242,204,13,0.6)] transition-opacity duration-100',
-            isOver && dropPosition === 'bottom' ? 'opacity-100' : 'opacity-0',
-          )}
-        />
-
-        {/* Live drop-target preview. Only renders during an in-flight
-            drag when the resolver picks this row as the landing spot.
-            The left offset is animated so the guideline glides between
-            indent levels as the user swipes horizontally. For inside /
-            reparent / demote we draw a ring-style cue; for top / bottom
-            (sibling) we draw a thin bar at the edge. Both visually
-            "snap" to the resolved target depth. */}
-        {showPreview && preview?.kind === 'not-allowed' && (
+        {/* ABOVE drop indicator — solid brand-yellow line at the top
+            edge, starting from the target's indent so the user sees the
+            exact column the note lands in. */}
+        {dropZone === 'above' && (
           <div
-            className="pointer-events-none absolute inset-0 z-40 rounded-md border border-dashed border-rose-400 bg-rose-50/40"
+            aria-hidden
+            style={{ left: `${indentPx}px` }}
+            className="pointer-events-none absolute right-2 top-0 z-50 h-[3px] -translate-y-[1px] rounded-full bg-[#f2cc0d] shadow-[0_0_8px_rgba(242,204,13,0.55)]"
           />
         )}
-        {showPreview && preview?.kind !== 'not-allowed' && previewPosition !== 'inside' && (
+        {/* BELOW drop indicator — same line at the bottom edge. */}
+        {dropZone === 'below' && (
           <div
-            style={{ left: `${previewLeftPx}px` }}
-            className={cn(
-              'pointer-events-none absolute right-1 z-40 h-[2px] rounded-full bg-[#f2cc0d]/80 shadow-[0_0_8px_rgba(242,204,13,0.5)] transition-[left] duration-150 ease-out',
-              previewPosition === 'top' ? 'top-0' : 'bottom-0',
-            )}
-          />
-        )}
-        {showPreview && preview?.kind !== 'not-allowed' && previewPosition === 'inside' && (
-          <div
-            style={{ left: `${previewLeftPx}px` }}
-            className="pointer-events-none absolute right-1 top-1/2 z-40 h-[60%] -translate-y-1/2 rounded-md border border-dashed border-[#f2cc0d] bg-[#f2cc0d]/10 transition-[left] duration-150 ease-out"
+            aria-hidden
+            style={{ left: `${indentPx}px` }}
+            className="pointer-events-none absolute bottom-0 right-2 z-50 h-[3px] translate-y-[1px] rounded-full bg-[#f2cc0d] shadow-[0_0_8px_rgba(242,204,13,0.55)]"
           />
         )}
 
@@ -553,8 +370,7 @@ function NoteItem({
               onToggleFavorite={onToggleFavorite}
               onDelete={onDelete}
               multiSelectIds={multiSelectIds}
-              preview={preview}
-              activeDropZone={preview?.targetId === child.id ? preview.position ?? null : null}
+              activeDropTarget={activeDropTarget}
               className={className}
             />
           ))}
@@ -662,44 +478,36 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
     })
   }
 
-  // DnD Logic
+  // DnD Logic — OneNote-style drop zones, no axis lock, no horizontal swipe.
   const [activeNote, setActiveNote] = useState<NoteTreeItem | null>(null)
-  // Live horizontal drag delta — kept around so the resolver can see
-  // post-lock horizontal motion (and so the dev tools can show it).
-  const [dragX, setDragX] = useState(0)
-  // OneNote-style axis lock. `null` while the user hasn't moved far
-  // enough to commit to a direction; flips to 'x' or 'y' once total
-  // movement passes AXIS_LOCK_PX and stays locked until drag end.
-  const [lockedAxis, setLockedAxis] = useState<DragAxis>(null)
-  const lockedAxisRef = useRef<DragAxis>(null)
-  // Live resolved-drop preview, recomputed on every onDragMove tick.
-  // Drives the bottom-left pill + the depth-shifted indicator inside
-  // the tree. Cleared on drag end so the UI snaps back instantly.
-  const [dragPreview, setDragPreview] = useState<ResolvedDropTarget | null>(null)
-  // Throttle the preview recompute to ~per-frame so we don't thrash
-  // React state on every pointer microtick. rAF is the right cadence
-  // for a visual that's purely cosmetic. dragX is fine to set inline
-  // since the cursor swap is a cheap body-style write.
-  const dragMoveRafRef = useRef<number | null>(null)
-  const pendingMoveRef = useRef<{ activeId: string; overId: string | null; deltaX: number } | null>(
-    null,
-  )
+  const [activeDropTarget, setActiveDropTarget] = useState<DropTarget | null>(null)
 
-  // Geometry-derived drop zone for the row currently under the dragged
-  // ghost. Populated from dnd-kit rects in onDragOver (NOT from
-  // per-row mousemove — dnd-kit captures the pointer mid-drag so
-  // mousemove stops firing, which was the root cause of "drop above
-  // target lands at bottom"). Mirrored to React state so the indicator
-  // pill and per-row highlight re-render when the zone changes.
-  const dragStateRef = useRef<{ id: string; position: DropPosition }>({ id: '', position: null })
-  // Cached descendants of the active drag, computed once on drag start
-  // and used by every onDragOver tick (cheaper than walking the tree
-  // on every frame) and again on drag end for the final cycle guard.
+  // Raw pointer Y is the source of truth for zone calculation. dnd-kit
+  // doesn't expose live cursor coords during a drag (it tracks the
+  // ghost's translated rect), so we install a global pointermove
+  // listener for the lifetime of the drag and read from this ref in
+  // handleDragOver / handleDragEnd.
+  const pointerYRef = useRef(0)
+  // Snapshot the dragged note's descendants on drag start so the
+  // cycle guard ("can't drop into your own subtree") runs in O(1).
   const descendantsRef = useRef<Set<string>>(new Set())
+  // Auto-expand timer: when the pointer hovers a collapsed row's
+  // inside-zone, after AUTO_EXPAND_HOVER_MS we expand it so the user
+  // can drop into a nested location without manually clicking the
+  // chevron first.
+  const autoExpandTimerRef = useRef<number | null>(null)
+  const autoExpandTargetRef = useRef<string | null>(null)
+
+  const cancelAutoExpand = useCallback(() => {
+    if (autoExpandTimerRef.current != null) {
+      window.clearTimeout(autoExpandTimerRef.current)
+      autoExpandTimerRef.current = null
+    }
+    autoExpandTargetRef.current = null
+  }, [])
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event
-    // Find the note object (expensive but safe)
     const findNote = (items: NoteTreeItem[], id: string): NoteTreeItem | null => {
       for (const item of items) {
         if (item.id === id) return item
@@ -712,296 +520,183 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
     }
     const note = findNote(noteTree, active.id as string)
     setActiveNote(note)
-    setDragPreview(null)
-    setLockedAxis(null)
-    lockedAxisRef.current = null
-    // Snapshot the dragged subtree once so the cycle guard and the
-    // live preview don't have to re-walk the tree on every frame.
+    setActiveDropTarget(null)
+
     const freshNotes = queryClient.getQueryData<Note[]>(NOTES_QUERY_KEY) ?? notes
     descendantsRef.current = findDescendantIds(active.id as string, freshNotes)
-    dragStateRef.current = { id: '', position: null }
+
+    // Track raw pointer Y for the rest of the drag.
+    const onMove = (ev: PointerEvent) => {
+      pointerYRef.current = ev.clientY
+    }
+    document.addEventListener('pointermove', onMove)
+    // Stash the cleanup on a ref so cancel/end can detach.
+    pointerCleanupRef.current = () => document.removeEventListener('pointermove', onMove)
   }
 
-  // Per-frame: derive drop zone from dnd-kit rects. Top 30% → 'top',
-  // middle 40% → 'inside', bottom 30% → 'bottom'. Stored in a ref so
-  // handleDragEnd has the authoritative zone even on the final tick
-  // (where React state may not have flushed yet).
+  const pointerCleanupRef = useRef<(() => void) | null>(null)
+
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event
-    if (!over || !active) {
-      if (dragStateRef.current.id !== '') {
-        dragStateRef.current = { id: '', position: null }
-      }
+    if (!over || !active || over.id === active.id) {
+      if (activeDropTarget !== null) setActiveDropTarget(null)
+      cancelAutoExpand()
       return
     }
-    if (over.id === active.id) {
-      dragStateRef.current = { id: '', position: null }
+
+    const overId = String(over.id)
+
+    // Root drop zones are simple — always 'inside'-equivalent placement.
+    if (overId === ROOT_TOP_ID || overId === ROOT_BOTTOM_ID) {
+      const zone: DropZone = 'inside'
+      if (activeDropTarget?.id !== overId || activeDropTarget.zone !== zone) {
+        setActiveDropTarget({ id: overId, zone })
+      }
+      cancelAutoExpand()
       return
     }
-    const draggedRect = active.rect.current.translated
-    const overRect = over.rect
-    if (!draggedRect || !overRect) return
-    const pointerY = draggedRect.top + draggedRect.height / 2
-    const rel = (pointerY - overRect.top) / overRect.height
-    let zone: DropPosition
-    if (rel < 0.3) zone = 'top'
-    else if (rel > 0.7) zone = 'bottom'
-    else zone = 'inside'
-    const overId = over.id as string
-    if (dragStateRef.current.id !== overId || dragStateRef.current.position !== zone) {
-      dragStateRef.current = { id: overId, position: zone }
-      // Force a re-resolve immediately so the preview reflects the new
-      // zone without waiting for the next pointer move.
-      pendingMoveRef.current = {
-        activeId: active.id as string,
-        overId,
-        deltaX: pendingMoveRef.current?.deltaX ?? 0,
+
+    // Cycle guard: if the user is hovering a descendant of the dragged
+    // note, suppress the indicator entirely. The on-drop guard will
+    // also reject so they can't release into this either.
+    if (descendantsRef.current.has(overId)) {
+      if (activeDropTarget !== null) setActiveDropTarget(null)
+      cancelAutoExpand()
+      return
+    }
+
+    // Compute zone from raw pointer Y inside the target rect.
+    const rect = over.rect as unknown as DOMRect
+    const zone = zoneFromPointer(pointerYRef.current, rect)
+
+    if (activeDropTarget?.id !== overId || activeDropTarget.zone !== zone) {
+      setActiveDropTarget({ id: overId, zone })
+    }
+
+    // Auto-expand: if the pointer is in the 'inside' zone of a row
+    // that has children but is collapsed, start a timer. The timer
+    // resets when the target or zone changes (i.e. pointer moves away).
+    const isInsideCollapsed =
+      zone === 'inside' &&
+      !expandedIds.has(overId) &&
+      notes.some((n: Note) => n.parentId === overId)
+    if (isInsideCollapsed) {
+      if (autoExpandTargetRef.current !== overId) {
+        cancelAutoExpand()
+        autoExpandTargetRef.current = overId
+        autoExpandTimerRef.current = window.setTimeout(() => {
+          setExpandedIds((prev) => {
+            const next = new Set(prev)
+            next.add(overId)
+            return next
+          })
+          autoExpandTimerRef.current = null
+          autoExpandTargetRef.current = null
+        }, AUTO_EXPAND_HOVER_MS)
       }
-      if (dragMoveRafRef.current == null) {
-        dragMoveRafRef.current = requestAnimationFrame(() => {
-          dragMoveRafRef.current = null
-          const pending = pendingMoveRef.current
-          if (!pending) return
-          const next = resolveDropTarget(
-            pending.activeId,
-            pending.overId,
-            pending.deltaX,
-            queryClient.getQueryData<Note[]>(NOTES_QUERY_KEY) ?? notes,
-            dragStateRef.current,
-            lockedAxisRef.current,
-            descendantsRef.current,
-          )
-          setDragPreview(next)
-        })
-      }
+    } else {
+      cancelAutoExpand()
     }
   }
 
-  // Single onDragMove handler: cursor swap fires inline (cheap), the
-  // preview recompute is coalesced into a single rAF callback so we
-  // only re-render once per frame even on a high-poll-rate mouse.
-  const handleDragMove = (event: DragMoveEvent) => {
-    const { active, over, delta } = event
-    const dx = delta?.x ?? 0
-    const dy = delta?.y ?? 0
-    setDragX(dx)
-
-    // Commit to a dominant axis on the first non-trivial motion.
-    // After that, the lock is sticky for the rest of the drag.
-    if (lockedAxisRef.current == null) {
-      const absX = Math.abs(dx)
-      const absY = Math.abs(dy)
-      if (absX + absY >= AXIS_LOCK_PX) {
-        const axis: DragAxis = absX > absY ? 'x' : 'y'
-        lockedAxisRef.current = axis
-        setLockedAxis(axis)
-      }
+  const cleanupDrag = useCallback(() => {
+    setActiveNote(null)
+    setActiveDropTarget(null)
+    descendantsRef.current = new Set()
+    cancelAutoExpand()
+    if (pointerCleanupRef.current) {
+      pointerCleanupRef.current()
+      pointerCleanupRef.current = null
     }
-
-    pendingMoveRef.current = {
-      activeId: active.id as string,
-      overId: (over?.id as string) ?? null,
-      deltaX: dx,
-    }
-    if (dragMoveRafRef.current != null) return
-    dragMoveRafRef.current = requestAnimationFrame(() => {
-      dragMoveRafRef.current = null
-      const pending = pendingMoveRef.current
-      if (!pending) return
-      const next = resolveDropTarget(
-        pending.activeId,
-        pending.overId,
-        pending.deltaX,
-        queryClient.getQueryData<Note[]>(NOTES_QUERY_KEY) ?? notes,
-        dragStateRef.current,
-        lockedAxisRef.current,
-        descendantsRef.current,
-      )
-      setDragPreview(next)
-    })
-  }
+  }, [cancelAutoExpand])
 
   const handleDragCancel = () => {
-    setActiveNote(null)
-    setDragX(0)
-    setDragPreview(null)
-    setLockedAxis(null)
-    lockedAxisRef.current = null
-    if (dragMoveRafRef.current != null) {
-      cancelAnimationFrame(dragMoveRafRef.current)
-      dragMoveRafRef.current = null
-    }
-    pendingMoveRef.current = null
-    descendantsRef.current = new Set()
-    dragStateRef.current = { id: '', position: null }
+    cleanupDrag()
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over, delta } = event
-    const endLockedAxis = lockedAxisRef.current
-    // Snapshot the final geometry-derived zone BEFORE we reset state.
-    // Re-derive from the rects on the event itself — most reliable
-    // because dnd-kit guarantees the rects are populated at drop time
-    // even when the per-row mousemove handler never fired.
-    let finalZone: DropPosition = null
-    if (over && active) {
-      const draggedRect = active.rect.current.translated
-      const overRect = over.rect
-      if (draggedRect && overRect && over.id !== active.id) {
-        const pointerY = draggedRect.top + draggedRect.height / 2
-        const rel = (pointerY - overRect.top) / overRect.height
-        if (rel < 0.3) finalZone = 'top'
-        else if (rel > 0.7) finalZone = 'bottom'
-        else finalZone = 'inside'
-      }
-    }
-    const endDragState = { id: (over?.id as string) ?? '', position: finalZone }
+    const { active, over } = event
+    const noteId = String(active.id)
 
-    setActiveNote(null)
-    setDragX(0)
-    setDragPreview(null)
-    setLockedAxis(null)
-    lockedAxisRef.current = null
-    if (dragMoveRafRef.current != null) {
-      cancelAnimationFrame(dragMoveRafRef.current)
-      dragMoveRafRef.current = null
-    }
-    pendingMoveRef.current = null
+    // Snapshot end state up front so any early-return below still
+    // tears down the global pointermove listener and cleanup.
+    const target = activeDropTarget
+    cleanupDrag()
 
-    const noteId = active.id as string
+    if (!over) return
+    const overId = String(over.id)
 
-    // Always read the freshest cache — the closure-captured `notes`
-    // could be one render behind after an optimistic update from a
-    // previous drag in the same session.
     const freshNotes = queryClient.getQueryData<Note[]>(NOTES_QUERY_KEY) ?? notes
-    const descendants = descendantsRef.current.size
-      ? descendantsRef.current
-      : findDescendantIds(noteId, freshNotes)
-    descendantsRef.current = new Set()
-
-    // Cycle guard: never let a note become its own descendant. Without
-    // this, `buildNoteTree` quietly orphans the subtree on the next
-    // render and the user sees "nothing moved".
-    if (over && over.id !== active.id) {
-      const overId = over.id as string
-      if (descendants.has(overId) || overId === noteId) {
-        toast.error("Can't move a note into its own descendant")
-        return
-      }
-    }
-
-    // Resolve drop using the same helper that powered the live
-    // preview, so the on-drop behaviour always matches what the user
-    // just saw on screen.
-    const resolved = resolveDropTarget(
-      noteId,
-      (over?.id as string) ?? null,
-      delta?.x ?? 0,
-      freshNotes,
-      endDragState,
-      endLockedAxis,
-      descendants,
-    )
-
     const draggedNote = freshNotes.find((n: Note) => n.id === noteId)
     if (!draggedNote) return
 
-    if (resolved.kind === 'not-allowed') {
+    // ROOT zones land the note as a top-level (parentId = null) note
+    // at the very top or the very bottom of the root list.
+    if (overId === ROOT_TOP_ID || overId === ROOT_BOTTOM_ID) {
+      const roots = freshNotes
+        .filter((n: Note) => (n.parentId ?? null) === null && n.id !== noteId)
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      const next = overId === ROOT_TOP_ID ? [draggedNote, ...roots] : [...roots, draggedNote]
+      reorderMutation.mutate(
+        next.map((n, i) => ({ noteId: n.id, parentId: null, order: (i + 1) * 1000 })),
+      )
+      return
+    }
+
+    if (overId === noteId) return
+
+    // Cycle guard: never let a note become its own descendant.
+    const descendants = descendantsRef.current.size
+      ? descendantsRef.current
+      : findDescendantIds(noteId, freshNotes)
+    if (descendants.has(overId)) {
       toast.error("Can't move a note into its own descendant")
       return
     }
 
-    if (resolved.horizontal) {
-      // Horizontal promote / demote (mirrors OneNote indent / outdent).
-      // Children travel with the dragged note automatically because we
-      // only rewrite this note's parentId.
-      if (resolved.kind === 'sub-note') {
-        const siblings = freshNotes
-          .filter((n: Note) => (n.parentId ?? null) === (draggedNote.parentId ?? null))
-          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-        const idx = siblings.findIndex((n) => n.id === noteId)
-        const prev = idx > 0 ? siblings[idx - 1] : null
-        if (prev) {
-          reorderMutation.mutate([{ noteId, parentId: prev.id, order: 99999 }])
-        }
-        return
-      }
-      if (resolved.kind === 'promote') {
-        const parent = draggedNote.parentId
-          ? freshNotes.find((n: Note) => n.id === draggedNote.parentId)
-          : null
-        if (parent) {
-          reorderMutation.mutate([
-            { noteId, parentId: parent.parentId ?? null, order: 99999 },
-          ])
-        }
-        return
-      }
-      // noop: dragged but no valid promote/demote target.
-      return
+    // Re-derive the zone from the final event geometry — `target` from
+    // state could be one render stale on a fast release, but the rects
+    // on the event itself are always current.
+    let zone: DropZone = target?.id === overId && target?.zone ? target.zone : 'below'
+    const overRect = (over.rect as unknown as DOMRect | undefined) ?? null
+    if (overRect) {
+      zone = zoneFromPointer(pointerYRef.current, overRect)
     }
 
-    if (!over || active.id === over.id) return
-
-    const targetId = over.id as string
-    const targetNote = freshNotes.find((n: Note) => n.id === targetId)
+    const targetNote = freshNotes.find((n: Note) => n.id === overId)
     if (!targetNote) return
 
-    // Positional drop. Use the geometry-derived zone (computed above
-    // from the dnd-kit rects on the drop event) as the source of
-    // truth — falls back to whatever the resolver decided if rects
-    // weren't available for some reason.
-    const position: DropPosition =
-      resolved.kind === 'reparent'
-        ? 'inside'
-        : finalZone ?? resolved.position ?? 'bottom'
-
-    if (!position || position === 'inside') {
-      reorderMutation.mutate([
-        {
-          noteId,
-          parentId: targetId,
-          order: 99999,
-        },
-      ])
+    if (zone === 'inside') {
+      // Append as last child of target so the new sub-note appears
+      // right after the target's existing children, matching the
+      // natural reading order in the tree.
+      reorderMutation.mutate([{ noteId, parentId: overId, order: 99999 }])
       return
     }
 
-    // top or bottom: reorder among siblings. Normalize parentId with
-    // `?? null` on both sides — a root note has parentId === null in
-    // the DB but the cache occasionally surfaces it as undefined.
-    // Strict equality on the two would silently exclude valid
-    // siblings and break cross-hierarchy drops (e.g. moving a root
-    // note to become a sibling of a sub-note).
-    const noteToMove = freshNotes.find((n: Note) => n.id === noteId)
-    if (!noteToMove) return
-
+    // Sibling reorder (above / below). Land in the target's parent list
+    // immediately before or after the target row.
     const targetParentId = targetNote.parentId ?? null
-    const newSiblings = freshNotes
-      .filter(
-        (n: Note) => (n.parentId ?? null) === targetParentId && n.id !== noteId,
-      )
+    const siblings = freshNotes
+      .filter((n: Note) => (n.parentId ?? null) === targetParentId && n.id !== noteId)
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 
-    const targetIndex = newSiblings.findIndex((n: Note) => n.id === targetId)
-    // Fallback: if the target somehow isn't in its own parent's list
-    // (data drift), append the dragged note after it so the move
-    // still completes.
-    const insertionIndex =
+    const targetIndex = siblings.findIndex((n: Note) => n.id === overId)
+    const insertAt =
       targetIndex === -1
-        ? newSiblings.length
-        : position === 'top'
+        ? siblings.length
+        : zone === 'above'
           ? targetIndex
           : targetIndex + 1
-    newSiblings.splice(insertionIndex, 0, noteToMove)
+    siblings.splice(insertAt, 0, draggedNote)
 
-    const updates = newSiblings.map((n: Note, index: number) => ({
-      noteId: n.id,
-      parentId: targetParentId,
-      order: (index + 1) * 1000,
-    }))
-
-    reorderMutation.mutate(updates)
+    reorderMutation.mutate(
+      siblings.map((n, i) => ({
+        noteId: n.id,
+        parentId: targetParentId,
+        order: (i + 1) * 1000,
+      })),
+    )
   }
 
   const sensors = useSensors(
@@ -1015,21 +710,12 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
     }),
   )
 
-  // Body cursor during drag: 4-direction `move` cross before the axis
-  // locks, then the matching one-axis arrow (ns-resize for vertical,
-  // ew-resize for horizontal) once committed. Never a hand. The row
-  // itself defaults to cursor-move so hovering a row already shows
-  // the cross; the body override here just keeps the cursor consistent
-  // while the dnd ghost is rendered.
+  // Body cursor + selection lock during a drag. Pure cosmetics: shows
+  // the move-cross cursor everywhere (not just on the row) and stops
+  // text from being accidentally selected while the user is dragging.
   useEffect(() => {
     if (activeNote) {
-      const cursor =
-        lockedAxis === 'y'
-          ? 'ns-resize'
-          : lockedAxis === 'x'
-            ? 'ew-resize'
-            : 'move'
-      document.body.style.cursor = cursor
+      document.body.style.cursor = 'move'
       document.body.style.userSelect = 'none'
     } else {
       document.body.style.cursor = ''
@@ -1039,17 +725,7 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
       document.body.style.cursor = ''
       document.body.style.userSelect = ''
     }
-  }, [activeNote, lockedAxis])
-
-  // Modifiers passed to DndContext: once the axis lock commits, zero
-  // out the off-axis translation so the dnd-kit ghost only moves along
-  // the locked direction. Memoised so the array identity is stable
-  // across re-renders that don't change the lock.
-  const dndModifiers = useMemo<Modifier[]>(() => {
-    if (lockedAxis === 'y') return [verticalOnlyModifier]
-    if (lockedAxis === 'x') return [horizontalOnlyModifier]
-    return []
-  }, [lockedAxis])
+  }, [activeNote])
 
   const handleCreateNote = (parentId?: string | null) => {
     createMutation.mutate(
@@ -1211,40 +887,36 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
         onToggleFavorite={handleToggleFavorite}
         onDelete={handleDeleteNote}
         multiSelectIds={multiSelectIds}
-        preview={dragPreview}
-        activeDropZone={dragPreview?.targetId === note.id ? dragPreview.position ?? null : null}
+        activeDropTarget={activeDropTarget}
       />
     )
   }
 
-  // Human-readable label for the live drop-target pill. Keeps the
-  // copy centralized so the preview matches the resolver's intent
-  // exactly — if a new DropIntentKind is added later, the compiler
-  // forces an update here too.
+  // Human-readable label for the live drop-target pill. The OneNote
+  // model is simple enough now to inline — no DropIntentKind, just
+  // above/inside/below and the optional root zones.
   const previewLabel = (() => {
-    if (!dragPreview || dragPreview.kind === 'noop') return 'No change'
-    switch (dragPreview.kind) {
-      case 'not-allowed':
-        return 'Not allowed — would create a cycle'
-      case 'sub-note':
-        return `Sub-note of "${dragPreview.parentTitle ?? 'Untitled'}"`
-      case 'reparent':
-        return `Sub-note of "${dragPreview.parentTitle ?? 'Untitled'}"`
-      case 'promote':
-        return 'One level up'
-      case 'sibling':
-        return `${dragPreview.position === 'top' ? 'Above' : 'Below'} "${dragPreview.siblingTitle ?? 'Untitled'}"`
+    if (!activeDropTarget) return 'Drag to move'
+    if (activeDropTarget.id === ROOT_TOP_ID) return 'Top of the list'
+    if (activeDropTarget.id === ROOT_BOTTOM_ID) return 'Bottom of the list'
+    const target = notes.find((n: Note) => n.id === activeDropTarget.id)
+    const title = target?.title || 'Untitled'
+    switch (activeDropTarget.zone) {
+      case 'above':
+        return `Above "${title}"`
+      case 'below':
+        return `Below "${title}"`
+      case 'inside':
+        return `Sub-note of "${title}"`
       default:
-        return 'No change'
+        return 'Drag to move'
     }
   })()
 
   const previewArrow = (() => {
-    if (!dragPreview) return ''
-    if (dragPreview.kind === 'not-allowed') return '⛔ '
-    if (dragPreview.kind === 'sub-note' || dragPreview.kind === 'reparent') return '→ '
-    if (dragPreview.kind === 'promote') return '↑ '
-    return ''
+    if (!activeDropTarget) return ''
+    if (activeDropTarget.zone === 'inside') return '→ '
+    return '' // above / below use the row indicator instead of a pill arrow
   })()
 
   if (isLoading) {
@@ -1325,11 +997,9 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
         sensors={sensors}
         collisionDetection={notesCollision}
         onDragStart={handleDragStart}
-        onDragMove={handleDragMove}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
-        modifiers={dndModifiers}
         measuring={{
           // WhileDragging is the sweet spot: we get fresh rects exactly
           // when we need them (during a drag) without dnd-kit
@@ -1401,34 +1071,36 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
               )
             ) : // Tree view for normal display
             noteTree.length > 0 ? (
-              // Wrap in explicit container div although items are already blocked
-              <div className="flex flex-col gap-0.5">{noteTree.map((note) => renderNoteItem(note))}</div>
+              <div className="flex flex-col gap-0.5">
+                {/* ROOT drop zone (top) — appears as a thin spacer at
+                    the top of the tree; only renders a visible line
+                    while a drag is active. Lets the user drop into
+                    the very top of the root list explicitly. */}
+                <RootDropZone id={ROOT_TOP_ID} activeDropTarget={activeDropTarget} active={!!activeNote} />
+                {noteTree.map((note) => renderNoteItem(note))}
+                {/* ROOT drop zone (bottom) — same idea at the bottom. */}
+                <RootDropZone id={ROOT_BOTTOM_ID} activeDropTarget={activeDropTarget} active={!!activeNote} />
+              </div>
             ) : (
               <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-                {/* TODO(human-copy): "No notes yet. Create your first note!" — stock empty-state phrasing + exclamation; rewrite to point at the "New note" affordance with a human voice. */}
                 No notes yet. Create your first note!
               </div>
             )}
           </div>
         </div>
 
-        {/* Live drop-target preview pill. Anchored bottom-left of the
-            sidebar tree, brand-yellow on zinc-900 so it reads as a
-            transient "if you release now…" hint without competing
-            with the dragged ghost overlay. Only visible while an
-            active drag has resolved to a target. */}
-        {activeNote && dragPreview && (
+        {/* Live drop-target pill — brand-yellow card at the bottom of
+            the sidebar that says exactly what will happen if the user
+            releases now ("Above 'X'", "Sub-note of 'Y'", "Top of the
+            list"). Disappears the instant the drag ends. */}
+        {activeNote && (
           <div className="pointer-events-none absolute bottom-3 left-3 z-40 max-w-[16rem]">
             <div
               role="status"
               aria-live="polite"
               className={cn(
                 'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold shadow-lg transition-colors',
-                dragPreview.kind === 'noop'
-                  ? 'bg-zinc-900 text-zinc-300'
-                  : dragPreview.kind === 'not-allowed'
-                    ? 'bg-rose-500 text-white'
-                    : 'bg-[#f2cc0d] text-zinc-900',
+                activeDropTarget ? 'bg-[#f2cc0d] text-zinc-900' : 'bg-zinc-900 text-zinc-300',
               )}
             >
               <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-zinc-900" />
@@ -1503,6 +1175,49 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
           </span>
         </div>
       )}
+    </div>
+  )
+}
+
+/**
+ * Tiny droppable zone rendered at the very top and very bottom of the
+ * tree. While idle it's an 8px invisible spacer; during a drag it
+ * shows a thin dashed yellow zone with a "Drop here" hint when the
+ * pointer is over it. Lets the user explicitly land a note at the
+ * root level without having to drop above/below another root row.
+ */
+function RootDropZone({
+  id,
+  active,
+  activeDropTarget,
+}: {
+  id: string
+  active: boolean
+  activeDropTarget: DropTarget | null
+}) {
+  const { setNodeRef } = useDroppable({ id })
+  const isHot = activeDropTarget?.id === id
+  if (!active) {
+    // Invisible during idle so the tree layout is unchanged when no drag.
+    return <div ref={setNodeRef} aria-hidden className="h-2" />
+  }
+  return (
+    <div
+      ref={setNodeRef}
+      className={cn(
+        'mx-2 my-1 rounded-md border border-dashed text-center text-[10px] font-medium uppercase tracking-wider transition-colors',
+        isHot
+          ? 'border-[#f2cc0d] bg-[#f2cc0d]/15 py-2 text-[#8a7307]'
+          : 'border-zinc-200 py-1.5 text-zinc-400',
+      )}
+    >
+      {isHot
+        ? id === ROOT_TOP_ID
+          ? '↑ Top of the list'
+          : '↓ Bottom of the list'
+        : id === ROOT_TOP_ID
+          ? 'Drop here for top'
+          : 'Drop here for bottom'}
     </div>
   )
 }
