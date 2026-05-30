@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, Plus, Trash2, X } from 'lucide-react'
 import { DayPicker, type DateRange } from 'react-day-picker'
 
 import { cn } from '@/lib/utils'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 
 interface JournalSidebarProps {
   entries: JournalEntry[]
@@ -39,6 +40,11 @@ function toDateKey(d: Date): string {
 export function JournalSidebar({ entries, selectedDate, onSelect, onDelete }: JournalSidebarProps) {
   const today = todayKey()
   const todayObj = useMemo(() => new Date(), [])
+  // Date of the entry the user clicked to delete — drives the
+  // ConfirmDialog. null = no dialog shown. We hold the date (not the
+  // whole entry) because that's all onDelete needs and it survives
+  // a cache refetch happily.
+  const [pendingDeleteDate, setPendingDeleteDate] = useState<string | null>(null)
   // The month currently shown in the calendar.
   const [viewMonth, setViewMonth] = useState<Date>(() =>
     selectedDate ? new Date(`${selectedDate}T00:00:00`) : new Date(),
@@ -355,9 +361,7 @@ export function JournalSidebar({ entries, selectedDate, onSelect, onDelete }: Jo
                       aria-label={`Delete ${formatChip(date, today)} entry`}
                       onClick={(e) => {
                         e.stopPropagation()
-                        if (confirm(`Delete the ${formatChip(date, today).toLowerCase()} entry? This can't be undone.`)) {
-                          onDelete(date)
-                        }
+                        setPendingDeleteDate(date)
                       }}
                       className={cn(
                         'flex h-5 w-5 shrink-0 items-center justify-center rounded text-zinc-400 opacity-0 transition-opacity hover:bg-rose-50 hover:text-rose-600 group-hover/entry:opacity-100',
@@ -372,6 +376,25 @@ export function JournalSidebar({ entries, selectedDate, onSelect, onDelete }: Jo
           )
         })}
       </ul>
+
+      <ConfirmDialog
+        open={pendingDeleteDate !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeleteDate(null)
+        }}
+        title="Delete this journal entry?"
+        description={
+          pendingDeleteDate
+            ? `The ${formatChip(pendingDeleteDate, today).toLowerCase()} entry will be permanently removed. This can't be undone.`
+            : ''
+        }
+        confirmButtonText="Delete entry"
+        variant="destructive"
+        onConfirm={() => {
+          if (pendingDeleteDate && onDelete) onDelete(pendingDeleteDate)
+          setPendingDeleteDate(null)
+        }}
+      />
     </div>
   )
 }
