@@ -98,22 +98,21 @@ interface NotesSidebarProps {
 }
 
 /**
- * OneNote-style drop model. A drag in flight resolves to exactly one
- * of three zones on whichever row the pointer is over:
- *   - 'above'   → drop as previous sibling of target
- *   - 'inside'  → drop as last child of target (target auto-expands)
- *   - 'below'   → drop as next sibling of target
+ * OneNote-pure drop model: every drag is a sibling reorder.
+ *   - top half of the target row    → drop ABOVE (previous sibling)
+ *   - bottom half of the target row → drop BELOW (next sibling)
  *
- * Zone is decided purely from the pointer's Y position inside the
- * target's bounding rect: top 25% = above, middle 50% = inside,
- * bottom 25% = below. No horizontal swipe, no axis lock, no implicit
- * promote/demote — those were unintuitive and the source of "the
- * preview said X but the drop did Y" bugs. To un-nest, drag a
- * sub-note onto the above/below zone of any top-level note (or onto
- * the dedicated root-drop zones rendered at the very top and bottom
- * of the tree).
+ * There is NO drag-to-nest zone. OneNote itself doesn't have one
+ * (it uses right-click → Make Sub Page); ours uses the per-row
+ * "+ sub-note" button. A middle "inside" zone made the most common
+ * gesture (move within a parent) feel broken because hovering near
+ * the middle of a row turned a sibling-reorder into a nesting drop.
+ *
+ * To un-nest a deeply nested note, drag it onto any other note at
+ * the desired depth (it'll join their parent), or onto the dedicated
+ * root-drop zones at the very top / bottom of the tree.
  */
-type DropZone = 'above' | 'inside' | 'below'
+type DropZone = 'above' | 'below'
 
 interface DropTarget {
   /** dnd-kit droppable id — usually a note id, or one of ROOT_TOP_ID / ROOT_BOTTOM_ID. */
@@ -131,14 +130,13 @@ const AUTO_EXPAND_HOVER_MS = 600
 
 /**
  * Decide the drop zone from where the pointer is inside the target's
- * bounding rect. Pure math, no React, no state.
+ * bounding rect. Strict 50/50 split — top half goes above, bottom
+ * half goes below. No middle zone, no fuzz factor; predictability
+ * matters more than "almost any drop counts".
  */
 function zoneFromPointer(pointerY: number, rect: DOMRect): DropZone {
-  if (rect.height <= 0) return 'inside'
-  const rel = (pointerY - rect.top) / rect.height
-  if (rel < 0.25) return 'above'
-  if (rel > 0.75) return 'below'
-  return 'inside'
+  if (rect.height <= 0) return 'above'
+  return pointerY < rect.top + rect.height / 2 ? 'above' : 'below'
 }
 
 interface NoteItemProps {
@@ -223,13 +221,9 @@ function NoteItem({
           ...style,
         }}
         className={cn(
-          'group relative flex items-center gap-1 rounded-md px-2 py-1.5 text-sm transition-[background-color,box-shadow,transform] duration-150 select-none cursor-move',
+          'group relative flex cursor-move select-none items-center gap-1 rounded-md px-2 py-1.5 text-sm transition-[background-color,box-shadow,transform] duration-150',
           isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-zinc-50',
           isMultiSelected && !isSelected && 'bg-[#fff7d1] ring-1 ring-[#f2cc0d]/60',
-          // INSIDE drop zone — soft brand-yellow tint + ring across the
-          // whole row so it's unmistakable that the dragged note will
-          // become a child of this one.
-          dropZone === 'inside' && 'bg-[#f2cc0d]/20 ring-2 ring-[#f2cc0d] ring-inset',
         )}
         onClick={(e) => onSelect(note, e.ctrlKey || e.metaKey)}
       >
@@ -546,9 +540,11 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
 
     const overId = String(over.id)
 
-    // Root drop zones are simple — always 'inside'-equivalent placement.
+    // Root drop zones — synthetic; zone label irrelevant, we only use
+    // the id at drop time. Pick 'above' for ROOT_TOP and 'below' for
+    // ROOT_BOTTOM so the indicator on the strip reads naturally.
     if (overId === ROOT_TOP_ID || overId === ROOT_BOTTOM_ID) {
-      const zone: DropZone = 'inside'
+      const zone: DropZone = overId === ROOT_TOP_ID ? 'above' : 'below'
       if (activeDropTarget?.id !== overId || activeDropTarget.zone !== zone) {
         setActiveDropTarget({ id: overId, zone })
       }
@@ -556,16 +552,13 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
       return
     }
 
-    // Cycle guard: if the user is hovering a descendant of the dragged
-    // note, suppress the indicator entirely. The on-drop guard will
-    // also reject so they can't release into this either.
+    // Cycle guard.
     if (descendantsRef.current.has(overId)) {
       if (activeDropTarget !== null) setActiveDropTarget(null)
       cancelAutoExpand()
       return
     }
 
-    // Compute zone from raw pointer Y inside the target rect.
     const rect = over.rect as unknown as DOMRect
     const zone = zoneFromPointer(pointerYRef.current, rect)
 
@@ -573,14 +566,13 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
       setActiveDropTarget({ id: overId, zone })
     }
 
-    // Auto-expand: if the pointer is in the 'inside' zone of a row
-    // that has children but is collapsed, start a timer. The timer
-    // resets when the target or zone changes (i.e. pointer moves away).
-    const isInsideCollapsed =
-      zone === 'inside' &&
-      !expandedIds.has(overId) &&
-      notes.some((n: Note) => n.parentId === overId)
-    if (isInsideCollapsed) {
+    // Auto-expand: hovering a collapsed parent for AUTO_EXPAND_HOVER_MS
+    // expands it so the user can target one of its children for the
+    // sibling reorder. Fires regardless of zone — we just need the
+    // user lingering on a collapsed row.
+    const isCollapsedParent =
+      !expandedIds.has(overId) && notes.some((n: Note) => n.parentId === overId)
+    if (isCollapsedParent) {
       if (autoExpandTargetRef.current !== overId) {
         cancelAutoExpand()
         autoExpandTargetRef.current = overId
@@ -666,16 +658,9 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
     const targetNote = freshNotes.find((n: Note) => n.id === overId)
     if (!targetNote) return
 
-    if (zone === 'inside') {
-      // Append as last child of target so the new sub-note appears
-      // right after the target's existing children, matching the
-      // natural reading order in the tree.
-      reorderMutation.mutate([{ noteId, parentId: overId, order: 99999 }])
-      return
-    }
-
-    // Sibling reorder (above / below). Land in the target's parent list
-    // immediately before or after the target row.
+    // Sibling reorder. Land in the target's parent list immediately
+    // before or after the target row. (No drag-to-nest — nesting is
+    // done via the per-row "+ sub-note" button, matching OneNote.)
     const targetParentId = targetNote.parentId ?? null
     const siblings = freshNotes
       .filter((n: Note) => (n.parentId ?? null) === targetParentId && n.id !== noteId)
@@ -892,31 +877,20 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
     )
   }
 
-  // Human-readable label for the live drop-target pill. The OneNote
-  // model is simple enough now to inline — no DropIntentKind, just
-  // above/inside/below and the optional root zones.
+  // Live drop-target pill copy.
   const previewLabel = (() => {
     if (!activeDropTarget) return 'Drag to move'
     if (activeDropTarget.id === ROOT_TOP_ID) return 'Top of the list'
     if (activeDropTarget.id === ROOT_BOTTOM_ID) return 'Bottom of the list'
     const target = notes.find((n: Note) => n.id === activeDropTarget.id)
     const title = target?.title || 'Untitled'
-    switch (activeDropTarget.zone) {
-      case 'above':
-        return `Above "${title}"`
-      case 'below':
-        return `Below "${title}"`
-      case 'inside':
-        return `Sub-note of "${title}"`
-      default:
-        return 'Drag to move'
-    }
+    return activeDropTarget.zone === 'above' ? `Above "${title}"` : `Below "${title}"`
   })()
 
   const previewArrow = (() => {
-    if (!activeDropTarget) return ''
-    if (activeDropTarget.zone === 'inside') return '→ '
-    return '' // above / below use the row indicator instead of a pill arrow
+    // Reserved for future indicators (e.g. nest-via-modifier). Empty
+    // for plain above/below — the row indicator carries the meaning.
+    return ''
   })()
 
   if (isLoading) {
