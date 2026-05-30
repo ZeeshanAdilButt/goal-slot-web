@@ -112,7 +112,13 @@ export function DailyCheckinBanner() {
           </span>
         </button>
 
-        <div className="pointer-events-none absolute bottom-full right-0 mb-2 w-[min(20rem,calc(100vw-1.5rem))] origin-bottom-right scale-95 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:scale-100 group-hover:opacity-100">
+        {/* Hover card sits flush against the top of the button (no
+            margin gap) so the cursor never crosses dead space when
+            moving up to interact with it — earlier mb-2 created an
+            8px no-mans-land where group-hover dropped and the card
+            disappeared mid-reach. pb-2 pushes the visible card body
+            up off the button while keeping the hit-area continuous. */}
+        <div className="pointer-events-none absolute bottom-full right-0 w-[min(20rem,calc(100vw-1.5rem))] origin-bottom-right scale-95 pb-2 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:scale-100 group-hover:opacity-100">
           <div className="rounded-xl border border-[#f2cc0d]/40 bg-white p-3 text-left shadow-2xl ring-1 ring-zinc-900/5">
             <p className="text-sm font-semibold text-zinc-900">How did today land?</p>
             <p className="mt-0.5 text-[11.5px] leading-relaxed text-zinc-600">
