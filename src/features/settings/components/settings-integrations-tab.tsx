@@ -13,7 +13,9 @@ import { GlassCard } from '@/components/ui/glass-card'
 import { Input } from '@/components/ui/input'
 import { SectionHeader } from '@/components/ui/section-header'
 
-const PROVIDERS: ByokProvider[] = ['openai', 'anthropic']
+// Free-tier providers first so they're the obvious default for users
+// who don't want to attach a credit card. Order mirrors the picker chips.
+const PROVIDERS: ByokProvider[] = ['gemini', 'openrouter', 'openai', 'anthropic']
 
 export function SettingsIntegrationsTab() {
   const {
@@ -112,7 +114,7 @@ export function SettingsIntegrationsTab() {
           }
         />
 
-        <p className="text-sm text-zinc-600 mb-4">
+        <p className="mb-4 text-sm text-zinc-600">
           Use your own API key to power the Coach. We send it to our server only to encrypt it (AES-GCM)
           and store it for your future requests. It is never logged, never shared, and you can rotate
           or remove it at any time. Charges go directly to your provider account.
@@ -124,6 +126,7 @@ export function SettingsIntegrationsTab() {
           <div className="inline-flex rounded-lg border border-zinc-200 bg-zinc-50 p-1">
             {PROVIDERS.map((p) => {
               const isActive = status === 'active' ? savedProvider === p : pendingProvider === p
+              const m = PROVIDER_META[p]
               return (
                 <button
                   key={p}
@@ -138,11 +141,16 @@ export function SettingsIntegrationsTab() {
                     setPendingProvider(p)
                   }}
                   className={cn(
-                    'rounded-md px-3 py-1 text-sm font-medium transition-colors',
+                    'inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-sm font-medium transition-colors',
                     isActive ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-600 hover:text-zinc-900',
                   )}
                 >
-                  {PROVIDER_META[p].label}
+                  {m.label}
+                  {m.isFree && (
+                    <span className="rounded-full bg-emerald-100 px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider text-emerald-700">
+                      Free
+                    </span>
+                  )}
                 </button>
               )
             })}
@@ -176,17 +184,17 @@ export function SettingsIntegrationsTab() {
               {isSaving ? 'Saving...' : 'Save key'}
             </Button>
           </div>
-          <p className="text-[11px] text-zinc-500">
-            Get a key at{' '}
+          <p className="text-[11px] leading-relaxed text-zinc-500">
+            <span className="font-semibold text-zinc-700">How to get a key.</span>{' '}
+            {meta.howTo}{' '}
             <a
               href={meta.consoleUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="underline hover:text-zinc-700"
+              className="font-medium text-zinc-700 underline hover:text-zinc-900"
             >
-              {meta.consoleUrl.replace(/^https?:\/\//, '')}
+              Open {meta.consoleUrl.replace(/^https?:\/\//, '')}
             </a>
-            .
           </p>
         </div>
       </GlassCard>

@@ -409,7 +409,7 @@ export const labelsApi = {
 // Coach API (BYOK + Habits + Check-ins + Reflections + Journal + Narrative + Chat)
 // ---------------------------------------------------------------------------
 
-export type CoachProviderEnum = 'OPENAI' | 'ANTHROPIC'
+export type CoachProviderEnum = 'OPENAI' | 'ANTHROPIC' | 'GEMINI' | 'OPENROUTER'
 export type CoachByokStatus = 'unset' | 'active'
 
 export interface CoachByokStateDto {
@@ -421,6 +421,11 @@ export interface CoachByokStateDto {
   selectedModel?: string | null
   allowedModels?: string[]
   effectiveModel?: string | null
+  shared?: {
+    available: boolean
+    used: number
+    limit: number
+  }
 }
 
 export interface CoachByokUsageDto {

@@ -810,12 +810,20 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
 // Page
 // ---------------------------------------------------------------------------
 export function CoachPage() {
-  const { status, provider, isResolved } = useByokKey()
+  const { status, provider, isResolved, shared } = useByokKey()
   const hasKey = status === 'active'
-  // Don't render the "no key saved" branch until the byok-key query
-  // resolves — otherwise the form flashes for one render on every
-  // mount before the real status arrives.
-  const showNoKey = isResolved && !hasKey
+  // Shared free-tier fallback: even without a personal key, the user
+  // can chat with the Coach using the operator-provided Gemini Flash
+  // key, gated by a per-user daily message count. When this is
+  // available we treat the Coach as "usable" so the chat / overview
+  // surfaces still render. They still get pushed toward adding their
+  // own key via a soft banner once the daily quota gets low.
+  const sharedAvailable = shared?.available ?? false
+  const sharedRemaining = sharedAvailable
+    ? Math.max(0, (shared?.limit ?? 0) - (shared?.used ?? 0))
+    : 0
+  const coachUsable = hasKey || sharedAvailable
+  const showNoKey = isResolved && !coachUsable
   const providerLabel = PROVIDER_META[provider].label
 
   const [period, setPeriod] = useState<CoachScopePeriod>('week')
@@ -844,7 +852,7 @@ export function CoachPage() {
           PageHeader but pushed below on wide descriptions; this places
           them right next to the context filters so they're always
           on-screen at the same height. */}
-      {hasKey && (
+      {coachUsable && (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
             Context
@@ -870,12 +878,26 @@ export function CoachPage() {
             <span className="text-[11px] text-zinc-500">{humanScopeLabel(scopeKey)}</span>
           )}
           <div className="ml-auto flex flex-wrap items-center gap-2">
-            <span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-zinc-900 bg-zinc-900 px-2.5 text-[11px] font-semibold tracking-tight text-white">
-              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[#f2cc0d]" />
-              {providerLabel}
-              <span aria-hidden className="text-zinc-500">·</span>
-              <span className="text-[#f2cc0d]">Connected</span>
-            </span>
+            {hasKey ? (
+              <span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-zinc-900 bg-zinc-900 px-2.5 text-[11px] font-semibold tracking-tight text-white">
+                <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[#f2cc0d]" />
+                {providerLabel}
+                <span aria-hidden className="text-zinc-500">·</span>
+                <span className="text-[#f2cc0d]">Connected</span>
+              </span>
+            ) : (
+              // Shared free-tier badge with remaining-message meter so
+              // the user always knows how many shared messages they
+              // have left today before being asked to add their own key.
+              <span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-50 px-2.5 text-[11px] font-semibold tracking-tight text-emerald-800">
+                <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                Free trial
+                <span aria-hidden className="text-emerald-400">·</span>
+                <span>
+                  {sharedRemaining} of {shared?.limit ?? 0} left today
+                </span>
+              </span>
+            )}
             <Link href="/dashboard/settings?tab=coach-profile">
               <Button variant="secondary" size="sm">
                 <SettingsIcon className="h-3.5 w-3.5" />
@@ -883,6 +905,36 @@ export function CoachPage() {
               </Button>
             </Link>
           </div>
+        </div>
+      )}
+
+      {/* When the user is on the shared free trial, a soft banner pushes
+          them toward adding their own key. The push gets louder as the
+          daily quota runs out. */}
+      {!hasKey && sharedAvailable && (
+        <div
+          className={cn(
+            'flex flex-wrap items-center justify-between gap-3 rounded-lg border px-3 py-2 text-[12px]',
+            sharedRemaining <= 3
+              ? 'border-amber-300 bg-amber-50 text-amber-900'
+              : 'border-zinc-200 bg-zinc-50 text-zinc-700',
+          )}
+        >
+          <span>
+            <span className="font-semibold">
+              {sharedRemaining > 0
+                ? `You're on the free shared trial.`
+                : `Daily free trial is used up for today.`}
+            </span>{' '}
+            {sharedRemaining > 0
+              ? `${sharedRemaining} of ${shared?.limit ?? 0} messages left today, then it resets at midnight UTC. Add your own free Gemini or OpenRouter key for unlimited usage.`
+              : `It resets at midnight UTC. Add your own free Gemini or OpenRouter key now to keep going without waiting.`}
+          </span>
+          <Link href="/dashboard/settings?tab=integrations">
+            <Button variant="brand" size="sm">
+              Add my own key
+            </Button>
+          </Link>
         </div>
       )}
       {showNoKey && (
@@ -895,7 +947,7 @@ export function CoachPage() {
       )}
 
       {/* Compact tiles row: capabilities, narrative, active practice — collapsed by default to keep chat front-and-center. */}
-      {hasKey && scopeKey && <CoachOverviewTiles scopeKey={scopeKey} />}
+      {coachUsable && scopeKey && <CoachOverviewTiles scopeKey={scopeKey} />}
 
       {showNoKey && (
         <GlassCard padded>
@@ -904,9 +956,10 @@ export function CoachPage() {
             title="Connect a key to unlock the Coach"
             description={
               <>
-                The Coach runs on your own OpenAI or Anthropic API key. We encrypt it server-side and
-                use it only for your requests. Charges go straight to your provider. Add a key in
-                Settings, Integrations to start.
+                The Coach runs on a key you bring from one of four providers. Two of them are free,
+                no credit card needed: Google Gemini and OpenRouter. The other two (OpenAI and
+                Anthropic) bill straight to your own provider account. Whichever you pick, the key
+                is encrypted server side and only used for your requests.
               </>
             }
             action={
@@ -918,7 +971,7 @@ export function CoachPage() {
         </GlassCard>
       )}
 
-      {hasKey && scopeKey && (
+      {coachUsable && scopeKey && (
         <>
           <NewSuggestionsSection scopeKey={scopeKey} />
           <ChatSection scopeKey={scopeKey} />
