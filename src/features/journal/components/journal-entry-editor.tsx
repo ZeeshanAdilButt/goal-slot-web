@@ -159,8 +159,14 @@ export function JournalEntryEditor({ entry, onSaveContent }: JournalEntryEditorP
   const isToday = effectiveDate === today
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
-      <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-zinc-100 bg-gradient-to-br from-[#fffbea] to-white px-5 py-4">
+    // h-full + flex column so the editor card claims its parent's
+    // available height; header + Stuck tip are intrinsic, the
+    // editor wrapper below takes flex-1 + min-h-0 so the Tiptap
+    // editor's internal overflow-y-auto can actually kick in.
+    // Without this, the card grew to fit content and nothing
+    // scrolled because the right-pane never saw overflow.
+    <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+      <div className="flex shrink-0 flex-wrap items-baseline justify-between gap-3 border-b border-zinc-100 bg-gradient-to-br from-[#fffbea] to-white px-5 py-4">
         <div>
           <div className="text-[11px] font-semibold uppercase tracking-wider text-[#8a7307]">
             {isToday ? "Today's entry" : 'Journal entry'}
@@ -199,7 +205,7 @@ export function JournalEntryEditor({ entry, onSaveContent }: JournalEntryEditorP
           without competing with the writing surface. Brand-yellow
           glow + slow breathing pulse so the tip catches the eye on
           first visit without being a popup. */}
-      <div className="relative flex flex-wrap items-center gap-2 overflow-hidden border-b border-[#f2cc0d]/30 bg-gradient-to-r from-[#fffbea] via-[#fff7d1]/70 to-[#fffbea] px-5 py-3">
+      <div className="relative flex shrink-0 flex-wrap items-center gap-2 overflow-hidden border-b border-[#f2cc0d]/30 bg-gradient-to-r from-[#fffbea] via-[#fff7d1]/70 to-[#fffbea] px-5 py-3">
         {/* Soft animated glow — a low-opacity yellow halo that
             breathes in and out behind the text. Pointer-events-none
             so it never blocks clicks on the button next to it. */}
@@ -225,14 +231,17 @@ export function JournalEntryEditor({ entry, onSaveContent }: JournalEntryEditorP
         </div>
       </div>
 
-      <div className="min-w-0 overflow-x-auto px-2 py-3 sm:px-4">
+      {/* flex-1 + min-h-0 lets the Tiptap editor's internal
+          overflow-y-auto take over — keeps header + tip strip sticky
+          above the scrolling content. */}
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col px-2 py-3 sm:px-4">
         <TiptapEditor
           key={entry?.id ?? effectiveDate}
           content={entry?.content ?? ''}
           onChange={handleChange}
           onReady={handleEditorReady}
           placeholder={promptForDate(effectiveDate)}
-          className="min-h-[420px] border-none shadow-none"
+          className="flex min-h-0 flex-1 flex-col border-none shadow-none"
         />
       </div>
     </div>
