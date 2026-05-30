@@ -82,11 +82,20 @@ export function DailyCheckinBanner() {
 
   return (
     <>
+      {/*
+        Anchored bottom-right and stacked directly above the floating
+        Coach button (which lives at bottom-4 right-4 / right-6 on sm+).
+        Was top-right earlier but that collided with every page's
+        own action buttons (New Task on /tasks, New Goal on /goals,
+        Add Block on /schedule, etc.) — top-right is the universal
+        page-header CTA slot. Bottom-right keeps the teaser visible
+        on every page without ever sitting on top of content.
+      */}
       <motion.div
-        initial={{ x: 80, opacity: 0 }}
+        initial={{ x: 60, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
-        className="group fixed right-3 top-24 z-30 sm:right-5 sm:top-28"
+        className="group fixed bottom-20 right-4 z-30 sm:right-6"
       >
         <button
           type="button"
@@ -103,7 +112,7 @@ export function DailyCheckinBanner() {
           </span>
         </button>
 
-        <div className="pointer-events-none absolute right-0 top-full mt-2 w-[min(20rem,calc(100vw-1.5rem))] origin-top-right scale-95 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:scale-100 group-hover:opacity-100">
+        <div className="pointer-events-none absolute bottom-full right-0 mb-2 w-[min(20rem,calc(100vw-1.5rem))] origin-bottom-right scale-95 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:scale-100 group-hover:opacity-100">
           <div className="rounded-xl border border-[#f2cc0d]/40 bg-white p-3 text-left shadow-2xl ring-1 ring-zinc-900/5">
             <p className="text-sm font-semibold text-zinc-900">How did today land?</p>
             <p className="mt-0.5 text-[11.5px] leading-relaxed text-zinc-600">
