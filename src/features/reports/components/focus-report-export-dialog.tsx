@@ -7,6 +7,7 @@ import { useExportReportMutation } from '@/features/reports/hooks/use-detailed-s
 import type { ExportFormat, FocusGranularity } from '@/features/reports/utils/types'
 import { format } from 'date-fns'
 import { Download, FileJson, FileSpreadsheet, FileText } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 import { escapeHtml } from '@/lib/escape-html'
 import { formatDuration } from '@/lib/utils'

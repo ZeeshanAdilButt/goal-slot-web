@@ -6,6 +6,7 @@ import { GROUP_BY_OPTIONS, HOURLY_RATE_STORAGE_KEY, VIEW_TYPE_OPTIONS } from '@/
 import type { ReportGroupBy, ReportViewType } from '@/features/reports/utils/types'
 import { format } from 'date-fns'
 import { Calendar, ChevronDown, DollarSign, FileText, Filter, Layers, Target, X } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
