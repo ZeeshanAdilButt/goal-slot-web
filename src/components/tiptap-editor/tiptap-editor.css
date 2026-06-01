@@ -104,7 +104,8 @@
 .tiptap-editor-content {
   @apply flex-1 overflow-y-auto p-4 outline-none;
   @apply border border-t-0 border-zinc-200 rounded-b-lg bg-transparent;
-  min-height: 0; /* Important for flex children to scroll */
+  min-height: 0;
+  /* Important for flex children to scroll */
 }
 
 /* Without toolbar */
@@ -114,9 +115,19 @@
 
 .tiptap-editor .ProseMirror {
   @apply min-h-full outline-none h-full;
+  caret-color: hsl(var(--foreground))
 }
 
-.tiptap-editor .ProseMirror > * + * {
+.tiptap-editor .ProseMirror p,
+.tiptap-editor .ProseMirror h1,
+.tiptap-editor .ProseMirror h2,
+.tiptap-editor .ProseMirror h3,
+.tiptap-editor .ProseMirror blockquote {
+  min-height: 1.2em;
+}
+
+
+.tiptap-editor .ProseMirror>*+* {
   @apply mt-3;
 }
 
@@ -171,20 +182,20 @@
   @apply flex items-start gap-2;
 }
 
-.tiptap-editor .ProseMirror li.task-item > label {
+.tiptap-editor .ProseMirror li.task-item>label {
   @apply flex items-center justify-center shrink-0 mt-1;
 }
 
-.tiptap-editor .ProseMirror li.task-item > label input[type="checkbox"] {
+.tiptap-editor .ProseMirror li.task-item>label input[type="checkbox"] {
   @apply w-4 h-4 rounded border border-zinc-200 cursor-pointer;
   @apply checked:bg-primary checked:border-primary;
 }
 
-.tiptap-editor .ProseMirror li.task-item > div {
+.tiptap-editor .ProseMirror li.task-item>div {
   @apply flex-1;
 }
 
-.tiptap-editor .ProseMirror li.task-item[data-checked="true"] > div {
+.tiptap-editor .ProseMirror li.task-item[data-checked="true"]>div {
   @apply line-through text-muted-foreground;
 }
 
@@ -262,9 +273,10 @@
   @apply text-yellow-400;
 }
 
-/* Horizontal Rule */
 .tiptap-editor .ProseMirror hr {
-  @apply border-none h-0.5 bg-border my-6;
+  @apply border-0 border-t-2 border-solid border-muted-foreground my-6;
+  height: 0;
+  transform: translateZ(0);
 }
 
 /* Links */
@@ -383,7 +395,7 @@
 }
 
 .tiptap-editor .ProseMirror .ProseMirror-gapcursor::after {
-  @apply absolute top-0 w-5 h-5 border-t-2 border-black pointer-events-none;
+  @apply absolute top-0 w-5 h-5 border-t-2 border-foreground pointer-events-none;
   content: '';
 }
 
