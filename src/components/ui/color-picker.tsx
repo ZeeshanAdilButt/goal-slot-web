@@ -21,7 +21,9 @@ export function ColorPicker({
   presets = DEFAULT_PRESETS,
 }: ColorPickerProps) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const isCustom = value ? !presets.includes(value) : false
+  const normalizedValue = value ? value.toUpperCase() : ""
+  const normalizedPresets = presets.map((c) => c.toUpperCase())
+  const isCustom = normalizedValue ? !normalizedPresets.includes(normalizedValue) : false
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -31,8 +33,8 @@ export function ColorPicker({
           type="button"
           onClick={() => onChange(color)}
           className={`h-5 w-5 rounded-full border transition-transform hover:scale-110 ${
-            value === color
-              ? "ring-2 ring-zinc-900 ring-offset-1 scale-110"
+            normalizedValue === color.toUpperCase()
+              ? "scale-110 ring-2 ring-zinc-900 ring-offset-1"
               : "border-zinc-300"
           }`}
           style={{ backgroundColor: color }}
@@ -62,7 +64,7 @@ export function ColorPicker({
         ref={inputRef}
         type="color"
         value={value || "#000000"}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => onChange(e.target.value.toUpperCase())}
         className="sr-only"
         aria-label="Custom color"
       />
