@@ -12,7 +12,7 @@ const DEFAULT_PRESETS = [
   '#FFD700', '#EC4899', '#3B82F6', '#22C55E',
   '#8B5CF6', '#F97316', '#EF4444', '#14B8A6',
   '#06B6D4', '#F59E0B', '#F43F5E', '#0EA5E9',
-  '#A855F7', '#10B981', '#64748B', '#8B5CF6',
+  '#A855F7', '#10B981', '#64748B', '#0F172A',
 ]
 
 export function ColorPicker({
