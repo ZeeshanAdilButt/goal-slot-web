@@ -96,7 +96,6 @@ export const COLOR_OPTIONS = [
   '#14B8A6', // Teal
   '#06B6D4', // Cyan
   '#F59E0B', // Amber
-  '#8B5CF6', // Violet
   '#64748B', // Slate
   '#A855F7', // Fuchsia
   '#10B981', // Emerald
