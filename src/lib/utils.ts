@@ -92,6 +92,16 @@ export const COLOR_OPTIONS = [
   '#22C55E', // Green
   '#8B5CF6', // Purple
   '#F97316', // Orange
+  '#EF4444', // Red
+  '#14B8A6', // Teal
+  '#06B6D4', // Cyan
+  '#F59E0B', // Amber
+  '#8B5CF6', // Violet
+  '#64748B', // Slate
+  '#A855F7', // Fuchsia
+  '#10B981', // Emerald
+  '#F43F5E', // Rose
+  '#0EA5E9', // Sky
 ]
 
 export const TIME_OPTIONS = Array.from({ length: (24 * 60) / 15 }, (_, i) => {
