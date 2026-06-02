@@ -209,7 +209,9 @@ export function TipsCorner() {
   // "is there still a tip on screen?" without re-binding the interval
   // every render.
   const currentRef = useRef<Tip | null>(null)
-  currentRef.current = current
+  useEffect(() => {
+    currentRef.current = current
+  })
 
   const surface = useCallback(() => {
     if (mutedRef.current) return
@@ -316,7 +318,7 @@ function TipPill({
       transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
       className="group/tip pointer-events-auto relative"
     >
-      <div className="relative overflow-hidden rounded-lg border border-zinc-200/80 bg-white/85 shadow-[0_4px_20px_-8px_rgba(0,0,0,0.18)] backdrop-blur-md max-w-[min(22rem,calc(100vw-2rem))]">
+      <div className="relative max-w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-lg border border-zinc-200/80 bg-white/85 shadow-[0_4px_20px_-8px_rgba(0,0,0,0.18)] backdrop-blur-md">
         {/* Subtle left accent so the eye finds the tip without it
             being shouty — same hue as the brand yellow but at low
             saturation so it reads as a quiet whisper, not a banner. */}
