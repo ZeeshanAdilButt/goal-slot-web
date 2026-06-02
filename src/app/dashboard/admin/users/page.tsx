@@ -1,6 +1,5 @@
 'use client'
 
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from 'react'
 
 import { motion } from 'framer-motion'
@@ -146,14 +145,6 @@ export default function AdminUsersPage() {
     return () => clearTimeout(timer)
   }, [searchTerm])
 
-  useEffect(() => {
-    if (currentPage !== 1) {
-       setSelectedUsers([]);
-    }
-    loadUsers()
-    loadStats()
-  }, [currentPage, debouncedSearch])
-
   const loadUsers = async () => {
     setIsLoading(true)
     try {
@@ -180,6 +171,15 @@ export default function AdminUsersPage() {
       console.error('Failed to load stats', error)
     }
   }
+
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setSelectedUsers([])
+    }
+    loadUsers()
+    loadStats()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, debouncedSearch])
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault()
