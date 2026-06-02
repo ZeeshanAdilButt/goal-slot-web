@@ -2,6 +2,7 @@
 
 import { useRef, useState, type PointerEvent } from 'react'
 
+import { ScheduleEmptyState } from '@/features/schedule/components/schedule-empty-state'
 import { DayColumn } from '@/features/schedule/components/schedule-grid/day-column'
 import { DraftBlock } from '@/features/schedule/components/schedule-grid/draft-block'
 import { ScheduleGridDragLayer } from '@/features/schedule/components/schedule-grid/drag-layer'
@@ -110,9 +111,12 @@ export function ScheduleGrid({
     )
   }
 
+  const totalBlocks = Object.values(weekSchedule).reduce((sum, blocks) => sum + blocks.length, 0)
+  const isEmpty = totalBlocks === 0
+
   return (
     <div className="overflow-x-auto">
-      <div className="min-w-[960px]">
+      <div className="relative min-w-[960px]">
         <div className="grid grid-cols-[4rem_repeat(7,minmax(0,1fr))] border-b border-zinc-200">
           <div className="w-16 bg-zinc-50 p-2 text-center text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Time</div>
           {DAYS_OF_WEEK_FULL.map((day, index) => (
@@ -132,7 +136,10 @@ export function ScheduleGrid({
         </div>
 
         <ScheduleGridDragLayer onDragStart={handleDragStart} onDragMove={handleDragMove} onDragEnd={handleDragEnd}>
-          <div className="flex overflow-y-hidden border-t border-zinc-200">
+          <div className="relative flex overflow-y-hidden border-t border-zinc-200">
+            {isEmpty && (
+              <ScheduleEmptyState onAddBlock={() => onAddBlock(1, { startTime: '09:00', endTime: '10:00' })} />
+            )}
             <div className="relative w-16 border-r border-zinc-200" style={{ height: COLUMN_HEIGHT }}>
               {Array.from({ length: 24 }, (_, hour) => {
                 const top = (hour * 60 - DAY_START_MIN) * PX_PER_MIN
