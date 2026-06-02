@@ -59,7 +59,7 @@ export function ComparisonSection() {
                   <td className="p-4 font-mono text-sm font-bold">{row.feature}</td>
                   <td className="p-4 text-center">
                     {row.tm === true ? (
-                      <CheckCircle className="mx-auto h-6 w-6 text-accent-green" />
+                      <CheckCircle className="text-accent-green mx-auto h-6 w-6" />
                     ) : (
                       <span className="font-mono text-sm text-gray-400">{row.tm}</span>
                     )}
@@ -97,7 +97,7 @@ export function ComparisonSection() {
             <tfoot>
               <tr className="border-t border-zinc-200 bg-primary/10">
                 <td className="p-4 font-display font-bold uppercase">Total Cost</td>
-                <td className="p-4 text-center font-mono text-xl font-bold text-accent-green">$7/mo</td>
+                <td className="text-accent-green p-4 text-center font-mono text-xl font-bold">$7/mo</td>
                 <td colSpan={3} className="p-4 text-center font-mono text-gray-500">
                   $25+/mo for all three
                 </td>

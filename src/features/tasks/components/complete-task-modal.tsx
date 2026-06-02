@@ -91,10 +91,10 @@ export function CompleteTaskModal({ task, onClose, onConfirm }: CompleteTaskModa
           </div>
         </div>
         <DialogFooter className="flex-row gap-3 pt-4">
-          <button className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 flex-1" onClick={onClose}>
+          <button className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-900 transition-colors hover:bg-zinc-50" onClick={onClose}>
             Cancel
           </button>
-          <button className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 flex-1" onClick={handleSubmit} disabled={isSubmitting}>
+          <button className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800" onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting ? 'Saving...' : 'Log & Complete'}
           </button>
         </DialogFooter>

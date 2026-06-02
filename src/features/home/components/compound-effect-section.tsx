@@ -19,7 +19,7 @@ export function CompoundEffectSection() {
           {/* Graph Visualization */}
           <div className="relative mx-auto max-w-3xl">
             {/* Background Grid */}
-            <div className="absolute inset-0 bg-grid opacity-30"></div>
+            <div className="bg-grid absolute inset-0 opacity-30"></div>
 
             {/* Chart Area */}
             <div className="relative rounded-sm border border-zinc-200 bg-white p-8 shadow-sm">

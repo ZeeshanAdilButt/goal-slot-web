@@ -21,7 +21,7 @@ export function DashboardGoals({ goals, categories }: DashboardGoalsProps) {
         <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Active Goals</h2>
         <Link
           href="/dashboard/goals"
-          className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-900 transition-colors"
+          className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-500 transition-colors hover:text-zinc-900"
         >
           <span className="hidden sm:inline">View All</span>
           <span className="sm:hidden">All</span>
@@ -31,7 +31,7 @@ export function DashboardGoals({ goals, categories }: DashboardGoalsProps) {
 
       <div className="space-y-3">
         {goals.length === 0 ? (
-          <GlassCard className="text-center py-10">
+          <GlassCard className="py-10 text-center">
             <Target className="mx-auto mb-3 h-10 w-10 text-zinc-400" />
             <p className="mb-1 text-base font-semibold text-zinc-900">No active goals</p>
             <p className="mb-4 text-sm text-zinc-500">Create your first goal to start tracking</p>
@@ -62,7 +62,7 @@ export function DashboardGoals({ goals, categories }: DashboardGoalsProps) {
 
                   <div className="flex-1 overflow-hidden">
                     <div className="mb-2 flex items-center justify-between gap-2">
-                      <div className="min-w-0 flex-1 flex items-center gap-2">
+                      <div className="flex min-w-0 flex-1 items-center gap-2">
                         <span
                           className="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
                           style={{
@@ -84,14 +84,14 @@ export function DashboardGoals({ goals, categories }: DashboardGoalsProps) {
 
                     <div className="flex items-center gap-3">
                       <div className="flex-1">
-                        <div className="h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                        <div className="h-1.5 overflow-hidden rounded-full bg-zinc-100">
                           <div
                             className="h-full bg-[#f2cc0d] transition-all"
                             style={{ width: `${progress}%` }}
                           />
                         </div>
                       </div>
-                      <span className="font-mono text-xs font-semibold text-zinc-700 tabular-nums">{progress}%</span>
+                      <span className="font-mono text-xs font-semibold tabular-nums text-zinc-700">{progress}%</span>
                     </div>
                   </div>
                 </GlassCard>

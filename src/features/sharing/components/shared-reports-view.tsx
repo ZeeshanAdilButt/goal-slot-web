@@ -66,7 +66,7 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
 
   if (sharedWithMe.length === 0) {
     return (
-      <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm py-16 text-center">
+      <div className="rounded-xl border border-zinc-200 bg-white p-4 py-16 text-center shadow-sm">
         <User className="mx-auto mb-4 h-16 w-16 opacity-30" />
         <h3 className="mb-2 text-xl font-bold uppercase">No shared reports</h3>
         <p className="font-mono text-gray-600">
@@ -115,7 +115,7 @@ export function SharedReportsView({ sharedWithMe }: SharedReportsViewProps) {
       {selectedUser && (
         <div className="space-y-6">
           {/* Controls Bar */}
-          <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm sticky top-0 z-10 bg-white">
+          <div className="sticky top-0 z-10 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               {/* Left Group: View Toggles & Filters */}
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

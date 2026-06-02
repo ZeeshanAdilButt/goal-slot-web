@@ -37,7 +37,7 @@ export function CompactTaskList({ tasks, groupBy, onEdit, onComplete }: CompactT
   if (tasks.length === 0) {
     return (
       <div className="px-1 md:-ml-[3px] md:px-0">
-        <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm p-3 text-center font-mono text-sm text-gray-600">No tasks found</div>
+        <div className="rounded-xl border border-zinc-200 bg-white p-3 p-4 text-center font-mono text-sm text-gray-600 shadow-sm">No tasks found</div>
       </div>
     )
   }

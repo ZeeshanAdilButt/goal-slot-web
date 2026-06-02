@@ -241,7 +241,7 @@ export function GoalsSidebarDesktop({
               </button>
 
               {orderedGoals.length === 0 ? (
-                <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm p-4 text-center">
+                <div className="rounded-xl border border-zinc-200 bg-white p-4 text-center shadow-sm">
                   <p className="font-mono text-sm text-gray-600">No goals</p>
                 </div>
               ) : (

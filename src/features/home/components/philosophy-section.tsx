@@ -34,7 +34,7 @@ export function PhilosophySection() {
               <div className="mb-4 inline-flex items-center gap-2 rounded border-2 border-white bg-primary px-2 py-1">
                 <span className="font-mono text-xs font-bold text-zinc-900">STEP 01</span>
               </div>
-              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-sm border-2 border-white bg-primary mx-auto">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-sm border-2 border-white bg-primary">
                 <Target className="h-6 w-6 text-zinc-900" />
               </div>
               <h3 className="mb-2 font-display text-lg font-bold uppercase">Goals</h3>
@@ -47,7 +47,7 @@ export function PhilosophySection() {
               <div className="mb-4 inline-flex items-center gap-2 rounded border-2 border-white bg-primary px-2 py-1">
                 <span className="font-mono text-xs font-bold text-zinc-900">STEP 02</span>
               </div>
-              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-sm border-2 border-white bg-green-500 mx-auto">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-sm border-2 border-white bg-green-500">
                 <Calendar className="h-6 w-6 text-white" />
               </div>
               <h3 className="mb-2 font-display text-lg font-bold uppercase">Schedule</h3>
@@ -60,7 +60,7 @@ export function PhilosophySection() {
               <div className="mb-4 inline-flex items-center gap-2 rounded border-2 border-white bg-primary px-2 py-1">
                 <span className="font-mono text-xs font-bold text-zinc-900">STEP 03</span>
               </div>
-              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-sm border-2 border-white bg-blue-500 mx-auto">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-sm border-2 border-white bg-blue-500">
                 <Clock className="h-6 w-6 text-white" />
               </div>
               <h3 className="mb-2 font-display text-lg font-bold uppercase">Timer</h3>
@@ -73,7 +73,7 @@ export function PhilosophySection() {
               <div className="mb-4 inline-flex items-center gap-2 rounded border-2 border-white bg-primary px-2 py-1">
                 <span className="font-mono text-xs font-bold text-zinc-900">STEP 04</span>
               </div>
-              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-sm border-2 border-white bg-purple-500 mx-auto">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-sm border-2 border-white bg-purple-500">
                 <BarChart3 className="h-6 w-6 text-white" />
               </div>
               <h3 className="mb-2 font-display text-lg font-bold uppercase">Reports</h3>

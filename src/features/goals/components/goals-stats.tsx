@@ -24,7 +24,7 @@ export function GoalsStats() {
     <>
       {/* Free Plan Limit Notice */}
       {!hasProAccess && (stats?.active || 0) >= 3 && (
-        <GlassCard className="bg-yellow-50 border-yellow-200">
+        <GlassCard className="border-yellow-200 bg-yellow-50">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-semibold text-zinc-900">You&apos;ve reached your free plan limit</p>

@@ -30,7 +30,7 @@ export function GoalsLimitBanner({ activeGoalsCount }: GoalsLimitBannerProps) {
   const isExpired = user.subscriptionEndDate && new Date(user.subscriptionEndDate) < new Date()
 
   return (
-    <GlassCard className="bg-amber-50 border-amber-200">
+    <GlassCard className="border-amber-200 bg-amber-50">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />

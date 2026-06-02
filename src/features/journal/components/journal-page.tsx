@@ -93,7 +93,7 @@ export function JournalPage() {
           lamp, clickable to turn on/off the ambient page glow. Only
           one is visible at a time. */}
       {isNight ? (
-        <div className="pointer-events-none absolute -top-3 right-1 z-10 hidden sm:block sm:right-3">
+        <div className="pointer-events-none absolute -top-3 right-1 z-10 hidden sm:right-3 sm:block">
           <JournalLamp on={lampOn} onToggle={() => setLampOn((v) => !v)} />
         </div>
       ) : (
