@@ -61,7 +61,7 @@ export function FocusTrendCard({ view, filters, reportUserId }: FocusTrendCardPr
           <button
             type="button"
             onClick={() => setOffset((o) => o - 1)}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 px-3 py-2 text-xs"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 px-4 py-2 text-sm text-xs font-semibold text-zinc-900 transition-colors hover:bg-zinc-50 disabled:opacity-50"
           >
             Prev
           </button>

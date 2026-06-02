@@ -34,7 +34,7 @@ export function TaskList({ tasks, groupBy, onComplete, onEdit }: TaskListProps) 
   if (!tasks.length) {
     return (
       <div className="px-2 md:-ml-[3px] md:px-0">
-        <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm p-2 text-center font-mono text-gray-600 sm:p-6">
+        <div className="rounded-xl border border-zinc-200 bg-white p-2 p-4 text-center font-mono text-gray-600 shadow-sm sm:p-6">
           No tasks yet. Create one to link it to your schedule and goals.
         </div>
       </div>

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* eslint-disable */
+ 
 /**
  * Palette scorer test harness — 100+ cases against synthetic data.
  *

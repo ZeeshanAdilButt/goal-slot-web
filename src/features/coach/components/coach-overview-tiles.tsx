@@ -98,7 +98,7 @@ export function CoachOverviewTiles({ scopeKey }: CoachOverviewTilesProps) {
                 <span className={cn('mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg', tile.accent)}>
                   <Icon className="h-4 w-4" />
                 </span>
-                <span className="flex-1 min-w-0">
+                <span className="min-w-0 flex-1">
                   <span className="block text-sm font-semibold text-zinc-900">{tile.title}</span>
                   <span className="mt-0.5 block truncate text-[12px] text-zinc-500">{tile.summary}</span>
                 </span>
@@ -113,7 +113,7 @@ export function CoachOverviewTiles({ scopeKey }: CoachOverviewTilesProps) {
               <button
                 type="button"
                 onClick={() => setPopped(tile.id)}
-                className="absolute right-2 top-2 inline-flex h-6 w-6 items-center justify-center rounded-md text-zinc-400 opacity-0 transition-opacity hover:bg-zinc-100 hover:text-zinc-700 group-hover:opacity-100 focus-visible:opacity-100"
+                className="absolute right-2 top-2 inline-flex h-6 w-6 items-center justify-center rounded-md text-zinc-400 opacity-0 transition-opacity hover:bg-zinc-100 hover:text-zinc-700 focus-visible:opacity-100 group-hover:opacity-100"
                 title="Open in popup"
                 aria-label={`Open ${tile.title} in popup`}
               >

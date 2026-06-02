@@ -40,7 +40,7 @@ function RecommendationCard({
       </div>
       <div className="space-y-1">
         <h3 className="text-base font-semibold text-zinc-900">{title}</h3>
-        <p className="text-sm text-zinc-600 leading-relaxed">{body}</p>
+        <p className="text-sm leading-relaxed text-zinc-600">{body}</p>
       </div>
       {(onAccept || onDismiss) && (
         <div className="flex items-center gap-2 pt-1">

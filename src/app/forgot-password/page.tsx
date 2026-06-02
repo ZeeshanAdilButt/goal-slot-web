@@ -173,7 +173,7 @@ export default function ForgotPasswordPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@example.com"
-                      className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] pl-12"
+                      className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 pl-12 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
                       required
                     />
                   </div>
@@ -182,7 +182,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={sendOTPMutation.isPending}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 flex w-full items-center justify-center gap-2"
+                  className="flex inline-flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50"
                 >
                   {sendOTPMutation.isPending ? (
                     <Loading size="sm" className="h-5 w-5" />
@@ -248,7 +248,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={verifyOTPMutation.isPending || otp.length !== 6}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 flex w-full items-center justify-center gap-2"
+                  className="flex inline-flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50"
                 >
                   {verifyOTPMutation.isPending ? (
                     <Loading size="sm" className="h-5 w-5" />
@@ -264,7 +264,7 @@ export default function ForgotPasswordPage() {
                     type="button"
                     onClick={handleResendOTP}
                     disabled={resendCooldown > 0 || sendOTPMutation.isPending}
-                    className="font-mono text-sm font-bold uppercase text-accent-blue hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                    className="text-accent-blue font-mono text-sm font-bold uppercase hover:underline disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {resendCooldown > 0
                       ? `Resend Code (${resendCooldown}s)`
@@ -296,7 +296,7 @@ export default function ForgotPasswordPage() {
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] pl-12 pr-12"
+                      className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 pl-12 pr-12 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
                       required
                       minLength={8}
                     />
@@ -321,7 +321,7 @@ export default function ForgotPasswordPage() {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] pl-12 pr-12"
+                      className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 pl-12 pr-12 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
                       required
                       minLength={8}
                     />
@@ -339,7 +339,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={resetPasswordMutation.isPending}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 flex w-full items-center justify-center gap-2"
+                  className="flex inline-flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50"
                 >
                   {resetPasswordMutation.isPending ? (
                     <Loading size="sm" className="h-5 w-5" />
@@ -355,7 +355,7 @@ export default function ForgotPasswordPage() {
 
           <p className="mt-6 text-center font-mono text-sm">
             Remember your password?{' '}
-            <Link href="/login" className="font-bold text-accent-blue hover:underline">
+            <Link href="/login" className="text-accent-blue font-bold hover:underline">
               Login
             </Link>
           </p>

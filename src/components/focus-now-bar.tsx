@@ -132,7 +132,7 @@ export function FocusNowBar() {
             <Clock className="h-3 w-3 text-[#8a7307]" />
             {fmtShort(activeBlock.startTime)} - {fmtShort(activeBlock.endTime)}
           </span>
-          <span className="inline-flex items-center rounded-md bg-[#f2cc0d] px-2 py-0.5 text-[11px] font-bold text-zinc-900 tabular-nums">
+          <span className="inline-flex items-center rounded-md bg-[#f2cc0d] px-2 py-0.5 text-[11px] font-bold tabular-nums text-zinc-900">
             {remaining}
           </span>
           {upcoming && upcomingLabel && (
@@ -206,7 +206,7 @@ export function FocusNowBar() {
                     key={`${block.id}-${idx}`}
                     className="flex items-center gap-3 px-3 py-2.5"
                   >
-                    <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-zinc-800 text-[10px] font-bold text-[#f2cc0d] tabular-nums">
+                    <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-zinc-800 text-[10px] font-bold tabular-nums text-[#f2cc0d]">
                       {idx + 1}
                     </span>
                     <div className="min-w-0 flex-1">

@@ -84,7 +84,7 @@ export function FocusTimeGridCard({ view, filters, reportUserId }: FocusTimeGrid
           <button
             type="button"
             onClick={() => setOffset((o) => o - 1)}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 px-3 py-2 text-xs"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 px-4 py-2 text-sm text-xs font-semibold text-zinc-900 transition-colors hover:bg-zinc-50 disabled:opacity-50"
           >
             Prev
           </button>
@@ -212,7 +212,7 @@ export function FocusTimeGridCard({ view, filters, reportUserId }: FocusTimeGrid
 
                             {/* Hover card — full detail, works in every view but essential in month */}
                             {minutes > 0 && (
-                              <div className="pointer-events-none invisible absolute left-1/2 top-full z-40 mt-1 w-56 -translate-x-1/2 rounded-lg border border-zinc-200 bg-white p-3 text-left shadow-lg opacity-0 transition-opacity duration-100 group-hover:visible group-hover:opacity-100">
+                              <div className="pointer-events-none invisible absolute left-1/2 top-full z-40 mt-1 w-56 -translate-x-1/2 rounded-lg border border-zinc-200 bg-white p-3 text-left opacity-0 shadow-lg transition-opacity duration-100 group-hover:visible group-hover:opacity-100">
                                 <div className="mb-1 flex items-baseline justify-between gap-2">
                                   <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-500">
                                     {format(parseISO(day), 'MMM d')} - {formatHourLabel(hour)}

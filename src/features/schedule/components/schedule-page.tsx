@@ -173,7 +173,7 @@ export function SchedulePage() {
       )}
 
       {!hasProAccess && totalBlocks >= 5 && (
-        <GlassCard className="bg-yellow-50 border-yellow-200">
+        <GlassCard className="border-yellow-200 bg-yellow-50">
           <div className="flex items-center justify-between">
             <div>
               <p className="font-semibold text-zinc-900">Schedule limit reached (5 blocks)</p>

@@ -46,7 +46,7 @@ export function CategoryModal({ isOpen, onClose, category, onSubmit }: CategoryM
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] w-full"
+              className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
               placeholder="e.g., Learning"
               required
             />
@@ -76,10 +76,10 @@ export function CategoryModal({ isOpen, onClose, category, onSubmit }: CategoryM
           </div>
 
           <DialogFooter className="flex-row gap-4 pt-4">
-            <button type="button" onClick={onClose} className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 flex-1">
+            <button type="button" onClick={onClose} className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-900 transition-colors hover:bg-zinc-50 disabled:opacity-50">
               Cancel
             </button>
-            <button type="submit" disabled={isSubmitting} className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 flex-1">
+            <button type="submit" disabled={isSubmitting} className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50">
               {isSubmitting ? 'Saving...' : category ? 'Update' : 'Create'}
             </button>
           </DialogFooter>

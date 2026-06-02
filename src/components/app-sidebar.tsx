@@ -108,24 +108,24 @@ export function AppSidebar({ onOpenChangelog, hasUnseenChangelog }: AppSidebarPr
   return (
     <Sidebar side="left" variant="sidebar" collapsible="icon">
       <SidebarHeader className="border-b border-zinc-200 p-4 group-data-[collapsible=icon]:p-2">
-        <div className="flex items-center gap-2 justify-between w-full">
-          <Link href="/dashboard" className="group-data-[collapsible=icon]:hidden shrink-0">
+        <div className="flex w-full items-center justify-between gap-2">
+          <Link href="/dashboard" className="shrink-0 group-data-[collapsible=icon]:hidden">
             <GoalSlotBrand size="sm" showTagline={false} />
           </Link>
-          <div className="flex items-center gap-1 shrink-0 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:gap-1.5 ml-auto">
+          <div className="ml-auto flex shrink-0 items-center gap-1 group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-1.5">
             <button
               onClick={onOpenChangelog}
-              className="relative h-8 w-8 shrink-0 rounded-md hover:bg-zinc-100 text-zinc-500 
-              hidden md:flex items-center justify-center transition-colors animate-in fade-in zoom-in duration-200"
+              className="relative hidden h-8 w-8 shrink-0 items-center justify-center 
+              rounded-md text-zinc-500 transition-colors duration-200 animate-in fade-in zoom-in hover:bg-zinc-100 md:flex"
               title="What's New"
               aria-label="What's New changelog"
             >
               <Sparkles className="h-4 w-4" />
               {hasUnseenChangelog && (
-                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-[#f2cc0d] ring-1 ring-white" />
+                <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#f2cc0d] ring-1 ring-white" />
               )}
             </button>
-            <SidebarTrigger className="h-8 w-8 shrink-0 rounded-md hover:bg-zinc-100 text-zinc-500" />
+            <SidebarTrigger className="h-8 w-8 shrink-0 rounded-md text-zinc-500 hover:bg-zinc-100" />
           </div>
         </div>
       </SidebarHeader>
@@ -254,7 +254,7 @@ export function AppSidebar({ onOpenChangelog, hasUnseenChangelog }: AppSidebarPr
             <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
               <PopoverTrigger asChild>
                 <button
-                  className="flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-zinc-100 bg-zinc-900 text-white text-sm font-semibold transition-all hover:bg-zinc-800"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-900 text-sm font-semibold text-white ring-2 ring-zinc-100 transition-all hover:bg-zinc-800"
                   aria-label="User menu"
                 >
                   {user?.name?.charAt(0) || 'U'}

@@ -56,7 +56,7 @@ export function TestimonialsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.15 }}
-              className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm relative"
+              className="relative rounded-xl border border-zinc-200 bg-white p-4 shadow-sm"
             >
               <Quote className="absolute -left-3 -top-3 h-8 w-8 text-primary" />
               <p className="mb-6 font-mono leading-relaxed text-gray-700">"{testimonial.quote}"</p>
@@ -70,7 +70,7 @@ export function TestimonialsSection() {
                 </div>
               </div>
               <div className="mt-4 border border-zinc-200 bg-emerald-100/10 p-2 text-center">
-                <span className="font-mono text-sm font-bold text-accent-green">{testimonial.metric}</span>
+                <span className="text-accent-green font-mono text-sm font-bold">{testimonial.metric}</span>
               </div>
             </AnimatedSection>
           ))}
