@@ -12,6 +12,7 @@ import { useApplyTheme as _useApplyTheme } from '@/lib/use-theme'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { CommandPalette } from '@/components/command-palette'
+import { ShortcutsCheatsheet } from '@/components/shortcuts-cheatsheet'
 import { DailyCheckinBanner } from '@/components/daily-checkin-banner'
 import { GoalSlotSpinner } from '@/components/goalslot-logo'
 import { FocusNowBar } from '@/components/focus-now-bar'
@@ -20,6 +21,14 @@ import { TipsCorner } from '@/components/tips-corner'
 import { useLocalStorage } from '@/hooks/use-local-storage'
 import { ChangelogModal, CHANGELOG } from '@/components/changelog-modal'
 import { Sparkles } from 'lucide-react'
+
+/* The routine(userIsTyping), handles "?" key by not opening the modal when the user is typing in the input field, textarea or editor */
+function userIsTyping(target: EventTarget | null): boolean {
+  const editing_line = target as HTMLElement | null
+  if (!editing_line) return false
+  const tag = editing_line.tagName
+  return tag === 'INPUT' || tag === 'TEXTAREA' || editing_line.isContentEditable
+}
 
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -66,12 +75,25 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   // the browser's own "search bookmarks" shortcut doesn't fire. Plain `/`
   // is intentionally NOT bound here — too easy to trigger from inputs.
   const [paletteOpen, setPaletteOpen] = useState(false)
+  const [cheatsheetOpen, setCheatsheetOpen] = useState(false)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
         e.preventDefault()
         setPaletteOpen((v) => !v)
       }
+      // Cmd/Ctrl+/ opens the shortcuts cheat sheet.
+      if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+        e.preventDefault()
+        setCheatsheetOpen((v) => !v)
+        return
+      }
+      // '?' also open's but only when user is not typing in the textfields
+      if (e.key === '?' && !userIsTyping(e.target)) {
+        e.preventDefault()
+        setCheatsheetOpen((v) => !v)
+      }
+
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -147,6 +169,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         onClose={handleCloseChangelog}
         lastSeenChangelogAt={lastSeenChangelogAt}
       />
+      <ShortcutsCheatsheet open={cheatsheetOpen} onOpenChange={setCheatsheetOpen} />
       <TipsCorner />
     </SidebarProvider>
   )
