@@ -13,7 +13,6 @@ import { useDeleteNoteMutation, useUpdateNoteMutation } from '../hooks/use-notes
 import { Note, NOTE_COLORS, NOTE_ICONS } from '../utils/types'
 import { ShareNoteDialog } from './share-note-dialog'
 import { htmlToMarkdown, slugify } from '@/lib/html-to-markdown'
-import { htmlToMarkdown, slugify } from '@/lib/html-to-markdown'
 
 // Convert old block-based JSON content to HTML
 function convertOldContentToHtml(content: string): string {
