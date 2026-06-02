@@ -14,7 +14,7 @@ import {
   useCreateTaskMutation,
   useUpdateTaskMutation,
 } from '@/features/tasks/hooks/use-tasks-mutations'
-import { CreateTaskForm, Task, TaskStatus } from '@/features/tasks/utils/types'
+import { CreateTaskForm, SortBy, Task, TaskStatus } from '@/features/tasks/utils/types'
 import {
   addDays,
   addWeeks,
@@ -30,6 +30,8 @@ import {
 
 import { cn } from '@/lib/utils'
 import { useLocalStorage } from '@/hooks/use-local-storage'
+
+const STATUS_ORDER: Record<string, number> = { DOING: 0, TODO: 1, BACKLOG: 2, DONE: 3 }
 
 export function TasksPage() {
   const { tasks, scheduleBlocks, goals, isLoading, goalStatus, setGoalStatus } = useTasks()
@@ -62,6 +64,7 @@ export function TasksPage() {
     'tasks-goals-sidebar-collapsed',
     false,
   )
+  const [sortBy, setSortBy] = useLocalStorage<SortBy>('tasks-sort-by', 'newest')
 
   // Schedule-aware bucketing for the goals sidebar. For each linked goal:
   //   activeGoalIdsThisWeek: a block is happening RIGHT NOW
@@ -278,6 +281,26 @@ export function TasksPage() {
     return filteredTasks.filter((task) => task.status !== 'DONE')
   }, [filteredTasks, showCompleted])
 
+  const sortedTasks = useMemo(() => {
+    const arr = [...visibleTasks]
+    switch (sortBy) {
+      case 'due_date':
+        return arr.sort((a, b) => {
+          if (!a.dueDate && !b.dueDate) return 0
+          if (!a.dueDate) return 1
+          if (!b.dueDate) return -1
+          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+        })
+      case 'goal':
+        return arr.sort((a, b) => (a.goal?.title ?? '').localeCompare(b.goal?.title ?? ''))
+      case 'status':
+        return arr.sort((a, b) => (STATUS_ORDER[a.status] ?? 99) - (STATUS_ORDER[b.status] ?? 99))
+      case 'newest':
+      default:
+        return arr.sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime())
+    }
+  }, [visibleTasks, sortBy])
+
   const createTask = async (form: CreateTaskForm) => {
     try {
       await createTaskMutation.mutateAsync(form)
@@ -346,7 +369,7 @@ export function TasksPage() {
         <div className="flex min-h-0 flex-1 flex-col">
           <TasksView
             className="min-h-0 flex-1"
-            tasks={visibleTasks}
+            tasks={sortedTasks}
             onComplete={setCompletingTask}
             onEdit={setEditingTask}
             onCreate={() => setShowCreate(true)}
@@ -360,6 +383,8 @@ export function TasksPage() {
             goalsLoading={isLoading}
             showCompleted={showCompleted}
             onShowCompletedChange={setShowCompleted}
+            sortBy={sortBy}
+            onSortByChange={setSortBy}
             dueDateFilter={dueDateFilter}
             setDueDateFilter={setDueDateFilter}
             durationFilter={durationFilter}

@@ -7,7 +7,7 @@ import { GoalsSidebarMobile } from '@/features/tasks/components/goals-sidebar/go
 import { TaskBoard } from '@/features/tasks/components/task-board'
 import { TasksAdvancedFilters } from '@/features/tasks/components/tasks-advanced-filters'
 import { TasksFilters } from '@/features/tasks/components/tasks-filters'
-import { Goal, Task } from '@/features/tasks/utils/types'
+import { Goal, SortBy, Task } from '@/features/tasks/utils/types'
 import { PanelLeft, Plus, SlidersHorizontal } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -29,6 +29,8 @@ interface TasksViewProps {
   goalsLoading?: boolean
   showCompleted: boolean
   onShowCompletedChange: (show: boolean) => void
+  sortBy: SortBy
+  onSortByChange: (sort: SortBy) => void
   dueDateFilter: string
   setDueDateFilter: (value: string) => void
   durationFilter: string
@@ -261,7 +263,7 @@ export function TasksView({
           </div>
 
           <div className="ml-auto flex flex-wrap items-center gap-2">
-            <TasksFilters showCompleted={showCompleted} onShowCompletedChange={onShowCompletedChange} />
+            <TasksFilters showCompleted={showCompleted} onShowCompletedChange={onShowCompletedChange} sortBy={sortBy} onSortByChange={onSortByChange} />
             {viewMode === 'board' && (
               <span className="hidden rounded-md border border-dashed border-zinc-300 px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-zinc-500 lg:inline">
                 Drag to reorder

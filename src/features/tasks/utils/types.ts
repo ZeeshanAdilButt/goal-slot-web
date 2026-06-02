@@ -51,4 +51,6 @@ export interface CreateTaskForm {
 
 export type GroupBy = 'status' | 'day' | 'schedule'
 
+export type SortBy = 'newest' | 'due_date' | 'goal' | 'status'
+
 export type GroupedTasks = Array<[string, Task[]]>
