@@ -2,11 +2,12 @@
 
 import Link from 'next/link'
 
-import { LogOut, Moon, Settings, Sun, User as UserIcon } from 'lucide-react'
+import { LogOut, Settings } from 'lucide-react'
 
 import { useAuthStore } from '@/lib/store'
 import { useThemeStore } from '@/lib/use-theme'
 import { cn } from '@/lib/utils'
+import { UserAvatar } from '@/components/user-avatar'
 
 interface SidebarFooterContentProps {
   onLogout: () => void
@@ -14,13 +15,8 @@ interface SidebarFooterContentProps {
 
 export function SidebarFooterContent({ onLogout }: SidebarFooterContentProps) {
   const { user } = useAuthStore()
-  const theme = useThemeStore((s) => s.theme)
-  const toggleTheme = useThemeStore((s) => s.toggle)
-  const isDark = theme === 'dark'
-
   const isPro = user?.plan === 'PRO' || user?.unlimitedAccess
   const planLabel = isPro ? 'PRO' : user?.plan || 'FREE'
-  const initial = user?.name?.charAt(0)?.toUpperCase() || 'U'
 
   return (
     <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 shadow-sm">
@@ -29,8 +25,8 @@ export function SidebarFooterContent({ onLogout }: SidebarFooterContentProps) {
         title={user?.email || user?.name || 'Profile'}
         className="flex min-w-0 flex-1 items-center gap-2 rounded-md px-1 py-0.5 transition-colors hover:bg-zinc-50"
       >
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-xs font-semibold text-white">
-          {initial}
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center">
+          {user && <UserAvatar user={user} size="md" />}
         </span>
         <span className="flex min-w-0 flex-1 flex-col leading-tight">
           <span className="flex min-w-0 items-center gap-1.5">
