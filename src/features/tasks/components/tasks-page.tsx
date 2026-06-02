@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
-
+import { sortTasks, isTaskSort } from '@/features/tasks/utils/sort-tasks'
 import { CompleteTaskModal } from '@/features/tasks/components/complete-task-modal'
 import { CreateTaskModal } from '@/features/tasks/components/create-task-modal'
 import { GoalsSidebar } from '@/features/tasks/components/goals-sidebar'
@@ -58,6 +58,8 @@ export function TasksPage() {
   const [customDateEnd, setCustomDateEnd] = useLocalStorage('tasks-custom-date-end', '')
   const [customDurationMin, setCustomDurationMin] = useLocalStorage<number | ''>('tasks-custom-duration-min', '')
   const [customDurationMax, setCustomDurationMax] = useLocalStorage<number | ''>('tasks-custom-duration-max', '')
+  const [sortKey, setSortKey] = useLocalStorage<string>('goalslot.tasks.sort', 'newest')
+
   const [isGoalsSidebarCollapsed, setIsGoalsSidebarCollapsed, isGoalsSidebarInitialized] = useLocalStorage(
     'tasks-goals-sidebar-collapsed',
     false,
@@ -88,35 +90,35 @@ export function TasksPage() {
       if (Number.isNaN(h) || Number.isNaN(m)) return null
       return h * 60 + m
     }
-    ;(scheduleBlocks ?? []).forEach(
-      (b: {
-        goalId?: string | null
-        dayOfWeek?: number | null
-        startTime?: string | null
-        endTime?: string | null
-      }) => {
-        if (!b.goalId || typeof b.dayOfWeek !== 'number') return
-        const start = parseHM(b.startTime)
-        const end = parseHM(b.endTime)
-        if (start == null || end == null) return
-        if (b.dayOfWeek === todayDow) {
-          hadToday.add(b.goalId)
-          if (nowMinutes >= start && nowMinutes < end) {
-            active.add(b.goalId)
-            nextMins.set(b.goalId, 0)
-            return
+      ; (scheduleBlocks ?? []).forEach(
+        (b: {
+          goalId?: string | null
+          dayOfWeek?: number | null
+          startTime?: string | null
+          endTime?: string | null
+        }) => {
+          if (!b.goalId || typeof b.dayOfWeek !== 'number') return
+          const start = parseHM(b.startTime)
+          const end = parseHM(b.endTime)
+          if (start == null || end == null) return
+          if (b.dayOfWeek === todayDow) {
+            hadToday.add(b.goalId)
+            if (nowMinutes >= start && nowMinutes < end) {
+              active.add(b.goalId)
+              nextMins.set(b.goalId, 0)
+              return
+            }
+            if (start > nowMinutes) {
+              upcomingToday.add(b.goalId)
+            }
           }
-          if (start > nowMinutes) {
-            upcomingToday.add(b.goalId)
-          }
-        }
-        let daysUntil = (b.dayOfWeek - todayDow + 7) % 7
-        let blockNow = daysUntil * 1440 + start - nowMinutes
-        if (blockNow < 0) blockNow += 7 * 1440
-        const prev = nextMins.get(b.goalId)
-        if (prev === undefined || blockNow < prev) nextMins.set(b.goalId, blockNow)
-      },
-    )
+          let daysUntil = (b.dayOfWeek - todayDow + 7) % 7
+          let blockNow = daysUntil * 1440 + start - nowMinutes
+          if (blockNow < 0) blockNow += 7 * 1440
+          const prev = nextMins.get(b.goalId)
+          if (prev === undefined || blockNow < prev) nextMins.set(b.goalId, blockNow)
+        },
+      )
     // Past today = had a block today, but no more upcoming today and not active.
     const past = new Set<string>()
     hadToday.forEach((id) => {
@@ -273,10 +275,15 @@ export function TasksPage() {
     customDurationMax,
   ])
 
+  const sortedTasks = useMemo(
+    () => sortTasks(filteredTasks, isTaskSort(sortKey) ? sortKey : 'newest'),
+    [filteredTasks, sortKey],
+  )
+
   const visibleTasks = useMemo(() => {
-    if (showCompleted) return filteredTasks
-    return filteredTasks.filter((task) => task.status !== 'DONE')
-  }, [filteredTasks, showCompleted])
+    if (showCompleted) return sortedTasks
+    return sortedTasks.filter((task) => task.status !== 'DONE')
+  }, [sortedTasks, showCompleted])
 
   const createTask = async (form: CreateTaskForm) => {
     try {
@@ -377,6 +384,8 @@ export function TasksPage() {
             hasActiveFilters={hasActiveFilters}
             onResetFilters={resetFilters}
             goalsSidebarCollapsed={goalsSidebarCollapsed}
+            sortKey={isTaskSort(sortKey) ? sortKey : 'newest'}
+            onSortChange={setSortKey}
             onToggleGoalsSidebar={() => setIsGoalsSidebarCollapsed((prev) => !prev)}
           />
 

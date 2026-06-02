@@ -13,6 +13,15 @@ import { PanelLeft, Plus, SlidersHorizontal } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { GoalSlotSpinner } from '@/components/goalslot-logo'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { TaskSort, TASK_SORT_OPTIONS } from '@/features/tasks/utils/sort-tasks'
+
 
 interface TasksViewProps {
   tasks: Task[]
@@ -47,7 +56,10 @@ interface TasksViewProps {
   onResetFilters: () => void
   goalsSidebarCollapsed?: boolean
   onToggleGoalsSidebar?: () => void
-  className?: string
+  className?: string,
+  sortKey: TaskSort,
+  onSortChange: (value: TaskSort) => void
+
 }
 
 export function TasksView({
@@ -84,6 +96,8 @@ export function TasksView({
   goalsSidebarCollapsed = false,
   onToggleGoalsSidebar,
   className,
+  sortKey,
+  onSortChange
 }: TasksViewProps) {
   const [viewMode, setViewMode] = useState<'board' | 'list'>('board')
 
@@ -189,55 +203,55 @@ export function TasksView({
           <div className="flex items-center gap-2">
             {/* Search */}
             <input
-                type="text"
-                placeholder="Search tasks..."
-                value={searchQuery}
-                onChange={(e) => onSearchQueryChange(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Escape' && searchQuery) {
-                    e.preventDefault()
-                    onSearchQueryChange('')
-                  }
-                }}
-                className="h-8 w-44 rounded-md border border-zinc-200 bg-white px-3 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] sm:w-56"
-              />
-              <Sheet>
-                <SheetTrigger asChild>
-                  <button className="flex h-8 items-center gap-2 rounded-sm border border-zinc-200 bg-white px-2 text-[10px] font-bold uppercase shadow-sm md:hidden">
-                    <SlidersHorizontal className="h-3 w-3" />
-                    Filters
-                    {hasActiveFilters ? <span className="ml-1 h-1.5 w-1.5 rounded-full bg-red-500" /> : null}
-                  </button>
-                </SheetTrigger>
-                <SheetContent
-                  side="bottom"
-                  className="max-h-[85svh] overflow-y-auto border-t border-zinc-200 bg-[#fafafa]"
-                >
-                  <SheetHeader className="text-left">
-                    <SheetTitle className="font-display text-sm font-bold uppercase text-zinc-900">Filters</SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-4">
-                    <TasksAdvancedFilters
-                      dueDateFilter={dueDateFilter}
-                      setDueDateFilter={setDueDateFilter}
-                      durationFilter={durationFilter}
-                      setDurationFilter={setDurationFilter}
-                      customDateStart={customDateStart}
-                      setCustomDateStart={setCustomDateStart}
-                      customDateEnd={customDateEnd}
-                      setCustomDateEnd={setCustomDateEnd}
-                      customDurationMin={customDurationMin}
-                      setCustomDurationMin={setCustomDurationMin}
-                      customDurationMax={customDurationMax}
-                      setCustomDurationMax={setCustomDurationMax}
-                      showReset={hasActiveFilters}
-                      onReset={onResetFilters}
-                      variant="stacked"
-                    />
-                  </div>
-                </SheetContent>
-              </Sheet>
-            </div>
+              type="text"
+              placeholder="Search tasks..."
+              value={searchQuery}
+              onChange={(e) => onSearchQueryChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape' && searchQuery) {
+                  e.preventDefault()
+                  onSearchQueryChange('')
+                }
+              }}
+              className="h-8 w-44 rounded-md border border-zinc-200 bg-white px-3 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] sm:w-56"
+            />
+            <Sheet>
+              <SheetTrigger asChild>
+                <button className="flex h-8 items-center gap-2 rounded-sm border border-zinc-200 bg-white px-2 text-[10px] font-bold uppercase shadow-sm md:hidden">
+                  <SlidersHorizontal className="h-3 w-3" />
+                  Filters
+                  {hasActiveFilters ? <span className="ml-1 h-1.5 w-1.5 rounded-full bg-red-500" /> : null}
+                </button>
+              </SheetTrigger>
+              <SheetContent
+                side="bottom"
+                className="max-h-[85svh] overflow-y-auto border-t border-zinc-200 bg-[#fafafa]"
+              >
+                <SheetHeader className="text-left">
+                  <SheetTitle className="font-display text-sm font-bold uppercase text-zinc-900">Filters</SheetTitle>
+                </SheetHeader>
+                <div className="mt-4">
+                  <TasksAdvancedFilters
+                    dueDateFilter={dueDateFilter}
+                    setDueDateFilter={setDueDateFilter}
+                    durationFilter={durationFilter}
+                    setDurationFilter={setDurationFilter}
+                    customDateStart={customDateStart}
+                    setCustomDateStart={setCustomDateStart}
+                    customDateEnd={customDateEnd}
+                    setCustomDateEnd={setCustomDateEnd}
+                    customDurationMin={customDurationMin}
+                    setCustomDurationMin={setCustomDurationMin}
+                    customDurationMax={customDurationMax}
+                    setCustomDurationMax={setCustomDurationMax}
+                    showReset={hasActiveFilters}
+                    onReset={onResetFilters}
+                    variant="stacked"
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
 
           {/* Filters Row (inline on md+) */}
           <div className="hidden flex-wrap items-center gap-2 md:flex">
@@ -261,6 +275,19 @@ export function TasksView({
           </div>
 
           <div className="ml-auto flex flex-wrap items-center gap-2">
+            {/* sort functionality for the tasks */}
+            <Select value={sortKey} onValueChange={(v) => onSortChange(v as TaskSort)}>
+              <SelectTrigger className="h-8 w-[150px] rounded-md border-zinc-200 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TASK_SORT_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <TasksFilters showCompleted={showCompleted} onShowCompletedChange={onShowCompletedChange} />
             {viewMode === 'board' && (
               <span className="hidden rounded-md border border-dashed border-zinc-300 px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-zinc-500 lg:inline">
