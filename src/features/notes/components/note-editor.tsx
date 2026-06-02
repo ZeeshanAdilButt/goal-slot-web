@@ -12,6 +12,8 @@ import { TiptapEditor } from '@/components/tiptap-editor'
 import { useDeleteNoteMutation, useUpdateNoteMutation } from '../hooks/use-notes'
 import { Note, NOTE_COLORS, NOTE_ICONS } from '../utils/types'
 import { ShareNoteDialog } from './share-note-dialog'
+import { htmlToMarkdown, slugify } from '@/lib/html-to-markdown'
+import { htmlToMarkdown, slugify } from '@/lib/html-to-markdown'
 
 // Convert old block-based JSON content to HTML
 function convertOldContentToHtml(content: string): string {
@@ -261,6 +263,20 @@ export function NoteEditor({ note, onDelete, readOnly = false, sharedBy = null }
     setShowMenu(false)
   }
 
+  // Export as Markdown file
+  const handleExportMarkdown = () => {
+    const frontmatter = `---\ntitle: ${title || 'Untitled'}\ncreated: ${new Date(note.createdAt).toISOString()}\nupdated: ${new Date(note.updatedAt).toISOString()}\n---\n\n`
+    const body = htmlToMarkdown(editorContent)
+    const blob = new Blob([frontmatter + body], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${slugify(title || 'untitled-note')}.md`
+    a.click()
+    URL.revokeObjectURL(url)
+    setShowMenu(false)
+  }
+
   // Get current color styles
   const colorConfig = NOTE_COLORS.find((c) => c.value === note.color) || NOTE_COLORS[0]
 
@@ -440,6 +456,13 @@ export function NoteEditor({ note, onDelete, readOnly = false, sharedBy = null }
               >
                 <Download className="h-4 w-4" />
                 Download as .html
+              </button>
+              <button
+                onClick={handleExportMarkdown}
+                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"
+              >
+                <Download className="h-4 w-4" />
+                Download as .md
               </button>
               <hr className="my-1 border-border" />
               <button
