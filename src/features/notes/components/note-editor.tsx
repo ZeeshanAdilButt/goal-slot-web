@@ -264,7 +264,11 @@ export function NoteEditor({ note, onDelete, readOnly = false, sharedBy = null }
 
   // Export as Markdown file
   const handleExportMarkdown = () => {
-    const frontmatter = `---\ntitle: ${title || 'Untitled'}\ncreated: ${new Date(note.createdAt).toISOString()}\nupdated: ${new Date(note.updatedAt).toISOString()}\n---\n\n`
+    const safeTitle = (title || 'Untitled')
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"')
+      .replace(/\n/g, '\\n')
+    const frontmatter = `---\ntitle: "${safeTitle}"\ncreated: ${new Date(note.createdAt).toISOString()}\nupdated: ${new Date(note.updatedAt).toISOString()}\n---\n\n`
     const body = htmlToMarkdown(editorContent)
     const blob = new Blob([frontmatter + body], { type: 'text/markdown' })
     const url = URL.createObjectURL(blob)
