@@ -152,7 +152,7 @@ export function useJournalEntries() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query.isLoading, query.data, hasEnsuredToday])
 
-  const entries = query.data ?? []
+  const entries = useMemo(() => query.data ?? [], [query.data])
 
   const sortedEntries = useMemo(
     () => [...entries].sort((a, b) => (a.date < b.date ? 1 : -1)),
