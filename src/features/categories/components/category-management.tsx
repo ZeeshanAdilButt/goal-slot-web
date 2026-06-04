@@ -79,7 +79,7 @@ export function CategoryManagement() {
             {categories.map((category) => (
               <div
                 key={category.id}
-                className="flex items-center justify-between border border-zinc-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
+                className="flex items-center justify-between border border-zinc-200 bg-white p-4"
               >
                 <div className="flex min-w-0 items-center gap-4">
                   <div
@@ -94,13 +94,13 @@ export function CategoryManagement() {
                     <span className="shrink-0 rounded-full bg-gray-200 px-2 py-1 text-xs font-bold uppercase">Default</span>
                   )}
                 </div>
-                <div className="flex shrink-0 items-center gap-2 sm:self-auto">
-                  <button onClick={() => setEditingCategory(category)} className="inline-flex h-11 w-11 items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50">
+                <div className="flex shrink-0 items-center gap-2">
+                  <button onClick={() => setEditingCategory(category)} className="inline-flex h-11 w-11 items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold transition-colors hover:bg-zinc-50 disabled:opacity-50">
                     <Edit2 className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => setDeletingCategory(category)}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg border h-11 w-11 border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 p-2 text-red-600"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg border h-11 w-11 border-zinc-200 bg-white text-zinc-900 text-sm font-semibold transition-colors hover:bg-zinc-50 disabled:opacity-50 p-2 text-red-600"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
