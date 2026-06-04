@@ -46,6 +46,8 @@ import {
 } from '@/components/ui/sidebar'
 import { GoalSlotBrand } from '@/components/goalslot-logo'
 import { SidebarFooterContent } from '@/components/sidebar-footer-content'
+// routine (flushSync) allows react to do the render and compile at the same time
+import { flushSync } from 'react-dom'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -83,10 +85,19 @@ export function AppSidebar({ onOpenChangelog, hasUnseenChangelog }: AppSidebarPr
   const isAdmin = useIsAdmin()
   const { insights: proposedInsights } = useCoachInsights('PROPOSED')
   const proposedCount = proposedInsights.length
-  const { state, isMobile } = useSidebar()
+  const { state, isMobile, setOpenMobile } = useSidebar()
   const [popoverOpen, setPopoverOpen] = useState(false)
   const isCollapsed = state === 'collapsed'
   const shouldShowPopover = isCollapsed && !isMobile
+
+  /* this routine makes the sidebar to close when clicked on the page in the mobile screens,handling the mobile sidebar navigation's */
+  const handleMobileSidebarNav = () => {
+    if (isMobile) {
+      flushSync(() => {
+        setOpenMobile(false)
+      })
+    }
+  }
 
   const activeNavHref = useMemo(() => {
     const matchingItem = navItems
@@ -109,7 +120,7 @@ export function AppSidebar({ onOpenChangelog, hasUnseenChangelog }: AppSidebarPr
     <Sidebar side="left" variant="sidebar" collapsible="icon">
       <SidebarHeader className="border-b border-zinc-200 p-4 group-data-[collapsible=icon]:p-2">
         <div className="flex w-full items-center justify-between gap-2">
-          <Link href="/dashboard" className="shrink-0 group-data-[collapsible=icon]:hidden">
+          <Link href="/dashboard" className="shrink-0 group-data-[collapsible=icon]:hidden" onClick={handleMobileSidebarNav}>
             <GoalSlotBrand size="sm" showTagline={false} />
           </Link>
           <div className="ml-auto flex shrink-0 items-center gap-1 group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-1.5">
@@ -148,7 +159,7 @@ export function AppSidebar({ onOpenChangelog, hasUnseenChangelog }: AppSidebarPr
                       tooltip={item.label}
                       className="h-8"
                     >
-                      <Link href={item.href}>
+                      <Link href={item.href} onClick={handleMobileSidebarNav}>
                         {isJournal ? (
                           // Journal pen: brand-yellow glow that pulses on
                           // a slow 2.4s beat (journal-glow), with an
@@ -229,7 +240,7 @@ export function AppSidebar({ onOpenChangelog, hasUnseenChangelog }: AppSidebarPr
                         tooltip={item.label}
                         className="h-8"
                       >
-                        <Link href={item.href}>
+                        <Link href={item.href} onClick={handleMobileSidebarNav}>
                           <item.icon
                             className={cn(
                               'h-4 w-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5',
