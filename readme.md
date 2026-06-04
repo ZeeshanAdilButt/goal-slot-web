@@ -1,192 +1,116 @@
 # GoalSlot Web
 
+The web app for [GoalSlot](https://goalslot.io), an open-source goal-driven productivity tool that ties goals, schedule, time tracking, tasks, notes, and reports into one place.
 
-**GoalSlot** is a goal-driven productivity web application. It connects your **goals**, **weekly schedule**, **time tracking**, **tasks**, **notes**, and **reports** in one place—so you can see whether your time actually matches your intentions.
+If your todo list is in one app, your calendar in another, your time tracking in a third, and your reflections in a notes app, GoalSlot is the version where they share state. Define goals, block recurring time for each one on a weekly schedule, track time live or log it manually, capture notes against any goal, and at the end of the week see whether your hours actually matched your intentions.
 
+- **Live app:** https://app.goalslot.io
+- **Live API:** https://api.goalslot.io
+- **Backend repo:** [goal-slot-api](https://github.com/ZeeshanAdilButt/goal-slot-api)
 
-## Table of Contents
+## What it does
 
-- [About the Project](#about-the-project)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Architecture](#architecture)
-- [Prerequisites](#prerequisites)
-- [Getting Started](#getting-started)
-- [Environment Variables](#environment-variables)
-- [Running the Project](#running-the-project)
-- [Available Scripts](#available-scripts)
-- [Project Structure](#project-structure)
-- [Troubleshooting](#troubleshooting)
-- [License](#license)
+| Module | What it covers |
+|---|---|
+| **Goals** | Kanban-style goals with deadlines, progress, categories, labels, and linked tasks |
+| **Weekly schedule** | Recurring time blocks (Deep Work, Learning, etc.) tied to specific goals |
+| **Time tracker** | Live timer with start/stop, plus manual entry, linked to schedule blocks |
+| **Tasks** | Daily and per-goal task lists with priority and status |
+| **Notes** | Rich Tiptap editor with slash commands, sub-bullets, drag-and-drop sidebar, markdown export |
+| **Coach AI** | Optional Socratic layer using your own OpenAI, Anthropic, or Gemini key (BYOK), with a shared fallback for users without a key |
+| **Reports** | Daily, weekly, and monthly focus charts and CSV exports |
+| **Sharing** | Per-goal and per-report public links plus email invites |
+| **Integrations** | Notion (in progress, [#190](https://github.com/ZeeshanAdilButt/goal-slot-web/issues/190)), Whiteboards (in progress, [#203](https://github.com/ZeeshanAdilButt/goal-slot-web/issues/203)), `goalslot` CLI (open scope, [api#27](https://github.com/ZeeshanAdilButt/goal-slot-api/issues/27)) |
+| **Auth** | Email + OTP, Google OAuth (in progress), token refresh, optional Supabase SSO |
+| **PWA** | Installable progressive web app |
+| **Analytics** | Optional PostHog integration |
 
----
+## Why open source?
 
-## About the Project
+Most productivity tools either own your data or rent it back to you. GoalSlot is open source, self-hostable, and contributor-driven. The roadmap lives on the public issue board, not behind a paywall.
 
-Most people use several disconnected tools: a todo app for tasks, a calendar for scheduling, Toggl for time tracking, Notion for notes, and spreadsheets for reports. **GoalSlot** unifies that workflow:
+## New here? Start with these two files
 
-1. Define **goals** with deadlines and progress.
-2. Block **recurring time** on a weekly schedule for each goal.
-3. **Track time** with a live timer (linked to schedule blocks).
-4. Review **analytics** to see where your hours went.
-5. Capture **notes** with a rich editor and link them to goals.
-6. **Share** progress for accountability.
+1. **[SETUP.md](SETUP.md)** walks you from "I just found this repo on GitHub" to "I have the dev server running at localhost:3010" in 15 to 30 minutes. Covers forking, cloning, env vars, install, run, and the common errors with fixes.
+2. **[CONTRIBUTING.md](CONTRIBUTING.md)** is the contribution flow. **Read it before you write any code.** The single hard rule is **claim-before-you-code**: pick an open issue, comment to claim it, wait for a maintainer to assign it to you, then open the PR. Skipping the claim step results in the PR being closed, even if the code is good, because we already promised the work to whoever is assigned.
 
+Looking for something to take? Browse the [open issues](https://github.com/ZeeshanAdilButt/goal-slot-web/issues) and filter on labels `good first issue` or `help wanted`. The backend has its own backlog at [goal-slot-api/issues](https://github.com/ZeeshanAdilButt/goal-slot-api/issues). Cross-repo features (touching both web and api) are tracked with linked PRs that ship together.
 
-## Features
+## Tech stack
 
-| Module | Description |
-|--------|-------------|
-| **Goal Boards** | Kanban-style goals with deadlines, progress, and linked tasks |
-| **Weekly Schedule** | Recurring time blocks (e.g. Deep Work, Learning) tied to goals |
-| **Time Tracker** | Live timer and manual entries linked to schedule blocks |
-| **Tasks** | Daily task lists connected to goals |
-| **Notes** | TipTap-based rich editor with slash commands |
-| **Reports** | Charts and exports (daily / weekly / monthly focus) |
-| **Sharing** | Share goals/reports with others |
-| **Auth** | Email/password login, registration, token refresh, optional SSO |
-| **Admin** | User management, feedback, release notes (role-based) |
-| **PWA** | Installable progressive web app (production builds) |
-| **Analytics** | PostHog integration for product analytics |
+| Layer | Choice |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| UI | React 19, Tailwind CSS, Radix UI primitives, shadcn/ui patterns |
+| Language | TypeScript |
+| State | Zustand for client state, TanStack Query for server state |
+| HTTP | Axios with shared auth interceptor |
+| Editor | Tiptap 3 with custom extensions (Notion-style blocks, indent, slash commands) |
+| Drag and drop | dnd-kit |
+| Command palette | cmdk |
+| Charts | Recharts |
+| Analytics | PostHog (optional) |
+| Package manager | **pnpm** (do not use npm or yarn; the lockfile is `pnpm-lock.yaml`) |
 
----
+## Quick start
 
-## Tech Stack
+Full walkthrough including Postgres-free development against the staging API is in [SETUP.md](SETUP.md). TL;DR:
 
-| Layer | Technology |
-|-------|------------|
-| Framework | [Next.js 16]
-| UI | [React 19], [Tailwind CSS]
-| Language | [TypeScript]
-| State | [Zustand], [TanStack Query]
-| HTTP | [Axios]
-| Editor | [TipTap]
-| Charts | [Recharts]
-| UI primitives | [Radix UI]
-|
+```bash
+git clone https://github.com/YOUR_USERNAME/goal-slot-web.git
+cd goal-slot-web
+pnpm install
+cp .env.example .env.local
+# edit .env.local: NEXT_PUBLIC_API_URL=https://api.goalslot.io, PORT=3010
+pnpm dev
+```
 
+App at http://localhost:3010.
 
 ## Architecture
 
 ```
-┌─────────────────┐         HTTP (REST)          ┌──────────────────────┐
-│  goal-slot-web  │  ─────────────────────────►  │  GoalSlot Backend    │
-│  (this repo)    │   NEXT_PUBLIC_API_URL        │  (separate repo)     │
-│  Port: 3010     │   e.g. http://localhost:4000 │  Port: 4000 (default)│
-└─────────────────┘                              └──────────────────────┘
-         │
-         │  Optional: PostHog, SSO platform
-         ▼
+┌─────────────────┐       HTTP (REST + JWT)         ┌─────────────────────────┐
+│  goal-slot-web  │ ──────────────────────────────► │      goal-slot-api      │
+│  (this repo)    │   NEXT_PUBLIC_API_URL           │    (NestJS + Prisma)    │
+│   Next.js 16    │   default: api.goalslot.io      │  Postgres via Supabase  │
+└─────────────────┘                                 └─────────────────────────┘
 ```
 
-## Prerequisites
+Optional integrations: PostHog for analytics, Supabase SSO, Notion (in progress).
 
-Install the following **before** cloning:
+## Scripts
 
-| Tool | Version | Purpose |
-|------|---------|---------|
-| **Node.js** | 18.18+ or **20.x LTS** (recommended) | Runtime |
-| **npm** | 9+ (comes with Node) | Package manager |
-| **Git** | Latest | Clone and contribute |
-| **GoalSlot Backend** | As per backend README | API, auth, database |
-| **Code editor** | VS Code / Cursor (optional) | Development |
+| Command | What it does |
+|---|---|
+| `pnpm dev` | Dev server with hot reload on port 3010 |
+| `pnpm build` | Production build |
+| `pnpm start` | Run the production build on port 3010 |
+| `pnpm lint` | ESLint |
+| `pnpm tsc --noEmit` | Type-check without emitting |
 
-Verify installations:
+## Project layout
 
-```bash
-node -v    # should be v18.18+ or v20+
-npm -v
-git --version
 ```
-
----
-
-## Getting Started
-
-Follow these steps from a clean machine.
-
-### 1. Clone the repository
-
-```bash
-git clone  `git repo url`
-cd pathname
-```
-
-### 2. Install dependencies
-
-```bash
-npm install
-```
-
-### 3. Configure environment variables
-
-```bash
-cp .env.example .env.local
-```
-
-Edit `.env.local` with your values
-
-
-### 5. Start the web app
-
-```bash
-npm run dev
-```
-
-Open in your browser:
-
-```text
-http://localhost:3010
-```
-
-### 6. Create an account or log in
-
-- **Sign up:** [http://localhost:3010/signup](http://localhost:3010/signup)
-- **Log in:** [http://localhost:3010/login](http://localhost:3010/login)
-- **Dashboard:** [http://localhost:3010/dashboard](http://localhost:3010/dashboard)
-
----
-
-
-## Running the Project
-
-### Development
-
-```bash
-npm run dev
-```
-
-- URL: **http://localhost:3010**
-- Hot reload enabled
-
-### Production build
-
-```bash
-npm run build
-npm run start
-```
-
----
-
-
-## Project Structure
-
-```text
 goal-slot-web/
-├── public/                 # Static assets, PWA icons, marketing images
 ├── src/
-│   ├── app/                # Next.js App Router pages & layouts
-│   │   ├── dashboard/      # Authenticated app (goals, schedule, reports, …)
-│   │   ├── login/          # Auth pages
-│   │   └── signup/
-│   ├── components/         # Shared UI (buttons, dialogs, block editor, …)
-│   ├── content/            # MDX/Markdown guides
-│   ├── features/           # Feature modules (goals, time-tracker, reports, …)
+│   ├── app/                # Next.js App Router pages
+│   │   ├── dashboard/      # Authenticated app
+│   │   ├── login/
+│   │   ├── signup/
+│   │   ├── share/          # Public share links
+│   │   └── auth/callback/  # OAuth callback (Google, etc.)
+│   ├── components/         # Shared UI primitives
+│   ├── features/           # Goals, time-tracker, notes, reports, coach, sharing, settings
 │   ├── hooks/              # Shared React hooks
-│   └── lib/                # API client, stores, utilities
-├── .env.example            # Environment template
-├── next.config.js          # Next.js, PWA, PostHog, API rewrites
-├── package.json
-├── tailwind.config.ts
-└── tsconfig.json
+│   ├── lib/                # API client, stores, utilities
+│   └── content/            # MDX/Markdown guides
+├── public/                 # Static assets, PWA icons
+├── SETUP.md                # First-time setup walkthrough
+├── CONTRIBUTING.md         # Contribution flow (READ BEFORE WRITING CODE)
+└── readme.md               # This file
 ```
+
+## Questions
+
+Open a discussion or comment on the relevant issue. For setup help specifically, see the troubleshooting section in [SETUP.md](SETUP.md) or open a new issue with label `setup-help`.

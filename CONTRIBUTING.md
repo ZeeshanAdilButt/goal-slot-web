@@ -131,6 +131,36 @@ contributor's intermediate PRs within a multi-PR plan (e.g., Notion
 auth as PR 1 of 3) AS LONG AS the staged plan was pre-approved in the
 issue by a maintainer.
 
+## Changing environment variables
+
+If your PR adds, renames, or removes any environment variable (touches
+`.env.example`, reads a new `process.env.X` or `configService.get('X')`,
+or otherwise requires production config to change), it does NOT merge
+until the new value is live on the target deploy environment. This is
+non-negotiable because the API auto-deploys on every push to `main`,
+and a missing env var has already taken production down once.
+
+What this looks like in practice:
+
+- Call out the new env vars at the top of the PR description in a
+  `### Required env vars` section, with one bullet per var explaining
+  what it is and where the value should come from.
+- Mirror the new vars in `.env.example` with a clear placeholder so
+  other contributors can run the feature locally.
+- Tag the maintainer (@ZeeshanAdilButt) in the PR comments and wait for
+  explicit confirmation that the production env has been updated before
+  you merge.
+- If your code reads the new var in a module-level constructor (e.g. a
+  Passport strategy's `super({ clientID: ... })`), guard the strategy
+  so it does NOT register when the var is missing. Otherwise a missing
+  var crashes the whole API at bootstrap, not just the new feature.
+  See the auth module for examples.
+
+**You merge your own PR once the maintainer confirms the env is live.**
+Maintainers do not press the merge button on contributor PRs, they
+approve and let the contributor merge when production is ready to
+receive the change.
+
 ## Comment style on PRs and issues
 
 Write like a human who wants the next contributor to learn from this

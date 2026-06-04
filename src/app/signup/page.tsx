@@ -232,7 +232,7 @@ function SignupForm() {
                 <button
                   type="submit"
                   disabled={sendOTPMutation.isPending || checkEmailMutation.isPending}
-                  className="flex inline-flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50"
                 >
                   {sendOTPMutation.isPending || checkEmailMutation.isPending ? (
                     <Loading size="sm" className="h-5 w-5" />
@@ -242,6 +242,22 @@ function SignupForm() {
                     </>
                   )}
                 </button>
+                <div className="mt-4">
+                  <div className="relative flex items-center">
+                    <div className="flex-grow border-t border-zinc-200" />
+                    <div className="mx-4 text-xs text-zinc-400">or</div>
+                    <div className="flex-grow border-t border-zinc-200" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      (window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/auth/google`)
+                    }
+                    className="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-800 hover:bg-zinc-50"
+                  >
+                    Continue with Google
+                  </button>
+                </div>
               </form>
             </>
           ) : (
@@ -295,7 +311,7 @@ function SignupForm() {
                 <button
                   type="submit"
                   disabled={registerMutation.isPending || otp.length !== 6}
-                  className="flex inline-flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50"
                 >
                   {registerMutation.isPending ? (
                     <Loading size="sm" className="h-5 w-5" />
