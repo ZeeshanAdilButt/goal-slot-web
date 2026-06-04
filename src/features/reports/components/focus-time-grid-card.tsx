@@ -92,7 +92,10 @@ export function FocusTimeGridCard({ view, filters, reportUserId }: FocusTimeGrid
             type="button"
             onClick={() => setOffset((o) => Math.min(o + 1, 0))}
             disabled={offset >= 0}
-            className={cn('inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-xs font-semibold px-3 py-2 transition-colors hover:bg-zinc-50', offset >= 0 && 'opacity-50')}
+            className={cn(
+              'inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-xs font-semibold px-3 py-2 transition-colors hover:bg-zinc-50',
+              offset >= 0 && 'opacity-50',
+            )}
           >
             Next
           </button>
@@ -184,9 +187,7 @@ export function FocusTimeGridCard({ view, filters, reportUserId }: FocusTimeGrid
                         return (
                           <div
                             key={day}
-                            className={cn(
-                              'group relative h-12 w-full rounded-[2px] transition-all hover:z-20',
-                            )}
+                            className={cn('group relative h-12 w-full rounded-[2px] transition-all hover:z-20')}
                           >
                             {/* Background, colored by dominant goal OR sky-intensity fallback */}
                             <div
@@ -205,7 +206,7 @@ export function FocusTimeGridCard({ view, filters, reportUserId }: FocusTimeGrid
                             {minutes > 0 && !isMonth && (
                               <div className="pointer-events-none relative z-10 flex h-full flex-col justify-center overflow-hidden px-1 text-[10px] leading-none text-slate-900 mix-blend-multiply">
                                 <span className="truncate font-semibold">{taskName}</span>
-                                {items.length > 1 && <span className="text-[9px]">+ {items.length - 1} more</span>}
+                                {items.length > 1 && <span className="text-xs">+ {items.length - 1} more</span>}
                                 <span className="mt-0.5 opacity-75">{formatDuration(minutes)}</span>
                               </div>
                             )}
@@ -235,9 +236,7 @@ export function FocusTimeGridCard({ view, filters, reportUserId }: FocusTimeGrid
                                     </li>
                                   ))}
                                   {items.length > 5 && (
-                                    <li className="font-mono text-[10px] text-zinc-400">
-                                      + {items.length - 5} more
-                                    </li>
+                                    <li className="font-mono text-[10px] text-zinc-400">+ {items.length - 5} more</li>
                                   )}
                                 </ul>
                               </div>

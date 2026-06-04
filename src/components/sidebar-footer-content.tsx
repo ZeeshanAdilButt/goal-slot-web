@@ -30,15 +30,11 @@ export function SidebarFooterContent({ onLogout }: SidebarFooterContentProps) {
         </span>
         <span className="flex min-w-0 flex-1 flex-col leading-tight">
           <span className="flex min-w-0 items-center gap-1.5">
-            <span className="min-w-0 flex-1 truncate text-sm font-semibold text-zinc-900">
-              {user?.name || 'User'}
-            </span>
+            <span className="min-w-0 flex-1 truncate text-sm font-semibold text-zinc-900">{user?.name || 'User'}</span>
             <span
               className={cn(
-                'shrink-0 rounded px-1.5 py-[1px] text-[9px] font-bold uppercase tracking-wider',
-                isPro
-                  ? 'bg-[#fff7d1] text-[#8a7307]'
-                  : 'bg-zinc-100 text-zinc-600',
+                'shrink-0 rounded px-1.5 py-[1px] text-xs font-bold uppercase tracking-wider',
+                isPro ? 'bg-[#fff7d1] text-[#8a7307]' : 'bg-zinc-100 text-zinc-600',
               )}
               title={`Plan: ${planLabel}`}
             >

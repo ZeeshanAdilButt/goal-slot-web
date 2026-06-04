@@ -76,7 +76,7 @@ function SortableGoalItem({
         <span className="flex-1 truncate">{goal.title}</span>
         {isActiveNow && (
           <span
-            className="rounded bg-emerald-100 px-1 py-[1px] text-[8px] font-bold uppercase tracking-wider text-emerald-700"
+            className="rounded bg-emerald-100 px-1 py-[1px] text-xs font-bold uppercase tracking-wider text-emerald-700"
             title="A schedule block linked to this goal is happening right now"
           >
             On now
@@ -268,7 +268,7 @@ export function GoalsSidebarDesktop({
                       const sectionLabel = (text: string, accent?: string) => (
                         <div
                           className={cn(
-                            'mt-3 mb-1 flex items-center gap-1.5 px-1 text-[9px] font-bold uppercase tracking-[0.12em] first:mt-0',
+                            'mt-3 mb-1 flex items-center gap-1.5 px-1 text-xs font-bold uppercase tracking-[0.12em] first:mt-0',
                             accent ?? 'text-zinc-400',
                           )}
                         >
@@ -277,10 +277,7 @@ export function GoalsSidebarDesktop({
                           <span className="h-px flex-1 bg-zinc-200" aria-hidden />
                         </div>
                       )
-                      const renderItem = (
-                        goal: TaskGoal,
-                        opts?: { dim?: boolean; activeNow?: boolean },
-                      ) => (
+                      const renderItem = (goal: TaskGoal, opts?: { dim?: boolean; activeNow?: boolean }) => (
                         <div key={goal.id} className={opts?.dim ? 'opacity-60' : undefined}>
                           <SortableGoalItem
                             goal={goal}
@@ -322,7 +319,8 @@ export function GoalsSidebarDesktop({
                               {(onNow.length > 0 ||
                                 upcomingToday.length > 0 ||
                                 pastToday.length > 0 ||
-                                laterWeek.length > 0) && sectionLabel('No schedule')}
+                                laterWeek.length > 0) &&
+                                sectionLabel('No schedule')}
                               {unscheduled.map((g) => renderItem(g))}
                             </>
                           )}

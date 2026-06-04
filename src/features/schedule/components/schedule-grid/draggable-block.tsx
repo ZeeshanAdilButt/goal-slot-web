@@ -125,7 +125,7 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onVie
           </div>
 
           {block.goal && (
-            <div className="mt-0.5 flex shrink-0 items-center gap-0.5 text-[9px] font-semibold uppercase leading-tight">
+            <div className="mt-0.5 flex shrink-0 items-center gap-0.5 text-xs font-semibold uppercase leading-tight">
               <Target className="h-2.5 w-2.5 shrink-0" />
               <span className="truncate">{block.goal.title}</span>
             </div>

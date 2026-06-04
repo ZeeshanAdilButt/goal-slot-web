@@ -38,31 +38,20 @@ const TIPS: Tip[] = [
     emoji: '⌘',
     text: (
       <>
-        Press <Kbd>Ctrl</Kbd> / <Kbd>⌘</Kbd> + <Kbd>K</Kbd> to jump to any page,
-        goal, or task — Notion-style.
+        Press <Kbd>Ctrl</Kbd> / <Kbd>⌘</Kbd> + <Kbd>K</Kbd> to jump to any page, goal, or task — Notion-style.
       </>
     ),
   },
   {
     id: 'coach-context',
     emoji: '🧭',
-    text: (
-      <>
-        The Coach reads your check-ins, schedule, and goals. Ask it what to
-        focus on this week.
-      </>
-    ),
+    text: <>The Coach reads your check-ins, schedule, and goals. Ask it what to focus on this week.</>,
     href: '/dashboard/coach',
   },
   {
     id: 'journal-night',
     emoji: '🌙',
-    text: (
-      <>
-        Open the Journal after dark — the sun becomes a moon and the lamp
-        lights up.
-      </>
-    ),
+    text: <>Open the Journal after dark — the sun becomes a moon and the lamp lights up.</>,
     href: '/dashboard/journal',
   },
   {
@@ -70,8 +59,7 @@ const TIPS: Tip[] = [
     emoji: '🗂️',
     text: (
       <>
-        Hold <Kbd>Ctrl</Kbd> / <Kbd>⌘</Kbd> + click in Notes to select
-        several at once.
+        Hold <Kbd>Ctrl</Kbd> / <Kbd>⌘</Kbd> + click in Notes to select several at once.
       </>
     ),
     href: '/dashboard/notes',
@@ -79,65 +67,40 @@ const TIPS: Tip[] = [
   {
     id: 'notes-nest',
     emoji: '🪺',
-    text: (
-      <>
-        Drag a note onto another to make it a sub-note. Drag back out to
-        promote.
-      </>
-    ),
+    text: <>Drag a note onto another to make it a sub-note. Drag back out to promote.</>,
     href: '/dashboard/notes',
   },
   {
     id: 'checkin-teaser',
     emoji: '🌤️',
-    text: (
-      <>
-        The 🌤️ in the top-right is your 30-second daily check-in. The
-        Coach reads it.
-      </>
-    ),
+    text: <>The 🌤️ in the top-right is your 30-second daily check-in. The Coach reads it.</>,
   },
   {
     id: 'quick-start',
     emoji: '⏱️',
     text: (
       <>
-        Start tracking from any page — click Start tracking in the top
-        bar, or hit <Kbd>Ctrl</Kbd>+<Kbd>K</Kbd> → “Start tracking”.
+        Start tracking from any page — click Start tracking in the top bar, or hit <Kbd>Ctrl</Kbd>+<Kbd>K</Kbd> → “Start
+        tracking”.
       </>
     ),
   },
   {
     id: 'focus-now',
     emoji: '🟡',
-    text: (
-      <>
-        The yellow strip up top is your active schedule block. Click “Up
-        next” to peek at what's coming.
-      </>
-    ),
+    text: <>The yellow strip up top is your active schedule block. Click “Up next” to peek at what's coming.</>,
     href: '/dashboard/schedule',
   },
   {
     id: 'coach-edit',
     emoji: '✏️',
-    text: (
-      <>
-        Edit any of your messages to the Coach to re-ask — the reply that
-        came after gets replaced cleanly.
-      </>
-    ),
+    text: <>Edit any of your messages to the Coach to re-ask — the reply that came after gets replaced cleanly.</>,
     href: '/dashboard/coach',
   },
   {
     id: 'goals-color',
     emoji: '🏳️',
-    text: (
-      <>
-        Goal colors carry through to the schedule and tasks — pick
-        colors you'll recognise at a glance.
-      </>
-    ),
+    text: <>Goal colors carry through to the schedule and tasks — pick colors you'll recognise at a glance.</>,
     href: '/dashboard/goals',
   },
 ]
@@ -276,10 +239,7 @@ export function TipsCorner() {
   }, [current])
 
   return (
-    <div
-      aria-live="polite"
-      className="pointer-events-none fixed bottom-4 left-4 z-30 sm:bottom-6 sm:left-6"
-    >
+    <div aria-live="polite" className="pointer-events-none fixed bottom-4 left-4 z-30 sm:bottom-6 sm:left-6">
       <AnimatePresence mode="popLayout">
         {current && <TipPill key={current.id} tip={current} onDismiss={handleDismiss} onMute={handleMute} />}
       </AnimatePresence>
@@ -287,15 +247,7 @@ export function TipsCorner() {
   )
 }
 
-function TipPill({
-  tip,
-  onDismiss,
-  onMute,
-}: {
-  tip: Tip
-  onDismiss: () => void
-  onMute: () => void
-}) {
+function TipPill({ tip, onDismiss, onMute }: { tip: Tip; onDismiss: () => void; onMute: () => void }) {
   const body = (
     <div className="flex items-start gap-2.5 px-3 py-2.5">
       <span aria-hidden className="mt-px text-[15px] leading-none opacity-90">
@@ -303,9 +255,7 @@ function TipPill({
       </span>
       <div className="min-w-0 flex-1 text-[12.5px] leading-[1.45] text-zinc-700">
         {tip.text}
-        {tip.href && (
-          <span className="ml-1 text-[11px] text-zinc-400">→</span>
-        )}
+        {tip.href && <span className="ml-1 text-[11px] text-zinc-400">→</span>}
       </div>
     </div>
   )
@@ -328,11 +278,7 @@ function TipPill({
         />
 
         {tip.href ? (
-          <Link
-            href={tip.href}
-            onClick={onDismiss}
-            className="block transition-colors hover:bg-zinc-50/70"
-          >
+          <Link href={tip.href} onClick={onDismiss} className="block transition-colors hover:bg-zinc-50/70">
             {body}
           </Link>
         ) : (
@@ -363,7 +309,7 @@ function TipPill({
           }}
           title="Stop showing tips"
           aria-label="Stop showing tips"
-          className="absolute bottom-1 right-1.5 text-[9px] font-medium text-zinc-300 opacity-0 transition-opacity hover:text-zinc-500 group-hover/tip:opacity-100"
+          className="absolute bottom-1 right-1.5 text-xs font-medium text-zinc-300 opacity-0 transition-opacity hover:text-zinc-500 group-hover/tip:opacity-100"
         >
           mute
         </button>
