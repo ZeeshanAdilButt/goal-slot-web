@@ -35,6 +35,8 @@ export function resolveWhiteboardScene(
   id: string,
   serverContent: ExcalidrawScene | null,
 ): ExcalidrawScene | null {
-  if (serverContent !== null) return serverContent
-  return loadWhiteboardDraft(id)
+  if ((serverContent?.elements?.length ?? 0) > 0) return serverContent
+  const draft = loadWhiteboardDraft(id)
+  if ((draft?.elements?.length ?? 0) > 0) return draft
+  return serverContent
 }

@@ -2,3 +2,36 @@
 .goalslot-whiteboard-canvas .dropdown-menu-group:has(a[href*='github.com/excalidraw']) {
   display: none !important;
 }
+
+/* Excalidraw needs an explicit height chain — without it the canvas renders blank. */
+.goalslot-whiteboard-canvas {
+  position: relative;
+  height: 100%;
+  min-height: 480px;
+}
+
+.goalslot-whiteboard-canvas .excalidraw {
+  height: 100% !important;
+}
+
+/* Public /w/[token] page — match notes content area height */
+.public-whiteboard-view {
+  position: relative;
+  height: 60vh;
+  min-height: 40vh;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(228 228 231);
+  background: #fffce8;
+}
+
+.public-whiteboard-view .excalidraw {
+  height: 100% !important;
+}
+
+/* Hide excalidraw chrome on public pages for a clean read-only view */
+.public-whiteboard-view .App-menu_top,
+.public-whiteboard-view .layer-ui__wrapper__footer,
+.public-whiteboard-view .App-toolbar {
+  display: none !important;
+}
