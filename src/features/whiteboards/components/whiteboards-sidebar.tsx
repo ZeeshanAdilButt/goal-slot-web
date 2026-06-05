@@ -1,10 +1,9 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { MoreHorizontal, Plus, Search, Trash2 } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Plus, Search, Star, Trash2 } from 'lucide-react'
 
 import { ConfirmDialog } from '@/components/confirm-dialog'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 import { Loading } from '@/components/ui/loading'
 
@@ -40,7 +39,6 @@ export function WhiteboardsSidebar({
   const [searchQuery, setSearchQuery] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
-  const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
   const [deleteConfirmWhiteboardId, setDeleteConfirmWhiteboardId] = useState<string | null>(null)
   const titleInputRef = useRef<HTMLInputElement>(null)
 
@@ -49,6 +47,8 @@ export function WhiteboardsSidebar({
     const q = searchQuery.toLowerCase()
     return w.title.toLowerCase().includes(q)
   })
+
+  const favorites = useMemo(() => whiteboards.filter((w) => w.isFavorite), [whiteboards])
 
   useEffect(() => {
     if (focusTitleId && focusTitleId === selectedWhiteboardId) {
@@ -89,9 +89,15 @@ export function WhiteboardsSidebar({
     setEditTitle(wb.title || 'Untitled')
   }
 
+  const handleToggleFavorite = (wb: Whiteboard) => {
+    updateMutation.mutate({
+      id: wb.id,
+      data: { isFavorite: !wb.isFavorite },
+    })
+  }
+
   const handleDeleteWhiteboard = (whiteboardId: string) => {
     setDeleteConfirmWhiteboardId(whiteboardId)
-    setMenuOpenId(null)
   }
 
   const confirmDeleteWhiteboard = () => {
@@ -117,6 +123,128 @@ export function WhiteboardsSidebar({
       },
     })
     setDeleteConfirmWhiteboardId(null)
+  }
+
+  const renderFavoriteRow = (wb: Whiteboard) => {
+    const isSelected = selectedWhiteboardId === wb.id
+    return (
+      <div
+        key={`fav-${wb.id}`}
+        role="button"
+        tabIndex={0}
+        onClick={() => onSelectWhiteboard(wb)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') onSelectWhiteboard(wb)
+        }}
+        className={cn(
+          'flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors',
+          isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
+        )}
+      >
+        {wb.icon && <span className="text-base">{wb.icon}</span>}
+        <span className="flex-1 truncate">{wb.title || 'Untitled'}</span>
+        <button
+          type="button"
+          title="Remove from favorites"
+          aria-label="Remove from favorites"
+          onClick={(e) => {
+            e.stopPropagation()
+            handleToggleFavorite(wb)
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          className="flex h-5 w-5 shrink-0 items-center justify-center rounded transition-colors hover:bg-[#fff7d1]"
+        >
+          <Star className="h-3.5 w-3.5 fill-current text-yellow-500" />
+        </button>
+      </div>
+    )
+  }
+
+  const renderWhiteboardRow = (wb: Whiteboard) => {
+    const isSelected = selectedWhiteboardId === wb.id
+    const isEditing = editingId === wb.id
+    return (
+      <div
+        key={wb.id}
+        role="button"
+        tabIndex={0}
+        onClick={() => !isEditing && onSelectWhiteboard(wb)}
+        onDoubleClick={(e) => startEdit(wb, e)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !isEditing) onSelectWhiteboard(wb)
+        }}
+        className={cn(
+          'group mb-0.5 flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors',
+          isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-zinc-50',
+        )}
+      >
+        {wb.icon && <span className="shrink-0 text-base">{wb.icon}</span>}
+        {isEditing ? (
+          <input
+            ref={titleInputRef}
+            value={editTitle}
+            onChange={(e) => setEditTitle(e.target.value)}
+            onBlur={() => commitTitle(wb.id, editTitle)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') commitTitle(wb.id, editTitle)
+              if (e.key === 'Escape') setEditingId(null)
+              e.stopPropagation()
+            }}
+            onClick={(e) => e.stopPropagation()}
+            className="min-w-0 flex-1 rounded border border-zinc-300 bg-white px-1 py-0.5 text-sm text-zinc-900 outline-none"
+          />
+        ) : (
+          <span className="flex-1 truncate">{wb.title || 'Untitled'}</span>
+        )}
+        {!isEditing && (
+          <>
+            <button
+              type="button"
+              title="Delete whiteboard"
+              aria-label="Delete whiteboard"
+              onClick={(e) => {
+                e.stopPropagation()
+                handleDeleteWhiteboard(wb.id)
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              className={cn(
+                'pointer-events-none flex h-5 w-5 shrink-0 items-center justify-center rounded text-zinc-500 opacity-0 transition-opacity hover:bg-rose-50 hover:text-rose-600 group-hover:pointer-events-auto group-hover:opacity-100',
+                isSelected && 'hover:bg-black/10',
+              )}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              title={wb.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+              aria-label={wb.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+              aria-pressed={wb.isFavorite}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleToggleFavorite(wb)
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              className={cn(
+                'flex h-5 w-5 shrink-0 items-center justify-center rounded transition-opacity hover:bg-[#fff7d1]',
+                wb.isFavorite
+                  ? 'opacity-100'
+                  : 'pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100',
+                isSelected && 'hover:bg-black/10',
+              )}
+            >
+              <Star
+                className={cn(
+                  'h-3.5 w-3.5',
+                  wb.isFavorite
+                    ? 'fill-current text-yellow-500'
+                    : 'text-zinc-400 hover:text-yellow-500',
+                )}
+              />
+            </button>
+          </>
+        )}
+      </div>
+    )
   }
 
   if (isLoading) {
@@ -160,85 +288,24 @@ export function WhiteboardsSidebar({
       </div>
 
       <div className="flex-1 overflow-y-auto px-2 pb-2">
+        {favorites.length > 0 && !searchQuery && (
+          <div className="mb-4">
+            <div className="mb-1 px-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Favorites
+            </div>
+            {favorites.map((wb) => renderFavoriteRow(wb))}
+          </div>
+        )}
+
         <div className="mb-1 px-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-          My whiteboards
+          {searchQuery ? 'Search Results' : 'All Whiteboards'}
         </div>
         {filtered.length === 0 ? (
           <div className="px-2 py-4 text-center text-sm text-muted-foreground">
             {searchQuery ? 'No whiteboards found' : 'No whiteboards yet. Create one!'}
           </div>
         ) : (
-          filtered.map((wb) => {
-            const isSelected = selectedWhiteboardId === wb.id
-            const isEditing = editingId === wb.id
-            return (
-              <div
-                key={wb.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => !isEditing && onSelectWhiteboard(wb)}
-                onDoubleClick={(e) => startEdit(wb, e)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !isEditing) onSelectWhiteboard(wb)
-                }}
-                className={cn(
-                  'group mb-0.5 flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors',
-                  isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-zinc-50',
-                )}
-              >
-                {wb.icon && <span className="shrink-0 text-base">{wb.icon}</span>}
-                {isEditing ? (
-                  <input
-                    ref={titleInputRef}
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    onBlur={() => commitTitle(wb.id, editTitle)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') commitTitle(wb.id, editTitle)
-                      if (e.key === 'Escape') setEditingId(null)
-                      e.stopPropagation()
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    className="min-w-0 flex-1 rounded border border-zinc-300 bg-white px-1 py-0.5 text-sm text-zinc-900 outline-none"
-                  />
-                ) : (
-                  <span className="flex-1 truncate">{wb.title || 'Untitled'}</span>
-                )}
-                {!isEditing && (
-                  <Popover
-                    open={menuOpenId === wb.id}
-                    onOpenChange={(open) => setMenuOpenId(open ? wb.id : null)}
-                  >
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        title="More options"
-                        aria-label="More options"
-                        onClick={(e) => e.stopPropagation()}
-                        onPointerDown={(e) => e.stopPropagation()}
-                        className={cn(
-                          'flex h-5 w-5 shrink-0 items-center justify-center rounded text-zinc-500 opacity-0 transition-opacity hover:bg-zinc-100 group-hover:pointer-events-auto group-hover:opacity-100 pointer-events-none',
-                          isSelected && 'text-primary-foreground hover:bg-black/10',
-                        )}
-                      >
-                        <MoreHorizontal className="h-3.5 w-3.5" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-40 p-1" align="end" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteWhiteboard(wb.id)}
-                        className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        Delete
-                      </button>
-                    </PopoverContent>
-                  </Popover>
-                )}
-              </div>
-            )
-          })
+          filtered.map((wb) => renderWhiteboardRow(wb))
         )}
       </div>
 
