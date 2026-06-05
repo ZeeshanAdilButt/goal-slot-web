@@ -251,7 +251,6 @@ export function TipsCorner() {
       : 'calc(var(--sidebar-width, 16rem) + 1.5rem)'
 
   return (
-    <div aria-live="polite" className="pointer-events-none fixed bottom-4 left-4 z-30 sm:bottom-6 sm:left-6">
     <div
       aria-live="polite"
       className="pointer-events-none fixed bottom-4 z-30 transition-[left] duration-200 ease-linear sm:bottom-6"
