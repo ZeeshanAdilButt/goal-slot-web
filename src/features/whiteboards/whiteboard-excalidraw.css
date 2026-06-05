@@ -1,0 +1,4 @@
+/* Hide default "Excalidraw links" (GitHub / X / Discord) in the hamburger menu. */
+.goalslot-whiteboard-canvas .dropdown-menu-group:has(a[href*='github.com/excalidraw']) {
+  display: none !important;
+}

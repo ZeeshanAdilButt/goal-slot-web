@@ -109,6 +109,7 @@ export default function AdminUsersPage() {
   const [stats, setStats] = useState<UserStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
   const [totalPages, setTotalPages] = useState(1)
   const [totalUsers, setTotalUsers] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
@@ -150,7 +151,7 @@ export default function AdminUsersPage() {
   const loadUsers = async () => {
     setIsLoading(true)
     try {
-      const response = await usersApi.listUsers(currentPage, 20, debouncedSearch || undefined)
+      const response = await usersApi.listUsers(currentPage, pageSize, debouncedSearch || undefined)
       setUsers(response.data.users || response.data)
       setTotalPages(response.data.pagination?.totalPages || 1)
       setTotalUsers(response.data.pagination?.total || 0)
@@ -181,7 +182,7 @@ export default function AdminUsersPage() {
     loadUsers()
     loadStats()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, debouncedSearch])
+  }, [currentPage, debouncedSearch, pageSize])
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -410,7 +411,7 @@ export default function AdminUsersPage() {
   const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN'
 
   return (
-    <PageShell>
+    <PageShell className="max-w-none">
       <PageHeader
         eyebrow="Admin"
         title="User Management"
@@ -454,7 +455,26 @@ export default function AdminUsersPage() {
             className="w-full border border-zinc-200 py-3 pl-12 pr-4 font-medium focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
-        
+
+        <label className="flex shrink-0 items-center gap-2 text-xs font-bold uppercase">
+          Per page
+          <select
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value))
+              setCurrentPage(1)
+              setSelectedUsers([])
+            }}
+            className="border border-zinc-200 bg-white px-2 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+            <option value={200}>200</option>
+            <option value={500}>500</option>
+          </select>
+        </label>
+
         {selectedUsers.length > 0 && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
@@ -477,7 +497,7 @@ export default function AdminUsersPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="overflow-hidden border border-zinc-200 bg-white shadow-sm"
+        className="border border-zinc-200 bg-white shadow-sm"
       >
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
@@ -489,8 +509,8 @@ export default function AdminUsersPage() {
             <p className="font-bold">No users found</p>
           </div>
         ) : (
-          <div className="overflow-visible">
-            <table className="w-full">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[960px]">
               <thead className="bg-black text-white">
                 <tr>
                   <th className="w-12 px-4 py-3">
@@ -635,7 +655,7 @@ export default function AdminUsersPage() {
                                 <MoreHorizontal className="h-4 w-4" />
                               </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-56">
+                            <DropdownMenuContent align="end" collisionPadding={12} className="w-56">
                               <DropdownMenuItem onClick={() => openModal('details', user)}>
                                 <Eye className="mr-2 h-4 w-4" />
                                 View Details
@@ -703,27 +723,49 @@ export default function AdminUsersPage() {
           </div>
         )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-zinc-200 bg-gray-50 px-4 py-3">
+        {/* Pagination + page size */}
+        {!isLoading && users.length > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-200 bg-gray-50 px-4 py-3">
             <p className="text-sm font-medium">
-              Page {currentPage} of {totalPages} ({totalUsers} users)
+              Page {currentPage} of {totalPages} ({totalUsers} users · showing {users.length})
             </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="border border-zinc-200 p-2 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="border border-zinc-200 p-2 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 text-xs font-bold uppercase">
+                Per page
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value))
+                    setCurrentPage(1)
+                    setSelectedUsers([])
+                  }}
+                  className="border border-zinc-200 bg-white px-2 py-1 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                  <option value={200}>200</option>
+                  <option value={500}>500</option>
+                </select>
+              </label>
+              {totalPages > 1 && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="border border-zinc-200 p-2 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="border border-zinc-200 p-2 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}

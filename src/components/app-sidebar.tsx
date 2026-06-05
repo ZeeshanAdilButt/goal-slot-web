@@ -6,11 +6,13 @@ import { usePathname, useRouter } from 'next/navigation'
 
 import {
   BarChart3,
+  BookOpen,
   Calendar,
   CheckSquare,
   Clock,
   Download,
   LayoutDashboard,
+  LayoutGrid,
   Megaphone,
   MessageSquare,
   Share2,
@@ -62,9 +64,11 @@ const navItems = [
   { href: '/dashboard/coach', label: 'GoalSlot AI', icon: CoachIcon },
   // Auxiliary surfaces.
   { href: '/dashboard/notes', label: 'Notes', icon: NotebookIcon },
+  { href: '/dashboard/whiteboards', label: 'Whiteboards', icon: LayoutGrid },
   { href: '/dashboard/reports', label: 'Reports', icon: BarChart3 },
   { href: '/dashboard/reports/export', label: 'Export Reports', icon: Download },
   { href: '/dashboard/sharing', label: 'Sharing', icon: Share2 },
+  { href: '/dashboard/library', label: 'Library', icon: BookOpen },
 ]
 
 const adminNavItems = [
@@ -161,13 +165,14 @@ export function AppSidebar({ onOpenChangelog, hasUnseenChangelog }: AppSidebarPr
                     >
                       <Link href={item.href} onClick={handleMobileSidebarNav}>
                         {isJournal ? (
-                          // Journal pen: brand-yellow glow that pulses on
-                          // a slow 2.4s beat (journal-glow), with an
-                          // asymmetric -30° / +15° sweep on top — a calming
-                          // but quietly playful nudge toward writing.
+                          // Journal pen: brand-yellow with a soft glow,
+                          // static (no animation) in the sidebar because
+                          // a constantly-tilting nav icon competes for
+                          // attention against the floating journal button
+                          // (which keeps its tilt animation as the moment).
                           <item.icon
                             className={cn(
-                              'h-4 w-4 origin-bottom-left text-[#f2cc0d] motion-safe:animate-[pen-tilt_2.6s_ease-in-out_infinite] [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.7))_drop-shadow(0_0_10px_rgba(242,204,13,0.35))] group-data-[collapsible=icon]:-ml-1 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5',
+                              'h-4 w-4 text-[#f2cc0d] [filter:drop-shadow(0_0_3px_rgba(242,204,13,0.55))] group-data-[collapsible=icon]:-ml-1 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5',
                               isActive && 'text-[#f2cc0d]',
                             )}
                           />

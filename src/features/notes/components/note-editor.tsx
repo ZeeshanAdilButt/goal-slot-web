@@ -2,8 +2,21 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { Check, Copy, Download, Eye, Link as LinkIcon, MoreHorizontal, Plus, Share2, Star, StarOff, Trash2 } from 'lucide-react'
+import {
+  Check,
+  Copy,
+  Download,
+  Eye,
+  Link as LinkIcon,
+  MoreHorizontal,
+  Plus,
+  Share2,
+  Star,
+  StarOff,
+  Trash2,
+} from 'lucide-react'
 
+import { downloadNoteAsMarkdown } from '@/lib/html-to-markdown'
 import { cn } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { ConfirmDialog } from '@/components/confirm-dialog'
@@ -12,7 +25,7 @@ import { TiptapEditor } from '@/components/tiptap-editor'
 import { useDeleteNoteMutation, useUpdateNoteMutation } from '../hooks/use-notes'
 import { Note, NOTE_COLORS, NOTE_ICONS } from '../utils/types'
 import { ShareNoteDialog } from './share-note-dialog'
-import { htmlToMarkdown, slugify } from '@/lib/html-to-markdown'
+import { SharedWithPill } from './shared-with-pill'
 
 // Convert old block-based JSON content to HTML
 function convertOldContentToHtml(content: string): string {
@@ -280,19 +293,7 @@ export function NoteEditor({ note, onDelete, readOnly = false, sharedBy = null }
 
   // Export as Markdown file
   const handleExportMarkdown = () => {
-    const safeTitle = (title || 'Untitled')
-      .replace(/\\/g, '\\\\')
-      .replace(/"/g, '\\"')
-      .replace(/\n/g, '\\n')
-    const frontmatter = `---\ntitle: "${safeTitle}"\ncreated: ${new Date(note.createdAt).toISOString()}\nupdated: ${new Date(note.updatedAt).toISOString()}\n---\n\n`
-    const body = htmlToMarkdown(editorContent)
-    const blob = new Blob([frontmatter + body], { type: 'text/markdown' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${slugify(title || 'untitled-note')}.md`
-    a.click()
-    URL.revokeObjectURL(url)
+    downloadNoteAsMarkdown({ title, createdAt: note.createdAt, updatedAt: note.updatedAt }, editorContent)
     setShowMenu(false)
   }
 
@@ -375,16 +376,19 @@ export function NoteEditor({ note, onDelete, readOnly = false, sharedBy = null }
           {/* Share button — owner only. Read-only recipients see no Share
               control because they have no authority to grant access. */}
           {!readOnly && (
-            <button
-              type="button"
-              onClick={() => setShowShare(true)}
-              className="flex h-8 items-center gap-1.5 rounded-lg border border-zinc-200 bg-card px-2.5 text-xs font-medium transition-colors hover:bg-muted md:h-9"
-              title="Share this note"
-              aria-label="Share this note"
-            >
-              <Share2 className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Share</span>
-            </button>
+            <>
+              <SharedWithPill noteId={note.id} onClick={() => setShowShare(true)} />
+              <button
+                type="button"
+                onClick={() => setShowShare(true)}
+                className="flex h-8 items-center gap-1.5 rounded-lg border border-zinc-200 bg-card px-2.5 text-xs font-medium transition-colors hover:bg-muted md:h-9"
+                title="Share this note"
+                aria-label="Share this note"
+              >
+                <Share2 className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Share</span>
+              </button>
+            </>
           )}
 
           {/* Read-only badge for share recipients */}
@@ -397,103 +401,109 @@ export function NoteEditor({ note, onDelete, readOnly = false, sharedBy = null }
 
           {/* Favorite button — owner only since the favorite flag lives
               on the owner's record, not the share. */}
-          {!readOnly && <button
-            onClick={handleToggleFavorite}
-            className={cn(
-              'flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 transition-colors md:h-9 md:w-9',
-              note.isFavorite
-                ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-400'
-                : 'bg-card hover:bg-muted',
-            )}
-            title={note.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-          >
-            {note.isFavorite ? (
-              <Star className="h-3.5 w-3.5 fill-current md:h-4 md:w-4" />
-            ) : (
-              <StarOff className="h-3.5 w-3.5 md:h-4 md:w-4" />
-            )}
-          </button>}
+          {!readOnly && (
+            <button
+              onClick={handleToggleFavorite}
+              className={cn(
+                'flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 transition-colors md:h-9 md:w-9',
+                note.isFavorite
+                  ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-400'
+                  : 'bg-card hover:bg-muted',
+              )}
+              title={note.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            >
+              {note.isFavorite ? (
+                <Star className="h-3.5 w-3.5 fill-current md:h-4 md:w-4" />
+              ) : (
+                <StarOff className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              )}
+            </button>
+          )}
 
           {/* Color picker — owner only */}
-          {!readOnly && <Popover open={showColorPicker} onOpenChange={setShowColorPicker}>
-            <PopoverTrigger asChild>
-              <button
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-card transition-colors hover:bg-muted md:h-9 md:w-9"
-                title="Change color"
-              >
-                <div
-                  className={cn('h-4 w-4 rounded-full border-2 md:h-5 md:w-5', colorConfig.border, colorConfig.bg)}
-                />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-48 p-2" align="end">
-              <div className="grid grid-cols-4 gap-2">
-                {NOTE_COLORS.map((color) => (
-                  <button
-                    key={color.value}
-                    onClick={() => handleColorChange(color.value)}
-                    className={cn(
-                      'flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all',
-                      color.border,
-                      color.bg,
-                      note.color === color.value && 'ring-2 ring-primary ring-offset-2',
-                    )}
-                    title={color.label}
+          {!readOnly && (
+            <Popover open={showColorPicker} onOpenChange={setShowColorPicker}>
+              <PopoverTrigger asChild>
+                <button
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-card transition-colors hover:bg-muted md:h-9 md:w-9"
+                  title="Change color"
+                >
+                  <div
+                    className={cn('h-4 w-4 rounded-full border-2 md:h-5 md:w-5', colorConfig.border, colorConfig.bg)}
                   />
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 p-2" align="end">
+                <div className="grid grid-cols-4 gap-2">
+                  {NOTE_COLORS.map((color) => (
+                    <button
+                      key={color.value}
+                      onClick={() => handleColorChange(color.value)}
+                      className={cn(
+                        'flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all',
+                        color.border,
+                        color.bg,
+                        note.color === color.value && 'ring-2 ring-primary ring-offset-2',
+                      )}
+                      title={color.label}
+                    />
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
 
           {/* More options — owner only (it contains the destructive delete) */}
-          {!readOnly && <Popover open={showMenu} onOpenChange={setShowMenu}>
-            <PopoverTrigger asChild>
-              <button className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-card transition-colors hover:bg-muted md:h-9 md:w-9">
-                <MoreHorizontal className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-52 p-1" align="end">
-              <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Copy</div>
-              <button
-                onClick={handleCopyLink}
-                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"
-              >
-                <LinkIcon className="h-4 w-4" />
-                Copy link
-              </button>
-              <button
-                onClick={handleCopyHTML}
-                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"
-              >
-                <Copy className="h-4 w-4" />
-                Copy content
-              </button>
-              <hr className="my-1 border-border" />
-              <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Export</div>
-              <button
-                onClick={handleExportHTML}
-                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"
-              >
-                <Download className="h-4 w-4" />
-                Download as .html
-              </button>
-              <button
-                onClick={handleExportMarkdown}
-                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"
-              >
-                <Download className="h-4 w-4" />
-                Download as .md
-              </button>
-              <hr className="my-1 border-border" />
-              <button
-                onClick={handleDelete}
-                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete note
-              </button>
-            </PopoverContent>
-          </Popover>}
+          {!readOnly && (
+            <Popover open={showMenu} onOpenChange={setShowMenu}>
+              <PopoverTrigger asChild>
+                <button className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-card transition-colors hover:bg-muted md:h-9 md:w-9">
+                  <MoreHorizontal className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-52 p-1" align="end">
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Copy</div>
+                <button
+                  onClick={handleCopyLink}
+                  className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"
+                >
+                  <LinkIcon className="h-4 w-4" />
+                  Copy link
+                </button>
+                <button
+                  onClick={handleCopyHTML}
+                  className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"
+                >
+                  <Copy className="h-4 w-4" />
+                  Copy content
+                </button>
+                <hr className="my-1 border-border" />
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Export</div>
+                <button
+                  onClick={handleExportHTML}
+                  className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"
+                >
+                  <Download className="h-4 w-4" />
+                  Download as .html
+                </button>
+                <button
+                  onClick={handleExportMarkdown}
+                  className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"
+                >
+                  <Download className="h-4 w-4" />
+                  Download as .md
+                </button>
+                <hr className="my-1 border-border" />
+                <button
+                  onClick={handleDelete}
+                  className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete note
+                </button>
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
       </div>
 
@@ -545,9 +555,7 @@ export function NoteEditor({ note, onDelete, readOnly = false, sharedBy = null }
       />
 
       {/* Share Dialog. Mounted only for owners. */}
-      {!readOnly && (
-        <ShareNoteDialog note={note} open={showShare} onClose={() => setShowShare(false)} />
-      )}
+      {!readOnly && <ShareNoteDialog note={note} open={showShare} onClose={() => setShowShare(false)} />}
     </div>
   )
 }

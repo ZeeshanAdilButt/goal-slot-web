@@ -169,7 +169,13 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         <FocusNowBar />
         <DailyCheckinBanner />
         <ReleaseNoteBanner />
-        <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+        {/* pb-28 reserves space below page content so the fixed
+            bottom-right floating cluster (Journal + Notifications +
+            Feedback at z-50) does not overlap controls that sit at
+            the bottom of a page (table paginators, composer forms,
+            sticky save bars, etc.). Applied once at the layout so
+            every dashboard route inherits the safe zone. */}
+        <div className="min-h-0 flex-1 overflow-y-auto pb-28">{children}</div>
       </SidebarInset>
       <CommandPalette
         open={paletteOpen}

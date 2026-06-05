@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import { useCategoriesQuery } from '@/features/categories'
+import { ClearScheduleButton } from '@/features/schedule/components/clear-schedule-button'
 import { ScheduleBlockDetailDialog } from '@/features/schedule/components/schedule-block-detail-dialog'
 import { ScheduleBlockModal } from '@/features/schedule/components/schedule-block-modal'
 import { ScheduleGrid } from '@/features/schedule/components/schedule-grid/schedule-grid'
@@ -122,10 +123,13 @@ export function SchedulePage() {
         title="Schedule"
         description="Plan your weekly time blocks"
         actions={
-          <Button onClick={() => handleAddBlock(1)} variant="brand" size="sm">
-            <Plus className="h-3.5 w-3.5" />
-            Add Block
-          </Button>
+          <div className="flex items-center gap-1.5">
+            <ClearScheduleButton totalBlocks={totalBlocks} />
+            <Button onClick={() => handleAddBlock(1)} variant="brand" size="sm">
+              <Plus className="h-3.5 w-3.5" />
+              Add Block
+            </Button>
+          </div>
         }
       />
 

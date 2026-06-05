@@ -56,3 +56,5 @@ export type EventProperties = {
   [Events.INTEGRATION_DISCONNECTED]: { provider: 'google_calendar' | 'notion' | string }
   [Events.SCHEDULE_BLOCK_CREATED]: { hasGoalLinked: boolean }
 }
+// Use UPPER_SNAKE_CASE for consistency
+// TODO: Add events later as needed.

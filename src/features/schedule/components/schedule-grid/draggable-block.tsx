@@ -71,12 +71,24 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onVie
   }
 
   const accentColor = categoryColor || block.color || '#9CA3AF'
+  // Render-mode thresholds. Below 20px (15-min @ PX_PER_MIN=1) we are in
+  // "tiny" mode: title only, smaller font, no padding-heavy elements.
+  // Below 44px we are "compact": title + goal name, no tasks list.
+  // 44px+ is full content. The gap inset (1px top + 1px bottom) is kept
+  // for normal blocks so adjacent same-color blocks stay visually
+  // distinct; for tiny blocks we drop the inset because losing 2px of 15
+  // is too much.
+  const isTiny = height < 20
+  const isCompact = height < 44
+  const insetTop = isTiny ? 0 : 1
+  const insetTotal = isTiny ? 0 : 2
+  const renderedHeight = Math.max(height - insetTotal, 8)
   const blockStyle: CSSProperties = {
     backgroundColor: `${accentColor}1a`,
     borderLeftColor: accentColor,
-    top,
-    height,
-    minHeight: height,
+    top: top + insetTop,
+    height: renderedHeight,
+    minHeight: renderedHeight,
     zIndex: 10,
     transform: !isActiveDrag && transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
     opacity: isActiveDrag ? 0 : isDragging ? 0.7 : 1,
@@ -92,7 +104,9 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onVie
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: isActiveDrag ? 0 : 1, scale: isActiveDrag ? 1 : 1 }}
       transition={{ type: 'spring', stiffness: 500, damping: 40 }}
-      className="group absolute left-1 right-1 cursor-grab overflow-hidden rounded-md border border-l-4 p-2 shadow-sm data-[flash=true]:!ring-2 data-[flash=true]:!ring-[#f2cc0d] data-[flash=true]:!ring-offset-2"
+      className={`group absolute left-1 right-1 cursor-grab overflow-hidden rounded-md border border-l-4 shadow-sm data-[flash=true]:!ring-2 data-[flash=true]:!ring-[#f2cc0d] data-[flash=true]:!ring-offset-2 ${
+        isTiny ? 'px-1.5 py-0' : isCompact ? 'px-2 py-1' : 'p-2'
+      }`}
       data-block
       style={blockStyle}
       onClick={handleBlockClick}
@@ -102,7 +116,13 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onVie
       <div className="flex h-full min-h-0 flex-col overflow-clip">
         <div ref={headerRef} className="relative flex shrink-0 flex-col">
           <div className="flex items-start justify-between">
-            <div className="text-xs font-bold uppercase">{block.title}</div>
+            <div
+              className={`truncate font-bold uppercase leading-tight ${
+                isTiny ? 'text-[10px]' : 'text-xs'
+              }`}
+            >
+              {block.title}
+            </div>
             {/* Desktop: Actions overlay on hover */}
             <div className="absolute right-0 top-0 hidden opacity-0 transition-opacity group-hover:opacity-100 md:flex">
               <div className="flex gap-0.5 rounded-md border border-zinc-200 bg-white shadow-sm">
@@ -125,6 +145,7 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onVie
           </div>
 
           {block.goal && (
+          {block.goal && !isTiny && (
             <div className="mt-0.5 flex shrink-0 items-center gap-0.5 text-xs font-semibold uppercase leading-tight">
               <Target className="h-2.5 w-2.5 shrink-0" />
               <span className="truncate">{block.goal.title}</span>
@@ -132,7 +153,9 @@ export function DraggableBlock({ block, top, height, isActiveDrag, onEdit, onVie
           )}
         </div>
 
-        <BlockTasksList tasks={block.tasks} blockHeight={height} headerRef={headerRef} />
+        {!isCompact && (
+          <BlockTasksList tasks={block.tasks} blockHeight={height} headerRef={headerRef} />
+        )}
       </div>
 
       {isUpdating && (

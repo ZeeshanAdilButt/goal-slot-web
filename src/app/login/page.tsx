@@ -119,22 +119,11 @@ function LoginForm() {
                 </>
               )}
             </button>
-            <div className="mt-4">
-              <div className="relative flex items-center">
-                <div className="flex-grow border-t border-zinc-200" />
-                <div className="mx-4 text-xs text-zinc-400">or</div>
-                <div className="flex-grow border-t border-zinc-200" />
-              </div>
-              <button
-                type="button"
-                onClick={() =>
-                  (window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/auth/google`)
-                }
-                className="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-800 hover:bg-zinc-50"
-              >
-                Continue with Google
-              </button>
-            </div>
+            {/* "Continue with Google" hidden until the backend Google OAuth
+                strategy is re-shipped (api PR #52 was reverted because it
+                crashed the API on missing env vars). When the backend lands
+                with conditional registration + env vars on the VPS, restore
+                this block. */}
           </form>
 
           <p className="mt-6 text-center font-mono text-sm">
