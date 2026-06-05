@@ -59,6 +59,12 @@ function buildScene(
     openMenu: _m,
     openPopup: _p,
     contextMenu: _ctx,
+    width: _w,
+    height: _h,
+    offsetTop: _ot,
+    offsetLeft: _ol,
+    showWelcomeScreen: _sw,
+    isLoading: _il,
     ...persistedAppState
   } = appState
 
@@ -66,27 +72,6 @@ function buildScene(
     elements: elements as Record<string, unknown>[],
     appState: persistedAppState,
     files,
-  }
-}
-
-function toInitialData(initialData: ExcalidrawScene | null) {
-  if (!initialData?.elements?.length) {
-    return {
-      elements: [],
-      appState: {
-        ...(initialData?.appState ?? {}),
-        collaborators: new Map(),
-      },
-      files: initialData?.files ?? {},
-    }
-  }
-  return {
-    elements: initialData.elements as any,
-    appState: {
-      ...(initialData.appState ?? {}),
-      collaborators: new Map(),
-    },
-    files: (initialData.files ?? {}) as any,
   }
 }
 
@@ -128,16 +113,46 @@ export function WhiteboardCanvas({ whiteboardId, initialData, readOnly, onRegist
   }, [readOnly, forceViewOnly])
 
   const handleExcalidrawAPI = useCallback((api: any) => {
+    if (readOnlyRef.current) return
     excalidrawAPIRef.current = api
     requestAnimationFrame(() => {
       isReadyRef.current = true
     })
   }, [])
 
-  const excalidrawInitialData = useMemo(() => {
-    const scene = resolveWhiteboardScene(whiteboardId, initialData)
-    return toInitialData(scene)
-  }, [whiteboardId, initialData])
+  useEffect(() => {
+    if (readOnly || forceViewOnly) {
+      isReadyRef.current = true
+    }
+  }, [readOnly, forceViewOnly, whiteboardId])
+
+  // Freeze scene at mount so icon/color/autosave cache updates do not
+  // push new initialData into Excalidraw mid-edit (that crashes it).
+  const [editMountScene, setEditMountScene] = useState<ExcalidrawScene | null>(() =>
+    resolveWhiteboardScene(whiteboardId, initialData),
+  )
+
+  useEffect(() => {
+    setEditMountScene(resolveWhiteboardScene(whiteboardId, initialData))
+  }, [whiteboardId])
+
+  useEffect(() => {
+    if (readOnly || forceViewOnly) return
+    setEditMountScene((prev) => {
+      const resolved = resolveWhiteboardScene(whiteboardId, initialData)
+      const prevCount = prev?.elements?.length ?? 0
+      const nextCount = resolved?.elements?.length ?? 0
+      if (prevCount === 0 && nextCount > 0) return resolved
+      return prev
+    })
+  }, [readOnly, forceViewOnly, whiteboardId, initialData])
+
+  const mountScene = useMemo(() => {
+    if (readOnly || forceViewOnly) {
+      return resolveWhiteboardScene(whiteboardId, initialData)
+    }
+    return editMountScene
+  }, [readOnly, forceViewOnly, whiteboardId, initialData, editMountScene])
 
   const patchCaches = useCallback(
     (targetId: string, scene: ExcalidrawScene) => {
@@ -312,9 +327,9 @@ export function WhiteboardCanvas({ whiteboardId, initialData, readOnly, onRegist
       <div className="goalslot-whiteboard-canvas min-h-0 flex-1">
         <ExcalidrawCanvasInner
           key={whiteboardId}
-          excalidrawAPI={handleExcalidrawAPI}
+          scene={mountScene}
+          excalidrawAPI={readOnly || forceViewOnly ? undefined : handleExcalidrawAPI}
           UIOptions={UI_OPTIONS}
-          initialData={excalidrawInitialData}
           onChange={handleChange}
           viewModeEnabled={readOnly || forceViewOnly}
         />
