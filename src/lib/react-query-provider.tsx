@@ -4,6 +4,8 @@ import { ReactNode, useEffect } from 'react'
 
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import posthog from 'posthog-js'
+import { PostHogProvider } from 'posthog-js/react'
 
 type ReactQueryProviderProps = {
   children: ReactNode
@@ -55,11 +57,12 @@ function QuerySyncInitializer() {
 
 export function ReactQueryProvider({ children }: ReactQueryProviderProps) {
   return (
-    <QueryClientProvider client={queryClient}>
-      <QuerySyncInitializer />
-      {children}
-      {isDev && <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />}
-    </QueryClientProvider>
+    <PostHogProvider client={posthog}>
+      <QueryClientProvider client={queryClient}>
+        <QuerySyncInitializer />
+        {children}
+        {isDev && <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />}
+      </QueryClientProvider>
+    </PostHogProvider>
   )
 }
-

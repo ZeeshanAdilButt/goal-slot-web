@@ -1,6 +1,8 @@
 import { goalQueries } from '@/features/goals/utils/queries'
 import { CreateGoalForm, Goal, GoalFilters, UpdateGoalForm } from '@/features/goals/utils/types'
 import { labelQueries } from '@/features/labels'
+import { capture } from '@/utils/posthog/capture'
+import { Events } from '@/utils/posthog/events'
 import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 
@@ -82,11 +84,15 @@ export function useCreateGoalMutation() {
 
       return { previous, optimisticId: optimisticGoal.id }
     },
-    onSuccess: (createdGoal, _variables, context) => {
+    onSuccess: (createdGoal, variables, context) => {
       if (createdGoal) {
         syncGoalInCache(queryClient, createdGoal, { optimisticId: context?.optimisticId })
       }
       toast.success('Goal created')
+      capture(Events.GOAL_CREATED, {
+        category: variables.category ?? undefined,
+        hasDeadline: Boolean(variables.deadline),
+      })
     },
     onError: (error: any, _variables, context) => {
       if (context?.previous) {

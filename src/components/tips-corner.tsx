@@ -6,8 +6,6 @@ import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X } from 'lucide-react'
 
-import { useSidebar } from '@/components/ui/sidebar'
-
 /**
  * Bottom-left "did you know" tips strip. Surfaces one tip at a time, on a
  * lazy schedule (first one ~25s after mount, then every ~3 minutes while
@@ -240,23 +238,8 @@ export function TipsCorner() {
     }
   }, [current])
 
-  // Offset the pill past the sidebar so it does not sit on top of the
-  // profile / settings footer on desktop. On mobile the sidebar is a
-  // sheet overlay (no layout space) so the default left edge is fine.
-  const { state, isMobile } = useSidebar()
-  const leftOffset = isMobile
-    ? '1rem'
-    : state === 'collapsed'
-      ? 'calc(var(--sidebar-width-icon, 3rem) + 1.5rem)'
-      : 'calc(var(--sidebar-width, 16rem) + 1.5rem)'
-
   return (
     <div aria-live="polite" className="pointer-events-none fixed bottom-4 left-4 z-30 sm:bottom-6 sm:left-6">
-    <div
-      aria-live="polite"
-      className="pointer-events-none fixed bottom-4 z-30 transition-[left] duration-200 ease-linear sm:bottom-6"
-      style={{ left: leftOffset }}
-    >
       <AnimatePresence mode="popLayout">
         {current && <TipPill key={current.id} tip={current} onDismiss={handleDismiss} onMute={handleMute} />}
       </AnimatePresence>

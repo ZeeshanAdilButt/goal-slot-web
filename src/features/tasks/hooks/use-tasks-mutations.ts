@@ -1,5 +1,7 @@
 import { taskQueries } from '@/features/tasks/utils/queries'
 import { CreateTaskForm, Task, TaskStatus } from '@/features/tasks/utils/types'
+import { capture } from '@/utils/posthog/capture'
+import { Events } from '@/utils/posthog/events'
 import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 
@@ -195,6 +197,7 @@ export function useCompleteTaskMutation() {
     onSuccess: (data) => {
       if (data?.task) syncTaskInCache(queryClient, data.task)
       toast.success('Task completed and logged')
+      capture(Events.TASK_COMPLETED, { source: 'list' })
       // Invalidate related aggregates
       queryClient.invalidateQueries({ queryKey: ['time-tracker'] })
       queryClient.invalidateQueries({ queryKey: ['goals'] })

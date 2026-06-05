@@ -1,8 +1,10 @@
-import { focusQueries } from '@/features/reports/hooks/use-focus-time-entries'
 import { goalQueries } from '@/features/goals/utils/queries'
+import { focusQueries } from '@/features/reports/hooks/use-focus-time-entries'
 import { taskQueries } from '@/features/tasks/utils/queries'
 import { timeTrackerQueries } from '@/features/time-tracker/utils/queries'
 import { CreateTimeEntryPayload, TimeEntry, UpdateTimeEntryPayload } from '@/features/time-tracker/utils/types'
+import { capture } from '@/utils/posthog/capture'
+import { Events } from '@/utils/posthog/events'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 
@@ -38,7 +40,7 @@ export function useCreateTimeEntry() {
 
       return { previous, optimisticId: optimisticEntry.id }
     },
-    onSuccess: (createdEntry, _variables, context) => {
+    onSuccess: (createdEntry, variables, context) => {
       if (createdEntry) {
         const current = queryClient.getQueryData<TimeEntry[]>(timeTrackerQueries.recentEntries())
         if (Array.isArray(current)) {
@@ -50,6 +52,9 @@ export function useCreateTimeEntry() {
       }
 
       toast.success('Time entry saved!')
+      capture(Events.TRACK_STARTED, {
+        source: variables.taskId ? 'task' : variables.goalId ? 'goal' : 'adhoc', // ADD
+      })
     },
     onError: (error: any, _variables, context) => {
       if (context?.previous) {

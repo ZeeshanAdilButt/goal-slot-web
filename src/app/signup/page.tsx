@@ -4,17 +4,18 @@ import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 
+import { capture } from '@/utils/posthog/capture'
+import { Events } from '@/utils/posthog/events'
 import { useMutation } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, Eye, EyeOff, Lock, Mail, User } from 'lucide-react'
-
-import { GoalSlotBrand } from '@/components/goalslot-logo'
 import { toast } from 'react-hot-toast'
 
 import { authApi, stripeApi } from '@/lib/api'
 import { useAuthStore } from '@/lib/store'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
 import { Loading } from '@/components/ui/loading'
+import { GoalSlotBrand } from '@/components/goalslot-logo'
 
 function SignupForm() {
   const router = useRouter()
@@ -69,6 +70,8 @@ function SignupForm() {
     },
     onSuccess: async () => {
       toast.success('Account created successfully!')
+      capture(Events.AUTH_SIGNUP_COMPLETED)
+
       if (redirect) {
         router.push(redirect)
         return
