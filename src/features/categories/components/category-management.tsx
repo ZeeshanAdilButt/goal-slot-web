@@ -53,7 +53,7 @@ export function CategoryManagement() {
   }
 
   if (isLoading) {
-    return <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm p-2 sm:p-6">Loading categories...</div>
+    return <div className="rounded-xl border border-zinc-200 bg-white shadow-sm p-4 sm:p-6">Loading categories...</div>
   }
 
   return (
@@ -69,7 +69,7 @@ export function CategoryManagement() {
         </button>
       </div>
 
-      <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm p-2 sm:p-6">
+      <div className="rounded-xl border border-zinc-200 bg-white shadow-sm p-4 sm:p-6">
         {categories.length === 0 ? (
           <div className="py-12 text-center">
             <p className="font-mono text-gray-600">No categories yet. Create your first one!</p>
@@ -79,14 +79,14 @@ export function CategoryManagement() {
             {categories.map((category) => (
               <div
                 key={category.id}
-                className="flex items-center justify-between border border-zinc-200 bg-white p-4"
+                className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border border-zinc-200 bg-white p-3 sm:p-4"
               >
-                <div className="flex min-w-0 items-center gap-4">
+                <div className="flex min-w-0 flex-1 basis-40 items-center gap-x-3 gap-y-1 sm:gap-x-4">
                   <div
                     className="h-8 w-8 rounded-full border-2 border-black"
                     style={{ backgroundColor: category.color }}
                   />
-                  <div className='min-w-0'>
+                  <div className='min-w-0 flex-1'>
                     <div className="truncate font-bold uppercase">{category.name}</div>
                     <div className="truncate font-mono text-xs text-gray-600">{category.value}</div>
                   </div>
@@ -94,7 +94,7 @@ export function CategoryManagement() {
                     <span className="shrink-0 rounded-full bg-gray-200 px-2 py-1 text-xs font-bold uppercase">Default</span>
                   )}
                 </div>
-                <div className="flex shrink-0 items-center gap-2">
+                <div className="ml-auto flex shrink-0 items-center gap-2">
                   <button onClick={() => setEditingCategory(category)} className="inline-flex h-11 w-11 items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold transition-colors hover:bg-zinc-50 disabled:opacity-50">
                     <Edit2 className="h-4 w-4" />
                   </button>
