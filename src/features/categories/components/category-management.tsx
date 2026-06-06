@@ -63,7 +63,7 @@ export function CategoryManagement() {
           <h2 className="text-2xl font-bold uppercase">Categories</h2>
           <p className="font-mono text-sm text-gray-600">Manage your custom categories</p>
         </div>
-        <button onClick={() => setIsCreateModalOpen(true)} className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50">
+        <button aria-label="Add category" onClick={() => setIsCreateModalOpen(true)} className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50">
           <Plus className="h-4 w-4" />
           <span className="hidden sm:inline">Add Category</span>
         </button>
@@ -95,10 +95,11 @@ export function CategoryManagement() {
                   )}
                 </div>
                 <div className="ml-auto flex shrink-0 items-center gap-2">
-                  <button onClick={() => setEditingCategory(category)} className="inline-flex h-11 w-11 items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold transition-colors hover:bg-zinc-50 disabled:opacity-50">
+                  <button aria-label='Edit' title='Edit Button' onClick={() => setEditingCategory(category)} className="inline-flex h-11 w-11 items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold transition-colors hover:bg-zinc-50 disabled:opacity-50">
                     <Edit2 className="h-4 w-4" />
                   </button>
                   <button
+                    aria-label='Delete' title='Delete Button'
                     onClick={() => setDeletingCategory(category)}
                     className="inline-flex items-center justify-center gap-2 rounded-lg border h-11 w-11 border-zinc-200 bg-white text-zinc-900 text-sm font-semibold transition-colors hover:bg-zinc-50 disabled:opacity-50 p-2 text-red-600"
                   >
