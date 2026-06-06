@@ -28,7 +28,7 @@ interface PublicWhiteboardViewerProps {
 
 export function PublicWhiteboardViewer({ scene, className }: PublicWhiteboardViewerProps) {
   const mountKey = useMemo(() => sceneMountKey(scene), [scene])
-  const initialData = useMemo(() => prepareExcalidrawScene(scene, { zenMode: true }), [scene, mountKey])
+  const initialData = useMemo(() => prepareExcalidrawScene(scene, { zenMode: true }), [scene])
 
   return (
     <div className={className ?? 'public-whiteboard-view min-h-[40vh]'}>
