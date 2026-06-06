@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
+import { appendCurrentHash } from '@/features/whiteboards/excalidraw-library-url'
 import { useCreateWhiteboardMutation, useWhiteboardsQuery } from '@/features/whiteboards/hooks/use-whiteboards'
 import type { Whiteboard } from '@/features/whiteboards/types'
 
@@ -60,7 +61,7 @@ export function useWhiteboardsSelection({ initialWhiteboardId }: UseWhiteboardsS
       if (!paramId) {
         const params = new URLSearchParams(searchParams.toString())
         params.set('whiteboardId', idToSelect)
-        router.replace(`${pathname}?${params.toString()}`)
+        router.replace(appendCurrentHash(`${pathname}?${params.toString()}`))
       }
     }
 
@@ -89,7 +90,7 @@ export function useWhiteboardsSelection({ initialWhiteboardId }: UseWhiteboardsS
       }
       const params = new URLSearchParams(searchParams.toString())
       params.set('whiteboardId', whiteboard.id)
-      router.push(`${pathname}?${params.toString()}`)
+      router.push(appendCurrentHash(`${pathname}?${params.toString()}`))
     },
     [pathname, router, searchParams],
   )
@@ -110,7 +111,7 @@ export function useWhiteboardsSelection({ initialWhiteboardId }: UseWhiteboardsS
     }
     setSelectedWhiteboardId(null)
     if (typeof window !== 'undefined') window.localStorage.removeItem(LAST_WHITEBOARD_KEY)
-    router.replace(pathname)
+    router.replace(appendCurrentHash(pathname))
   }, [whiteboards, pathname, router, selectWhiteboard, selectedWhiteboardId])
 
   return {
