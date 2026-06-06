@@ -20,6 +20,11 @@ import {
 } from './whiteboards-main-panel'
 import { SharedWhiteboardsPanel } from './shared-whiteboards-panel'
 import { WhiteboardsSidebar } from './whiteboards-sidebar'
+import { appendCurrentHash, stashPendingLibraryFromUrl } from '../excalidraw-library-url'
+
+if (typeof window !== 'undefined') {
+  stashPendingLibraryFromUrl()
+}
 
 interface WhiteboardsPageProps {
   initialWhiteboardId?: string
@@ -73,7 +78,7 @@ export function WhiteboardsPage({ initialWhiteboardId }: WhiteboardsPageProps = 
     const params = new URLSearchParams(searchParams.toString())
     params.delete('action')
     const next = params.toString()
-    router.replace(next ? `${pathname}?${next}` : pathname)
+    router.replace(appendCurrentHash(next ? `${pathname}?${next}` : pathname))
   }, [createWhiteboard, pathname, router, searchParams])
 
   useEffect(() => {
@@ -87,7 +92,7 @@ export function WhiteboardsPage({ initialWhiteboardId }: WhiteboardsPageProps = 
     const params = new URLSearchParams(searchParams.toString())
     params.delete('shared')
     const next = params.toString()
-    router.replace(next ? `${pathname}?${next}` : pathname)
+    router.replace(appendCurrentHash(next ? `${pathname}?${next}` : pathname))
   }, [pathname, router, searchParams, sharedList])
 
   useEffect(() => {
