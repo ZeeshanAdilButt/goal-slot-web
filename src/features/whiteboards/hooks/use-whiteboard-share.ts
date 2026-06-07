@@ -54,10 +54,19 @@ export function useInviteWhiteboardShareMutation(whiteboardId: string) {
       const { data } = await whiteboardsApi.invite(whiteboardId, email)
       return data as WhiteboardShare
     },
-    onSuccess: () => {
+    onSuccess: (result, email) => {
       queryClient.invalidateQueries({ queryKey: shareStateKey(whiteboardId) })
       queryClient.invalidateQueries({ queryKey: SHARED_WHITEBOARDS_QUERY_KEY })
-      toast.success('Invite sent')
+      if (result.emailSent) {
+        toast.success(`Invite sent to ${email}`)
+      } else {
+        toast.error(
+          result.emailError
+            ? `Invite saved but email failed: ${result.emailError}`
+            : `Invite saved but email could not be sent to ${email}. They can still find it after signing up with that address.`,
+          { duration: 6000 },
+        )
+      }
     },
     onError: (err: any) => {
       const msg = err?.response?.data?.message || 'Could not send invite'
