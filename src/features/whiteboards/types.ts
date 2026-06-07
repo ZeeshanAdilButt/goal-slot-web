@@ -29,6 +29,8 @@ export interface WhiteboardShare {
   permission: string
   acceptedAt?: string
   createdAt: string
+  emailSent?: boolean
+  emailError?: string | null
 }
 
 export interface WhiteboardShareState {
