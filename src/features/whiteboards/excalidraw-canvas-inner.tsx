@@ -10,9 +10,9 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps 
 import { Excalidraw, loadLibraryFromBlob } from '@excalidraw/excalidraw'
 
 import {
-  PENDING_LIBRARY_KEY,
   clearAddLibraryFromUrl,
   parseAddLibraryFromUrl,
+  PENDING_LIBRARY_KEY,
   stashPendingLibraryFromUrl,
   takePendingLibrary,
 } from './excalidraw-library-url'
@@ -97,42 +97,45 @@ export function ExcalidrawCanvasInner({
   }, [scene])
 
   const libraryReturnUrl =
-    typeof window !== 'undefined'
-      ? window.location.origin + window.location.pathname + window.location.search
-      : ''
+    typeof window !== 'undefined' ? window.location.origin + window.location.pathname + window.location.search : ''
 
-  const importLibrary = useCallback(async (tokens: LibraryTokens, source: 'url' | 'sessionStorage') => {
-    if (!excalidrawAPI || importInFlightRef.current) return
+  const importLibrary = useCallback(
+    async (tokens: LibraryTokens, source: 'url' | 'sessionStorage') => {
+      if (!excalidrawAPI || importInFlightRef.current) return
 
-    importInFlightRef.current = true
-    console.log(`[Excalidraw] addLibrary param found in ${source}:`, tokens.libraryUrl)
+      // importInFlightRef.current = true
+      console.log(`[Excalidraw] addLibrary param found in ${source}:`, tokens.libraryUrl)
 
-    try {
-      const libraryUrl = decodeURIComponent(tokens.libraryUrl)
-      const libraryItems = await fetchLibraryItems(libraryUrl)
-
-      console.log('[Excalidraw] fetched library data:', libraryItems)
-      console.log('[Excalidraw] calling updateLibrary with', libraryItems.length, 'items')
-
-      await excalidrawAPI.updateLibrary({
-        libraryItems,
-        merge: true,
-        defaultStatus: 'published',
-        openLibraryMenu: true,
-      })
-
-      clearAddLibraryFromUrl()
-      sessionStorage.removeItem(PENDING_LIBRARY_KEY)
-    } catch (err) {
-      console.error('[Excalidraw] Failed to load library:', err)
-      importInFlightRef.current = false
       try {
-        sessionStorage.setItem(PENDING_LIBRARY_KEY, JSON.stringify(tokens))
-      } catch {
-        // ignore
+        const libraryUrl = decodeURIComponent(tokens.libraryUrl)
+        const libraryItems = await fetchLibraryItems(libraryUrl)
+
+        console.log('[Excalidraw] fetched library data:', libraryItems)
+        console.log('[Excalidraw] calling updateLibrary with', libraryItems.length, 'items')
+
+        await excalidrawAPI.updateLibrary({
+          libraryItems,
+          merge: true,
+          defaultStatus: 'published',
+          openLibraryMenu: true,
+        })
+
+        clearAddLibraryFromUrl()
+        sessionStorage.removeItem(PENDING_LIBRARY_KEY)
+      } catch (err) {
+        console.error('[Excalidraw] Failed to load library:', err)
+        importInFlightRef.current = false
+        try {
+          sessionStorage.setItem(PENDING_LIBRARY_KEY, JSON.stringify(tokens))
+        } catch {
+          // ignore
+        } finally {
+          importInFlightRef.current = false
+        }
       }
-    }
-  }, [excalidrawAPI])
+    },
+    [excalidrawAPI],
+  )
 
   useEffect(() => {
     if (!excalidrawAPI) return
