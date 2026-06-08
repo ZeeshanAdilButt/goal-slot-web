@@ -1,11 +1,12 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+
 import { Plus, Search, Star, Trash2 } from 'lucide-react'
 
-import { ConfirmDialog } from '@/components/confirm-dialog'
 import { cn } from '@/lib/utils'
 import { Loading } from '@/components/ui/loading'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 
 import {
   useCreateWhiteboardMutation,
@@ -48,8 +49,6 @@ export function WhiteboardsSidebar({
     return w.title.toLowerCase().includes(q)
   })
 
-  const favorites = useMemo(() => whiteboards.filter((w) => w.isFavorite), [whiteboards])
-
   useEffect(() => {
     if (focusTitleId && focusTitleId === selectedWhiteboardId) {
       const wb = whiteboards.find((w) => w.id === focusTitleId)
@@ -68,10 +67,7 @@ export function WhiteboardsSidebar({
   }, [editingId])
 
   const handleCreate = () => {
-    createMutation.mutate(
-      { title: 'Untitled' },
-      { onSuccess: (wb) => onSelectWhiteboard(wb) },
-    )
+    createMutation.mutate({ title: 'Untitled' }, { onSuccess: (wb) => onSelectWhiteboard(wb) })
   }
 
   const commitTitle = useCallback(
@@ -235,9 +231,7 @@ export function WhiteboardsSidebar({
               <Star
                 className={cn(
                   'h-3.5 w-3.5',
-                  wb.isFavorite
-                    ? 'fill-current text-yellow-500'
-                    : 'text-zinc-400 hover:text-yellow-500',
+                  wb.isFavorite ? 'fill-current text-yellow-500' : 'text-zinc-400 hover:text-yellow-500',
                 )}
               />
             </button>
@@ -288,21 +282,19 @@ export function WhiteboardsSidebar({
       </div>
 
       <div className="flex-1 overflow-y-auto px-2 pb-2">
-        {favorites.length > 0 && !searchQuery && (
+        {whiteboards.filter((w) => w.isFavorite).length > 0 && !searchQuery.trim() && (
           <div className="mb-4">
-            <div className="mb-1 px-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Favorites
-            </div>
-            {favorites.map((wb) => renderFavoriteRow(wb))}
+            <div className="mb-1 px-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Favorites</div>
+            {whiteboards.filter((w) => w.isFavorite).map((wb) => renderFavoriteRow(wb))}
           </div>
         )}
 
         <div className="mb-1 px-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-          {searchQuery ? 'Search Results' : 'All Whiteboards'}
+          {searchQuery.trim() ? 'Search Results' : 'All Whiteboards'}
         </div>
         {filtered.length === 0 ? (
           <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-            {searchQuery ? 'No whiteboards found' : 'No whiteboards yet. Create one!'}
+            {searchQuery.trim() ? 'No whiteboards found' : 'No whiteboards yet. Create one!'}
           </div>
         ) : (
           filtered.map((wb) => renderWhiteboardRow(wb))
