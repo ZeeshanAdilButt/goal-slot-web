@@ -1,14 +1,15 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Eye, Plus, Share2, Star, StarOff } from 'lucide-react'
 
 import { NOTE_COLORS, NOTE_ICONS } from '@/features/notes/utils/types'
 import { useUpdateWhiteboardMutation } from '@/features/whiteboards/hooks/use-whiteboards'
 import type { Whiteboard } from '@/features/whiteboards/types'
+import { Eye, Plus, Share2, Star, StarOff } from 'lucide-react'
+
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { cn } from '@/lib/utils'
 
 import { ShareWhiteboardDialog } from './share-whiteboard-dialog'
 
@@ -82,6 +83,7 @@ export function WhiteboardHeader({
   const debouncedSaveTitle = useDebounce(saveTitle, 500)
 
   const handleToggleFavorite = () => {
+    if (updateMutation.isPending) return
     updateMutation.mutate({
       id: whiteboard.id,
       data: { isFavorite: !whiteboard.isFavorite },
@@ -98,8 +100,7 @@ export function WhiteboardHeader({
     setShowColorPicker(false)
   }
 
-  const colorConfig =
-    NOTE_COLORS.find((c) => c.value === (whiteboard.color || 'default')) || NOTE_COLORS[0]
+  const colorConfig = NOTE_COLORS.find((c) => c.value === (whiteboard.color || 'default')) || NOTE_COLORS[0]
 
   return (
     <div className="shrink-0 border-b border-zinc-200">
@@ -185,11 +186,13 @@ export function WhiteboardHeader({
             <button
               type="button"
               onClick={handleToggleFavorite}
+              disabled={updateMutation.isPending}
+              aria-pressed={whiteboard.isFavorite}
+              aria-label={whiteboard.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
               className={cn(
                 'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-zinc-200 transition-colors md:h-9 md:w-9',
-                whiteboard.isFavorite
-                  ? 'bg-yellow-100 text-yellow-600'
-                  : 'bg-white hover:bg-zinc-50',
+                whiteboard.isFavorite ? 'bg-yellow-100 text-yellow-600' : 'bg-white hover:bg-zinc-50',
+                'disabled:cursor-not-allowed disabled:opacity-60',
               )}
               title={whiteboard.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
             >
@@ -207,11 +210,7 @@ export function WhiteboardHeader({
                   title="Change color"
                 >
                   <div
-                    className={cn(
-                      'h-4 w-4 rounded-full border-2 md:h-5 md:w-5',
-                      colorConfig.border,
-                      colorConfig.bg,
-                    )}
+                    className={cn('h-4 w-4 rounded-full border-2 md:h-5 md:w-5', colorConfig.border, colorConfig.bg)}
                   />
                 </button>
               </PopoverTrigger>
@@ -226,8 +225,7 @@ export function WhiteboardHeader({
                         'flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all',
                         color.border,
                         color.bg,
-                        (whiteboard.color || 'default') === color.value &&
-                          'ring-2 ring-primary ring-offset-2',
+                        (whiteboard.color || 'default') === color.value && 'ring-2 ring-primary ring-offset-2',
                       )}
                       title={color.label}
                     />
@@ -248,11 +246,7 @@ export function WhiteboardHeader({
         </div>
       )}
       {!readOnly && (
-        <ShareWhiteboardDialog
-          whiteboard={whiteboard}
-          open={showShare}
-          onClose={() => setShowShare(false)}
-        />
+        <ShareWhiteboardDialog whiteboard={whiteboard} open={showShare} onClose={() => setShowShare(false)} />
       )}
     </div>
   )
