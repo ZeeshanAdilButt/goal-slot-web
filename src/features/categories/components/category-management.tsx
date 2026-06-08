@@ -95,13 +95,13 @@ export function CategoryManagement() {
                   )}
                 </div>
                 <div className="ml-auto flex shrink-0 items-center gap-2">
-                  <button aria-label='Edit' title='Edit Button' onClick={() => setEditingCategory(category)} className="inline-flex h-11 w-11 items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold transition-colors hover:bg-zinc-50 disabled:opacity-50">
+                  <button aria-label={`Edit ${category.name}`} title={`Edit ${category.name}`} onClick={() => setEditingCategory(category)} className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-900 transition-colors hover:bg-zinc-50 disabled:opacity-50">
                     <Edit2 className="h-4 w-4" />
                   </button>
                   <button
-                    aria-label='Delete' title='Delete Button'
+                    aria-label={`Delete ${category.name}`} title={`Delete ${category.name}`}
                     onClick={() => setDeletingCategory(category)}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg border h-11 w-11 border-zinc-200 bg-white text-zinc-900 text-sm font-semibold transition-colors hover:bg-zinc-50 disabled:opacity-50 p-2 text-red-600"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-zinc-200 bg-white text-red-600 transition-colors hover:bg-zinc-50 disabled:opacity-50"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
