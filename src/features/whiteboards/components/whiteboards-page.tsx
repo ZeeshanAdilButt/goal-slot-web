@@ -2,29 +2,24 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+
 import { useQueryClient } from '@tanstack/react-query'
 import { PanelLeft, PanelLeftClose, Plus, X } from 'lucide-react'
+
 import { cn } from '@/lib/utils'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
 import { Loading } from '@/components/ui/loading'
+
+import { appendCurrentHash, stashPendingLibraryFromUrl } from '../excalidraw-library-url'
 import { useSharedWhiteboardsQuery, useWhiteboardQuery, WHITEBOARDS_QUERY_KEY } from '../hooks/use-whiteboards'
 import { useWhiteboardsSelection } from '../hooks/use-whiteboards-selection'
 import type { SharedWithMeItem } from '../types'
-import type { FlushWhiteboardSave } from '../WhiteboardCanvas'
 import { resolveWhiteboardScene } from '../whiteboard-draft'
-import {
-  EmptyWhiteboardPanel,
-  OwnedWhiteboardPanel,
-  SharedWhiteboardPanel,
-} from './whiteboards-main-panel'
+import type { FlushWhiteboardSave } from '../WhiteboardCanvas'
 import { SharedWhiteboardsPanel } from './shared-whiteboards-panel'
+import { EmptyWhiteboardPanel, OwnedWhiteboardPanel, SharedWhiteboardPanel } from './whiteboards-main-panel'
 import { WhiteboardsSidebar } from './whiteboards-sidebar'
-import { appendCurrentHash, stashPendingLibraryFromUrl } from '../excalidraw-library-url'
-
-if (typeof window !== 'undefined') {
-  stashPendingLibraryFromUrl()
-}
 
 interface WhiteboardsPageProps {
   initialWhiteboardId?: string
@@ -62,6 +57,9 @@ export function WhiteboardsPage({ initialWhiteboardId }: WhiteboardsPageProps = 
   const handledActionRef = useRef(false)
   const handledSharedRef = useRef(false)
   const prevCreatingRef = useRef(false)
+  useEffect(() => {
+    stashPendingLibraryFromUrl()
+  }, [pathname, searchParams])
 
   useEffect(() => {
     if (isMobile && isMobileSidebarOpen && (selectedWhiteboard || selectedShared)) {
@@ -165,12 +163,8 @@ export function WhiteboardsPage({ initialWhiteboardId }: WhiteboardsPageProps = 
 
   if (selectedShared) {
     if (sharedWhiteboard) {
-      const resolvedSharedContent = resolveWhiteboardScene(
-        sharedWhiteboard.id,
-        sharedWhiteboard.content,
-      )
-      const waitingForSharedContent =
-        sharedFetch.isFetching && !(resolvedSharedContent?.elements?.length ?? 0)
+      const resolvedSharedContent = resolveWhiteboardScene(sharedWhiteboard.id, sharedWhiteboard.content)
+      const waitingForSharedContent = sharedFetch.isFetching && !(resolvedSharedContent?.elements?.length ?? 0)
 
       mainContent = (
         <SharedWhiteboardPanel
@@ -220,13 +214,7 @@ export function WhiteboardsPage({ initialWhiteboardId }: WhiteboardsPageProps = 
       />
     )
   } else {
-    mainContent = (
-      <EmptyWhiteboardPanel
-        isMobile={isMobile}
-        isCreating={isCreating}
-        onCreate={createWhiteboard}
-      />
-    )
+    mainContent = <EmptyWhiteboardPanel isMobile={isMobile} isCreating={isCreating} onCreate={createWhiteboard} />
   }
 
   const headerTitle = selectedShared
