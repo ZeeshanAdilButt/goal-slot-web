@@ -20,7 +20,9 @@ If your todo list is in one app, your calendar in another, your time tracking in
 | **Coach AI** | Optional Socratic layer using your own OpenAI, Anthropic, or Gemini key (BYOK), with a shared fallback for users without a key |
 | **Reports** | Daily, weekly, and monthly focus charts and CSV exports |
 | **Sharing** | Per-goal and per-report public links plus email invites |
-| **Integrations** | Notion (in progress, [#190](https://github.com/ZeeshanAdilButt/goal-slot-web/issues/190)), Whiteboards (in progress, [#203](https://github.com/ZeeshanAdilButt/goal-slot-web/issues/203)), `goalslot` CLI (open scope, [api#27](https://github.com/ZeeshanAdilButt/goal-slot-api/issues/27)) |
+| **Integrations** | Notion (in progress, [#190](https://github.com/ZeeshanAdilButt/goal-slot-web/issues/190)),
+| **Whiteboards** | FigJam style infinite canvas with sticky notes, shapes, freehand drawing, text, image upload, autosave, public link sharing, and email invites. Public viewer at `/w/[token]`. Mobile read-only.
+ | `goalslot` CLI (open scope, [api#27](https://github.com/ZeeshanAdilButt/goal-slot-api/issues/27)) |
 | **Auth** | Email + OTP, Google OAuth (in progress), token refresh, optional Supabase SSO |
 | **PWA** | Installable progressive web app |
 | **Analytics** | Optional PostHog integration |
@@ -101,7 +103,7 @@ goal-slot-web/
 │   │   ├── share/          # Public share links
 │   │   └── auth/callback/  # OAuth callback (Google, etc.)
 │   ├── components/         # Shared UI primitives
-│   ├── features/           # Goals, time-tracker, notes, reports, coach, sharing, settings
+│   ├── features/           # Goals, time-tracker, notes, whiteboard, reports, coach, sharing, settings
 │   ├── hooks/              # Shared React hooks
 │   ├── lib/                # API client, stores, utilities
 │   └── content/            # MDX/Markdown guides
