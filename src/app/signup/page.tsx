@@ -281,21 +281,6 @@ function SignupForm() {
                       minLength={8}
                     />
                     <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
-                      {/* Regenerate button */}
-                      {password && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const generated = generateStrongPassword()
-                            setPassword(generated)
-                          }}
-                          className="text-gray-400 hover:text-gray-600"
-                          title="Regenerate password"
-                          aria-label="Regenerate password"
-                        >
-                          <Dice6 className="h-4 w-4" />
-                        </button>
-                      )}
                       {/* Show/hide toggle */}
                       <button
                         type="button"
