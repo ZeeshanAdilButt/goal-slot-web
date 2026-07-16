@@ -6,11 +6,13 @@ import { usePathname, useRouter } from 'next/navigation'
 
 import {
   BarChart3,
+  BookOpen,
   Calendar,
   CheckSquare,
   Clock,
   Download,
   LayoutDashboard,
+  LayoutGrid,
   Megaphone,
   MessageSquare,
   Share2,
@@ -46,6 +48,8 @@ import {
 } from '@/components/ui/sidebar'
 import { GoalSlotBrand } from '@/components/goalslot-logo'
 import { SidebarFooterContent } from '@/components/sidebar-footer-content'
+// routine (flushSync) allows react to do the render and compile at the same time
+import { flushSync } from 'react-dom'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -60,9 +64,11 @@ const navItems = [
   { href: '/dashboard/coach', label: 'GoalSlot AI', icon: CoachIcon },
   // Auxiliary surfaces.
   { href: '/dashboard/notes', label: 'Notes', icon: NotebookIcon },
+  { href: '/dashboard/whiteboards', label: 'Whiteboards', icon: LayoutGrid },
   { href: '/dashboard/reports', label: 'Reports', icon: BarChart3 },
   { href: '/dashboard/reports/export', label: 'Export Reports', icon: Download },
   { href: '/dashboard/sharing', label: 'Sharing', icon: Share2 },
+  { href: '/dashboard/library', label: 'Library', icon: BookOpen },
 ]
 
 const adminNavItems = [
@@ -83,10 +89,19 @@ export function AppSidebar({ onOpenChangelog, hasUnseenChangelog }: AppSidebarPr
   const isAdmin = useIsAdmin()
   const { insights: proposedInsights } = useCoachInsights('PROPOSED')
   const proposedCount = proposedInsights.length
-  const { state, isMobile } = useSidebar()
+  const { state, isMobile, setOpenMobile } = useSidebar()
   const [popoverOpen, setPopoverOpen] = useState(false)
   const isCollapsed = state === 'collapsed'
   const shouldShowPopover = isCollapsed && !isMobile
+
+  /* this routine makes the sidebar to close when clicked on the page in the mobile screens,handling the mobile sidebar navigation's */
+  const handleMobileSidebarNav = () => {
+    if (isMobile) {
+      flushSync(() => {
+        setOpenMobile(false)
+      })
+    }
+  }
 
   const activeNavHref = useMemo(() => {
     const matchingItem = navItems
@@ -108,24 +123,24 @@ export function AppSidebar({ onOpenChangelog, hasUnseenChangelog }: AppSidebarPr
   return (
     <Sidebar side="left" variant="sidebar" collapsible="icon">
       <SidebarHeader className="border-b border-zinc-200 p-4 group-data-[collapsible=icon]:p-2">
-        <div className="flex items-center gap-2 justify-between w-full">
-          <Link href="/dashboard" className="group-data-[collapsible=icon]:hidden shrink-0">
+        <div className="flex w-full items-center justify-between gap-2">
+          <Link href="/dashboard" className="shrink-0 group-data-[collapsible=icon]:hidden" onClick={handleMobileSidebarNav}>
             <GoalSlotBrand size="sm" showTagline={false} />
           </Link>
-          <div className="flex items-center gap-1 shrink-0 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:gap-1.5 ml-auto">
+          <div className="ml-auto flex shrink-0 items-center gap-1 group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-1.5">
             <button
               onClick={onOpenChangelog}
-              className="relative h-8 w-8 shrink-0 rounded-md hover:bg-zinc-100 text-zinc-500 
-              hidden md:flex items-center justify-center transition-colors animate-in fade-in zoom-in duration-200"
+              className="relative hidden h-8 w-8 shrink-0 items-center justify-center 
+              rounded-md text-zinc-500 transition-colors duration-200 animate-in fade-in zoom-in hover:bg-zinc-100 md:flex"
               title="What's New"
               aria-label="What's New changelog"
             >
               <Sparkles className="h-4 w-4" />
               {hasUnseenChangelog && (
-                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-[#f2cc0d] ring-1 ring-white" />
+                <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#f2cc0d] ring-1 ring-white" />
               )}
             </button>
-            <SidebarTrigger className="h-8 w-8 shrink-0 rounded-md hover:bg-zinc-100 text-zinc-500" />
+            <SidebarTrigger className="h-8 w-8 shrink-0 rounded-md text-zinc-500 hover:bg-zinc-100" />
           </div>
         </div>
       </SidebarHeader>
@@ -148,15 +163,16 @@ export function AppSidebar({ onOpenChangelog, hasUnseenChangelog }: AppSidebarPr
                       tooltip={item.label}
                       className="h-8"
                     >
-                      <Link href={item.href}>
+                      <Link href={item.href} onClick={handleMobileSidebarNav}>
                         {isJournal ? (
-                          // Journal pen: brand-yellow glow that pulses on
-                          // a slow 2.4s beat (journal-glow), with an
-                          // asymmetric -30° / +15° sweep on top — a calming
-                          // but quietly playful nudge toward writing.
+                          // Journal pen: brand-yellow with a soft glow,
+                          // static (no animation) in the sidebar because
+                          // a constantly-tilting nav icon competes for
+                          // attention against the floating journal button
+                          // (which keeps its tilt animation as the moment).
                           <item.icon
                             className={cn(
-                              'h-4 w-4 origin-bottom-left text-[#f2cc0d] motion-safe:animate-[pen-tilt_2.6s_ease-in-out_infinite] [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.7))_drop-shadow(0_0_10px_rgba(242,204,13,0.35))] group-data-[collapsible=icon]:-ml-1 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5',
+                              'h-4 w-4 text-[#f2cc0d] [filter:drop-shadow(0_0_3px_rgba(242,204,13,0.55))] group-data-[collapsible=icon]:-ml-1 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5',
                               isActive && 'text-[#f2cc0d]',
                             )}
                           />
@@ -229,7 +245,7 @@ export function AppSidebar({ onOpenChangelog, hasUnseenChangelog }: AppSidebarPr
                         tooltip={item.label}
                         className="h-8"
                       >
-                        <Link href={item.href}>
+                        <Link href={item.href} onClick={handleMobileSidebarNav}>
                           <item.icon
                             className={cn(
                               'h-4 w-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5',
@@ -254,7 +270,7 @@ export function AppSidebar({ onOpenChangelog, hasUnseenChangelog }: AppSidebarPr
             <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
               <PopoverTrigger asChild>
                 <button
-                  className="flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-zinc-100 bg-zinc-900 text-white text-sm font-semibold transition-all hover:bg-zinc-800"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-900 text-sm font-semibold text-white ring-2 ring-zinc-100 transition-all hover:bg-zinc-800"
                   aria-label="User menu"
                 >
                   {user?.name?.charAt(0) || 'U'}

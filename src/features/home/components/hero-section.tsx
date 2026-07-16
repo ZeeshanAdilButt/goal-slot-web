@@ -134,7 +134,7 @@ export function HeroSection() {
                       Deep Work Session
                     </span>
                     <h2 className="mt-4 font-display text-3xl font-bold text-gray-900">Landing Page Polish</h2>
-                    <div className="mt-2 font-mono text-7xl font-bold tracking-tighter text-gray-900 tabular-nums">
+                    <div className="mt-2 font-mono text-7xl font-bold tabular-nums tracking-tighter text-gray-900">
                       01:14:22
                     </div>
                   </div>

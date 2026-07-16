@@ -1,9 +1,11 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { useOfflineMutation } from '@/hooks/use-offline-mutation'
 import { notesApi } from '@/lib/api'
 
 import { Note, CreateNoteDto, UpdateNoteDto } from '../utils/types'
+
+import '@/features/notes/utils/offline-operations'
 
 // Query key for notes
 export const NOTES_QUERY_KEY = ['notes']
@@ -74,61 +76,46 @@ export function useSharedNotesQuery() {
 export function useCreateNoteMutation() {
   const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: async (data: CreateNoteDto) => {
-      const response = await notesApi.create(data)
-      return response.data as Note
-    },
-    onMutate: async (data) => {
-      await queryClient.cancelQueries({ queryKey: NOTES_QUERY_KEY })
+  const buildOptimisticNote = (data: CreateNoteDto, id: string): Note => {
+    const now = new Date()
+    const current = queryClient.getQueryData<Note[]>(NOTES_QUERY_KEY) ?? []
+    const siblings = current.filter((n) => (n.parentId ?? null) === (data.parentId ?? null))
+    const maxOrder = siblings.reduce((m, n) => Math.max(m, n.order ?? 0), 0)
+
+    return {
+      id,
+      title: data.title,
+      content: data.content ?? '',
+      icon: data.icon,
+      color: data.color,
+      parentId: data.parentId ?? null,
+      order: maxOrder + 1000,
+      isExpanded: false,
+      isFavorite: false,
+      createdAt: now,
+      updatedAt: now,
+      userId: '',
+    }
+  }
+
+  return useOfflineMutation<CreateNoteDto, { previous: Note[] | undefined }, Note>({
+    kind: 'note.create',
+    buildPayload: (data, meta) => ({ id: meta.entityId, ...data }),
+    getQueuedResult: (data, meta) => buildOptimisticNote(data, meta.entityId),
+    optimisticUpdate: (data, meta) => {
       const previous = queryClient.getQueryData<Note[]>(NOTES_QUERY_KEY)
-      const tmpId = `tmp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
-      const now = new Date()
-      // Append: server will resolve the real order on persist; appending
-      // beats prepending because the user expects a freshly-added note
-      // to land at the bottom of its sibling list.
-      const siblings = (previous ?? []).filter(
-        (n) => (n.parentId ?? null) === (data.parentId ?? null),
-      )
-      const maxOrder = siblings.reduce((m, n) => Math.max(m, n.order ?? 0), 0)
-      const optimistic: Note = {
-        id: tmpId,
-        title: data.title,
-        content: data.content ?? '',
-        icon: data.icon,
-        color: data.color,
-        parentId: data.parentId ?? null,
-        order: maxOrder + 1000,
-        isExpanded: false,
-        isFavorite: false,
-        createdAt: now,
-        updatedAt: now,
-        userId: '',
-      }
+      const optimistic = buildOptimisticNote(data, meta.entityId)
       queryClient.setQueryData<Note[]>(NOTES_QUERY_KEY, (prev) => {
         const list = prev ?? []
         return [...list, optimistic]
       })
-      return { previous, tmpId }
+      return { previous }
     },
-    onSuccess: (newNote, _vars, context) => {
-      // Replace the tmp row with the server's real row in-place so the
-      // visual position doesn't jump when the network resolves.
-      queryClient.setQueryData<Note[]>(NOTES_QUERY_KEY, (prev) => {
-        if (!prev) return prev
-        const tmpId = context?.tmpId
-        if (!tmpId) return [...prev.filter((n) => n.id !== newNote.id), newNote]
-        return prev.map((n) => (n.id === tmpId ? newNote : n))
-      })
-      // Background reconcile so anything we didn't predict (timestamps,
-      // computed fields) catches up without blocking the UI.
-      queryClient.invalidateQueries({ queryKey: NOTES_QUERY_KEY, refetchType: 'inactive' })
-    },
-    onError: (error: any, _vars, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(NOTES_QUERY_KEY, context.previous)
-      }
-      toast.error(error.response?.data?.message || 'Failed to create note')
+    rollback: (ctx) => queryClient.setQueryData(NOTES_QUERY_KEY, ctx?.previous),
+    invalidateKeys: [NOTES_QUERY_KEY],
+    messages: {
+      offline: 'Note saved offline',
+      error: 'Failed to create note',
     },
   })
 }
@@ -137,13 +124,10 @@ export function useCreateNoteMutation() {
 export function useUpdateNoteMutation() {
   const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdateNoteDto }) => {
-      const response = await notesApi.update(id, data)
-      return response.data as Note
-    },
-    onMutate: async ({ id, data }) => {
-      await queryClient.cancelQueries({ queryKey: NOTES_QUERY_KEY })
+  return useOfflineMutation<{ id: string; data: UpdateNoteDto }, { previous: Note[] | undefined }>({
+    kind: 'note.update',
+    buildPayload: ({ id, data }) => ({ id, data }),
+    optimisticUpdate: ({ id, data }) => {
       const previous = queryClient.getQueryData<Note[]>(NOTES_QUERY_KEY)
       queryClient.setQueryData<Note[]>(NOTES_QUERY_KEY, (prev) => {
         if (!prev) return prev
@@ -151,16 +135,11 @@ export function useUpdateNoteMutation() {
       })
       return { previous }
     },
-    onError: (error: any, _vars, context) => {
-      if (context?.previous) queryClient.setQueryData(NOTES_QUERY_KEY, context.previous)
-      toast.error(error.response?.data?.message || 'Failed to update note')
-    },
-    // No invalidate on success, the optimistic patch is already correct.
-    // Server can drift only on serialized fields the user can't see (createdAt updates etc).
-    onSettled: () => {
-      // Background refetch so the cache eventually reconciles, but the UI does
-      // not block on it.
-      queryClient.invalidateQueries({ queryKey: NOTES_QUERY_KEY, refetchType: 'inactive' })
+    rollback: (ctx) => queryClient.setQueryData(NOTES_QUERY_KEY, ctx?.previous),
+    invalidateKeys: [NOTES_QUERY_KEY],
+    messages: {
+      offline: 'Note update saved offline',
+      error: 'Failed to update note',
     },
   })
 }
@@ -169,17 +148,20 @@ export function useUpdateNoteMutation() {
 export function useDeleteNoteMutation() {
   const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: async (id: string) => {
-      await notesApi.delete(id)
-      return id
+  return useOfflineMutation<string, { previous: Note[] | undefined }>({
+    kind: 'note.delete',
+    buildPayload: (id) => ({ id }),
+    optimisticUpdate: (id) => {
+      const previous = queryClient.getQueryData<Note[]>(NOTES_QUERY_KEY)
+      queryClient.setQueryData<Note[]>(NOTES_QUERY_KEY, (prev) => prev?.filter((note) => note.id !== id))
+      return { previous }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: NOTES_QUERY_KEY })
-      toast.success('Note deleted successfully')
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to delete note')
+    rollback: (ctx) => queryClient.setQueryData(NOTES_QUERY_KEY, ctx?.previous),
+    invalidateKeys: [NOTES_QUERY_KEY],
+    messages: {
+      offline: 'Note deletion saved offline',
+      success: 'Note deleted successfully',
+      error: 'Failed to delete note',
     },
   })
 }
@@ -192,12 +174,13 @@ export function useDeleteNoteMutation() {
 export function useReorderNotesMutation() {
   const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: async (data: { noteId: string; parentId: string | null; order: number }[]) => {
-      await notesApi.reorder(data)
-    },
-    onMutate: async (updates) => {
-      await queryClient.cancelQueries({ queryKey: NOTES_QUERY_KEY })
+  return useOfflineMutation<
+    { noteId: string; parentId: string | null; order: number }[],
+    { previous: Note[] | undefined }
+  >({
+    kind: 'note.reorder',
+    buildPayload: (data) => data,
+    optimisticUpdate: (updates) => {
       const previous = queryClient.getQueryData<Note[]>(NOTES_QUERY_KEY)
       queryClient.setQueryData<Note[]>(NOTES_QUERY_KEY, (prev) => {
         if (!prev) return prev
@@ -210,17 +193,11 @@ export function useReorderNotesMutation() {
       })
       return { previous }
     },
-    onError: (error: any, _vars, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(NOTES_QUERY_KEY, context.previous)
-      }
-      toast.error(error.response?.data?.message || 'Failed to reorder notes')
-    },
-    // Reconcile in the background — but DON'T refetch right away or
-    // the optimistic ordering can flicker. `inactive` defers until the
-    // query is next observed without active subscribers blocking on it.
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: NOTES_QUERY_KEY, refetchType: 'inactive' })
+    rollback: (ctx) => queryClient.setQueryData(NOTES_QUERY_KEY, ctx?.previous),
+    invalidateKeys: [NOTES_QUERY_KEY],
+    messages: {
+      offline: 'Note reorder saved offline',
+      error: 'Failed to reorder notes',
     },
   })
 }

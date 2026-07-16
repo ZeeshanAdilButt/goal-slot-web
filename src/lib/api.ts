@@ -106,11 +106,16 @@ api.interceptors.response.use(
 
       try {
         // Attempt to refresh token (use axios directly to avoid interceptor)
-        const response = await axios.post(`${API_URL}/api/auth/refresh`, { refreshToken }, {
-          headers: {
-            'Content-Type': 'application/json',
+        const response = await axios.post(
+          `${API_URL}/api/auth/refresh`,
+          { refreshToken },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${refreshToken}`,
+            },
           },
-        })
+        )
         const { accessToken, refreshToken: newRefreshToken } = response.data
 
         // Update tokens in localStorage
@@ -135,9 +140,16 @@ api.interceptors.response.use(
         // Retry the original request
         return api(originalRequest)
       } catch (refreshError) {
-        // Refresh failed, logout user
         processQueue(refreshError, null)
         isRefreshing = false
+
+        const refreshStatus = (refreshError as { response?: { status?: number } })?.response?.status
+        const isRefreshAuthFailure = refreshStatus === 401 || refreshStatus === 403
+
+        if (!isRefreshAuthFailure) {
+          // Network/offline failure isn't proof the session is invalid; keep tokens and retry later.
+          return Promise.reject(refreshError)
+        }
 
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
@@ -232,6 +244,7 @@ export const scheduleApi = {
   create: (data: any) => api.post('/schedule', data),
   update: (id: string, data: any) => api.put(`/schedule/${id}`, data),
   delete: (id: string) => api.delete(`/schedule/${id}`),
+  clearAll: () => api.delete<{ deleted: number }>('/schedule'),
 }
 
 // Reports API
@@ -368,6 +381,9 @@ export const usersApi = {
   // Admin: Create internal user
   createInternal: (data: { email: string; password: string; name: string; role?: string }) =>
     api.post('/users/admin/internal', data),
+  // Admin: Bulk-invite many users from a free-form text blob of emails
+  bulkInvite: (data: { text: string; role?: 'USER' | 'ADMIN' | 'SUPER_ADMIN' }) =>
+    api.post('/users/admin/bulk-invite', data),
   // Admin: Grant free Pro access
   grantAccess: (userId: string) => api.post(`/users/admin/grant-access/${userId}`),
   // Admin: Revoke free access

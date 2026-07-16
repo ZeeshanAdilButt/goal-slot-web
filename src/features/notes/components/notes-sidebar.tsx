@@ -139,6 +139,33 @@ function zoneFromPointer(pointerY: number, rect: DOMRect): DropZone {
   return pointerY < rect.top + rect.height / 2 ? 'above' : 'below'
 }
 
+/**
+ * Resolve the *effective* drop target after applying the "drop below an
+ * expanded parent with children = drop above its first child" tree-DnD
+ * convention. Gives users a much larger target area for "make X the first
+ * child of Y" than the thin top half of the current first child row, and
+ * avoids the failure mode where pointer drift onto the parent's bottom
+ * half drops the note as a sibling-after-parent instead.
+ */
+function resolveDropTarget(
+  notes: Note[],
+  overId: string,
+  rawZone: DropZone,
+  draggedNoteId: string,
+  expandedIds: Set<string>,
+): DropTarget {
+  if (overId === ROOT_TOP_ID || overId === ROOT_BOTTOM_ID) {
+    return { id: overId, zone: rawZone }
+  }
+  if (rawZone !== 'below') return { id: overId, zone: rawZone }
+  if (!expandedIds.has(overId)) return { id: overId, zone: rawZone }
+  const firstChild = notes
+    .filter((n) => n.parentId === overId && n.id !== draggedNoteId)
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))[0]
+  if (!firstChild) return { id: overId, zone: rawZone }
+  return { id: firstChild.id, zone: 'above' }
+}
+
 interface NoteItemProps {
   note: NoteTreeItem
   depth: number
@@ -560,10 +587,17 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
     }
 
     const rect = over.rect as unknown as DOMRect
-    const zone = zoneFromPointer(pointerYRef.current, rect)
+    const rawZone = zoneFromPointer(pointerYRef.current, rect)
+    const resolved = resolveDropTarget(
+      notes,
+      overId,
+      rawZone,
+      String(active.id),
+      expandedIds,
+    )
 
-    if (activeDropTarget?.id !== overId || activeDropTarget.zone !== zone) {
-      setActiveDropTarget({ id: overId, zone })
+    if (activeDropTarget?.id !== resolved.id || activeDropTarget.zone !== resolved.zone) {
+      setActiveDropTarget(resolved)
     }
 
     // Auto-expand: hovering a collapsed parent for AUTO_EXPAND_HOVER_MS
@@ -648,14 +682,20 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
 
     // Re-derive the zone from the final event geometry — `target` from
     // state could be one render stale on a fast release, but the rects
-    // on the event itself are always current.
-    let zone: DropZone = target?.id === overId && target?.zone ? target.zone : 'below'
+    // on the event itself are always current. Then apply the
+    // "drop-below-expanded-parent = drop-above-its-first-child"
+    // resolution so the effective target matches what handleDragOver
+    // showed in the indicator.
+    let rawZone: DropZone = target?.id === overId && target?.zone ? target.zone : 'below'
     const overRect = (over.rect as unknown as DOMRect | undefined) ?? null
     if (overRect) {
-      zone = zoneFromPointer(pointerYRef.current, overRect)
+      rawZone = zoneFromPointer(pointerYRef.current, overRect)
     }
+    const resolved = resolveDropTarget(freshNotes, overId, rawZone, noteId, expandedIds)
+    const resolvedOverId = resolved.id
+    const zone = resolved.zone
 
-    const targetNote = freshNotes.find((n: Note) => n.id === overId)
+    const targetNote = freshNotes.find((n: Note) => n.id === resolvedOverId)
     if (!targetNote) return
 
     // Sibling reorder. Land in the target's parent list immediately
@@ -666,7 +706,7 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
       .filter((n: Note) => (n.parentId ?? null) === targetParentId && n.id !== noteId)
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 
-    const targetIndex = siblings.findIndex((n: Note) => n.id === overId)
+    const targetIndex = siblings.findIndex((n: Note) => n.id === resolvedOverId)
     const insertAt =
       targetIndex === -1
         ? siblings.length

@@ -25,6 +25,7 @@ import { PageShell } from '@/components/ui/page-shell'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 
 import { SharedReportsView } from './shared-reports-view'
+import { SharingScheduleVisibility } from './sharing-schedule-visibility'
 
 export function SharingPage() {
   const [activeTab, setActiveTab] = useState<TabType>('my')
@@ -93,8 +94,10 @@ export function SharingPage() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
+              className="space-y-4 sm:space-y-6"
             >
               <SharingActiveShares activeShares={activeShares} pendingShares={pendingShares} onRevoke={handleRevoke} />
+              <SharingScheduleVisibility />
             </motion.div>
           ) : (
             <motion.div

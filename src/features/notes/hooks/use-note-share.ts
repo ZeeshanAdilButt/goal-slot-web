@@ -5,6 +5,13 @@ import { notesApi } from '@/lib/api'
 
 import { SHARED_NOTES_QUERY_KEY } from './use-notes'
 
+export interface NoteShareRecipientUser {
+  id: string
+  name: string
+  email: string
+  avatar: string | null
+}
+
 export interface NoteShareRecipient {
   id: string
   recipientEmail: string
@@ -12,6 +19,7 @@ export interface NoteShareRecipient {
   permission: string
   acceptedAt: string | null
   createdAt: string
+  recipientUser: NoteShareRecipientUser | null
 }
 
 export interface NoteShareState {

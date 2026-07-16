@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import Color from '@tiptap/extension-color'
@@ -21,6 +21,9 @@ import { EditorContent, useEditor } from '@tiptap/react'
 import { BubbleMenu } from '@tiptap/react/menus'
 import StarterKit from '@tiptap/starter-kit'
 import { common, createLowlight } from 'lowlight'
+import { TextSelection } from '@tiptap/pm/state'
+import Paragraph from '@tiptap/extension-paragraph'
+import Heading from '@tiptap/extension-heading'
 
 import './tiptap-editor.css'
 
@@ -59,11 +62,335 @@ import {
 
 import { cn } from '@/lib/utils'
 
+import { IndentExtension } from './indent-extension'
 import { ResizableImage } from './resizable-image'
 import { SlashCommands } from './slash-commands'
 
 // Create lowlight instance with common languages
 const lowlight = createLowlight(common)
+
+// Notion-style wrapper-block paragraph + heading.
+//
+// Background: previous attempts to space adjacent paragraphs via CSS-only
+// rules failed because (a) the `.ProseMirror > p` selector did not match
+// paragraphs nested inside <li> (the `>` is a direct-child combinator),
+// and (b) inline style attributes added via HTMLAttributes were silently
+// erased on save round-trips by an over-aggressive normalizer regex.
+// Inline style on <p> is also defeated by an adversarial pasted
+// `style="line-height:0 !important"` payload landing on the same <p>.
+//
+// The fix here is the Notion/Roam pattern: every paragraph and heading
+// renders inside a wrapper <div class="gs-block">. Spacing lives on the
+// wrapper. The inner <p>/<h*> (the editable element) carries no spacing
+// CSS, so a paste payload can never reach the wrapper to defeat it.
+// parseHTML accepts BOTH the new wrapper shape AND the bare <p>/<h*>
+// shape — existing notes load byte-identical and editor.getHTML() emits
+// the wrapper on save. Both shapes round-trip cleanly.
+const GoalSlotParagraph = Paragraph.extend({
+  parseHTML() {
+    return [{ tag: 'div.gs-block > p', priority: 60 }, { tag: 'p' }]
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ['div', { class: 'gs-block gs-block-p' }, ['p', HTMLAttributes, 0]]
+  },
+})
+
+const GoalSlotHeading = Heading.extend({
+  parseHTML() {
+    return [1, 2, 3, 4, 5, 6].flatMap((level) => [
+      { tag: `div.gs-block > h${level}`, attrs: { level }, priority: 60 },
+      { tag: `h${level}`, attrs: { level } },
+    ])
+  },
+  renderHTML({ node, HTMLAttributes }) {
+    const level = node.attrs.level as number
+    return ['div', { class: `gs-block gs-block-h${level}` }, [`h${level}`, HTMLAttributes, 0]]
+  },
+})
+
+// Walks $from upward to find an ancestor list item. Single source of
+// truth for "are we in a list?" — used by both Tab and Backspace routing.
+function findListItemAtCursor(state: any): { itemType: 'listItem' | 'taskItem'; liDepth: number } | null {
+  const { $from } = state.selection
+  for (let d = $from.depth; d >= 0; d--) {
+    const name = $from.node(d).type.name
+    if (name === 'listItem' || name === 'taskItem') {
+      return { itemType: name, liDepth: d }
+    }
+  }
+  return null
+}
+
+// Backspace inside a list item.
+//
+// Architecture: trust ProseMirror's defaults for everything except the
+// two cases where they produce documented surprises. The guard at
+// $from.index(liDepth) !== 0 keeps us out of any cursor-in-2nd+-block
+// situation (the "l increase speed" bug), so default joinBackward
+// handles those naturally. When the cursor IS at the start of the LI's
+// first block:
+//
+//   - Non-empty LI -> liftListItem. Strips the bullet marker, keeps text.
+//     Fixes the original "text merged into heading" bug AND the general
+//     "Backspace at start of bullet should outdent" UX expectation.
+//
+//   - Empty LI with previous sibling AND nested children -> surgical
+//     transaction that deletes the empty LI and folds its nested children
+//     into the previous sibling. Avoids joinBackward, which can pick the
+//     wrong boundary in deep nests (the "Ernie un-tabs" bug).
+//
+//   - Empty LI with previous sibling and NO nested children -> default
+//     joinBackward correctly removes the empty LI and parks cursor at end
+//     of previous sibling. Industry-universal, ProseMirror gets it right.
+//
+//   - Empty LI with no previous sibling -> default joinBackward lifts
+//     cleanly to a paragraph at the parent level. Correct.
+function handleListBackspace(ed: any, event: KeyboardEvent): boolean {
+  const { selection } = ed.state
+  if (!selection.empty) return false
+
+  const { $from } = selection
+  if ($from.parentOffset !== 0) return false
+
+  const inList = findListItemAtCursor(ed.state)
+  if (!inList) return false
+  const { itemType, liDepth } = inList
+
+  if ($from.index(liDepth) !== 0) return false
+
+  const liNode = $from.node(liDepth)
+  const firstChild = liNode.firstChild
+  const isItemEmpty = !firstChild || firstChild.content.size === 0
+
+  if (!isItemEmpty) {
+    // Top-level bullets (parent <ul> is a direct child of the document,
+    // not nested inside another list item) always lift on Backspace at
+    // offset 0. This is the standard outliner UX: remove the bullet,
+    // keep the text as a paragraph at the document level. Works for
+    // both first-of-list (the original "text moved into heading" fix)
+    // AND middle-of-list (user's GTM-Agents case) — middle-of-list
+    // lifts split the list, with the lifted item becoming a paragraph
+    // between the two halves and any nested children of the lifted
+    // item becoming a new top-level list below.
+    //
+    // Nested bullets are a different story. Both liftListItem and the
+    // default joinBackward produce unwanted structural changes there
+    // (the user reported the "cursor jumps to Ernie" lift collapse AND
+    // the "entire Comparison Tests System subtree moves" joinBackward
+    // collapse). The safest move is a hard no-op for nested bullets:
+    // the user can still type, use arrow keys, and delete text inside
+    // the bullet, but Backspace at offset 0 will not reshape the tree.
+    const grandparentDepth = liDepth - 2
+    const isTopLevelList =
+      grandparentDepth >= 0 &&
+      $from.node(grandparentDepth).type.name !== 'listItem' &&
+      $from.node(grandparentDepth).type.name !== 'taskItem'
+    if (!isTopLevelList) {
+      event.preventDefault()
+      return true
+    }
+    if (!ed.can().liftListItem(itemType)) {
+      event.preventDefault()
+      return true
+    }
+    event.preventDefault()
+    ed.chain().focus().liftListItem(itemType).run()
+    return true
+  }
+
+  const hasPrevSibling = $from.index(liDepth - 1) > 0
+  const hasNestedChildren = liNode.childCount > 1
+
+  if (!hasPrevSibling || !hasNestedChildren) return false
+
+  const liStart = $from.before(liDepth)
+  const liEnd = $from.after(liDepth)
+  const prevLiInnerEnd = liStart - 1
+
+  const nestedNodes: any[] = []
+  for (let i = 1; i < liNode.childCount; i++) {
+    nestedNodes.push(liNode.child(i))
+  }
+
+  const tr = ed.state.tr
+  tr.delete(liStart, liEnd)
+
+  let insertPos = prevLiInnerEnd
+  for (const node of nestedNodes) {
+    tr.insert(insertPos, node)
+    insertPos += node.nodeSize
+  }
+
+  const cursorPos = Math.min(insertPos, tr.doc.content.size)
+  tr.setSelection(TextSelection.near(tr.doc.resolve(cursorPos)))
+
+  event.preventDefault()
+  ed.view.dispatch(tr)
+  return true
+}
+
+// Iterate over every list item in the current selection range and run
+// sinkListItem (or liftListItem) on each individually, from last to
+// first. Native sinkListItem operates on the block range computed from
+// $from..$to as a single wrap operation, which refuses if the first
+// item of the range is the first child of its parent list. That refusal
+// covers the WHOLE selection, leaving sinkable items unmoved. Iterating
+// in reverse order keeps positions before the current item valid as
+// we go. Returns true if any item moved.
+function sinkOrLiftMultiSelection(
+  ed: any,
+  itemType: 'listItem' | 'taskItem',
+  direction: 'sink' | 'lift',
+): boolean {
+  const state = ed.state
+  const { from, to } = state.selection
+
+  if (from === to) {
+    const cmd = direction === 'sink' ? 'sinkListItem' : 'liftListItem'
+    ed.chain().focus()[cmd](itemType).run()
+    return true
+  }
+
+  const positions: number[] = []
+  state.doc.nodesBetween(from, to, (node: any, pos: number) => {
+    if (node.type.name === itemType) {
+      positions.push(pos)
+      return false
+    }
+    return true
+  })
+
+  if (positions.length === 0) {
+    const cmd = direction === 'sink' ? 'sinkListItem' : 'liftListItem'
+    ed.chain().focus()[cmd](itemType).run()
+    return true
+  }
+
+  if (positions.length === 1) {
+    const cmd = direction === 'sink' ? 'sinkListItem' : 'liftListItem'
+    ed.chain().focus()[cmd](itemType).run()
+    return true
+  }
+
+  let moved = false
+  for (let i = positions.length - 1; i >= 0; i--) {
+    const pos = positions[i]
+    const cmd = direction === 'sink' ? 'sinkListItem' : 'liftListItem'
+    const ok = ed.chain().setTextSelection(pos + 1)[cmd](itemType).run()
+    if (ok) moved = true
+  }
+
+  ed.chain().setTextSelection({ from, to }).focus().run()
+  return moved
+}
+
+// Tab inside the editor.
+//
+//   - In a table: pass through (prosemirror-tables handles cell nav).
+//   - In a list (single or multi-line selection): sink / lift via the
+//     per-item iteration above. Falls back to a no-op if no item can
+//     move (every selected item is already a first-child).
+//   - Elsewhere: indentBlock / outdentBlock via IndentExtension, which
+//     refuses internally when any ancestor is a list item.
+function handleEditorTab(ed: any, event: KeyboardEvent): boolean {
+  if (ed.isActive('table')) return false
+
+  event.preventDefault()
+
+  const inList = findListItemAtCursor(ed.state)
+  if (inList) {
+    const { itemType } = inList
+    sinkOrLiftMultiSelection(ed, itemType, event.shiftKey ? 'lift' : 'sink')
+    return true
+  }
+
+  if (event.shiftKey) {
+    ed.chain().focus().outdentBlock().run()
+  } else {
+    ed.chain().focus().indentBlock().run()
+  }
+  return true
+}
+
+// Normalize stored HTML before handing it to ProseMirror. Notes that
+// went through earlier versions of this editor accumulated structural
+// noise that breaks downstream commands like sinkListItem:
+//   - Empty <p data-indent="N"> blocks left over from a bug where Tab
+//     in a list fell through to indentBlock.
+//   - Adjacent <ul>/<ol> blocks of the same type separated by empty
+//     paragraphs, so what should be one list renders as several. A
+//     lone <li> inside its own <ul> cannot be sunk because the command
+//     requires a previous sibling.
+//   - data-indent attributes on paragraphs nested inside <li>, which
+//     pushed text far to the right of its bullet marker.
+// This runs once per content prop change and is a no-op for clean HTML.
+function normalizeEditorHtml(html: string): string {
+  if (typeof window === 'undefined' || !html) return html
+  try {
+    const doc = new DOMParser().parseFromString(html, 'text/html')
+
+    doc.querySelectorAll('p[data-indent]').forEach((p) => {
+      const hasText = (p.textContent || '').trim().length > 0
+      const hasMedia = p.querySelector('img, a, code, video, audio')
+      if (!hasText && !hasMedia) p.remove()
+    })
+
+    doc.querySelectorAll('li [data-indent]').forEach((el) => {
+      el.removeAttribute('data-indent')
+    })
+
+    // Strip layout-y inline styles that survived from earlier paste
+    // sanitizer versions (or from paste-then-save round-trips that
+    // bypassed transformPastedHTML). Critically this removes
+    // line-height / height / position / transform values that some
+    // Word/Notion paste payloads ship with !important, which then beat
+    // our CSS guard and collapse blocks so paragraphs overlap. The
+    // [^;]+ in the value pattern captures any trailing !important
+    // along with the value itself. Run here on every content load so
+    // historical notes with bad inline styles self-heal.
+    const layoutStyleRe =
+      /\s*(padding|margin|text-indent|line-height|height|min-height|max-height|position|top|left|right|bottom|transform|float|clear|display|overflow|vertical-align|white-space)[\w-]*\s*:[^;]+;?/gi
+    doc.querySelectorAll('[style]').forEach((el) => {
+      const before = el.getAttribute('style') || ''
+      const after = before.replace(layoutStyleRe, '').trim()
+      if (!after) el.removeAttribute('style')
+      else el.setAttribute('style', after)
+    })
+
+    const mergeAdjacentLists = (tag: 'ul' | 'ol') => {
+      let merged = true
+      while (merged) {
+        merged = false
+        const lists = Array.from(doc.querySelectorAll(tag))
+        for (const list of lists) {
+          let next = list.nextElementSibling
+          while (
+            next &&
+            next.tagName === 'P' &&
+            !(next.textContent || '').trim() &&
+            !next.querySelector('img, a, code, video, audio')
+          ) {
+            const after = next.nextElementSibling
+            next.remove()
+            next = after
+          }
+          if (next && next.tagName.toLowerCase() === tag) {
+            while (next.firstChild) list.appendChild(next.firstChild)
+            next.remove()
+            merged = true
+            break
+          }
+        }
+      }
+    }
+    mergeAdjacentLists('ul')
+    mergeAdjacentLists('ol')
+
+    return doc.body.innerHTML
+  } catch {
+    return html
+  }
+}
 
 interface TiptapEditorProps {
   content?: string
@@ -90,17 +417,25 @@ export function TiptapEditor({
 }: TiptapEditorProps) {
   const [isCopied, setIsCopied] = useState(false)
   const [isInTable, setIsInTable] = useState(false)
+  // editorProps.handleKeyDown runs inside the useEditor config closure,
+  // before the `editor` const exists. A ref kept in sync via useEffect
+  // below gives the handler a stable accessor.
+  const editorRef = useRef<ReturnType<typeof useEditor>>(null)
 
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         codeBlock: false, // We use CodeBlockLowlight instead
+        paragraph: false, // replaced by GoalSlotParagraph below
+        heading: false, // replaced by GoalSlotHeading below
         dropcursor: {
           color: '#FFCC00',
           width: 4,
         },
       }),
+      GoalSlotParagraph,
+      GoalSlotHeading.configure({ levels: [1, 2, 3] }),
       Placeholder.configure({
         placeholder: ({ node }) => {
           if (node.type.name === 'heading') {
@@ -153,13 +488,74 @@ export function TiptapEditor({
       }),
       TextStyle,
       Color,
+      IndentExtension,
       SlashCommands,
     ],
-    content,
+    content: normalizeEditorHtml(content),
     editable,
     editorProps: {
       attributes: {
         class: 'tiptap-editor-content',
+      },
+      // Word, Notion, and Google Docs ship paste payloads stuffed with
+      // mso-* styles, font tags, and unnecessary wrapper divs that make
+      // bullet toggles and indent commands silently no-op (the cursor
+      // ends up in a <span> or wrapper <div> instead of a paragraph).
+      // Strip the noise before ProseMirror parses the HTML so pasted
+      // content behaves like content typed in the editor.
+      transformPastedHTML: (html) => {
+        if (typeof window === 'undefined' || !html) return html
+        let cleaned = html
+          .replace(/<!--[\s\S]*?-->/g, '')
+          .replace(/<\/?(meta|style|link|script|o:p|w:[\w-]+|m:[\w-]+)[^>]*>/gi, '')
+          .replace(/<\/?(font)[^>]*>/gi, '')
+          .replace(/\sclass="[^"]*"/gi, '')
+          .replace(/\sstyle="[^"]*mso-[^"]*"/gi, '')
+          .replace(/\sstyle="\s*"/gi, '')
+        try {
+          const doc = new DOMParser().parseFromString(cleaned, 'text/html')
+          doc.querySelectorAll('b[id^="docs-internal-guid"]').forEach((el) => {
+            const parent = el.parentNode
+            if (!parent) return
+            while (el.firstChild) parent.insertBefore(el.firstChild, el)
+            parent.removeChild(el)
+          })
+          doc.querySelectorAll('div').forEach((div) => {
+            if (div.children.length === 0 && div.textContent?.trim()) {
+              const p = doc.createElement('p')
+              p.innerHTML = div.innerHTML
+              div.replaceWith(p)
+            }
+          })
+          // Strip every layout-y inline style. These survive a copy from
+          // Notion / Word / Google Docs and produce a chain of nasty
+          // visual bugs once parsed by ProseMirror: padding/margin/
+          // text-indent shove text away from its bullet marker;
+          // line-height/height/min-height collapse blocks so the next
+          // paragraph overlaps the wrap of the previous one (the
+          // "Bar Raiser merges into Evaluation Test" rendering);
+          // position/top/transform/float pull blocks out of normal flow.
+          // We keep only color, font-weight, font-style and similar
+          // pure-presentation styles that are safe to round-trip.
+          const layoutStyleRe =
+            /\s*(padding|margin|text-indent|line-height|height|min-height|max-height|position|top|left|right|bottom|transform|float|clear|display|overflow|vertical-align|white-space)[\w-]*\s*:[^;]+;?/gi
+          doc.querySelectorAll('[style]').forEach((el) => {
+            const before = el.getAttribute('style') || ''
+            const after = before.replace(layoutStyleRe, '').trim()
+            if (!after) el.removeAttribute('style')
+            else el.setAttribute('style', after)
+          })
+          // Also strip our own data-indent attribute on any node that lives
+          // inside a list item, mirroring the runtime CSS guard.
+          doc.querySelectorAll('li [data-indent]').forEach((el) => {
+            el.removeAttribute('data-indent')
+          })
+          cleaned = doc.body.innerHTML
+        } catch {
+          // If parsing throws (very malformed HTML), fall back to the
+          // regex-cleaned string and let ProseMirror do its best.
+        }
+        return cleaned
       },
       handleDrop: (view, event, slice, moved) => {
         // Handle image drops
@@ -216,6 +612,18 @@ export function TiptapEditor({
         }
         return false
       },
+      // Tab and Backspace overrides. Single principle: trust ProseMirror's
+      // primitives, only override when defaults can't express the behavior
+      // we want, and when we do override, build surgical transactions
+      // (never joinBackward, which walks the doc tree looking for any
+      // joinable boundary and can collapse the wrong level).
+      handleKeyDown: (_view, event) => {
+        const ed = editorRef.current
+        if (!ed) return false
+        if (event.key === 'Backspace') return handleListBackspace(ed, event)
+        if (event.key === 'Tab') return handleEditorTab(ed, event)
+        return false
+      },
     },
     onUpdate: ({ editor }) => {
       onChange?.(editor.getHTML(), editor.getJSON())
@@ -224,6 +632,13 @@ export function TiptapEditor({
       setIsInTable(editor.isActive('table'))
     },
   })
+
+  // Keep editorRef in sync so editorProps.handleKeyDown (defined inside
+  // the useEditor config closure, where `editor` doesn't yet exist) has
+  // a stable accessor to the live editor.
+  useEffect(() => {
+    editorRef.current = editor ?? null
+  }, [editor])
 
   // Expose the editor instance to callers that need to run commands
   // (insertContent, focus, etc.) without re-mounting via key changes.
@@ -261,32 +676,12 @@ export function TiptapEditor({
         }
       }
 
-      // Tab handling for lists
-      if (e.key === 'Tab' && !e.shiftKey) {
-        if (editor.isActive('taskItem') || editor.isActive('listItem')) {
-          e.preventDefault()
-          editor
-            .chain()
-            .focus()
-            .sinkListItem(editor.isActive('taskItem') ? 'taskItem' : 'listItem')
-            .run()
-        }
-      }
-
-      // Shift+Tab for outdenting
-      if (e.key === 'Tab' && e.shiftKey) {
-        if (editor.isActive('taskItem') || editor.isActive('listItem')) {
-          e.preventDefault()
-          editor
-            .chain()
-            .focus()
-            .liftListItem(editor.isActive('taskItem') ? 'taskItem' : 'listItem')
-            .run()
-        }
-      }
     }
 
-    // Use capture phase to intercept before ProseMirror
+    // Use capture phase to intercept before ProseMirror.
+    // Note: Tab is handled separately via editorProps.handleKeyDown so
+    // it stays scoped to the editor and doesn't steal Tab from other
+    // inputs on the page.
     document.addEventListener('keydown', handleKeyDown, true)
     return () => document.removeEventListener('keydown', handleKeyDown, true)
   }, [editor])
@@ -452,21 +847,21 @@ export function TiptapEditor({
 
           <div className="toolbar-group">
             <button
-              onClick={() => editor.chain().focus().toggleBulletList().run()}
+              onClick={() => editor.chain().focus().clearIndent().toggleBulletList().run()}
               className={cn('toolbar-btn', editor.isActive('bulletList') && 'is-active')}
               title="Bullet List"
             >
               <List className="h-4 w-4" />
             </button>
             <button
-              onClick={() => editor.chain().focus().toggleOrderedList().run()}
+              onClick={() => editor.chain().focus().clearIndent().toggleOrderedList().run()}
               className={cn('toolbar-btn', editor.isActive('orderedList') && 'is-active')}
               title="Numbered List"
             >
               <ListOrdered className="h-4 w-4" />
             </button>
             <button
-              onClick={() => editor.chain().focus().toggleTaskList().run()}
+              onClick={() => editor.chain().focus().clearIndent().toggleTaskList().run()}
               className={cn('toolbar-btn', editor.isActive('taskList') && 'is-active')}
               title="Task List"
             >

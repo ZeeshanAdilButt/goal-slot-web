@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 
 import { useCreateNoteMutation, useNotesQuery } from '@/features/notes/hooks/use-notes'
 import type { Note } from '@/features/notes/utils/types'
@@ -24,7 +24,6 @@ interface UseNotesSelectionArgs {
  *  - Persists the last picked id to localStorage.
  */
 export function useNotesSelection({ initialNoteId }: UseNotesSelectionArgs = {}) {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const pathname = usePathname()
 
@@ -59,15 +58,15 @@ export function useNotesSelection({ initialNoteId }: UseNotesSelectionArgs = {})
     if (idToSelect) {
       setSelectedNoteId(idToSelect)
       if (typeof window !== 'undefined') window.localStorage.setItem(LAST_NOTE_KEY, idToSelect)
-      if (!paramNoteId) {
+      if (!paramNoteId && typeof window !== 'undefined') {
         const params = new URLSearchParams(searchParams.toString())
         params.set('noteId', idToSelect)
-        router.replace(`${pathname}?${params.toString()}`)
+        window.history.replaceState(null, '', `${pathname}?${params.toString()}`)
       }
     }
 
     if (!hasInitialized) setHasInitialized(true)
-  }, [notes, isLoading, initialNoteId, hasInitialized, searchParams, selectedNoteId, router, pathname])
+  }, [notes, isLoading, initialNoteId, hasInitialized, searchParams, selectedNoteId, pathname])
 
   // Derive the selected note from the cache so cache updates (optimistic
   // color/favorite/title changes) re-render the editor instantly.
@@ -79,12 +78,13 @@ export function useNotesSelection({ initialNoteId }: UseNotesSelectionArgs = {})
   const selectNote = useCallback(
     (note: Note) => {
       setSelectedNoteId(note.id)
-      if (typeof window !== 'undefined') window.localStorage.setItem(LAST_NOTE_KEY, note.id)
+      if (typeof window === 'undefined') return
+      window.localStorage.setItem(LAST_NOTE_KEY, note.id)
       const params = new URLSearchParams(searchParams.toString())
       params.set('noteId', note.id)
-      router.push(`${pathname}?${params.toString()}`)
+      window.history.pushState(null, '', `${pathname}?${params.toString()}`)
     },
-    [pathname, router, searchParams],
+    [pathname, searchParams],
   )
 
   const createNote = useCallback(() => {
@@ -103,8 +103,8 @@ export function useNotesSelection({ initialNoteId }: UseNotesSelectionArgs = {})
       }
     }
     setSelectedNoteId(null)
-    router.replace(pathname)
-  }, [notes, pathname, router, selectNote, selectedNoteId])
+    if (typeof window !== 'undefined') window.history.replaceState(null, '', pathname)
+  }, [notes, pathname, selectNote, selectedNoteId])
 
   return {
     notes,

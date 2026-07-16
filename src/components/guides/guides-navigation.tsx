@@ -75,12 +75,12 @@ export function GuidesNavigation() {
                     </p>
                     <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                       {user?.role !== 'USER' && (
-                        <span className="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-rose-100 px-1.5 py-0 text-[10px] text-white">
+                        <span className="inline-flex items-center rounded-full border border-zinc-200 bg-rose-100 bg-zinc-50 px-1.5 px-2.5 py-0 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
                           {user?.role}
                         </span>
                       )}
                       {user?.userType === 'INTERNAL' && (
-                        <span className="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-sky-100 px-1.5 py-0 text-[10px] text-white">DW</span>
+                        <span className="inline-flex items-center rounded-full border border-zinc-200 bg-sky-100 bg-zinc-50 px-1.5 px-2.5 py-0 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">DW</span>
                       )}
                       <span
                         className={cn(
@@ -101,14 +101,14 @@ export function GuidesNavigation() {
                 <div className="flex items-center gap-2">
                   <Link
                     href="/dashboard"
-                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 flex items-center justify-center gap-1.5 px-2.5 py-1.5 text-xs"
+                    className="flex inline-flex items-center justify-center gap-1.5 gap-2 rounded-lg bg-zinc-900 px-2.5 px-4 py-1.5 py-2 text-sm text-xs font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50"
                   >
                     Dashboard
                   </Link>
                   <div className="flex shrink-0 gap-2">
                     <Link
                       href="/dashboard/settings"
-                      className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 flex h-10 w-10 items-center justify-center p-0"
+                      className="flex inline-flex h-10 w-10 items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white p-0 px-4 py-2 text-sm font-semibold text-zinc-900 transition-colors hover:bg-zinc-50 disabled:opacity-50"
                       title="Settings"
                     >
                       <Settings className="h-4 w-4" />
@@ -126,10 +126,10 @@ export function GuidesNavigation() {
             </Popover>
           ) : (
             <>
-              <Link href="/login" className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 px-4 py-2 text-sm">
+              <Link href="/login" className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-900 transition-colors hover:bg-zinc-50 disabled:opacity-50">
                 Login
               </Link>
-              <Link href="/signup" className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 px-4 py-2 text-sm">
+              <Link href="/signup" className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50">
                 Start Free
               </Link>
             </>

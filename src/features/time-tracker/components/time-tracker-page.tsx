@@ -330,7 +330,7 @@ export function TimeTrackerPage() {
       <div className="relative">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
           <div className="absolute -left-16 -top-12 h-56 w-56 rounded-full bg-[#f2cc0d]/30 blur-3xl" />
-          <div className="absolute -right-16 -bottom-12 h-64 w-64 rounded-full bg-[#fff3a8]/40 blur-3xl" />
+          <div className="absolute -bottom-12 -right-16 h-64 w-64 rounded-full bg-[#fff3a8]/40 blur-3xl" />
           <div
             className="absolute inset-x-0 top-0 h-px"
             style={{
@@ -348,7 +348,7 @@ export function TimeTrackerPage() {
             }}
           />
         </div>
-      <GlassCard className="timer-glow text-center p-6 sm:p-8 md:p-10">
+      <GlassCard className="timer-glow p-6 text-center sm:p-8 md:p-10">
         {/* Hero timer first — eye lands on the digits, not the form.
             The form sits in a compact, narrow column beneath. */}
         <TimerDisplay elapsedTime={elapsedTime} timerState={timerState} />

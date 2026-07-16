@@ -234,7 +234,7 @@ export function VisualShowcaseSection() {
 
               <div className="mb-6 flex items-center justify-center gap-4">
                 <button className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-white bg-white shadow-sm">
-                  <div className="h-0 w-0 border-y-8 border-l-12 border-y-transparent border-l-gray-900"></div>
+                  <div className="border-l-12 h-0 w-0 border-y-8 border-y-transparent border-l-gray-900"></div>
                 </button>
                 <button className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-white bg-red-500 shadow-sm">
                   <div className="h-6 w-6 rounded-sm bg-white"></div>

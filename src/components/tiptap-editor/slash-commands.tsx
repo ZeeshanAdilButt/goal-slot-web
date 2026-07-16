@@ -75,7 +75,7 @@ const commands: CommandItem[] = [
     description: 'Create a simple bulleted list.',
     icon: <List className="h-5 w-5" />,
     command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).toggleBulletList().run()
+      editor.chain().focus().deleteRange(range).clearIndent().toggleBulletList().run()
     },
   },
   {
@@ -83,7 +83,7 @@ const commands: CommandItem[] = [
     description: 'Create a list with numbering.',
     icon: <ListOrdered className="h-5 w-5" />,
     command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).toggleOrderedList().run()
+      editor.chain().focus().deleteRange(range).clearIndent().toggleOrderedList().run()
     },
   },
   {
@@ -91,7 +91,7 @@ const commands: CommandItem[] = [
     description: 'Track tasks with a to-do list.',
     icon: <CheckSquare className="h-5 w-5" />,
     command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).toggleTaskList().run()
+      editor.chain().focus().deleteRange(range).clearIndent().toggleTaskList().run()
     },
   },
   {

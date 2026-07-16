@@ -186,7 +186,7 @@ const Sidebar = React.forwardRef<
         <SheetContent
           data-sidebar="sidebar"
           data-mobile="true"
-          className="text-zinc-900 w-[--sidebar-width] bg-white border-r border-zinc-200 p-0 [&>button]:hidden"
+          className="w-[--sidebar-width] border-r border-zinc-200 bg-white p-0 text-zinc-900 [&>button]:hidden"
           style={
             {
               '--sidebar-width': SIDEBAR_WIDTH_MOBILE,
@@ -207,7 +207,7 @@ const Sidebar = React.forwardRef<
   return (
     <div
       ref={ref}
-      className="text-zinc-900 group peer hidden md:block"
+      className="group peer hidden text-zinc-900 md:block"
       data-state={state}
       data-collapsible={state === 'collapsed' ? collapsible : ''}
       data-variant={variant}
@@ -240,7 +240,7 @@ const Sidebar = React.forwardRef<
       >
         <div
           data-sidebar="sidebar"
-          className="flex h-full w-full flex-col bg-white border-r border-zinc-200 group-data-[variant=floating]:border group-data-[variant=floating]:border-zinc-200 group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow"
+          className="flex h-full w-full flex-col border-r border-zinc-200 bg-white group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-zinc-200 group-data-[variant=floating]:shadow"
         >
           {children}
         </div>
@@ -441,7 +441,7 @@ const SidebarMenuItem = React.forwardRef<HTMLLIElement, React.ComponentProps<'li
 SidebarMenuItem.displayName = 'SidebarMenuItem'
 
 const sidebarMenuButtonVariants = cva(
-  'peer/menu-button flex w-full items-center gap-3 overflow-hidden rounded-md px-3 py-2 text-left text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-950 hover:bg-zinc-100 outline-none focus-visible:ring-2 focus-visible:ring-[#f2cc0d] disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-zinc-100 data-[active=true]:text-zinc-900 data-[active=true]:font-semibold data-[active=true]:border data-[active=true]:border-zinc-200 group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0',
+  'peer/menu-button flex w-full items-center gap-3 overflow-hidden rounded-md px-3 py-2 text-left text-sm font-medium text-zinc-600 outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-950 focus-visible:ring-2 focus-visible:ring-[#f2cc0d] disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:border data-[active=true]:border-zinc-200 data-[active=true]:bg-zinc-100 data-[active=true]:font-semibold data-[active=true]:text-zinc-900 group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0',
   {
     variants: {
       variant: {

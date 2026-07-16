@@ -79,23 +79,23 @@ function formatDate(dateStr: string): string {
 export function ChangelogModal({ isOpen, onClose, lastSeenChangelogAt }: ChangelogModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-xl max-h-[85vh] flex flex-col p-0 overflow-hidden bg-white/95 backdrop-blur-md rounded-xl border border-zinc-200 shadow-2xl">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-zinc-100 shrink-0">
+      <DialogContent className="flex max-h-[85vh] flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white/95 p-0 shadow-2xl backdrop-blur-md sm:max-w-xl">
+        <DialogHeader className="shrink-0 border-b border-zinc-100 px-6 pb-4 pt-6">
           <div className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#fffbea] border border-[#f2cc0d]/30 text-[#8a7307]">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#f2cc0d]/30 bg-[#fffbea] text-[#8a7307]">
               <Sparkles className="h-4 w-4 animate-pulse" />
             </span>
             <DialogTitle className="text-xl font-bold tracking-tight text-zinc-900">
               What&apos;s New in GoalSlot
             </DialogTitle>
           </div>
-          <DialogDescription className="text-xs text-zinc-500 mt-1">
+          <DialogDescription className="mt-1 text-xs text-zinc-500">
             Discover the latest features, improvements, and fixes we shipped to boost your productivity.
           </DialogDescription>
         </DialogHeader>
 
         {/* Scrollable Container with elegant vertical flow */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 max-h-[60vh] scrollbar-thin">
+        <div className="scrollbar-thin max-h-[60vh] flex-1 space-y-4 overflow-y-auto px-6 py-4">
           {CHANGELOG.map((entry) => {
             // An entry is "new" if the user has never seen it or if its date is after lastSeenChangelogAt.
             const isNew = !lastSeenChangelogAt || entry.date > lastSeenChangelogAt
@@ -114,10 +114,10 @@ export function ChangelogModal({ isOpen, onClose, lastSeenChangelogAt }: Changel
               >
                 {/* Visual New Glow Strip */}
                 {isNew && (
-                  <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl bg-[#f2cc0d] [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.8))]" />
+                  <div className="absolute bottom-0 left-0 top-0 w-[3px] rounded-l-xl bg-[#f2cc0d] [filter:drop-shadow(0_0_4px_rgba(242,204,13,0.8))]" />
                 )}
 
-                <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span
                       className={cn(
@@ -129,10 +129,10 @@ export function ChangelogModal({ isOpen, onClose, lastSeenChangelogAt }: Changel
                       {tagStyle.label}
                     </span>
                     {isNew && (
-                      <span className="inline-flex h-1.5 w-1.5 rounded-full bg-[#f2cc0d] animate-ping" />
+                      <span className="inline-flex h-1.5 w-1.5 animate-ping rounded-full bg-[#f2cc0d]" />
                     )}
                   </div>
-                  <time className="text-[11px] font-medium text-zinc-400 group-hover:text-zinc-500 transition-colors">
+                  <time className="text-[11px] font-medium text-zinc-400 transition-colors group-hover:text-zinc-500">
                     {formatDate(entry.date)}
                   </time>
                 </div>
@@ -145,7 +145,7 @@ export function ChangelogModal({ isOpen, onClose, lastSeenChangelogAt }: Changel
                 >
                   {entry.title}
                 </h3>
-                <p className="text-xs leading-relaxed text-zinc-600 group-hover:text-zinc-700 transition-colors">
+                <p className="text-xs leading-relaxed text-zinc-600 transition-colors group-hover:text-zinc-700">
                   {entry.body}
                 </p>
               </div>
@@ -154,13 +154,13 @@ export function ChangelogModal({ isOpen, onClose, lastSeenChangelogAt }: Changel
         </div>
 
         {/* Premium footer */}
-        <div className="px-6 py-4 bg-zinc-50/80 border-t border-zinc-100 flex items-center justify-between shrink-0">
-          <span className="text-[10px] text-zinc-400 font-medium">
+        <div className="flex shrink-0 items-center justify-between border-t border-zinc-100 bg-zinc-50/80 px-6 py-4">
+          <span className="text-[10px] font-medium text-zinc-400">
             GoalSlot is updated constantly. Keep growing!
           </span>
           <button
             onClick={onClose}
-            className="px-4 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#f2cc0d] focus:ring-offset-2"
+            className="rounded-lg bg-zinc-900 px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#f2cc0d] focus:ring-offset-2"
           >
             Awesome, thanks!
           </button>

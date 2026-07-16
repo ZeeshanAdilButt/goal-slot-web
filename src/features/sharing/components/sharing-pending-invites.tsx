@@ -67,7 +67,7 @@ export function SharingPendingInvites({ invites, onAccept, onDecline }: SharingP
               </button>
               <button
                 onClick={() => onDecline(invite.id)}
-                className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-700 transition-colors hover:bg-zinc-50 hover:border-zinc-300 sm:px-4"
+                className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-700 transition-colors hover:border-zinc-300 hover:bg-zinc-50 sm:px-4"
                 title="Decline invitation"
               >
                 <X className="h-4 w-4" />

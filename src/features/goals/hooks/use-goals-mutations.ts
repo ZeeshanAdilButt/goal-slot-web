@@ -2,9 +2,11 @@ import { goalQueries } from '@/features/goals/utils/queries'
 import { CreateGoalForm, Goal, GoalFilters, UpdateGoalForm } from '@/features/goals/utils/types'
 import { labelQueries } from '@/features/labels'
 import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
-import { toast } from 'react-hot-toast'
 
+import { useOfflineMutation } from '@/hooks/use-offline-mutation'
 import { goalsApi } from '@/lib/api'
+
+import '@/features/goals/utils/offline-operations'
 
 const getGoalFilters = (queryKey: readonly unknown[]): GoalFilters | undefined => queryKey[2] as GoalFilters | undefined
 
@@ -51,23 +53,29 @@ const syncGoalInCache = (
   })
 }
 
-const restoreGoals = (queryClient: QueryClient, previous: Array<[readonly unknown[], unknown]>) => {
-  previous.forEach(([key, data]) => queryClient.setQueryData(key, data))
+const snapshotGoals = (queryClient: QueryClient) => queryClient.getQueriesData({ queryKey: goalQueries.all })
+const restoreGoals = (queryClient: QueryClient, previous?: ReturnType<typeof snapshotGoals>) =>
+  previous?.forEach(([key, data]) => queryClient.setQueryData(key, data))
+
+const findGoalInCache = (queryClient: QueryClient, id: string): Goal | undefined => {
+  const lists = queryClient.getQueriesData<Goal[]>({ queryKey: goalQueries.all })
+  for (const [, data] of lists) {
+    if (!Array.isArray(data)) continue
+    const found = data.find((goal) => goal.id === id)
+    if (found) return found
+  }
 }
 
 export function useCreateGoalMutation() {
   const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: async (data: CreateGoalForm) => {
-      const res = await goalsApi.create(data)
-      return res.data
-    },
-    onMutate: async (data) => {
-      await queryClient.cancelQueries({ queryKey: goalQueries.all })
-      const previous = queryClient.getQueriesData({ queryKey: goalQueries.all })
+  return useOfflineMutation<CreateGoalForm, { previous: ReturnType<typeof snapshotGoals> }>({
+    kind: 'goal.create',
+    buildPayload: (data, meta) => ({ id: meta.entityId, ...data }),
+    optimisticUpdate: (data, meta) => {
+      const previous = snapshotGoals(queryClient)
       const optimisticGoal: Goal = {
-        id: `optimistic-${Date.now()}`,
+        id: meta.entityId,
         title: data.title,
         description: data.description,
         category: data.category,
@@ -77,26 +85,15 @@ export function useCreateGoalMutation() {
         status: data.status || 'ACTIVE',
         color: data.color,
       }
-
       syncGoalInCache(queryClient, optimisticGoal)
-
-      return { previous, optimisticId: optimisticGoal.id }
+      return { previous }
     },
-    onSuccess: (createdGoal, _variables, context) => {
-      if (createdGoal) {
-        syncGoalInCache(queryClient, createdGoal, { optimisticId: context?.optimisticId })
-      }
-      toast.success('Goal created')
-    },
-    onError: (error: any, _variables, context) => {
-      if (context?.previous) {
-        restoreGoals(queryClient, context.previous)
-      }
-      toast.error('Failed to create goal')
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: goalQueries.all })
-      queryClient.invalidateQueries({ queryKey: labelQueries.all() })
+    rollback: (ctx) => restoreGoals(queryClient, ctx?.previous),
+    invalidateKeys: [goalQueries.all, labelQueries.all()],
+    messages: {
+      offline: 'Goal saved offline',
+      success: 'Goal created',
+      error: 'Failed to create goal',
     },
   })
 }
@@ -104,45 +101,23 @@ export function useCreateGoalMutation() {
 export function useUpdateGoalMutation() {
   const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdateGoalForm }) => {
-      const res = await goalsApi.update(id, data)
-      return res.data
-    },
-    onMutate: async ({ id, data }) => {
-      await queryClient.cancelQueries({ queryKey: goalQueries.all })
-      const previous = queryClient.getQueriesData({ queryKey: goalQueries.all })
-      const allGoals = (previous as [readonly unknown[], Goal[]][]).flatMap(([, list]) =>
-        Array.isArray(list) ? list : [],
-      )
-      const original = allGoals.find((g) => g.id === id)
-
+  return useOfflineMutation<{ id: string; data: UpdateGoalForm }, { previous: ReturnType<typeof snapshotGoals> }>({
+    kind: 'goal.update',
+    buildPayload: ({ id, data }) => ({ id, data }),
+    optimisticUpdate: ({ id, data }) => {
+      const previous = snapshotGoals(queryClient)
+      const original = findGoalInCache(queryClient, id)
       if (original) {
-        const optimisticGoal: Goal = {
-          ...original,
-          ...data,
-          labels: original.labels,
-        }
-        syncGoalInCache(queryClient, optimisticGoal)
+        syncGoalInCache(queryClient, { ...original, ...data, labels: original.labels })
       }
-
       return { previous }
     },
-    onSuccess: (updatedGoal) => {
-      if (updatedGoal) {
-        syncGoalInCache(queryClient, updatedGoal)
-      }
-      toast.success('Goal updated')
-    },
-    onError: (error: any, _variables, context) => {
-      if (context?.previous) {
-        restoreGoals(queryClient, context.previous)
-      }
-      toast.error(error?.response?.data?.message || 'Failed to update goal')
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: goalQueries.all })
-      queryClient.invalidateQueries({ queryKey: labelQueries.all() })
+    rollback: (ctx) => restoreGoals(queryClient, ctx?.previous),
+    invalidateKeys: [goalQueries.all, labelQueries.all()],
+    messages: {
+      offline: 'Goal update saved offline',
+      success: 'Goal updated',
+      error: 'Failed to update goal',
     },
   })
 }
@@ -150,27 +125,20 @@ export function useUpdateGoalMutation() {
 export function useDeleteGoalMutation() {
   const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: async (id: string) => {
-      await goalsApi.delete(id)
-    },
-    onMutate: async (id) => {
-      await queryClient.cancelQueries({ queryKey: goalQueries.all })
-      const previous = queryClient.getQueriesData({ queryKey: goalQueries.all })
+  return useOfflineMutation<string, { previous: ReturnType<typeof snapshotGoals> }>({
+    kind: 'goal.delete',
+    buildPayload: (id) => ({ id }),
+    optimisticUpdate: (id) => {
+      const previous = snapshotGoals(queryClient)
       syncGoalInCache(queryClient, { id } as Goal, { isDeleted: true })
       return { previous }
     },
-    onSuccess: () => {
-      toast.success('Goal deleted')
-    },
-    onError: (_error, _variables, context) => {
-      if (context?.previous) {
-        restoreGoals(queryClient, context.previous)
-      }
-      toast.error('Failed to delete goal')
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: goalQueries.all })
+    rollback: (ctx) => restoreGoals(queryClient, ctx?.previous),
+    invalidateKeys: [goalQueries.all],
+    messages: {
+      offline: 'Goal deletion saved offline',
+      success: 'Goal deleted',
+      error: 'Failed to delete goal',
     },
   })
 }

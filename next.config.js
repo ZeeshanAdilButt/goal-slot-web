@@ -1,7 +1,9 @@
 /** @type {import('next').NextConfig} */
-const withPWA = require('@ducanh2912/next-pwa').default({
-  dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
+const withSerwist = require('@serwist/next').default({
+  swSrc: 'src/app/sw.ts',
+  swDest: 'public/sw.js',
+  // Set DISABLE_PWA=true to skip the service worker (e.g. faster Turbopack dev).
+  disable: process.env.DISABLE_PWA === 'true',
 })
 
 const { withPostHogConfig } = require('@posthog/nextjs-config')
@@ -56,7 +58,7 @@ const nextConfig = {
 }
 
 // Wrap config with PostHog configuration
-module.exports = withPostHogConfig(withPWA(nextConfig), {
+module.exports = withPostHogConfig(withSerwist(nextConfig), {
   personalApiKey: process.env.POSTHOG_PERSONAL_API_KEY ?? '',
   envId: process.env.POSTHOG_ENV_ID ?? '',
   host: process.env.NEXT_PUBLIC_POSTHOG_HOST,

@@ -2,6 +2,23 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 import { authApi } from '@/lib/api'
+import { queryClient } from '@/lib/query-client'
+import { clearPersistedQueryCache } from '@/lib/query-persister'
+
+// Cleared on login/logout so one user's cached data can't leak into another's session.
+function resetQueryCaches() {
+  try {
+    queryClient.clear()
+  } catch {
+    // ignore
+  }
+  void clearPersistedQueryCache()
+}
+
+function isAuthFailure(error: unknown): boolean {
+  const status = (error as { response?: { status?: number } })?.response?.status
+  return status === 401 || status === 403
+}
 
 export interface User {
   id: string
@@ -63,6 +80,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true })
         try {
           const { data } = await authApi.login({ email, password })
+          resetQueryCaches()
           get().setTokens(data.accessToken, data.refreshToken)
           set({ user: data.user, isAuthenticated: true, isLoading: false })
         } catch (error) {
@@ -75,6 +93,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true })
         try {
           const { data } = await authApi.register({ email, password, name, otp })
+          resetQueryCaches()
           get().setTokens(data.accessToken, data.refreshToken)
           set({ user: data.user, isAuthenticated: true, isLoading: false })
         } catch (error) {
@@ -87,6 +106,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true })
         try {
           const { data } = await authApi.ssoLogin({ token, email, name })
+          resetQueryCaches()
           get().setTokens(data.accessToken, data.refreshToken)
           set({ user: data.user, isAuthenticated: true, isLoading: false })
         } catch (error) {
@@ -98,6 +118,7 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
+        resetQueryCaches()
         set({
           user: null,
           accessToken: null,
@@ -116,15 +137,23 @@ export const useAuthStore = create<AuthState>()(
         try {
           const { data } = await authApi.getProfile()
           set({ user: data, isAuthenticated: true, isLoading: false })
-        } catch {
-          get().logout()
-          set({ isLoading: false })
+        } catch (error) {
+          if (isAuthFailure(error)) {
+            get().logout()
+            set({ isLoading: false })
+            return
+          }
+
+          // Offline / network failures are not auth failures. Keep the token
+          // and let the dashboard render from the persisted React Query cache.
+          set({ isAuthenticated: true, isLoading: false })
         }
       },
     }),
     {
       name: 'auth-storage',
       partialize: (state) => ({
+        user: state.user,
         accessToken: state.accessToken,
         refreshToken: state.refreshToken,
       }),

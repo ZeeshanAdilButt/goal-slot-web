@@ -25,9 +25,7 @@ function formatChip(date: string, today: string): string {
   if (date === today) return 'Today'
   const d = new Date(`${date}T00:00:00`)
   if (Number.isNaN(d.getTime())) return date
-  const diffDays = Math.floor(
-    (new Date(`${today}T00:00:00`).getTime() - d.getTime()) / 86_400_000,
-  )
+  const diffDays = Math.floor((new Date(`${today}T00:00:00`).getTime() - d.getTime()) / 86_400_000)
   if (diffDays === 1) return 'Yesterday'
   if (diffDays < 7) return d.toLocaleDateString(undefined, { weekday: 'long' })
   return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
@@ -55,10 +53,7 @@ export function JournalSidebar({ entries, selectedDate, onSelect, onDelete }: Jo
   // click Clear to reset.
   const [range, setRange] = useState<DateRange | undefined>(undefined)
 
-  const entryDates = useMemo(
-    () => entries.map((e) => new Date(`${e.date}T00:00:00`)),
-    [entries],
-  )
+  const entryDates = useMemo(() => entries.map((e) => new Date(`${e.date}T00:00:00`)), [entries])
 
   // Highlight the current week (Sun-Sat) on the calendar so the user
   // sees their journaling window at a glance.
@@ -211,7 +206,9 @@ export function JournalSidebar({ entries, selectedDate, onSelect, onDelete }: Jo
       >
         <Plus className="h-3.5 w-3.5 text-[#f2cc0d]" />
         <span>Write</span>
-        <span aria-hidden className="text-zinc-500">·</span>
+        <span aria-hidden className="text-zinc-500">
+          ·
+        </span>
         <span className="text-[#f2cc0d]">today</span>
       </button>
 
@@ -250,9 +247,7 @@ export function JournalSidebar({ entries, selectedDate, onSelect, onDelete }: Jo
           >
             <ChevronLeft className="h-3.5 w-3.5" />
           </button>
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-700">
-            {monthLabel}
-          </span>
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-700">{monthLabel}</span>
           <button
             type="button"
             onClick={() => shiftMonth(1)}
@@ -272,10 +267,7 @@ export function JournalSidebar({ entries, selectedDate, onSelect, onDelete }: Jo
           modifiers={{
             hasEntry: entryDates,
             thisWeek: thisWeekDates,
-            inRange:
-              range?.from && range.to
-                ? { from: range.from, to: range.to }
-                : undefined,
+            inRange: range?.from && range.to ? { from: range.from, to: range.to } : undefined,
           }}
           modifiersClassNames={{
             hasEntry:
@@ -292,8 +284,7 @@ export function JournalSidebar({ entries, selectedDate, onSelect, onDelete }: Jo
             nav: 'hidden',
             month_grid: 'w-full border-collapse',
             weekdays: 'flex',
-            weekday:
-              'flex-1 text-center text-[9px] font-semibold uppercase tracking-wider text-zinc-400 py-0.5',
+            weekday: 'flex-1 text-center text-xs font-semibold uppercase tracking-wider text-zinc-400 py-0.5',
             weeks: 'flex flex-col',
             week: 'flex w-full',
             day: 'flex-1 p-0 text-center',
@@ -322,9 +313,7 @@ export function JournalSidebar({ entries, selectedDate, onSelect, onDelete }: Jo
         )}
       </div>
 
-      <div className="px-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
-        Recent entries
-      </div>
+      <div className="px-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Recent entries</div>
 
       <ul className="flex flex-col gap-0.5">
         {list.map(({ date, entry }) => {
@@ -337,15 +326,11 @@ export function JournalSidebar({ entries, selectedDate, onSelect, onDelete }: Jo
                 onClick={() => onSelect(date)}
                 className={cn(
                   'flex w-full items-center justify-between gap-2 rounded-md py-2 pl-3 pr-2 text-left text-sm transition-colors',
-                  isSelected
-                    ? 'bg-[#fff7d1] text-zinc-900 ring-1 ring-[#f2cc0d]/40'
-                    : 'text-zinc-700 hover:bg-zinc-50',
+                  isSelected ? 'bg-[#fff7d1] text-zinc-900 ring-1 ring-[#f2cc0d]/40' : 'text-zinc-700 hover:bg-zinc-50',
                 )}
               >
                 <span className="flex items-center gap-2 truncate">
-                  {isToday && (
-                    <span className="inline-flex h-1.5 w-1.5 rounded-full bg-[#f2cc0d]" aria-hidden />
-                  )}
+                  {isToday && <span className="inline-flex h-1.5 w-1.5 rounded-full bg-[#f2cc0d]" aria-hidden />}
                   <span className="truncate font-medium">{formatChip(date, today)}</span>
                 </span>
                 <span className="flex shrink-0 items-center gap-1">

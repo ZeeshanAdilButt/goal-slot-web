@@ -7,6 +7,7 @@ export interface ScheduleBlock {
   category: string
   color: string
   isRecurring: boolean
+  isPrivate: boolean
   seriesId: string
   goalId?: string
   goal?: { id: string; title: string; color: string; category?: string }
@@ -24,6 +25,7 @@ export type SchedulePayload = {
   color: string
   goalId?: string
   seriesId?: string
+  isPrivate?: boolean
 }
 
 export type ScheduleUpdateScope = 'single' | 'series'

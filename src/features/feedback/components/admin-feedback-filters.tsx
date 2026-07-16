@@ -25,11 +25,11 @@ export const AdminFeedbackFilters = ({
           placeholder="Search by user name, email, or feedback text..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] w-full pl-10"
+          className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 pl-10 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
         />
       </div>
       <Select value={filter} onValueChange={(value: FeedbackFilterType) => onFilterChange(value)}>
-        <SelectTrigger className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] w-[180px]">
+        <SelectTrigger className="h-10 w-[180px] w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

@@ -40,7 +40,7 @@ export function ShortcutsCheatsheet({ open, onOpenChange }: ShortcutsCheatsheetP
           <DialogTitle className="text-xl font-bold tracking-tight text-zinc-900">
             Keyboard Shortcuts
           </DialogTitle>
-          <p className="text-xs text-zinc-500 font-mono">
+          <p className="font-mono text-xs text-zinc-500">
             Press keys below to trigger actions from anywhere in the app
           </p>
         </DialogHeader>
@@ -59,7 +59,7 @@ export function ShortcutsCheatsheet({ open, onOpenChange }: ShortcutsCheatsheetP
                   {groupShortcuts.map((shortcut, idx) => (
                     <div
                       key={shortcut.description}
-                      className="flex items-center justify-between px-3 py-2.5 border-b border-zinc-100/80 last:border-0 text-zinc-700 hover:bg-white rounded-md transition-colors"
+                      className="flex items-center justify-between rounded-md border-b border-zinc-100/80 px-3 py-2.5 text-zinc-700 transition-colors last:border-0 hover:bg-white"
                     >
                       <span className="text-sm font-medium text-zinc-600">
                         {shortcut.description}
@@ -68,11 +68,11 @@ export function ShortcutsCheatsheet({ open, onOpenChange }: ShortcutsCheatsheetP
                         {shortcut.keys.map((key, kIdx) => (
                           <React.Fragment key={kIdx}>
                             {kIdx > 0 && (
-                              <span className="text-xs font-semibold text-zinc-400 px-0.5">
+                              <span className="px-0.5 text-xs font-semibold text-zinc-400">
                                 +
                               </span>
                             )}
-                            <Kbd className="bg-white border-zinc-200 shadow-sm text-[11px] px-2 py-1">
+                            <Kbd className="border-zinc-200 bg-white px-2 py-1 text-[11px] shadow-sm">
                               {key}
                             </Kbd>
                           </React.Fragment>
