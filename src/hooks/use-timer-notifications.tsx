@@ -34,13 +34,13 @@ export function useTimerNotifications() {
       toast(
         (t) => (
           <div className="flex items-center gap-3">
-            <span className="text-sm text-black dark:text-white">Stay strictly focused? Enable background reminders.</span>
+            <span className="text-sm text-white">Stay strictly focused? Enable background reminders.</span>
             <button
               onClick={() => {
                 requestPermission()
                 toast.dismiss(t.id)
               }}
-              className="rounded bg-black px-2 py-1 text-xs font-bold text-white hover:bg-black/80 dark:bg-white dark:text-black"
+              className="rounded bg-white px-2 py-1 text-xs font-bold text-black hover:bg-zinc-200"
             >
               Enable
             </button>
