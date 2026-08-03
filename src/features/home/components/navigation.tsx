@@ -11,7 +11,11 @@ import { useAuthStore } from '@/lib/store'
 import { cn } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
-export function Navigation() {
+interface NavigationProps {
+  showSectionLinks?: boolean
+}
+
+export function Navigation({ showSectionLinks = true }: NavigationProps) {
   const { user, isAuthenticated, isLoading, loadUser, logout } = useAuthStore()
   const [scrolled, setScrolled] = useState(false)
 
@@ -48,18 +52,22 @@ export function Navigation() {
         </Link>
 
         <div className="hidden items-center gap-8 md:flex">
-          <a href="#how-it-works" className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
-            Methodology
-          </a>
-          <a href="#features" className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
-            Features
-          </a>
-          <a href="#pricing" className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
-            Pricing
-          </a>
-          <Link href="/guides" className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
-            Guides
-          </Link>
+          {showSectionLinks && (
+            <>
+              <a href="/#how-it-works" className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
+                Methodology
+              </a>
+              <a href="/#features" className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
+                Features
+              </a>
+              <a href="/#pricing" className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
+                Pricing
+              </a>
+              <Link href="/guides" className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
+                Guides
+              </Link>
+            </>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
