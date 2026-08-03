@@ -334,9 +334,9 @@ export default function FAQPage() {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="mt-12"
             >
-              <div className="rounded-xl border border-zinc-200 bg-secondary bg-white p-4 text-center text-white shadow-sm">
-                <h3 className="mb-4 font-display text-2xl font-bold uppercase">Still Have Questions?</h3>
-                <p className="mb-6 font-mono">Can't find what you're looking for? Our support team is here to help!</p>
+              <div className="rounded-xl border border-zinc-200 bg-secondary bg-white p-4 text-center shadow-sm">
+                <h3 className="mb-4 font-display text-2xl font-bold uppercase text-zinc-900">Still Have Questions?</h3>
+                <p className="mb-6 font-mono text-gray-600">Can't find what you're looking for? Our support team is here to help!</p>
                 <div className="flex flex-wrap justify-center gap-4">
                   <a href="mailto:support@goalslot.com" className="flex inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50">
                     Contact Support
