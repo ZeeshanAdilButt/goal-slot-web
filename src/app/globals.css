@@ -84,6 +84,11 @@
   ::selection {
     @apply bg-yellow-100 text-zinc-900;
   }
+
+  input::-ms-reveal,
+  input::-ms-clear {
+    display: none;
+  }
 }
 
 @layer components {
