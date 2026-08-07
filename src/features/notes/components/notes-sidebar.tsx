@@ -258,47 +258,51 @@ const NoteRow = memo(function NoteRow({
 
 /**
  * Floating insertion line — a 2.5px yellow line with a dot terminal,
- * absolutely positioned inside the scroll container at the edge of
- * the hovered row (bottom edge when dragging down, top when dragging
- * up), indented to the projected depth. Positioned in content
- * coordinates so autoscroll doesn't detach it from its row.
+ * absolutely positioned inside the scroll container directly below
+ * the projection's insertAfterId row (or above the first row when
+ * dropping at the very top), indented to the projected depth.
+ * Positioned in content coordinates so autoscroll doesn't detach it
+ * from its row.
  */
 function DropIndicatorLine({
   containerRef,
-  overId,
-  activeId,
-  overIndex,
-  activeIndex,
+  visible,
+  insertAfterId,
   depth,
 }: {
   containerRef: React.RefObject<HTMLDivElement | null>
-  overId: string | null
-  activeId: string | null
-  overIndex: number
-  activeIndex: number
+  visible: boolean
+  insertAfterId: string | null
   depth: number
 }) {
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
 
   useLayoutEffect(() => {
     const container = containerRef.current
-    if (!container || !overId || !activeId || overId === activeId || overIndex === -1 || activeIndex === -1) {
-      setPos(null)
-      return
-    }
-    const el = container.querySelector<HTMLElement>(`[data-note-id="${window.CSS.escape(overId)}"]`)
-    if (!el) {
+    if (!container || !visible) {
       setPos(null)
       return
     }
     const cRect = container.getBoundingClientRect()
-    const eRect = el.getBoundingClientRect()
-    const edge = overIndex >= activeIndex ? eRect.bottom : eRect.top
+    let edge: number | null = null
+    if (insertAfterId) {
+      const el = container.querySelector<HTMLElement>(
+        `[data-note-id="${window.CSS.escape(insertAfterId)}"]`,
+      )
+      if (el) edge = el.getBoundingClientRect().bottom
+    } else {
+      const first = container.querySelector<HTMLElement>('[data-note-id]')
+      if (first) edge = first.getBoundingClientRect().top
+    }
+    if (edge === null) {
+      setPos(null)
+      return
+    }
     setPos({
       top: edge - cRect.top + container.scrollTop,
       left: ROW_BASE_PADDING + depth * INDENTATION_WIDTH,
     })
-  }, [containerRef, overId, activeId, overIndex, activeIndex, depth])
+  }, [containerRef, visible, insertAfterId, depth])
 
   if (!pos) return null
   return (
@@ -518,20 +522,13 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
     // Capture render-scope values before reset.
     const finalProjection = projected
-    const dragList = flattenedItems
     autoExpandedRef.current = new Set()
     resetDragState()
 
     if (!finalProjection || !over) return
 
     const freshNotes = queryClient.getQueryData<Note[]>(NOTES_QUERY_KEY) ?? notes
-    const payload = buildReorderPayload(
-      dragList,
-      freshNotes,
-      String(active.id),
-      String(over.id),
-      finalProjection,
-    )
+    const payload = buildReorderPayload(freshNotes, String(active.id), finalProjection)
     if (!payload) return
 
     reorderMutation.mutate(payload)
@@ -833,10 +830,12 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
         <div ref={scrollContainerRef} className="relative flex-1 overflow-y-auto overscroll-contain px-2">
           <DropIndicatorLine
             containerRef={scrollContainerRef}
-            overId={overId}
-            activeId={activeId}
-            overIndex={overId ? flattenedItems.findIndex(({ id }) => id === overId) : -1}
-            activeIndex={activeId ? flattenedItems.findIndex(({ id }) => id === activeId) : -1}
+            // Hidden only before any movement — once the user drags
+            // (vertically OR just horizontally in place, e.g. a pure
+            // indent/outdent), the line shows the landing slot,
+            // including smart-outdent hops past the rest of a subtree.
+            visible={!!projected && !(overId === activeId && offsetLeft === 0)}
+            insertAfterId={projected ? projected.insertAfterId : null}
             depth={projected ? projected.depth : 0}
           />
           {/* Favorites */}

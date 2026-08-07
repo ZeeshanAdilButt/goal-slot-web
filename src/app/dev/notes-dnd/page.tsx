@@ -145,6 +145,11 @@ function Playground() {
 
   useMemo(() => {
     api.defaults.adapter = devAdapter
+    // Purge the offline outbox — queued mutations from real (or
+    // earlier playground) sessions replay against whatever adapter is
+    // installed and silently mutate the fixture store mid-test. This
+    // was the source of "notes teleporting" during manual testing.
+    localStorage.removeItem('goalslot-offline-outbox')
     // Drop anything the persisted cache restored so the fixtures win.
     queryClient.removeQueries({ queryKey: ['notes'] })
     // Debug handles for driving/inspecting from the console.
