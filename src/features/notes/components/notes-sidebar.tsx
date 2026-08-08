@@ -444,8 +444,11 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
   useEffect(() => {
     sensorContext.current = { items: flattenedItems, offset: offsetLeft }
   }, [flattenedItems, offsetLeft])
+  // Stable closure so the ref is only read at event time — sensors
+  // capture their coordinate getter once at construction.
+  const getSensorContext = useCallback(() => sensorContext.current, [])
   const [coordinateGetter] = useState(() =>
-    sortableTreeKeyboardCoordinates(sensorContext, INDENTATION_WIDTH),
+    sortableTreeKeyboardCoordinates(getSensorContext, INDENTATION_WIDTH),
   )
 
   const sensors = useSensors(

@@ -49,11 +49,16 @@ export interface NoteProjection {
 
 /** Shared mutable snapshot for the keyboard coordinate getter —
  *  sensors capture their arguments once, so live values must come
- *  through a ref. */
+ *  through a ref, accessed via a stable closure at event time. */
 export type SensorContext = MutableRefObject<{
   items: FlatNote[]
   offset: number
 }>
+
+export type SensorContextGetter = () => {
+  items: FlatNote[]
+  offset: number
+}
 
 function countDescendants(item: NoteTreeItem): number {
   let n = 0
@@ -266,18 +271,16 @@ const horizontal: string[] = [KeyboardCode.Left, KeyboardCode.Right]
  * Ported from the canonical dnd-kit sortable-tree example.
  */
 export const sortableTreeKeyboardCoordinates: (
-  context: SensorContext,
+  getContext: SensorContextGetter,
   indentationWidth: number,
 ) => KeyboardCoordinateGetter =
-  (context, indentationWidth) =>
+  (getContext, indentationWidth) =>
   (event, { currentCoordinates, context: { active, over, collisionRect, droppableRects, droppableContainers } }) => {
     if (!directions.includes(event.code)) return undefined
     if (!active || !collisionRect) return undefined
     event.preventDefault()
 
-    const {
-      current: { items, offset },
-    } = context
+    const { items, offset } = getContext()
 
     if (horizontal.includes(event.code) && over?.id) {
       const { depth, maxDepth, minDepth } = getProjection(
