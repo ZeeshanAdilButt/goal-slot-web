@@ -85,6 +85,7 @@
     "react-dom": "19.2.1",
     "react-hot-toast": "^2.4.1",
     "react-markdown": "^10.1.0",
+    "react-remove-scroll": "2.7.2",
     "recharts": "^2.10.4",
     "remark-gfm": "^4.0.1",
     "tailwind-merge": "^2.6.0",

@@ -227,6 +227,9 @@ importers:
       react-markdown:
         specifier: ^10.1.0
         version: 10.1.0(@types/react@19.2.7)(react@19.2.1)
+      react-remove-scroll:
+        specifier: 2.7.2
+        version: 2.7.2(@types/react@19.2.7)(react@19.2.1)
       recharts:
         specifier: ^2.10.4
         version: 2.15.4(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
