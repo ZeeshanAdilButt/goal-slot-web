@@ -1,3 +1,10 @@
+'use client'
+
+// Required: this page renders framer-motion's `motion.*` components, which
+// are client-only. Without this directive the page is a Server Component,
+// `motion` resolves to undefined during the production prerender, and the
+// build dies with "Element type is invalid ... got: undefined" on /privacy.
+
 import Link from 'next/link'
 
 import { motion } from 'framer-motion'
