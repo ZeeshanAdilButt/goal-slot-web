@@ -8,12 +8,14 @@ import { Command } from 'cmdk'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   BarChart3,
+  BookOpen,
   Calendar,
   CheckSquare,
   Clock,
   CornerDownLeft,
   Download,
   LayoutDashboard,
+  LayoutGrid,
   Megaphone,
   MessageSquare,
   MessagesSquare,
@@ -97,9 +99,11 @@ const PAGE_ITEMS: PaletteItem[] = [
   { id: 'page-journal',    label: 'Journal',        icon: FeatherPenIcon,  href: '/dashboard/journal',         group: 'Pages', keywords: 'write reflect' },
   { id: 'page-coach',      label: 'GoalSlot AI',    icon: CoachIcon,       href: '/dashboard/coach',           group: 'Pages', keywords: 'coach ai assistant' },
   { id: 'page-notes',      label: 'Notes',          icon: NotebookIcon,    href: '/dashboard/notes',           group: 'Pages', keywords: 'docs writeup' },
+  { id: 'page-whiteboards', label: 'Whiteboards',   icon: LayoutGrid,      href: '/dashboard/whiteboards',     group: 'Pages', keywords: 'canvas draw diagram board' },
   { id: 'page-reports',    label: 'Reports',        icon: BarChart3,       href: '/dashboard/reports',         group: 'Pages', keywords: 'analytics stats' },
   { id: 'page-export',     label: 'Export Reports', icon: Download,        href: '/dashboard/reports/export',  group: 'Pages', keywords: 'csv download' },
   { id: 'page-sharing',    label: 'Sharing',        icon: Share2,          href: '/dashboard/sharing',         group: 'Pages', keywords: 'public share' },
+  { id: 'page-library',    label: 'Library',        icon: BookOpen,        href: '/dashboard/library',         group: 'Pages', keywords: 'templates guides resources' },
   // Only reachable when a messaging service is configured for the deployment.
   ...(isMessagingConfigured
     ? [{ id: 'page-messages', label: 'Messages', icon: MessagesSquare, href: '/dashboard/messages', group: 'Pages' as const, keywords: 'chat dm mentor mentee conversation' }]
