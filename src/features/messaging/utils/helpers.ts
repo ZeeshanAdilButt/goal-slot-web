@@ -90,9 +90,15 @@ export const isSeenByCounterparts = (
   const counterparts = conversation?.participants?.filter((participant) => participant.userId !== currentUserId) ?? []
   if (!counterparts.length) return false
 
+  // toTime coerces an unparsable date to 0, which would make a malformed
+  // message.createdAt look "seen" by anyone with any lastReadAt at all (0
+  // <= anything). Require both sides to be genuinely parsable dates first.
+  const isValidDate = (value: string | null | undefined): boolean => !!value && !Number.isNaN(new Date(value).getTime())
+  if (!isValidDate(message.createdAt)) return false
+
   const messageTime = toTime(message.createdAt)
   return counterparts.every(
-    (participant) => !!participant.lastReadAt && toTime(participant.lastReadAt) >= messageTime,
+    (participant) => isValidDate(participant.lastReadAt) && toTime(participant.lastReadAt) >= messageTime,
   )
 }
 
