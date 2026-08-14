@@ -241,7 +241,20 @@ function FloatingVoiceButtonInner() {
           ref={panelRef}
           role="dialog"
           aria-label={listening ? 'Voice input' : 'Voice input problem'}
-          className="fixed bottom-20 right-4 z-50 w-[min(340px,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl sm:right-6"
+          // Geometry is deliberately identical to the Coach quick-chat
+          // popover (floating-coach-popover.tsx: same `bottom-20 right-4`,
+          // same `w-[min(380px,...)]`). Dictation usually happens *with* the
+          // Coach chat open, since that is where the transcript is going, so
+          // the two are on screen together constantly. They used to differ:
+          // 340px vs 380px wide, and `sm:right-6` vs `right-4` — so on any
+          // screen >= sm this sat 8px off and 40px narrow, half-covering the
+          // chat behind it with mismatched edges and reading as a glitch.
+          // Matching the geometry makes it land as one aligned sheet.
+          //
+          // z-[60] rather than z-50: both panels were z-50, so which one won
+          // came down to DOM order rather than intent. The listening sheet is
+          // transient and modal-ish, so it should always be the one on top.
+          className="fixed bottom-20 right-4 z-[60] w-[min(380px,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl"
         >
           {listening ? (
             <>
