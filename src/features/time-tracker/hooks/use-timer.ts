@@ -72,6 +72,27 @@ export function useTimer() {
     [queryClient],
   )
 
+  // The local store is plain localStorage: once a browser sets it to
+  // RUNNING/PAUSED it stays that way indefinitely, even long after the
+  // session it referred to was stopped or discarded from a different
+  // device (or from this same browser, days ago). Every write path that
+  // ends a session already calls localReset() as part of it - start,
+  // pause, resume, discard - so this only ever needs to catch the case
+  // those paths can't: state left behind before this browser ever loads
+  // the app on this visit. Reconciling once, the moment the first real
+  // server answer comes back, clears that without fighting an optimistic
+  // start a user just made in *this* tab - by the time that happens,
+  // hasReconciledOnceRef is already true and this effect is inert.
+  const hasReconciledOnceRef = useRef(false)
+  useEffect(() => {
+    if (hasReconciledOnceRef.current) return
+    if (!activeSessionQuery.isSuccess) return
+    hasReconciledOnceRef.current = true
+    if (serverSession === null && localTimerState !== 'STOPPED') {
+      localReset()
+    }
+  }, [activeSessionQuery.isSuccess, serverSession, localTimerState, localReset])
+
   // Server, when present, is authoritative — same rule the mobile client
   // already follows. Everything below is the local Zustand shape, just
   // sourced from whichever side actually knows what's running.
