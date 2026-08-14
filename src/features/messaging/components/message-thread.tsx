@@ -16,6 +16,7 @@ import {
   getCounterpartIds,
   getLastReadAt,
   isSameDay,
+  isSeenByCounterparts,
 } from '@/features/messaging/utils/helpers'
 import { MessagingPerson } from '@/features/messaging/utils/types'
 import { ArrowLeft, MessageSquare, WifiOff } from 'lucide-react'
@@ -40,7 +41,11 @@ export function MessageThread({ conversationId, directory, onBack }: MessageThre
   const currentUserId = useAuthStore((state) => state.user?.id)
   const isOnline = useOnlineStatus()
 
-  const conversationQuery = useConversationQuery(conversationId)
+  // Polled while the thread is open: the counterpart's read receipt
+  // (participants[].lastReadAt) only ever arrives via a query response,
+  // there is no WebSocket push for "conversation was read" the way there
+  // is for new messages.
+  const conversationQuery = useConversationQuery(conversationId, { refetchInterval: 10_000 })
   const messagesQuery = useMessagesQuery(conversationId)
   const sendMessage = useSendMessageMutation(conversationId)
   const markRead = useMarkConversationReadMutation()
@@ -58,6 +63,13 @@ export function MessageThread({ conversationId, directory, onBack }: MessageThre
   const conversation = conversationQuery.data
 
   const nameFor = useCallback((userId: string) => displayName(directory.get(userId), userId), [directory])
+
+  const lastOwnMessageId = useMemo(() => {
+    for (let index = messages.length - 1; index >= 0; index -= 1) {
+      if (messages[index].senderId === currentUserId) return messages[index].id
+    }
+    return null
+  }, [messages, currentUserId])
 
   const counterpartIds = getCounterpartIds(conversation, currentUserId)
   const conversationName = counterpartIds.length
@@ -254,6 +266,9 @@ export function MessageThread({ conversationId, directory, onBack }: MessageThre
                   message={message}
                   isOwn={message.senderId === currentUserId}
                   senderName={nameFor(message.senderId)}
+                  isSeen={
+                    message.id === lastOwnMessageId ? isSeenByCounterparts(conversation, currentUserId, message) : undefined
+                  }
                 />
               </Fragment>
             )

@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 
 import { useMessagingTokenQuery } from '@/features/messaging/hooks/use-messaging-token'
 import { isMessagingConfigured } from '@/features/messaging/utils/config'
+import { hasUnreadMessages } from '@/features/messaging/utils/helpers'
 import {
   fetchConversation,
   fetchConversations,
@@ -15,7 +16,9 @@ import { useMySharesQuery, useSharedWithMeQuery } from '@/features/sharing/hooks
 import { DataShare, SharedWithMeUser } from '@/features/sharing/utils/types'
 import { useQuery } from '@tanstack/react-query'
 
-export function useConversationsQuery() {
+import { useAuthStore } from '@/lib/store'
+
+export function useConversationsQuery(options?: { refetchInterval?: number }) {
   const tokenQuery = useMessagingTokenQuery()
   const token = tokenQuery.data
 
@@ -23,10 +26,28 @@ export function useConversationsQuery() {
     queryKey: messagingQueries.conversations(),
     queryFn: () => fetchConversations(token as string),
     enabled: isMessagingConfigured && !!token,
+    refetchInterval: options?.refetchInterval,
   })
 }
 
-export function useConversationQuery(conversationId: string | null) {
+/**
+ * Total unread conversations, for a badge outside the Messages page itself
+ * (the sidebar nav item). Polls independently of whatever else is reading
+ * this same query - WebSocket-driven live updates only reach a client
+ * that already has the conversation list mounted and connected, which a
+ * user who never opens the Messages page never does.
+ */
+export function useUnreadConversationsCount(): number {
+  const currentUserId = useAuthStore((state) => state.user?.id)
+  const conversationsQuery = useConversationsQuery({ refetchInterval: 30_000 })
+
+  return useMemo(() => {
+    if (!conversationsQuery.data) return 0
+    return conversationsQuery.data.filter((conversation) => hasUnreadMessages(conversation, currentUserId)).length
+  }, [conversationsQuery.data, currentUserId])
+}
+
+export function useConversationQuery(conversationId: string | null, options?: { refetchInterval?: number }) {
   const tokenQuery = useMessagingTokenQuery()
   const token = tokenQuery.data
 
@@ -34,6 +55,7 @@ export function useConversationQuery(conversationId: string | null) {
     queryKey: messagingQueries.conversation(conversationId ?? ''),
     queryFn: () => fetchConversation(token as string, conversationId as string),
     enabled: isMessagingConfigured && !!token && !!conversationId,
+    refetchInterval: options?.refetchInterval,
   })
 }
 

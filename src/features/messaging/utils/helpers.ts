@@ -57,13 +57,43 @@ const getLastIncomingAt = (
     return null
   }
 
-  if (conversation.lastMessage) {
+  // The server tells us definitively once it populates lastMessage at all:
+  // either a real message (compare its sender), or explicitly null meaning
+  // no message has ever been sent in this conversation - nothing to be
+  // unread. Checking `!== undefined` here, not truthiness, is what makes
+  // that distinction; `if (conversation.lastMessage)` would treat null the
+  // same as "the server didn't say," which is exactly what made a brand
+  // new, message-less conversation register as unread the moment it was
+  // created (its own createdAt got picked up by the fallback below as if
+  // it were an incoming message).
+  if (conversation.lastMessage !== undefined) {
+    if (conversation.lastMessage === null) return null
     return conversation.lastMessage.senderId === currentUserId ? null : conversation.lastMessage.createdAt
   }
 
-  // No sender information available: treat any activity as potentially unread
-  // rather than silently hiding a new message.
+  // No lastMessage field at all - an older API response shape. Treat any
+  // activity as potentially unread rather than silently hiding a new
+  // message.
   return getLastActivityAt(conversation)
+}
+
+/**
+ * Whether every other participant in the conversation has read past this
+ * message already. Only meaningful for a message the current user sent -
+ * used to show a "Seen" indicator under the most recent one.
+ */
+export const isSeenByCounterparts = (
+  conversation: Conversation | undefined,
+  currentUserId: string | undefined,
+  message: ThreadMessage,
+): boolean => {
+  const counterparts = conversation?.participants?.filter((participant) => participant.userId !== currentUserId) ?? []
+  if (!counterparts.length) return false
+
+  const messageTime = toTime(message.createdAt)
+  return counterparts.every(
+    (participant) => !!participant.lastReadAt && toTime(participant.lastReadAt) >= messageTime,
+  )
 }
 
 export const hasUnreadMessages = (

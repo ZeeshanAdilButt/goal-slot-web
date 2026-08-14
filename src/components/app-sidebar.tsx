@@ -31,6 +31,7 @@ import { NotebookIcon } from '@/components/icons/notebook-icon'
 import { useAuthStore, useIsAdmin } from '@/lib/store'
 import { cn } from '@/lib/utils'
 import { useCoachInsights } from '@/features/coach/hooks/use-coach-insights'
+import { useUnreadConversationsCount } from '@/features/messaging/hooks/use-messaging-queries'
 import { isMessagingConfigured } from '@/features/messaging/utils/config'
 import { Badge } from '@/components/ui/badge'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -94,6 +95,7 @@ export function AppSidebar({ onOpenChangelog, hasUnseenChangelog }: AppSidebarPr
   const isAdmin = useIsAdmin()
   const { insights: proposedInsights } = useCoachInsights('PROPOSED')
   const proposedCount = proposedInsights.length
+  const unreadMessagesCount = useUnreadConversationsCount()
   const { state, isMobile, setOpenMobile } = useSidebar()
   const [popoverOpen, setPopoverOpen] = useState(false)
   const isCollapsed = state === 'collapsed'
@@ -157,6 +159,7 @@ export function AppSidebar({ onOpenChangelog, hasUnseenChangelog }: AppSidebarPr
               {navItems.map((item) => {
                 const isActive = item.href === activeNavHref
                 const showCoachBadge = item.href === '/dashboard/coach' && proposedCount > 0
+                const showMessagesBadge = item.href === '/dashboard/messages' && unreadMessagesCount > 0
                 const isJournal = item.href === '/dashboard/journal'
                 const isCoach = item.href === '/dashboard/coach'
 
@@ -220,6 +223,14 @@ export function AppSidebar({ onOpenChangelog, hasUnseenChangelog }: AppSidebarPr
                             className="ml-auto h-4 text-[10px] group-data-[collapsible=icon]:hidden"
                           >
                             {proposedCount}
+                          </Badge>
+                        )}
+                        {showMessagesBadge && (
+                          <Badge
+                            variant="brand"
+                            className="ml-auto h-4 text-[10px] group-data-[collapsible=icon]:hidden"
+                          >
+                            {unreadMessagesCount}
                           </Badge>
                         )}
                       </Link>

@@ -7,9 +7,11 @@ interface MessageBubbleProps {
   message: ThreadMessage
   isOwn: boolean
   senderName: string
+  /** Only passed for the current user's most recent message. */
+  isSeen?: boolean
 }
 
-export function MessageBubble({ message, isOwn, senderName }: MessageBubbleProps) {
+export function MessageBubble({ message, isOwn, senderName, isSeen }: MessageBubbleProps) {
   const timestamp = formatMessageTimestamp(message.createdAt)
 
   return (
@@ -40,6 +42,8 @@ export function MessageBubble({ message, isOwn, senderName }: MessageBubbleProps
           Sending<span className="sr-only">, not delivered yet</span>...
         </span>
       )}
+
+      {isOwn && !message.pending && isSeen && <span className="px-1 text-[10px] text-zinc-400">Seen</span>}
     </li>
   )
 }
