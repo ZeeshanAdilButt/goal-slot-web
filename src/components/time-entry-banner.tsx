@@ -7,7 +7,6 @@ import { Clock3, Pause, Timer, Bell, Square, Play, FileText } from 'lucide-react
 import { toast } from 'react-hot-toast'
 
 import { useTimer } from '@/features/time-tracker/hooks/use-timer'
-import { MessagesIndicator } from '@/features/messaging/components/messages-indicator'
 import { useTimerNotifications } from '@/hooks/use-timer-notifications'
 import { useCreateTimeEntry } from '@/features/time-tracker/hooks/use-time-tracker-mutations'
 import { UNTITLED_ENTRY_TITLE, resolveEntryTitle } from '@/features/time-tracker/utils/entry-title'
@@ -77,7 +76,6 @@ export function TimeEntryBanner() {
           <span className="font-medium text-zinc-700">Not tracking</span>
         </div>
         <div className="flex items-center gap-2">
-          <MessagesIndicator />
           <Link href="/dashboard/notes?action=new">
             <Button variant="ghost" size="sm">
               <FileText className="h-3.5 w-3.5" />
@@ -166,7 +164,6 @@ export function TimeEntryBanner() {
         </div>
 
         <div className="flex shrink-0 items-center justify-end gap-1.5 sm:gap-2 md:gap-3">
-          <MessagesIndicator />
           {permission === 'default' && (
             <Button
               onClick={requestPermission}

@@ -10,6 +10,7 @@ import { ReactQueryProvider } from '@/lib/react-query-provider'
 import { FloatingCoachButton } from '@/components/floating-coach-button'
 import { FloatingJournalButton } from '@/components/floating-journal-button'
 import { FloatingVoiceButton } from '@/components/floating-voice-button'
+import { FloatingMessagesButton } from '@/features/messaging/components/floating-messages-button'
 import PostHogAuth from '@/components/posthog-auth'
 
 export const viewport: Viewport = {
@@ -51,12 +52,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ReactQueryProvider>
           <PostHogAuth />
           {children}
+          {/* Bottom-right dock, ordered by what each control is *for*:
+              first the capture actions you start (Journal, Voice, Coach),
+              then the two inboxes other people fill (Messages,
+              Notifications), then Feedback. Grouping by that distinction is
+              what keeps a six-item dock readable rather than an arbitrary
+              row of icons. */}
           <div className="fixed bottom-6 right-6 z-50 flex flex-row items-end gap-2">
             <FloatingJournalButton />
             {/* Sits immediately left of the Coach button because that is
                 where its output lands: speaking opens the Coach quick chat. */}
             <FloatingVoiceButton />
             <FloatingCoachButton />
+            <FloatingMessagesButton />
             <NotificationsButton />
             <Feedback label="Feedback" />
           </div>
