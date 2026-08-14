@@ -671,6 +671,10 @@ export type CoachProposalActionType =
   | 'UPDATE_TASK'
   | 'DELETE_TASK'
   | 'CREATE_PRACTICE'
+  // Appends a paragraph to a day's journal entry (payload: content, date?).
+  // Append rather than create/replace: a day has at most one entry, and the
+  // user may already have written in it by hand.
+  | 'APPEND_JOURNAL_ENTRY'
   // Live stopwatch, NOT interchangeable with CREATE_TIME_ENTRY:
   // CREATE_TIME_ENTRY logs work that already finished and whose duration is
   // known, whereas START_TIMER/STOP_TIMER drive the shared ActiveTimerSession
@@ -704,6 +708,7 @@ export const COACH_PROPOSAL_ACTION_TYPES: readonly CoachProposalActionType[] = [
   'UPDATE_TASK',
   'DELETE_TASK',
   'CREATE_PRACTICE',
+  'APPEND_JOURNAL_ENTRY',
   'START_TIMER',
   'STOP_TIMER',
 ]

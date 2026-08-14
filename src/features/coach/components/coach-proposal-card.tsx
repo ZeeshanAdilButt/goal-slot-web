@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Edit3,
   Loader2,
+  NotebookPen,
   Plus,
   ShieldCheck,
   Sparkles,
@@ -49,6 +50,10 @@ const ACTION_META: Record<
   UPDATE_TASK: { label: 'Update task', verb: 'update', icon: Edit3 },
   DELETE_TASK: { label: 'Delete task', verb: 'delete', icon: Trash2 },
   CREATE_PRACTICE: { label: 'Add active practice', verb: 'create', icon: Sparkles },
+  // `update`, not `create`: it appends to a day's existing entry rather than
+  // replacing it, and nothing is destroyed — so it must not trip the card's
+  // "includes a delete" warning.
+  APPEND_JOURNAL_ENTRY: { label: 'Add to journal', verb: 'update', icon: NotebookPen },
   // Neither of these is destructive: starting costs nothing, and stopping
   // SAVES the elapsed time rather than throwing it away. Keeping them off the
   // `delete` verb also keeps the card's "includes a delete" warning honest.
@@ -243,6 +248,25 @@ function describeAction(
         ? p.body.length > 200 ? `${p.body.slice(0, 200)}...` : p.body
         : 'Add to your active practice.'
       return { subject, detail }
+    }
+
+    case 'APPEND_JOURNAL_ENTRY': {
+      // The whole point of the card is reviewing the words before they land
+      // in the journal, so the text itself is the subject rather than a
+      // generic "Journal entry" label with the content hidden.
+      const content = typeof p.content === 'string' ? p.content.trim() : ''
+      const subject = content ? `"${content.length > 160 ? `${content.slice(0, 160)}...` : content}"` : 'Journal entry'
+
+      const date = typeof p.date === 'string' ? p.date : undefined
+      let when = "today's entry"
+      if (date) {
+        const d = new Date(`${date}T00:00:00`)
+        when = Number.isNaN(d.getTime())
+          ? `the entry for ${date}`
+          : `the entry for ${d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}`
+      }
+
+      return { subject, detail: `Appends a paragraph to ${when}. Anything already written there is kept.` }
     }
 
     case 'CREATE_TIME_ENTRY': {
@@ -530,6 +554,10 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
         queryClient.invalidateQueries({ queryKey: ['time-entries'] }),
         queryClient.invalidateQueries({ queryKey: ['timeEntries'] }),
         queryClient.invalidateQueries({ queryKey: ['coach', 'insights'] }),
+        // APPEND_JOURNAL_ENTRY writes here; without this the Journal page
+        // keeps showing the pre-append text until a manual reload, which
+        // reads as "apply did nothing".
+        queryClient.invalidateQueries({ queryKey: ['coach', 'journal', 'entries'] }),
       ])
 
       // Broadcast sync event to other open tabs
