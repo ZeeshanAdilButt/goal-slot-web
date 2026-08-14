@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { Clock3, Pause, Timer, Bell, Square, Play, FileText } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
-import { useTimerStore } from '@/lib/use-timer-store'
+import { useTimer } from '@/features/time-tracker/hooks/use-timer'
 import { useTimerNotifications } from '@/hooks/use-timer-notifications'
 import { useCreateTimeEntry } from '@/features/time-tracker/hooks/use-time-tracker-mutations'
 import { UNTITLED_ENTRY_TITLE, resolveEntryTitle } from '@/features/time-tracker/utils/entry-title'
@@ -24,48 +24,30 @@ const formatTimerDisplay = (seconds: number) => {
 }
 
 export function TimeEntryBanner() {
+  // Same server-authoritative hook the Time Tracker page uses. This banner
+  // used to read the local Zustand store directly, which only ever knows
+  // about a timer started in this browser - a takeover, pause, or stop from
+  // another device (or the Time Tracker page itself) left it showing a
+  // running timer with a stale elapsed time no server call would ever
+  // correct, while the actual page one click away showed the real,
+  // server-synced state. Sharing this hook makes the two impossible to
+  // disagree: both derive from the exact same effective state.
   const {
     timerState,
+    elapsedTime: elapsedSeconds,
     currentTask,
     currentTaskId,
     currentCategory,
     currentGoalId,
     currentScheduleBlockId,
     startTimestamp,
-    pausedElapsedTime,
     pause: pauseTimer,
     resume: resumeTimer,
     reset,
-  } = useTimerStore((state) => ({
-    timerState: state.timerState,
-    currentTask: state.currentTask,
-    currentTaskId: state.currentTaskId,
-    currentCategory: state.currentCategory,
-    currentGoalId: state.currentGoalId,
-    currentScheduleBlockId: state.currentScheduleBlockId,
-    startTimestamp: state.startTimestamp,
-    pausedElapsedTime: state.pausedElapsedTime,
-    pause: state.pause,
-    resume: state.resume,
-    reset: state.reset,
-  }))
-  const [elapsedSeconds, setElapsedSeconds] = useState(0)
+  } = useTimer()
   const [startPopoverOpen, setStartPopoverOpen] = useState(false)
   const { permission, requestPermission } = useTimerNotifications()
   const createEntry = useCreateTimeEntry()
-
-  useEffect(() => {
-    if (timerState === 'RUNNING' && startTimestamp) {
-      const updateElapsed = () =>
-        setElapsedSeconds(Math.floor((Date.now() - startTimestamp) / 1000) + pausedElapsedTime)
-
-      updateElapsed()
-      const interval = setInterval(updateElapsed, 1000)
-      return () => clearInterval(interval)
-    } else {
-      setElapsedSeconds(pausedElapsedTime)
-    }
-  }, [timerState, startTimestamp, pausedElapsedTime])
 
   // Bridge for the Ctrl+K command palette: dispatch
   // `goalslot:start-tracking` on window to open the quick-start popover.
