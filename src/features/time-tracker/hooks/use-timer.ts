@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 
-import { activeTimerApi } from '@/lib/api'
+import { activeTimerApi, type ActiveTimerSessionDto } from '@/lib/api'
 import { useTimerStore } from '@/lib/use-timer-store'
 
 const ACTIVE_SESSION_QUERY_KEY = ['timer', 'session', 'active'] as const
@@ -64,7 +64,22 @@ export function useTimer() {
     return () => document.removeEventListener('visibilitychange', onVisible)
   }, [queryClient])
 
-  const serverSession = activeSessionQuery.data ?? null
+  // `/timer/session` answers "nothing is running" by returning null, which
+  // NestJS sends as a 200 with an EMPTY body — and axios surfaces an empty
+  // body as the string '' , not null. `?? null` only catches null/undefined,
+  // so '' sailed through as a truthy "session" whose every field was
+  // undefined. That produced the phantom the user kept seeing: status
+  // undefined !== 'RUNNING' so the UI said PAUSED, taskName ?? '' rendered
+  // as "Untitled session", and accumulatedMs ?? 0 showed 00:00:00 — a paused
+  // timer that could never be stopped, because there was no session to stop.
+  //
+  // So validate the shape instead of testing for null: it is only a session
+  // if it is an object carrying a status.
+  const rawSession = activeSessionQuery.data
+  const serverSession =
+    rawSession && typeof rawSession === 'object' && typeof (rawSession as ActiveTimerSessionDto).status === 'string'
+      ? (rawSession as ActiveTimerSessionDto)
+      : null
   const hasServerSession = serverSession !== null
 
   const invalidateSession = useCallback(
