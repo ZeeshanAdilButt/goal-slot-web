@@ -98,6 +98,23 @@ export interface UseSpeechRecognitionOptions {
   maxDurationMs?: number
   /** How long the `success` state lingers before falling back to idle, ms. */
   successResetMs?: number
+  /**
+   * How long to keep listening after the user goes quiet before treating it
+   * as "done talking," ms. Omitted (the default): `continuous = false`, so
+   * the browser's own end-of-speech detection decides — on Chrome that is
+   * typically only one to a few seconds, correct for a short command
+   * ("start the timer") but a real problem for anything longer, where an
+   * ordinary thinking pause gets read as "finished" and cuts the user off
+   * mid-thought.
+   *
+   * Set this to opt into `continuous = true` instead: the browser is told
+   * to keep the mic open indefinitely, and this hook does the "has the user
+   * gone quiet" judgment itself — a timer reset on every result (interim or
+   * final) that calls `stop()`, same shape as `maxDurationMs`'s timeout,
+   * only if nothing new comes in before it fires. `maxDurationMs` still
+   * applies underneath as the absolute backstop either way.
+   */
+  silenceTimeoutMs?: number
 }
 
 export interface UseSpeechRecognitionResult {
@@ -155,6 +172,7 @@ export function useSpeechRecognition({
   lang,
   maxDurationMs = 20_000,
   successResetMs = 2_200,
+  silenceTimeoutMs,
 }: UseSpeechRecognitionOptions): UseSpeechRecognitionResult {
   const [supported, setSupported] = useState(false)
   const [status, setStatus] = useState<VoiceStatus>('unsupported')
@@ -168,6 +186,17 @@ export function useSpeechRecognition({
   const permissionDeniedRef = useRef(false)
   const timeoutRef = useRef<number | null>(null)
   const successTimerRef = useRef<number | null>(null)
+  const silenceTimerRef = useRef<number | null>(null)
+  // Read inside the recognition callbacks below via a ref, not the closed-
+  // over option directly: start() only re-creates its closure when its own
+  // deps change, and silenceTimeoutMs isn't one of them (adding it would
+  // tear down and restart listening every time a caller passes a fresh
+  // inline number - harmless in practice since it's always a constant here,
+  // but the ref is one line and removes the assumption entirely).
+  const silenceTimeoutMsRef = useRef(silenceTimeoutMs)
+  useEffect(() => {
+    silenceTimeoutMsRef.current = silenceTimeoutMs
+  }, [silenceTimeoutMs])
 
   // Keep the callback in a ref: the recognition instance is wired once per
   // dictation, and we do not want a re-created parent callback to force a
@@ -185,6 +214,10 @@ export function useSpeechRecognition({
     if (successTimerRef.current !== null) {
       window.clearTimeout(successTimerRef.current)
       successTimerRef.current = null
+    }
+    if (silenceTimerRef.current !== null) {
+      window.clearTimeout(silenceTimerRef.current)
+      silenceTimerRef.current = null
     }
   }, [])
 
@@ -344,10 +377,16 @@ export function useSpeechRecognition({
 
     recognition.lang =
       lang ?? (typeof navigator !== 'undefined' ? navigator.language : undefined) ?? 'en-US'
-    // One utterance per press. `continuous` would keep the mic hot after the
-    // user finishes, which is both a privacy smell and a way to accumulate
-    // stray room noise into the command.
-    recognition.continuous = false
+    // Default: one utterance per press. `continuous` would otherwise keep
+    // the mic hot after the user finishes, which is both a privacy smell
+    // and a way to accumulate stray room noise into a short command.
+    //
+    // silenceTimeoutMs opts out of that: continuous = true tells the
+    // browser not to apply its own (short, unconfigurable) end-of-speech
+    // cutoff, and the manual timer in onresult below takes over deciding
+    // when the user has actually gone quiet.
+    const usingSilenceTimeout = silenceTimeoutMsRef.current !== undefined
+    recognition.continuous = usingSilenceTimeout
     recognition.interimResults = true
     recognition.maxAlternatives = 1
 
@@ -369,6 +408,25 @@ export function useSpeechRecognition({
       }
       setInterimTranscript(interim)
       if (finalRef.current) setFinalTranscript(finalRef.current)
+
+      // Any activity - interim or final - means the user is still talking
+      // or just paused to think. Push the "they've gone quiet" deadline out
+      // again rather than letting an earlier timer fire mid-sentence.
+      const silenceMs = silenceTimeoutMsRef.current
+      if (silenceMs !== undefined) {
+        if (silenceTimerRef.current !== null) window.clearTimeout(silenceTimerRef.current)
+        silenceTimerRef.current = window.setTimeout(() => {
+          silenceTimerRef.current = null
+          // stop(), not abort(): submit whatever was heard through the
+          // normal onend -> submit path, same as the maxDurationMs
+          // backstop below.
+          try {
+            recognitionRef.current?.stop()
+          } catch {
+            /* already stopped */
+          }
+        }, silenceMs)
+      }
     }
 
     recognition.onerror = (event) => {

@@ -35,6 +35,19 @@ export interface VoiceDictationButtonProps {
    * than a bare icon.
    */
   variant?: 'icon' | 'labeled'
+  /**
+   * How long to keep listening after the user goes quiet before treating
+   * it as "done," ms. Omitted (the default): the browser's own end-of-
+   * speech detection decides, which on Chrome is only a second or two -
+   * fine for a short command, but cuts off an ordinary thinking pause
+   * during anything longer. Pass this for a long-form context (the full
+   * Journal editor passes 5000) — see use-speech-recognition.ts for the
+   * mechanism.
+   */
+  silenceTimeoutMs?: number
+  /** Hard cap on a single dictation, ms. Defaults to 20s - too short for
+   * long-form dictation, so pass a longer value alongside silenceTimeoutMs. */
+  maxDurationMs?: number
 }
 
 /**
@@ -59,6 +72,8 @@ export function VoiceDictationButton({
   label = 'Speak instead of typing',
   panelSide = 'top',
   variant = 'icon',
+  silenceTimeoutMs,
+  maxDurationMs,
 }: VoiceDictationButtonProps) {
   const {
     supported,
@@ -71,7 +86,7 @@ export function VoiceDictationButton({
     cancel,
     reset,
     retryAfterPermissionDenied,
-  } = useSpeechRecognition({ onTranscript })
+  } = useSpeechRecognition({ onTranscript, silenceTimeoutMs, maxDurationMs })
 
   const listening = status === 'listening'
   const failed = status === 'error' || status === 'permission-denied'

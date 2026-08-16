@@ -186,6 +186,15 @@ export function JournalEntryEditor({ entry, onSaveContent }: JournalEntryEditorP
             // read as its own feature, the way mobile's dedicated Voice
             // entry point does, instead of blending into this metadata row.
             variant="labeled"
+            // Reported: dictation stopped after an ordinary two-to-three
+            // second thinking pause. Long-form journaling needs real
+            // pauses without ending the whole session - 5s of silence
+            // before treating it as "done," instead of the browser's own
+            // much shorter, unconfigurable cutoff. 3 minutes total is a
+            // generous ceiling for one sitting, well past the 20s default
+            // tuned for a short spoken command elsewhere.
+            silenceTimeoutMs={5_000}
+            maxDurationMs={180_000}
             onTranscript={(transcript) => handleInsertPrompt(`${transcript} `)}
           />
           <span className="hidden sm:inline">{wordCount} {wordCount === 1 ? 'word' : 'words'}</span>
