@@ -21,6 +21,20 @@ export interface VoiceDictationButtonProps {
    * clipped away with no visible error (see journal-entry-editor.tsx).
    */
   panelSide?: 'top' | 'bottom'
+  /**
+   * 'icon' (default): compact, unlabeled - fits inline in a composer row
+   * next to a text input, where an icon-only trigger is the expected
+   * pattern (Coach quick-chat, Journal quick-jot).
+   *
+   * 'labeled': visible "Dictate" text and a brand-yellow idle state, sized
+   * to stand on its own rather than blend into a row of icons. For a
+   * context with no adjacent text field to imply what it does - the full
+   * Journal editor's header, where it was reported as easy to miss next to
+   * the word count and save-status text. Mirrors mobile's dedicated Voice
+   * entry point being an obviously-labeled, first-class control rather
+   * than a bare icon.
+   */
+  variant?: 'icon' | 'labeled'
 }
 
 /**
@@ -44,6 +58,7 @@ export function VoiceDictationButton({
   className,
   label = 'Speak instead of typing',
   panelSide = 'top',
+  variant = 'icon',
 }: VoiceDictationButtonProps) {
   const {
     supported,
@@ -94,6 +109,27 @@ export function VoiceDictationButton({
     }
   })()
 
+  // Short enough to sit next to the icon without wrapping the button onto
+  // two lines at the width this renders at.
+  const visibleLabel = (() => {
+    switch (status) {
+      case 'listening':
+        return 'Listening…'
+      case 'processing':
+        return 'Processing…'
+      case 'success':
+        return 'Captured'
+      case 'permission-denied':
+        return 'Blocked'
+      case 'error':
+        return 'Failed'
+      default:
+        return 'Dictate'
+    }
+  })()
+
+  const labeled = variant === 'labeled'
+
   return (
     <div className={cn('relative shrink-0', className)}>
       <button
@@ -106,10 +142,13 @@ export function VoiceDictationButton({
         aria-expanded={panelOpen}
         aria-busy={status === 'processing'}
         className={cn(
-          'inline-flex h-9 w-9 items-center justify-center rounded-md border transition-colors',
+          'inline-flex items-center justify-center rounded-md border font-medium transition-colors',
           'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#f2cc0d]',
+          labeled ? 'h-9 gap-1.5 px-3 text-xs' : 'h-9 w-9',
           status === 'idle' &&
-            'border-zinc-200 bg-white text-zinc-500 hover:border-[#f2cc0d] hover:text-[#8a7307]',
+            (labeled
+              ? 'border-[#f2cc0d]/60 bg-[#fffbea] text-[#8a7307] hover:border-[#f2cc0d] hover:bg-[#fff6cc]'
+              : 'border-zinc-200 bg-white text-zinc-500 hover:border-[#f2cc0d] hover:text-[#8a7307]'),
           listening && 'border-[#f2cc0d] bg-[#fffbea] text-[#8a7307]',
           status === 'processing' && 'border-[#f2cc0d] bg-white text-[#8a7307]',
           status === 'success' && 'border-[#f2cc0d] bg-[#fffbea] text-[#8a7307]',
@@ -130,6 +169,7 @@ export function VoiceDictationButton({
         ) : (
           <Mic className="h-4 w-4" />
         )}
+        {labeled && <span>{visibleLabel}</span>}
       </button>
 
       {panelOpen && (

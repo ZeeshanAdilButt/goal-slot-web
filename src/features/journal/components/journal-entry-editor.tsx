@@ -180,6 +180,12 @@ export function JournalEntryEditor({ entry, onSaveContent }: JournalEntryEditorP
           <VoiceDictationButton
             label="Dictate into this entry"
             panelSide="bottom"
+            // The full editor is the one surface with no adjacent text
+            // field to imply what a bare mic icon does - reported as easy
+            // to miss next to the word count. The labeled variant makes it
+            // read as its own feature, the way mobile's dedicated Voice
+            // entry point does, instead of blending into this metadata row.
+            variant="labeled"
             onTranscript={(transcript) => handleInsertPrompt(`${transcript} `)}
           />
           <span className="hidden sm:inline">{wordCount} {wordCount === 1 ? 'word' : 'words'}</span>
