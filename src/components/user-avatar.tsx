@@ -41,7 +41,7 @@ const SIZE_CLASSES = {
 }
 
 interface UserAvatarProps {
-  user: { name?: string | null; email: string; avatarUrl?: string | null }
+  user: { name?: string | null; email: string; avatar?: string | null }
   size?: 'sm' | 'md' | 'lg'
   className?: string
 }
@@ -55,17 +55,17 @@ export function UserAvatar({ user, size = 'md', className }: UserAvatarProps) {
   const [gravatarFailed, setGravatarFailed] = useState(false)
 
   useEffect(() => {
-    if (user.avatarUrl) return
+    if (user.avatar) return
     md5(user.email.trim().toLowerCase()).then((hash) => {
       setGravatarUrl(`https://www.gravatar.com/avatar/${hash}?d=404`)
     })
-  }, [user.email, user.avatarUrl])
+  }, [user.email, user.avatar])
 
   // Priority 1: uploaded avatar
-  if (user.avatarUrl) {
+  if (user.avatar) {
     return (
       <img
-        src={user.avatarUrl}
+        src={user.avatar}
         alt={user.name || user.email}
         className={cn('shrink-0 rounded-full object-cover', sizeClass, className)}
       />
