@@ -61,6 +61,7 @@ import {
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
+import { useTimedFlag } from '@/hooks/use-timed-flag'
 
 import { IndentExtension } from './indent-extension'
 import { ResizableImage } from './resizable-image'
@@ -415,7 +416,7 @@ export function TiptapEditor({
   editable = true,
   onReady,
 }: TiptapEditorProps) {
-  const [isCopied, setIsCopied] = useState(false)
+  const [isCopied, flashCopied] = useTimedFlag()
   const [isInTable, setIsInTable] = useState(false)
   // editorProps.handleKeyDown runs inside the useEditor config closure,
   // before the `editor` const exists. A ref kept in sync via useEffect
@@ -691,16 +692,14 @@ export function TiptapEditor({
     // Simple HTML to text conversion
     const text = editor.getText()
     navigator.clipboard.writeText(text)
-    setIsCopied(true)
-    setTimeout(() => setIsCopied(false), 2000)
-  }, [editor])
+    flashCopied()
+  }, [editor, flashCopied])
 
   const copyAsHTML = useCallback(() => {
     if (!editor) return
     navigator.clipboard.writeText(editor.getHTML())
-    setIsCopied(true)
-    setTimeout(() => setIsCopied(false), 2000)
-  }, [editor])
+    flashCopied()
+  }, [editor, flashCopied])
 
   const addImage = useCallback(() => {
     const input = document.createElement('input')

@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Loading } from '@/components/ui/loading'
+import { useTimedFlag } from '@/hooks/use-timed-flag'
 
 interface ShareNoteDialogProps {
   note: Note
@@ -168,7 +169,7 @@ export function ShareNoteDialog({ note, open, onClose }: ShareNoteDialogProps) {
   const revoke = useRevokeShareMutation(note.id)
 
   const [email, setEmail] = useState('')
-  const [copied, setCopied] = useState(false)
+  const [copied, flashCopied] = useTimedFlag(1800)
 
   useEffect(() => {
     if (open) setEmail('')
@@ -190,9 +191,8 @@ export function ShareNoteDialog({ note, open, onClose }: ShareNoteDialogProps) {
     if (!publicUrl) return
     try {
       await navigator.clipboard.writeText(publicUrl)
-      setCopied(true)
+      flashCopied()
       toast.success('Link copied')
-      setTimeout(() => setCopied(false), 1800)
     } catch {
       toast.error('Could not copy. Select and copy manually.')
     }

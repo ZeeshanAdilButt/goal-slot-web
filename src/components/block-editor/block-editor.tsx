@@ -44,6 +44,7 @@ import {
 
 import { cn } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { useTimedFlag } from '@/hooks/use-timed-flag'
 
 interface BlockEditorProps {
   initialBlocks?: Block[]
@@ -72,7 +73,7 @@ export function BlockEditor({
     selectBlock,
   } = useBlockEditorStore()
 
-  const [copiedFormat, setCopiedFormat] = useState<'markdown' | 'text' | null>(null)
+  const [copiedFormat, flashCopiedFormat] = useTimedFlag<'markdown' | 'text'>()
   const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null)
   const editorRef = useRef<HTMLDivElement>(null)
 
@@ -104,15 +105,13 @@ export function BlockEditor({
   }
 
   const handleCopyContent = useCallback((format: 'markdown' | 'text') => {
-    const content = format === 'markdown' 
+    const content = format === 'markdown'
       ? blocksToMarkdown(blocks)
       : blocksToPlainText(blocks)
-    
+
     navigator.clipboard.writeText(content)
-    setCopiedFormat(format)
-    
-    setTimeout(() => setCopiedFormat(null), 2000)
-  }, [blocks])
+    flashCopiedFormat(format)
+  }, [blocks, flashCopiedFormat])
 
   const handleDeleteBlock = (blockId: string) => {
     if (blocks.length === 1) {

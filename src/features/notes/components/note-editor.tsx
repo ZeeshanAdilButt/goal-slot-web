@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { TiptapEditor } from '@/components/tiptap-editor'
+import { useTimedFlag } from '@/hooks/use-timed-flag'
 
 import { useDeleteNoteMutation, useUpdateNoteMutation } from '../hooks/use-notes'
 import { Note, NOTE_COLORS, NOTE_ICONS } from '../utils/types'
@@ -136,7 +137,7 @@ export function NoteEditor({ note, onDelete, readOnly = false, sharedBy = null }
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const [showShare, setShowShare] = useState(false)
-  const [copySuccess, setCopySuccess] = useState<string | null>(null)
+  const [copySuccess, flashCopySuccess] = useTimedFlag<'link' | 'html'>()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const isInitialized = useRef(false)
   const noteIdRef = useRef(note.id)
@@ -239,16 +240,14 @@ export function NoteEditor({ note, onDelete, readOnly = false, sharedBy = null }
   const handleCopyLink = () => {
     const link = `${window.location.origin}/dashboard/notes?noteId=${note.id}`
     navigator.clipboard.writeText(link)
-    setCopySuccess('link')
-    setTimeout(() => setCopySuccess(null), 2000)
+    flashCopySuccess('link')
     setShowMenu(false)
   }
 
   // Copy as HTML
   const handleCopyHTML = () => {
     navigator.clipboard.writeText(editorContent)
-    setCopySuccess('html')
-    setTimeout(() => setCopySuccess(null), 2000)
+    flashCopySuccess('html')
     setShowMenu(false)
   }
 

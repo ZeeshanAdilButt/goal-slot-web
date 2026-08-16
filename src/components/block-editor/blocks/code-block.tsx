@@ -8,6 +8,7 @@ import { CodeBlock } from '../types'
 import { useBlockEditorStore } from '../store'
 
 import { cn } from '@/lib/utils'
+import { useTimedFlag } from '@/hooks/use-timed-flag'
 
 interface CodeBlockComponentProps {
   block: CodeBlock
@@ -41,7 +42,7 @@ const LANGUAGES = [
 export function CodeBlockComponent({ block, isSelected, onSelect }: CodeBlockComponentProps) {
   const { updateBlock } = useBlockEditorStore()
   const [showLanguages, setShowLanguages] = useState(false)
-  const [copied, setCopied] = useState(false)
+  const [copied, flashCopied] = useTimedFlag()
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Close dropdown when clicking outside
@@ -67,8 +68,7 @@ export function CodeBlockComponent({ block, isSelected, onSelect }: CodeBlockCom
   const handleCopy = (e: React.MouseEvent) => {
     e.stopPropagation()
     navigator.clipboard.writeText(block.content)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    flashCopied()
   }
 
   const currentLanguage = LANGUAGES.find((l) => l.value === block.language)?.label || block.language
