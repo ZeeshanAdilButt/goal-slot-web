@@ -18,6 +18,7 @@ import {
   Search,
   ShieldCheck,
   ShieldX,
+  Smartphone,
   Sparkles,
   UserCheck,
   UserPlus,
@@ -79,6 +80,13 @@ interface User {
   adminAssignedPlanNote?: string
   createdAt: string
   updatedAt: string
+  /**
+   * True once the Expo app's push-registration flow completed for this
+   * user - which requires them to have granted notification permission.
+   * A lower bound on real mobile usage, not an exact figure: someone who
+   * installed the app and declined that prompt still reads false here.
+   */
+  usesMobileApp: boolean
 }
 
 interface UserStats {
@@ -87,6 +95,8 @@ interface UserStats {
   disabledUsers: number
   verifiedUsers: number
   unverifiedUsers: number
+  /** See User.usesMobileApp - same lower-bound caveat applies here. */
+  mobileAppUsers: number
   byPlan: {
     free: number
     basic: number
@@ -432,11 +442,14 @@ export default function AdminUsersPage() {
 
       {/* Stats Cards */}
       {stats && (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-8">
           <StatCard label="Total" value={stats.totalUsers} icon={<Users />} accent="neutral" />
           <StatCard label="Active" value={stats.activeUsers} icon={<UserCheck />} accent="success" />
           <StatCard label="Disabled" value={stats.disabledUsers} icon={<Ban />} accent="danger" />
           <StatCard label="Verified" value={stats.verifiedUsers} icon={<MailCheck />} accent="neutral" />
+          <div title="Users who granted notification permission in the mobile app. A lower bound — some mobile users decline that prompt and aren't counted here.">
+            <StatCard label="Mobile" value={stats.mobileAppUsers} icon={<Smartphone />} accent="neutral" />
+          </div>
           <StatCard label="Max" value={stats.byPlan.pro} icon={<Crown />} accent="brand" />
           <StatCard label="Pro" value={stats.byPlan.basic} icon={<Sparkles />} accent="neutral" />
           <StatCard label="Free" value={stats.byPlan.free} icon={<Users />} accent="neutral" />
@@ -526,6 +539,12 @@ export default function AdminUsersPage() {
                   <th className="px-4 py-3 text-left text-sm font-bold uppercase">Role</th>
                   <th className="px-4 py-3 text-left text-sm font-bold uppercase">Plan</th>
                   <th className="px-4 py-3 text-left text-sm font-bold uppercase">Verified</th>
+                  <th
+                    className="px-4 py-3 text-left text-sm font-bold uppercase"
+                    title="Set once the mobile app's push registration completes for this user, which requires them to have granted notification permission - a lower bound, not an exact figure."
+                  >
+                    Platform
+                  </th>
                   <th className="px-4 py-3 text-left text-sm font-bold uppercase">Joined</th>
                   <th className="px-4 py-3 text-right text-sm font-bold uppercase">Actions</th>
                 </tr>
@@ -634,6 +653,16 @@ export default function AdminUsersPage() {
                           </>
                         )}
                       </button>
+                    </td>
+                    <td className="px-4 py-4">
+                      {user.usesMobileApp ? (
+                        <span className="inline-flex items-center gap-1 border-2 border-sky-400 bg-sky-200 px-2 py-1 text-xs font-bold uppercase text-sky-800">
+                          <Smartphone className="h-3 w-3" />
+                          Mobile
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-600">
                       <div className="flex items-center gap-1">
