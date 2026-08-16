@@ -108,6 +108,31 @@ export function useTimer() {
     }
   }, [activeSessionQuery.isSuccess, serverSession, localTimerState, localReset])
 
+  // A session ending on another device (stop or discard) writes a TimeEntry
+  // server-side that this browser has no way to hear about directly - there
+  // is no push channel for it, only this 20s poll of the session endpoint.
+  // Reported: a timer started and stopped from the phone correctly stopped
+  // on web too (the poll picked that transition up), but the newly-created
+  // entry never appeared in the Recent Entries list, because nothing ever
+  // invalidated it - only this page's own local stop/create mutation does
+  // that, and no local mutation ran here.
+  //
+  // hasServerSession flipping true -> false is exactly the signal "a session
+  // that existed a moment ago is now gone", which on the server only ever
+  // means it was stopped or discarded - by definition, whichever device did
+  // it already knows what it did to the entries list. This device does not,
+  // so on that specific transition (never on the initial mount, where it
+  // would just be reacting to "there was never anything to lose") invalidate
+  // the entries list so it catches up within the same poll window the header
+  // already updates on.
+  const hadServerSessionRef = useRef(false)
+  useEffect(() => {
+    if (hadServerSessionRef.current && !hasServerSession) {
+      void queryClient.invalidateQueries({ queryKey: ['time-tracker'] })
+    }
+    hadServerSessionRef.current = hasServerSession
+  }, [hasServerSession, queryClient])
+
   // Server, when present, is authoritative — same rule the mobile client
   // already follows. Everything below is the local Zustand shape, just
   // sourced from whichever side actually knows what's running.

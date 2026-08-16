@@ -551,6 +551,15 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
         queryClient.invalidateQueries({ queryKey: ['schedule'] }),
         queryClient.invalidateQueries({ queryKey: ['scheduleBlocks'] }),
         queryClient.invalidateQueries({ queryKey: ['tasks'] }),
+        // The Time Tracker's Recent Entries list actually lives under
+        // ['time-tracker', 'recent-entries'] (use-time-tracker-queries.ts) -
+        // ['time-entries'] / ['timeEntries'] below match nothing that's ever
+        // fetched under those keys and never did anything. Kept rather than
+        // removed in case something outside this file still relies on them,
+        // but ['time-tracker'] is the one that actually reaches the list a
+        // CREATE_TIME_ENTRY / UPDATE_TIME_ENTRY / DELETE_TIME_ENTRY proposal
+        // just changed.
+        queryClient.invalidateQueries({ queryKey: ['time-tracker'] }),
         queryClient.invalidateQueries({ queryKey: ['time-entries'] }),
         queryClient.invalidateQueries({ queryKey: ['timeEntries'] }),
         queryClient.invalidateQueries({ queryKey: ['coach', 'insights'] }),
