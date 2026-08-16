@@ -177,7 +177,13 @@ export function VoiceDictationButton({
           role="dialog"
           aria-label={listening ? 'Voice input' : 'Voice input problem'}
           className={cn(
-            'absolute right-0 z-10 w-[min(300px,80vw)] overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xl',
+            // z-20, not z-10: journal-entry-editor.tsx's "Stuck?" prompt
+            // banner (journal-untangle.tsx) sits at z-10 too, in the same
+            // stacking context, and renders after this button in the DOM.
+            // Tied z-index falls back to DOM order, so the banner's text
+            // was painting on top of this panel - visible as ghosted text
+            // bleeding through what should be an opaque white dropdown.
+            'absolute right-0 z-20 w-[min(300px,80vw)] overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xl',
             panelSide === 'top' ? 'bottom-full mb-2' : 'top-full mt-2',
           )}
         >
