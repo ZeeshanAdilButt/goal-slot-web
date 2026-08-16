@@ -120,7 +120,18 @@ export function MessagingPage() {
           />
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-[19rem_minmax(0,1fr)]">
+        <div
+          // pb-20: this page's own interactive control that sits lowest -
+          // the composer's Send button - sits in normal block flow, not a
+          // sticky/fixed bar, so its screen position depends on how tall
+          // the conversation list + thread happen to render. On a lot of
+          // real screens that lands it directly under the app-wide floating
+          // dock (fixed bottom-6 right-6, ~56px band + gap), which then
+          // physically covers Send - not a scroll issue, a coordinate
+          // coincidence. This reserves clearance so the panel's bottom edge
+          // never reaches that band, regardless of content height.
+          className="grid gap-4 pb-20 md:grid-cols-[19rem_minmax(0,1fr)]"
+        >
           <aside
             aria-label="Conversations"
             className={cn(
