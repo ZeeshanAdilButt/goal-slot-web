@@ -45,7 +45,18 @@ export function useStartTimerWithConfirmation() {
     if (!isTimerActive || !hasMinimumTime) {
       // Execute callback first (e.g., update task status)
       params.onStartTimer?.()
-      start(params.task, params.taskId, params.category, params.goalId, params.scheduleBlockId)
+      // takeOver: true because a timer under the 1-minute grace period can
+      // still be an active server-side session — without this, switching
+      // within that window 409s (something is already running) and the UI
+      // silently snaps back to the old task instead of switching.
+      start(
+        params.task,
+        params.taskId,
+        params.category,
+        params.goalId,
+        params.scheduleBlockId,
+        true,
+      )
       return
     }
 

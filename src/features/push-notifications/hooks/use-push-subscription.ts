@@ -32,6 +32,11 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
  */
 export function usePushSubscription() {
   const [state, setState] = useState<PushSubscriptionState>('unsubscribed')
+  // The backend row id for the current browser's subscription, needed to
+  // target DELETE /push-subscriptions/:id. Not persisted — re-resolved from
+  // the browser's own PushSubscription endpoint on mount (see below), since
+  // that's the only handle we have when the id wasn't captured this session.
+  const [subscriptionId, setSubscriptionId] = useState<string | null>(null)
 
   // Resolve the real starting state on mount: unsupported browser, a
   // previously denied permission, or a subscription that already exists
@@ -51,7 +56,20 @@ export function usePushSubscription() {
       try {
         const registration = await navigator.serviceWorker.getRegistration()
         const existing = await registration?.pushManager.getSubscription()
-        if (!cancelled && existing) setState('subscribed')
+        if (!existing) return
+        if (!cancelled) setState('subscribed')
+        // Re-register (upsert) to recover the row id for an existing
+        // browser subscription from an earlier visit — register() upserts
+        // by endpoint, so this is a no-op on the backend, not a duplicate.
+        const json = existing.toJSON()
+        if (json.endpoint && json.keys?.p256dh && json.keys?.auth) {
+          const { data: row } = await api.post<{ id: string }>('/push-subscriptions', {
+            endpoint: json.endpoint,
+            p256dh: json.keys.p256dh,
+            auth: json.keys.auth,
+          })
+          if (!cancelled) setSubscriptionId(row.id)
+        }
       } catch {
         // Registration not ready yet — leave the default state, subscribe() below re-checks.
       }
@@ -114,8 +132,9 @@ export function usePushSubscription() {
         throw new Error('Push subscription is missing its endpoint or keys')
       }
 
-      await api.post('/push-subscriptions', { endpoint, p256dh, auth })
+      const { data: row } = await api.post<{ id: string }>('/push-subscriptions', { endpoint, p256dh, auth })
 
+      setSubscriptionId(row.id)
       setState('subscribed')
     } catch (error) {
       setState('unsubscribed')
@@ -123,5 +142,26 @@ export function usePushSubscription() {
     }
   }, [])
 
-  return { state, subscribe }
+  const unsubscribe = useCallback(async () => {
+    if (!isPushSupported()) return
+
+    try {
+      const registration = await navigator.serviceWorker.getRegistration()
+      const existing = await registration?.pushManager.getSubscription()
+      await existing?.unsubscribe()
+
+      if (subscriptionId) {
+        await api.delete(`/push-subscriptions/${subscriptionId}`)
+      }
+
+      setSubscriptionId(null)
+      setState('unsubscribed')
+    } catch (error) {
+      // Leave state as 'subscribed' — the toggle failed, so nothing actually
+      // changed; better to let the user retry than show a false unsubscribed state.
+      throw error
+    }
+  }, [subscriptionId])
+
+  return { state, subscribe, unsubscribe }
 }

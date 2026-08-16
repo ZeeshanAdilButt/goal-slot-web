@@ -13,15 +13,23 @@ import { usePushSubscription } from '@/features/push-notifications/hooks/use-pus
  * permission prompt — there's no useful action to offer either way.
  */
 export function EnablePushNotificationsButton() {
-  const { state, subscribe } = usePushSubscription()
+  const { state, subscribe, unsubscribe } = usePushSubscription()
 
   if (state === 'unsupported' || state === 'denied') {
     return null
   }
 
   if (state === 'subscribed') {
+    const handleDisable = async () => {
+      try {
+        await unsubscribe()
+      } catch {
+        toast.error('Could not disable push notifications. Please try again.')
+      }
+    }
+
     return (
-      <Button variant="secondary" size="sm" disabled title="Push notifications are enabled">
+      <Button variant="secondary" size="sm" onClick={handleDisable} title="Turn off push notifications">
         <BellRing className="h-4 w-4" />
         Notifications enabled
       </Button>
