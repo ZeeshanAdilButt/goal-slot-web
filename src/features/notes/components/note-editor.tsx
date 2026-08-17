@@ -16,10 +16,14 @@ import {
   Trash2,
 } from 'lucide-react'
 
+import type { Editor } from '@tiptap/react'
+
+import { escapeHtml } from '@/lib/escape-html'
 import { downloadNoteAsMarkdown } from '@/lib/html-to-markdown'
 import { cn } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { ConfirmDialog } from '@/components/confirm-dialog'
+import { VoiceDictationButton } from '@/components/voice-dictation-button'
 import { TiptapEditor } from '@/components/tiptap-editor'
 import { useTimedFlag } from '@/hooks/use-timed-flag'
 
@@ -86,8 +90,18 @@ function convertOldContentToHtml(content: string): string {
   }
 }
 
-// Custom debounce hook
-function useDebounce<T extends (...args: any[]) => void>(callback: T, delay: number): T {
+// Custom debounce hook.
+//
+// Returns the debounced callback plus a `cancel`. `cancel` exists for the
+// "insert something programmatically, then save it right now" path
+// (dictation): without it the immediate save is followed a second later by
+// the queued debounce firing the identical payload, i.e. two PATCHes for
+// one edit. Mirrors how the journal editor clears its own debounce timer
+// before an out-of-band save (journal-entry-editor.tsx).
+function useDebounce<T extends (...args: any[]) => void>(
+  callback: T,
+  delay: number,
+): [T, () => void] {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const callbackRef = useRef(callback)
 
@@ -96,25 +110,29 @@ function useDebounce<T extends (...args: any[]) => void>(callback: T, delay: num
     callbackRef.current = callback
   }, [callback])
 
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
+  const cancel = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
     }
   }, [])
 
-  return useCallback(
+  useEffect(() => cancel, [cancel])
+
+  const debounced = useCallback(
     (...args: Parameters<T>) => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current)
       }
       timeoutRef.current = setTimeout(() => {
+        timeoutRef.current = null
         callbackRef.current(...args)
       }, delay)
     },
     [delay],
   ) as T
+
+  return [debounced, cancel]
 }
 
 interface NoteEditorProps {
@@ -141,7 +159,15 @@ export function NoteEditor({ note, onDelete, readOnly = false, sharedBy = null }
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const isInitialized = useRef(false)
   const noteIdRef = useRef(note.id)
-  const tiptapRef = useRef<{ commands: { focus: (pos?: 'end' | 'start') => any } } | null>(null)
+  const tiptapRef = useRef<Editor | null>(null)
+  // Has the user put a cursor in the note body since this note was opened?
+  // A freshly-mounted Tiptap editor's selection sits at the very start of
+  // the document, so dictating into a note nobody has clicked into would
+  // drop the spoken text ABOVE everything already written. Mobile appends
+  // at the end in that case (app/(app)/note/[id].tsx), and this mirrors it
+  // — while still honouring a real cursor once the user has placed one,
+  // the way the journal's Untangle inserts do.
+  const hasFocusedBodyRef = useRef(false)
   const [editorContent, setEditorContent] = useState(() => convertOldContentToHtml(note.content || ''))
 
   // Re-seed editor content ONLY when the user switches to a different note
@@ -155,6 +181,7 @@ export function NoteEditor({ note, onDelete, readOnly = false, sharedBy = null }
     setEditorContent(convertOldContentToHtml(note.content || ''))
     isInitialized.current = true
     noteIdRef.current = note.id
+    hasFocusedBodyRef.current = false
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [note.id])
 
@@ -168,7 +195,7 @@ export function NoteEditor({ note, onDelete, readOnly = false, sharedBy = null }
     [note.title, updateMutation],
   )
 
-  const debouncedSaveTitle = useDebounce(saveTitle, 500)
+  const [debouncedSaveTitle] = useDebounce(saveTitle, 500)
 
   // Handle title change
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -195,7 +222,7 @@ export function NoteEditor({ note, onDelete, readOnly = false, sharedBy = null }
     [updateMutation],
   )
 
-  const debouncedSaveContent = useDebounce(saveContent, 1000)
+  const [debouncedSaveContent, cancelSaveContent] = useDebounce(saveContent, 1000)
 
   const handleContentChange = useCallback(
     (html: string, _json?: any) => {
@@ -203,6 +230,58 @@ export function NoteEditor({ note, onDelete, readOnly = false, sharedBy = null }
       debouncedSaveContent(html)
     },
     [debouncedSaveContent],
+  )
+
+  const markBodyFocused = useCallback(() => {
+    hasFocusedBodyRef.current = true
+  }, [])
+
+  // Stable so TiptapEditor's onReady effect runs once per editor instance
+  // rather than on every render of this component — otherwise the 'focus'
+  // listener below would be re-subscribed each pass.
+  const handleEditorReady = useCallback(
+    (ed: Editor | null) => {
+      const previous = tiptapRef.current
+      if (previous && previous !== ed) previous.off('focus', markBodyFocused)
+      tiptapRef.current = ed
+      if (ed) ed.on('focus', markBodyFocused)
+    },
+    [markBodyFocused],
+  )
+
+  // Voice dictation for the note body.
+  //
+  // Deliberately the SAME machinery the journal editor uses — the shared
+  // VoiceDictationButton over useSpeechRecognition — not a second speech
+  // implementation. That means web's model: one tap opens one session, and
+  // the whole transcript arrives once when the user stops (or after
+  // silenceTimeoutMs of quiet). Mobile reopens the mic per phrase; matching
+  // that on web needs a continuous-dictation loop in the hook itself, which
+  // is a much larger change than this and belongs in its own PR.
+  const handleDictatedText = useCallback(
+    (transcript: string) => {
+      const ed = tiptapRef.current
+      if (readOnly || !ed) return
+      const spoken = transcript.trim()
+      if (!spoken) return
+      // insertContent() parses its argument as HTML. Escape first, or a
+      // spoken "&", "<" or quote is swallowed as markup instead of showing
+      // as the words that were actually said. Mobile escapes for exactly
+      // this reason (escapeNoteHtml in src/lib/note-content.ts).
+      ed
+        .chain()
+        .focus(hasFocusedBodyRef.current ? null : 'end')
+        .insertContent(`${escapeHtml(spoken)} `)
+        .run()
+      const next = ed.getHTML()
+      setEditorContent(next)
+      // Save now rather than waiting out the 1s autosave debounce — a
+      // refresh inside that window would silently drop what was just
+      // dictated. Cancelling the pending timer keeps this to one PATCH.
+      cancelSaveContent()
+      saveContent(next)
+    },
+    [cancelSaveContent, readOnly, saveContent],
   )
 
   // Handle icon change
@@ -372,6 +451,25 @@ export function NoteEditor({ note, onDelete, readOnly = false, sharedBy = null }
             </div>
           )}
 
+          {/* Dictation — owner only; a read-only recipient has nothing to
+              write into. panelSide="bottom" is required, not cosmetic: this
+              header sits at the TOP of notes-page.tsx's overflow-hidden
+              column, and a panel opening upward from here is clipped away
+              with no visible error — the same trap the journal editor hit.
+              Same silence/duration values as the journal: long-form writing
+              has the same thinking-pause profile, and a lookalike control
+              with different timings would just be a lesser copy. */}
+          {!readOnly && (
+            <VoiceDictationButton
+              label="Dictate into this note"
+              panelSide="bottom"
+              variant="labeled"
+              silenceTimeoutMs={5_000}
+              maxDurationMs={180_000}
+              onTranscript={handleDictatedText}
+            />
+          )}
+
           {/* Share button — owner only. Read-only recipients see no Share
               control because they have no authority to grant access. */}
           {!readOnly && (
@@ -528,9 +626,7 @@ export function NoteEditor({ note, onDelete, readOnly = false, sharedBy = null }
             editable={!readOnly}
             placeholder={readOnly ? '' : "Start typing... Use '/' for commands"}
             className="h-full"
-            onReady={(ed) => {
-              tiptapRef.current = ed as typeof tiptapRef.current
-            }}
+            onReady={handleEditorReady}
           />
         </div>
       </div>
