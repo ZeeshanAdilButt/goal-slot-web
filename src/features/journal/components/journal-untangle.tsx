@@ -131,6 +131,19 @@ function promptToHtml(p: UntanglePrompt): string {
   )
 }
 
+/**
+ * The four-section layout that used to be written into every brand-new
+ * entry automatically, before the user had typed anything — which meant
+ * anyone who did not want it had to delete it first. It lives here now, as
+ * one opt-in click, so the structure is still a click away for the people
+ * who liked it without being imposed on the people who did not.
+ */
+const SECTION_LAYOUT_HTML =
+  '<h2>What was I feeling and what was it asking?</h2><p></p>' +
+  '<h2>What happened today</h2><p></p>' +
+  '<h2>What worked, what got in the way</h2><p></p>' +
+  '<h2>One small adjustment for tomorrow</h2><p></p>'
+
 interface JournalUntangleProps {
   onInsertPrompt: (html: string) => void
 }
@@ -141,6 +154,12 @@ export function JournalUntangle({ onInsertPrompt }: JournalUntangleProps) {
 
   const handleInsert = (p: UntanglePrompt) => {
     onInsertPrompt(promptToHtml(p))
+    setOpen(false)
+    setExpandedId(null)
+  }
+
+  const handleInsertLayout = () => {
+    onInsertPrompt(SECTION_LAYOUT_HTML)
     setOpen(false)
     setExpandedId(null)
   }
@@ -230,6 +249,21 @@ export function JournalUntangle({ onInsertPrompt }: JournalUntangleProps) {
                 </div>
               )
             })}
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-dashed border-zinc-300 bg-zinc-50/70 px-3 py-2.5">
+            <div className="min-w-0 flex-1">
+              <p className="text-[13px] font-semibold leading-snug text-zinc-900">
+                Prefer a structure?
+              </p>
+              <p className="mt-0.5 text-[12px] leading-relaxed text-zinc-600">
+                Drops in the four headings — what you felt, what happened, what
+                worked, one adjustment — for you to fill in.
+              </p>
+            </div>
+            <Button type="button" variant="secondary" size="sm" onClick={handleInsertLayout}>
+              Insert the four sections
+            </Button>
           </div>
 
           <p className="mt-3 text-[11px] leading-relaxed text-zinc-500">

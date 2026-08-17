@@ -17,21 +17,49 @@ export interface JournalEntry {
 
 const QUERY_KEY = ['coach', 'journal', 'entries'] as const
 
-// Default starter template for a brand-new daily entry. Plain HTML so
-// TipTap renders it as real headings + paragraphs the user can edit or
-// delete inline.
+// New entries used to be seeded with a starter template — guidance copy
+// plus four section headings — written into the entry as REAL CONTENT and
+// POSTed to the server before the user had typed a character. That made
+// the guidance something you had to delete before you could write, which
+// is the opposite of a hint. It also meant merely opening the Journal, or
+// clicking a past date in the sidebar calendar, manufactured a "written"
+// entry: 55 words of scaffold in the word count, and the same 55 words fed
+// to the AI coach as if the user had reflected them.
 //
-// Opens with the framing we landed on: feelings are questions your
-// mind is trying to ask, and journaling is how you untangle them
-// into something you can actually answer. The blockquote stays small
-// and removable — it's a nudge, not a wall. Then the four standard
-// sections so the user can fill in or delete as suits the day.
-const DEFAULT_ENTRY_TEMPLATE =
+// New entries are now created empty, which lets the placeholder that was
+// already wired up (promptForDate in journal-entry-editor.tsx, rendered by
+// TipTap's Placeholder extension) finally show. The guidance itself has
+// not been dropped — it lives in the always-visible "Stuck?" banner above
+// the editor, and the four-section layout is now one opt-in click in the
+// "Untangle a feeling" dialog for people who liked the structure.
+//
+// The two template strings below are kept ONLY to recognise entries the
+// old behaviour already wrote. See neutralizeScaffold.
+const SCAFFOLD_TEMPLATES: readonly string[] = [
+  // Original (#128) — headings only.
+  "<h2>What happened today</h2><p></p><h2>How I felt</h2><p></p><h2>What worked, what didn't</h2><p></p><h2>One thing for tomorrow</h2><p></p>",
+  // #172 — added the blockquote framing above the headings.
   '<blockquote><p><em>A feeling is usually a question your mind is trying to ask. Untangle one today — pick a thread below, or hit "Untangle a feeling" above the editor for more starters.</em></p></blockquote>' +
-  '<h2>What was I feeling and what was it asking?</h2><p></p>' +
-  '<h2>What happened today</h2><p></p>' +
-  '<h2>What worked, what got in the way</h2><p></p>' +
-  '<h2>One small adjustment for tomorrow</h2><p></p>'
+    '<h2>What was I feeling and what was it asking?</h2><p></p>' +
+    '<h2>What happened today</h2><p></p>' +
+    '<h2>What worked, what got in the way</h2><p></p>' +
+    '<h2>One small adjustment for tomorrow</h2><p></p>',
+]
+
+/**
+ * Reading fix for entries the old seeding already wrote to the database.
+ *
+ * An entry whose stored content is byte-identical to a scaffold template
+ * is one nobody ever typed into, so it opens blank with the placeholder
+ * instead of demanding a deletion first. This is deliberately read-side
+ * only: nothing is rewritten or deleted on the server, and the moment a
+ * single character differs — including an entry where the user kept the
+ * headings and wrote under them — the content is passed through
+ * completely untouched.
+ */
+function neutralizeScaffold(content: string): string {
+  return SCAFFOLD_TEMPLATES.includes(content) ? '' : content
+}
 
 function todayKey(): string {
   const d = new Date()
@@ -47,7 +75,7 @@ function fromDto(dto: CoachJournalEntryDto): JournalEntry {
     date: dto.date,
     mood: dto.mood,
     energy: dto.energy,
-    content: dto.content ?? '',
+    content: neutralizeScaffold(dto.content ?? ''),
     updatedAt: dto.updatedAt,
   }
 }
@@ -67,14 +95,13 @@ export function useJournalEntries() {
 
   const ensureMutation = useMutation({
     mutationFn: async (date: string) => {
-      // Seed brand-new entries with a quiet, human starting template
-      // — no emojis, no "AI assistant" framing, just four soft prompts
-      // the writer can fill in or delete. The check guards against
-      // clobbering an existing entry on a server-side recreate path.
-      const res = await coachApi.upsertJournalEntry({
-        date,
-        content: DEFAULT_ENTRY_TEMPLATE,
-      })
+      // Create the row with NO content. The API leaves content at its ''
+      // column default when the field is omitted, so the entry opens as a
+      // genuinely blank page with a placeholder — nothing for the user to
+      // clear before writing. Omitting the field (rather than sending '')
+      // also means this can never blank an entry that already exists on a
+      // server-side recreate path.
+      const res = await coachApi.upsertJournalEntry({ date })
       return fromDto(res.data)
     },
     onSuccess: (entry) => {
@@ -173,16 +200,14 @@ export function useJournalEntries() {
       }
       // Optimistically insert a stub entry into the cache so selectedEntry is
       // non-null immediately, no flicker to the "select an entry" empty state.
-      // Seed with the default template so the user lands on the same starter
-      // prompts as a brand-new "today" entry — past-date entries used to
-      // open blank because the stub had content='' while the real upsert
-      // (which sends DEFAULT_ENTRY_TEMPLATE) was still in flight.
+      // Empty content, matching what the upsert below now creates — a blank
+      // page with a placeholder, not scaffold the user has to delete.
       const stub: JournalEntry = {
         id: `tmp_${date}`,
         date,
         mood: null,
         energy: null,
-        content: DEFAULT_ENTRY_TEMPLATE,
+        content: '',
         updatedAt: new Date().toISOString(),
       }
       queryClient.setQueryData<JournalEntry[]>(QUERY_KEY, (prev) => {
