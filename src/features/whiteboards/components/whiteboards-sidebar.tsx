@@ -14,11 +14,11 @@ import {
   useUpdateWhiteboardMutation,
   useWhiteboardsQuery,
 } from '../hooks/use-whiteboards'
-import type { Whiteboard } from '../types'
+import type { WhiteboardSummary } from '../types'
 
 interface WhiteboardsSidebarProps {
   selectedWhiteboardId: string | null
-  onSelectWhiteboard: (whiteboard: Whiteboard) => void
+  onSelectWhiteboard: (whiteboard: WhiteboardSummary) => void
   /** Called when the currently selected whiteboard was deleted. */
   onAfterDeleteSelected?: () => void
   className?: string
@@ -83,7 +83,7 @@ export function WhiteboardsSidebar({
     [updateMutation],
   )
 
-  const startEdit = (wb: Whiteboard, e: React.MouseEvent) => {
+  const startEdit = (wb: WhiteboardSummary, e: React.MouseEvent) => {
     e.stopPropagation()
     setEditingId(wb.id)
     setEditTitle(wb.title || 'Untitled')

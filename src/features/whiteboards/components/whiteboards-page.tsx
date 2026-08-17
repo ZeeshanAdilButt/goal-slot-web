@@ -2,12 +2,15 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+
 import { useQueryClient } from '@tanstack/react-query'
 import { LayoutGrid, PanelLeft, PanelLeftClose, Plus, X } from 'lucide-react'
+
 import { cn } from '@/lib/utils'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
 import { Loading } from '@/components/ui/loading'
+
 import { useSharedWhiteboardsQuery, useWhiteboardQuery, WHITEBOARDS_QUERY_KEY } from '../hooks/use-whiteboards'
 import { useWhiteboardsSelection } from '../hooks/use-whiteboards-selection'
 import type { SharedWithMeItem } from '../types'
@@ -185,18 +188,20 @@ export function WhiteboardsPage({ initialWhiteboardId }: WhiteboardsPageProps = 
       )
     }
   } else if (selectedWhiteboard) {
-    const displayWhiteboard = ownedFetch.data?.whiteboard ?? selectedWhiteboard
-    const resolvedContent = resolveWhiteboardScene(displayWhiteboard.id, displayWhiteboard.content)
-    const hasElements = (resolvedContent?.elements?.length ?? 0) > 0
-    const waitingForServer =
-      !!ownedWhiteboardId &&
-      ownedFetch.isFetching &&
-      !hasElements &&
-      !resolveWhiteboardScene(selectedWhiteboard.id, selectedWhiteboard.content)?.elements?.length
+    // Scene content comes from the detail query only. The list response is
+    // metadata (a scene is capped at 2 MB, so shipping every board's content
+    // to draw a sidebar was a multi-megabyte fetch), so there is nothing to
+    // render the canvas from until the detail resolves.
+    const detail = ownedFetch.data?.whiteboard ?? null
+    const resolvedContent = resolveWhiteboardScene(selectedWhiteboard.id, detail?.content ?? null)
+    // `!ownedFetch.isError` is load-bearing: without it a detail request that
+    // never resolves (a board deleted in another tab) spins forever.
+    const waitingForServer = !!ownedWhiteboardId && !detail && !ownedFetch.isError
 
     mainContent = (
       <div key={selectedWhiteboard.id} className="flex h-full flex-col">
-        <WhiteboardHeader whiteboard={displayWhiteboard} autoFocusTitle={focusTitleId === displayWhiteboard.id} />
+        {/* Title/icon/colour live on the list row, so the header never flashes. */}
+        <WhiteboardHeader whiteboard={selectedWhiteboard} autoFocusTitle={focusTitleId === selectedWhiteboard.id} />
         <div className="min-h-0 flex-1">
           {waitingForServer ? (
             <div className="flex h-full items-center justify-center">
@@ -204,8 +209,8 @@ export function WhiteboardsPage({ initialWhiteboardId }: WhiteboardsPageProps = 
             </div>
           ) : (
             <WhiteboardCanvas
-              key={displayWhiteboard.id}
-              whiteboardId={displayWhiteboard.id}
+              key={selectedWhiteboard.id}
+              whiteboardId={selectedWhiteboard.id}
               initialData={resolvedContent}
               readOnly={false}
               onRegisterFlush={(fn) => {

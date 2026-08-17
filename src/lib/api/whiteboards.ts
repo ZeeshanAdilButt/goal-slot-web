@@ -15,12 +15,14 @@ import type {
   SharedWithMeItem,
   Whiteboard,
   WhiteboardShareState,
+  WhiteboardSummary,
   WhiteboardWithAccess,
 } from '@/features/whiteboards/types'
 
-export async function getWhiteboards(): Promise<Whiteboard[]> {
+/** Metadata only — the list endpoint does not return scene content. */
+export async function getWhiteboards(): Promise<WhiteboardSummary[]> {
   const { data } = await api.get('/whiteboards')
-  return data as Whiteboard[]
+  return data as WhiteboardSummary[]
 }
 
 export async function getWhiteboard(id: string): Promise<WhiteboardWithAccess> {

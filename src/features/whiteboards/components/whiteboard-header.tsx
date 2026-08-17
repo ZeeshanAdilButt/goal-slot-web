@@ -4,10 +4,11 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Eye } from 'lucide-react'
 
 import { useUpdateWhiteboardMutation } from '@/features/whiteboards/hooks/use-whiteboards'
-import type { Whiteboard } from '@/features/whiteboards/types'
+import type { WhiteboardSummary } from '@/features/whiteboards/types'
 
 interface WhiteboardHeaderProps {
-  whiteboard: Whiteboard
+  /** Metadata only — the header never needs scene content. */
+  whiteboard: WhiteboardSummary
   readOnly?: boolean
   sharedBy?: { name: string; email: string } | null
   autoFocusTitle?: boolean
