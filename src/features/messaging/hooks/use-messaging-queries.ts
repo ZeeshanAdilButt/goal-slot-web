@@ -96,7 +96,14 @@ export function useMessagingDirectory(): Map<string, MessagingPerson> {
       })
     }
 
-    ;(Array.isArray(myShares) ? (myShares as DataShare[]) : []).forEach((share) => add(share.sharedWith))
+    // getMyShares (unlike getSharedWithMe) isn't filtered server-side by
+    // acceptance, so it includes shares the recipient hasn't accepted yet.
+    // Offering someone here before they've accepted would let the user pick
+    // them and then 403 against the server's canMessage check, which does
+    // require an accepted share.
+    ;(Array.isArray(myShares) ? (myShares as DataShare[]) : [])
+      .filter((share) => share.status === 'ACCEPTED')
+      .forEach((share) => add(share.sharedWith))
     ;(Array.isArray(sharedWithMe) ? (sharedWithMe as SharedWithMeUser[]) : []).forEach((share) => add(share.owner))
 
     return directory
