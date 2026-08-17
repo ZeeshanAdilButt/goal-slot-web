@@ -22,6 +22,15 @@ import { useAuthStore } from '@/lib/store'
  * Styling mirrors NotificationsButton exactly (same Button1 shell, same 8x8
  * box, same badge geometry) so the pair reads as one unit.
  *
+ * This badge is the *only* place message unread state is shown. The bell asks
+ * the API for scope 'general', which excludes MESSAGE_RECEIVED from both its
+ * list and its unread count, so an incoming message is exactly +1 here and 0
+ * there. That split matters: the single source of truth for this number is the
+ * conversation list (useUnreadConversationsCount → hasUnreadMessages), never
+ * unread MESSAGE_RECEIVED notification rows. Mixing the two would count five
+ * messages in one conversation as "5" here and "1" on the Messages page, which
+ * is the double-count this arrangement exists to prevent.
+ *
  * Hidden when signed out or when no messaging service is configured for the
  * deployment, matching how the sidebar omits the nav entry entirely.
  */

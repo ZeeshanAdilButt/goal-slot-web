@@ -397,8 +397,15 @@ export const messagingApi = {
 }
 
 export const notificationsApi = {
-  list: (params?: { cursor?: string; limit?: number }) => api.get('/notifications', { params }),
+  // `scope` is 'all' | 'general' (NotificationScope); 'general' excludes
+  // MESSAGE_RECEIVED from both `items` and `unreadCount`. An API build from
+  // before scope support ignores the param and returns everything, which is
+  // the old behaviour rather than an error.
+  list: (params?: { cursor?: string; limit?: number; scope?: string }) => api.get('/notifications', { params }),
   markRead: (id: string) => api.patch(`/notifications/${id}/read`),
+  // One bulk UPDATE server-side, never a per-row loop. Must be called with the
+  // same scope the list was read with, or it clears rows the user never saw.
+  markAllRead: (scope?: string) => api.patch('/notifications/read-all', undefined, { params: { scope } }),
 }
 
 export const releaseNotesApi = {

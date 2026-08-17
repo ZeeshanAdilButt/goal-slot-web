@@ -3,6 +3,12 @@ import { defaultCache } from '@serwist/next/worker'
 import type { PrecacheEntry, RouteMatchCallbackOptions, SerwistGlobalConfig } from 'serwist'
 import { NetworkOnly, Serwist } from 'serwist'
 
+// Relative rather than the '@/' alias on purpose: this file is compiled by
+// @serwist/next's own bundler pass, not the app's, so it should not depend on
+// that pass picking up the tsconfig path aliases.
+import { resolveNotificationUrl } from '../features/notifications/utils/notification-routing'
+import type { NotificationPayload } from '../features/notifications/utils/types'
+
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
     __SW_MANIFEST: (PrecacheEntry | string)[] | undefined
@@ -35,8 +41,11 @@ serwist.addEventListeners()
 const sw = self as unknown as ServiceWorkerGlobalScope
 
 // Mentee engagement reminders (stale-report nudges, assigned instructions)
-// arrive here when the tab is closed. The API sends a JSON payload shaped
-// like { title, body, data } — data.url carries where a click should land.
+// and new messages arrive here when the tab is closed. The API sends a JSON
+// payload shaped like { title, body, data }, where `data` is the same routing
+// payload it stores on the Notification row — a `type` discriminant plus the
+// id that type needs, not a literal url. resolveNotificationUrl below turns
+// it into a destination.
 sw.addEventListener('push', (event: PushEvent) => {
   if (!event.data) return
 
@@ -59,40 +68,20 @@ sw.addEventListener('push', (event: PushEvent) => {
   )
 })
 
-// Every NotificationType the API dispatches through ReminderDispatchService
-// sends its routing payload as `data` shaped like the mobile app's deep-link
-// data (see goalslot-mobile's deep-links.ts) — a `type` discriminant plus
-// whatever id that type needs. No dispatch path sets a literal `data.url`
-// today, so resolving straight from `data.url` (as this used to) silently
-// fell through to '/dashboard' for every notification, message clicks
-// included. Mirror the mobile resolver's known shapes here; unrecognized or
-// future types fall back to '/dashboard', which is also the right landing
-// spot for INSTRUCTION_ASSIGNED today since assigned instructions render
-// directly on the dashboard rather than a dedicated per-instruction route.
-function resolveTargetUrl(data: Record<string, unknown> | undefined): string {
-  if (!data) return '/dashboard'
-  if (typeof data.url === 'string' && data.url) return data.url
-
-  switch (data.type) {
-    case 'conversation':
-      return typeof data.conversationId === 'string' ? `/dashboard/messages?c=${data.conversationId}` : '/dashboard/messages'
-    case 'schedule':
-      // SHARED_REPORT_UNVIEWED's payload — sharedAccessId isn't
-      // deep-linkable on this page yet, but the sharing tab is still a
-      // much better landing spot than the generic dashboard fallback.
-      return '/dashboard/sharing'
-    default:
-      return '/dashboard'
-  }
-}
-
 // Same focus-or-open-a-client approach as the local timer reminders in
 // useTimerNotifications (window.focus() on an existing tab), extended to
 // also navigate to the URL the payload pointed at when one is present.
+//
+// The routing table itself lives in notification-routing.ts, shared with the
+// in-app notification list. It used to be duplicated here, which is how the
+// two surfaces silently drifted apart: this one learned to route messages
+// while the in-app list still navigated nowhere for anything but a feedback
+// reply. Teaching a new notification type where to go is now one edit, in one
+// file, and both surfaces get it.
 sw.addEventListener('notificationclick', (event: NotificationEvent) => {
   event.notification.close()
 
-  const targetUrl = resolveTargetUrl(event.notification.data as Record<string, unknown> | undefined)
+  const targetUrl = resolveNotificationUrl(event.notification.data as NotificationPayload | undefined)
 
   event.waitUntil(
     (async () => {
