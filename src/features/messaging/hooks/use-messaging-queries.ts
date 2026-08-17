@@ -31,6 +31,23 @@ export function useConversationsQuery(options?: { refetchInterval?: number }) {
 }
 
 /**
+ * How often the unread badge re-checks. Both callers of the hook below
+ * (`<AppSidebar/>` and `<FloatingMessagesButton/>`) live in the app shell, so
+ * this is a permanent per-session cost: it runs the whole time any tab is
+ * open, for every signed-in user, whether or not they have ever opened
+ * Messages. At the old 30s that was ~2,900 requests per user per day purely
+ * to keep a number on a nav item.
+ *
+ * Two minutes because a badge is an ambient hint, not a delivery mechanism —
+ * nothing is lost by learning about a message slightly later, and the moment
+ * the user actually opens Messages the page mounts its own unthrottled
+ * `useConversationsQuery()` and `useMessagingSocket()`, which push new
+ * messages live. `refetchIntervalInBackground` defaults to false, so a
+ * backgrounded tab already costs nothing.
+ */
+const UNREAD_BADGE_POLL_MS = 120_000
+
+/**
  * Total unread conversations, for a badge outside the Messages page itself
  * (the sidebar nav item). Polls independently of whatever else is reading
  * this same query - WebSocket-driven live updates only reach a client
@@ -39,7 +56,7 @@ export function useConversationsQuery(options?: { refetchInterval?: number }) {
  */
 export function useUnreadConversationsCount(): number {
   const currentUserId = useAuthStore((state) => state.user?.id)
-  const conversationsQuery = useConversationsQuery({ refetchInterval: 30_000 })
+  const conversationsQuery = useConversationsQuery({ refetchInterval: UNREAD_BADGE_POLL_MS })
 
   return useMemo(() => {
     if (!conversationsQuery.data) return 0

@@ -7,10 +7,39 @@ import { activeTimerApi, type ActiveTimerSessionDto } from '@/lib/api'
 import { useTimerStore } from '@/lib/use-timer-store'
 
 const ACTIVE_SESSION_QUERY_KEY = ['timer', 'session', 'active'] as const
-// Short enough that a session started in one browser shows up in another
-// without the user having to reload; long enough not to hammer the API
-// while a tab just sits open on this page.
+// Short enough that a stop/pause performed in another browser shows up here
+// without the user having to reload; long enough not to hammer the API while
+// a tab just sits open on this page.
 const POLL_MS = 20_000
+/**
+ * Idle cadence, used while the server reports no session at all.
+ *
+ * `<TimeEntryBanner/>` mounts this hook in the dashboard layout, so the poll
+ * below is not a Time Tracker page cost — it runs for the entire time any
+ * dashboard tab is open, which for most users is entirely time with no timer
+ * running. Polling those users every 20s buys nothing: the only event the
+ * poll can discover in that state is "a session appeared on another device",
+ * and both `refetchOnWindowFocus` and the `visibilitychange` invalidate below
+ * already catch that the moment the user comes back to this tab. So the fast
+ * cadence is reserved for the state where it actually earns its keep — a live
+ * session, whose stop/pause really can land from elsewhere while the user
+ * watches this tab.
+ *
+ * The one behaviour this gives up: two browsers visible side by side, a timer
+ * started in one now takes up to a minute rather than 20s to appear in the
+ * other. Interacting with either window closes that gap immediately.
+ */
+const IDLE_POLL_MS = 60_000
+
+/**
+ * See the long comment at `serverSession` below for why this validates the
+ * shape rather than testing for null. Hoisted to module scope because the
+ * poll cadence has to make the same judgement before the component body runs.
+ */
+const asServerSession = (raw: unknown): ActiveTimerSessionDto | null =>
+  raw && typeof raw === 'object' && typeof (raw as ActiveTimerSessionDto).status === 'string'
+    ? (raw as ActiveTimerSessionDto)
+    : null
 
 /**
  * The local Zustand store only ever knows about a timer started in *this*
@@ -48,7 +77,7 @@ export function useTimer() {
     queryKey: ACTIVE_SESSION_QUERY_KEY,
     queryFn: async () => (await activeTimerApi.getActive()).data,
     staleTime: 10_000,
-    refetchInterval: POLL_MS,
+    refetchInterval: (query) => (asServerSession(query.state.data) ? POLL_MS : IDLE_POLL_MS),
     refetchOnWindowFocus: true,
   })
 
@@ -75,11 +104,7 @@ export function useTimer() {
   //
   // So validate the shape instead of testing for null: it is only a session
   // if it is an object carrying a status.
-  const rawSession = activeSessionQuery.data
-  const serverSession =
-    rawSession && typeof rawSession === 'object' && typeof (rawSession as ActiveTimerSessionDto).status === 'string'
-      ? (rawSession as ActiveTimerSessionDto)
-      : null
+  const serverSession = asServerSession(activeSessionQuery.data)
   const hasServerSession = serverSession !== null
 
   const invalidateSession = useCallback(

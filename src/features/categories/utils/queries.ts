@@ -19,10 +19,18 @@ export const categoryQueries = {
         const res = await categoriesApi.getAll()
         return res.data
       },
-      // Refetch on every mount + window focus so newly seeded categories
-      // (e.g. backend backfill of Spiritual + Community) show up without
-      // a hard page reload.
-      staleTime: 0,
+      // Previously `staleTime: 0` + refetch on every mount and window focus,
+      // so that a backend backfill of new seeded categories (Spiritual +
+      // Community) appeared without a hard page reload. That backfill has
+      // long since shipped, and the setting was costing a request on every
+      // single navigation to any of the many screens that read this list.
+      //
+      // Five minutes keeps the "shows up on its own" property (a newly seeded
+      // category still appears within a few minutes, no reload needed) while
+      // letting one fetch serve a whole burst of navigation. The user's own
+      // edits are unaffected either way: every category mutation invalidates
+      // this key, which refetches regardless of staleTime.
+      staleTime: 5 * 60 * 1000,
       refetchOnWindowFocus: true,
       refetchOnMount: true,
     }),
