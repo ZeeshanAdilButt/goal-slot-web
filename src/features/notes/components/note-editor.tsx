@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import dynamic from 'next/dynamic'
 
 import {
   Check,
@@ -20,8 +21,21 @@ import { downloadNoteAsMarkdown } from '@/lib/html-to-markdown'
 import { cn } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { ConfirmDialog } from '@/components/confirm-dialog'
-import { TiptapEditor } from '@/components/tiptap-editor'
 import { useTimedFlag } from '@/hooks/use-timed-flag'
+
+// TiptapEditor pulls in the full StarterKit + a dozen extension packages
+// plus lowlight. NoteEditor mounts as soon as a note is selected on the
+// Notes route, so a static import shipped that whole editor bundle on
+// first paint of /notes even while just browsing the sidebar list.
+// Loading it on demand keeps it out of the initial route bundle (same
+// pattern as create-task-modal.tsx / goal-modal.tsx).
+const TiptapEditor = dynamic(
+  () => import('@/components/tiptap-editor/tiptap-editor').then((mod) => mod.TiptapEditor),
+  {
+    ssr: false,
+    loading: () => <div className="min-h-[250px] animate-pulse rounded-lg bg-zinc-50" />,
+  },
+)
 
 import { useDeleteNoteMutation, useUpdateNoteMutation } from '../hooks/use-notes'
 import { Note, NOTE_COLORS, NOTE_ICONS } from '../utils/types'
