@@ -4,15 +4,27 @@ import { useState } from 'react'
 
 import { Sparkles } from 'lucide-react'
 
-import { Loading } from '@/components/ui/loading'
 import { DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Loading } from '@/components/ui/loading'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 import { PlanValue, User } from '../utils/types'
 
 type AssignPlanModalProps =
-  | { mode: 'single'; user: User; isSubmitting: boolean; onCancel: () => void; onConfirm: (plan: PlanValue, note: string) => void }
-  | { mode: 'bulk'; userCount: number; isSubmitting: boolean; onCancel: () => void; onConfirm: (plan: PlanValue, note: string) => void }
+  | {
+      mode: 'single'
+      user: User
+      isSubmitting: boolean
+      onCancel: () => void
+      onConfirm: (plan: PlanValue, note: string) => void
+    }
+  | {
+      mode: 'bulk'
+      userCount: number
+      isSubmitting: boolean
+      onCancel: () => void
+      onConfirm: (plan: PlanValue, note: string) => void
+    }
 
 export function AssignPlanModal(props: AssignPlanModalProps) {
   const { mode, isSubmitting, onCancel, onConfirm } = props

@@ -73,7 +73,9 @@ export function UserDetailsModal({ user, onClose }: UserDetailsModalProps) {
           <div className="border border-emerald-200 bg-emerald-50 p-3">
             <p className="text-xs font-bold uppercase text-emerald-600">Admin Assigned Plan</p>
             <p className="font-bold text-emerald-800">{user.adminAssignedPlan}</p>
-            {user.adminAssignedPlanNote && <p className="mt-1 text-sm text-emerald-700">{user.adminAssignedPlanNote}</p>}
+            {user.adminAssignedPlanNote && (
+              <p className="mt-1 text-sm text-emerald-700">{user.adminAssignedPlanNote}</p>
+            )}
             {user.adminAssignedPlanAt && (
               <p className="mt-1 text-xs text-emerald-600">
                 Assigned on {new Date(user.adminAssignedPlanAt).toLocaleDateString()}

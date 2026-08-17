@@ -2,26 +2,14 @@
 
 import { useEffect, useState } from 'react'
 
-import { motion } from 'framer-motion'
-import { Ban, Crown, MailCheck, Search, Smartphone, Sparkles, UserCheck, UserPlus, Users } from 'lucide-react'
-
-import { BulkInviteModal } from '@/components/bulk-invite-modal'
-
-import { useAuthStore } from '@/lib/store'
-import { Dialog } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { PageHeader } from '@/components/ui/page-header'
-import { PageShell } from '@/components/ui/page-shell'
-import { StatCard } from '@/components/ui/stat-card'
-
 import { AdminUsersTable, PAGE_SIZE_OPTIONS } from '@/features/admin-users/components/admin-users-table'
 import { AssignPlanModal } from '@/features/admin-users/components/assign-plan-modal'
 import { CreateUserModal } from '@/features/admin-users/components/create-user-modal'
 import { DisableUserModal } from '@/features/admin-users/components/disable-user-modal'
 import { UserDetailsModal } from '@/features/admin-users/components/user-details-modal'
 import {
-  useAdminUserStatsQuery,
   useAdminUsersQuery,
+  useAdminUserStatsQuery,
   useAssignPlanMutation,
   useBulkAssignPlanMutation,
   useCreateInternalUserMutation,
@@ -32,6 +20,16 @@ import {
   useToggleUserStatusMutation,
 } from '@/features/admin-users/hooks/use-admin-users'
 import { ModalType, PlanValue, User } from '@/features/admin-users/utils/types'
+import { motion } from 'framer-motion'
+import { Ban, Crown, MailCheck, Search, Smartphone, Sparkles, UserCheck, UserPlus, Users } from 'lucide-react'
+
+import { useAuthStore } from '@/lib/store'
+import { Button } from '@/components/ui/button'
+import { Dialog } from '@/components/ui/dialog'
+import { PageHeader } from '@/components/ui/page-header'
+import { PageShell } from '@/components/ui/page-shell'
+import { StatCard } from '@/components/ui/stat-card'
+import { BulkInviteModal } from '@/components/bulk-invite-modal'
 
 export default function AdminUsersPage() {
   const { user: currentUser } = useAuthStore()

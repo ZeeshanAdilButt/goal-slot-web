@@ -4,8 +4,8 @@ import { useState } from 'react'
 
 import { Ban } from 'lucide-react'
 
-import { Loading } from '@/components/ui/loading'
 import { DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Loading } from '@/components/ui/loading'
 
 import { User } from '../utils/types'
 
@@ -27,8 +27,8 @@ export function DisableUserModal({ user, isSubmitting, onCancel, onConfirm }: Di
 
       <div className="space-y-4 p-2 sm:p-6">
         <p className="text-gray-600">
-          You are about to disable <strong>{user.name}</strong> ({user.email}). They will not be able to log in
-          until re-enabled.
+          You are about to disable <strong>{user.name}</strong> ({user.email}). They will not be able to log in until
+          re-enabled.
         </p>
         <div>
           <label className="mb-2 block text-sm font-bold uppercase">Reason for Disabling *</label>

@@ -5,9 +5,9 @@ import { useState } from 'react'
 import { Check } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
-import { GoalSlotSpinner } from '@/components/goalslot-logo'
 import { DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { GoalSlotSpinner } from '@/components/goalslot-logo'
 
 import { CreateUserData } from '../utils/types'
 

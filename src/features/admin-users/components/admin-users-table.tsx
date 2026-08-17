@@ -1,7 +1,23 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Ban, Calendar, ChevronLeft, ChevronRight, Eye, Mail, MailCheck, MailX, MoreHorizontal, Smartphone, Sparkles, ShieldCheck, ShieldX, UserCheck, Users } from 'lucide-react'
+import {
+  Ban,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  Mail,
+  MailCheck,
+  MailX,
+  MoreHorizontal,
+  ShieldCheck,
+  ShieldX,
+  Smartphone,
+  Sparkles,
+  UserCheck,
+  Users,
+} from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import {
