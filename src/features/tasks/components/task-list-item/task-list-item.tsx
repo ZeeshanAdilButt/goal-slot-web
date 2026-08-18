@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { type KeyboardEvent, useState } from 'react'
 
 import { TaskActions } from '@/features/tasks/components/task-list-item/task-actions'
 import { TaskCompleteButton } from '@/features/tasks/components/task-list-item/task-complete-button'
@@ -41,12 +41,30 @@ export function TaskListItem({ task, onComplete, onEdit }: TaskListItemProps) {
 
   const statusStyle = taskStatusStyles[task.status]
 
+  // Card-click-to-edit replaces the separate Edit button (still passing
+  // undefined for onEdit below hides just that button - TaskActions is
+  // shared with the compact list view's row, where its own click already
+  // does something else (expand inline), so its Edit button stays as the
+  // only path there and is untouched by this).
+  const handleCardClick = () => onEdit?.(task)
+  const handleCardKeyDown = (event: KeyboardEvent) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      onEdit?.(task)
+    }
+  }
+
   return (
     <div
+      role={onEdit ? 'button' : undefined}
+      tabIndex={onEdit ? 0 : undefined}
+      onClick={onEdit ? handleCardClick : undefined}
+      onKeyDown={onEdit ? handleCardKeyDown : undefined}
       className={cn(
         'rounded-xl border border-l-4 border-zinc-200 bg-white p-4 shadow-sm relative h-full overflow-hidden p-3 transition-all duration-150 sm:p-4 md:p-5',
         statusStyle.border,
         'hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-sm',
+        onEdit && 'cursor-pointer',
         task.status === 'DONE' ? 'opacity-90' : '',
       )}
       onMouseEnter={() => setIsHovered(true)}
@@ -60,11 +78,10 @@ export function TaskListItem({ task, onComplete, onEdit }: TaskListItemProps) {
             <div className="min-w-0 flex-1">
               <TaskHeader task={task} />
             </div>
-            <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <div className="flex shrink-0 items-center gap-1.5 sm:gap-2" onClick={(e) => e.stopPropagation()}>
               <TaskActions
                 task={task}
                 isHovered={isHovered}
-                onEdit={onEdit}
                 onDelete={() => setShowDeleteConfirm(true)}
                 onRestore={handleRestore}
               />
@@ -76,7 +93,7 @@ export function TaskListItem({ task, onComplete, onEdit }: TaskListItemProps) {
 
         <div className="mt-auto flex flex-col gap-3 border-t border-dashed border-secondary/20 pt-2 sm:grid sm:grid-cols-[1fr_auto] sm:items-center sm:pt-3">
           <TaskProgress task={task} />
-          <div className="w-full sm:w-auto">
+          <div className="w-full sm:w-auto" onClick={(e) => e.stopPropagation()}>
             <TaskCompleteButton task={task} onComplete={onComplete} />
           </div>
         </div>
