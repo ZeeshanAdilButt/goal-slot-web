@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { type KeyboardEvent, useState } from 'react'
 
 import { TaskActions } from '@/features/tasks/components/task-list-item/task-actions'
 import { useDeleteTaskMutation, useRestoreTaskMutation } from '@/features/tasks/hooks/use-tasks-mutations'
@@ -6,17 +6,13 @@ import { Task } from '@/features/tasks/utils/types'
 import { CheckCircle2 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
-import AnimateChangeInHeight from '@/components/animate-change-in-height'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 
-import { CompactTaskExpanded } from './compact-task-expanded'
 import { CompactTaskHeader } from './compact-task-header'
 
 interface CompactTaskListItemProps {
   task: Task
-  isExpanded: boolean
   isHovered: boolean
-  onExpand: (taskId: string | null) => void
   onHover: (taskId: string | null) => void
   onEdit: (task: Task) => void
   onComplete?: (task: Task) => void
@@ -24,9 +20,7 @@ interface CompactTaskListItemProps {
 
 export function CompactTaskListItem({
   task,
-  isExpanded,
   isHovered,
-  onExpand,
   onHover,
   onEdit,
   onComplete,
@@ -42,13 +36,28 @@ export function CompactTaskListItem({
   const handleDelete = async (): Promise<void> => {
     await deleteTaskMutation.mutateAsync(task.id)
     setShowDeleteConfirm(false)
-    if (isExpanded) {
-      onExpand(null)
-    }
   }
 
   const handleRestore = async (): Promise<void> => {
     await restoreTaskMutation.mutateAsync(task.id)
+  }
+
+  // Clicking the row opens the edit form directly rather than an inline
+  // read-only expansion - the expansion showed nothing the edit form
+  // doesn't already show, and having both meant a click on the row and a
+  // click on the Edit button did two different things for no reason.
+  const handleRowClick = () => onEdit(task)
+  const handleRowKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    // A keyboard Enter/Space on a nested action button (Delete, Complete,
+    // Restore) still bubbles a keydown up to this handler even though the
+    // button's own onClick already stopped propagation - stopPropagation on
+    // click never stops a keydown from bubbling. Only react when the event
+    // originated on the row itself, not a descendant.
+    if (event.target !== event.currentTarget) return
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      onEdit(task)
+    }
   }
 
   return (
@@ -57,24 +66,17 @@ export function CompactTaskListItem({
         className={cn(
           'relative w-full border border-zinc-200 bg-white',
           'transition-all duration-150',
-          !isExpanded && 'hover:bg-primary hover:shadow-sm hover:-translate-x-0.25 hover:-translate-y-0.25',
+          'hover:bg-primary hover:shadow-sm hover:-translate-x-0.25 hover:-translate-y-0.25',
           isCompleted && 'opacity-60',
-          isExpanded && 'shadow-sm',
         )}
         onMouseEnter={() => onHover(task.id)}
         onMouseLeave={() => onHover(null)}
       >
-        {/* Collapsed View */}
         <div
           role="button"
           tabIndex={0}
-          onClick={() => onExpand(isExpanded ? null : task.id)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault()
-              onExpand(isExpanded ? null : task.id)
-            }
-          }}
+          onClick={handleRowClick}
+          onKeyDown={handleRowKeyDown}
           className={cn(
             'w-full flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 text-left cursor-pointer',
             'font-bold uppercase text-xs sm:text-sm',
@@ -116,7 +118,6 @@ export function CompactTaskListItem({
               <TaskActions
                 task={task}
                 isHovered={isHovered}
-                onEdit={onEdit}
                 onDelete={() => setShowDeleteConfirm(true)}
                 onRestore={handleRestore}
               />
@@ -135,9 +136,6 @@ export function CompactTaskListItem({
             )}
           </div>
         </div>
-
-        {/* Expanded View */}
-        <AnimateChangeInHeight>{isExpanded && <CompactTaskExpanded task={task} />}</AnimateChangeInHeight>
       </div>
 
       {/* Delete Confirmation Dialog */}
