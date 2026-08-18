@@ -13,7 +13,6 @@ interface CompleteTaskModalProps {
 export function CompleteTaskModal({ task, onClose, onConfirm }: CompleteTaskModalProps) {
   const [minutes, setMinutes] = useState('')
   const [notes, setNotes] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     if (task) {
@@ -28,17 +27,21 @@ export function CompleteTaskModal({ task, onClose, onConfirm }: CompleteTaskModa
   const trackedMinutes = task?.trackedMinutes || 0
   const remainingMinutes = Math.max(0, totalMinutes - trackedMinutes)
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!task) return
     const mins = Number(minutes)
     if (!mins || mins < 1) return
 
-    setIsSubmitting(true)
-    const success = await onConfirm(task.id, mins, notes)
-    setIsSubmitting(false)
-    if (success) {
-      onClose()
-    }
+    // Close immediately rather than waiting for the network round trip.
+    // completeTaskMutation is a React Query mutation with an optimistic
+    // onMutate: the task already flips to DONE in the cache the instant
+    // this fires, synchronously, before any request has resolved - so
+    // there is nothing left for this modal to wait for. If the save
+    // genuinely fails, the mutation's own onError already rolls the cache
+    // back and shows an error toast, entirely independent of whether this
+    // modal is still open to see it happen.
+    void onConfirm(task.id, mins, notes)
+    onClose()
   }
 
   return (
@@ -94,8 +97,8 @@ export function CompleteTaskModal({ task, onClose, onConfirm }: CompleteTaskModa
           <button className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-900 transition-colors hover:bg-zinc-50" onClick={onClose}>
             Cancel
           </button>
-          <button className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800" onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? 'Saving...' : 'Log & Complete'}
+          <button className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800" onClick={handleSubmit}>
+            Log &amp; Complete
           </button>
         </DialogFooter>
       </DialogContent>
