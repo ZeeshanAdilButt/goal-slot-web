@@ -48,6 +48,15 @@ export function TaskListItem({ task, onComplete, onEdit }: TaskListItemProps) {
   // only path there and is untouched by this).
   const handleCardClick = () => onEdit?.(task)
   const handleCardKeyDown = (event: KeyboardEvent) => {
+    // stopPropagation on the nested actions' onClick keeps a mouse click on
+    // Play/Delete/Restore/Complete from also firing this - but Enter/Space
+    // on one of those (focused via Tab) still bubbles a keydown up to this
+    // handler regardless, since nothing there stops that path. Requiring
+    // the event to have originated on the card's own root, not a
+    // descendant, is what actually excludes them: a native button already
+    // activates on Enter/Space by itself, and this must not also open edit
+    // underneath it.
+    if (event.target !== event.currentTarget) return
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
       onEdit?.(task)
