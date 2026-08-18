@@ -56,7 +56,20 @@ export function ExportReportsPage() {
     return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined
   }, [hourlyRateInput])
 
-  const dateRange = dateRangeValueToRange(dateRangeValue)
+  // Memoized deliberately: dateRangeValueToRange builds a fresh object
+  // literal on every call, with no caching of its own. Left un-memoized
+  // here, `dateRange` was a new reference on every render regardless of
+  // whether dateRangeValue actually changed - which, as a dependency of
+  // `filters` below, made `filters` itself a new reference every render
+  // too, defeating that useMemo. The effect further down that resets
+  // excludedEntryIds on `[filters]` change then fired on every single
+  // render, each time calling setExcludedEntryIds(new Set()) - a new Set
+  // reference every time, which React always treats as a real state
+  // change - triggering another render, which produced another new
+  // `dateRange`, forever: an infinite render loop, surfacing to the user
+  // as "Application error: a client-side exception has occurred" (Next's
+  // "Maximum update depth exceeded" crash).
+  const dateRange = useMemo(() => dateRangeValueToRange(dateRangeValue), [dateRangeValue])
 
   const filters: ReportFilters = useMemo(
     () => ({
