@@ -233,15 +233,28 @@ export function useTimer() {
           takeOver,
         })
         .catch((err) => {
-          // 409 without takeOver: something is already running — most
-          // likely this same account starting a session in two places
-          // within the same instant. The server's row won; drop the local
-          // optimistic one rather than let this browser show a second,
-          // fictitious timer.
+          // Any failure here means the server never created a session row —
+          // the optimistic localStart() above is the only place this timer
+          // exists. Previously only 409 rolled that back; every other status
+          // (403 daily-entry plan limit, 400 bad goal/task/scheduleBlock
+          // attribution, a dropped request, ...) fell through silently, so
+          // the UI kept showing "running" - accurately, from this browser's
+          // point of view - for as long as the user stayed on the page. The
+          // reconciliation effect above then wipes that same local state the
+          // moment it gets a real answer from the server (on the next
+          // refresh, most commonly), because by then it genuinely is stale:
+          // nothing was ever running. That silent round trip is what reads
+          // to the user as "I started a timer, walked away, and it was gone
+          // when I came back" with no error ever shown. Roll back immediately
+          // and say why, so the failure is visible at the moment it happens
+          // instead of a mysteriously vanished session later.
+          localReset()
           if (err?.response?.status === 409) {
-            localReset()
             toast.error('A session was already running — showing that one instead.')
+            return
           }
+          const message = err?.response?.data?.message
+          toast.error(typeof message === 'string' ? message : 'Could not start the timer — please try again.')
         })
         .finally(() => void invalidateSession())
     },
