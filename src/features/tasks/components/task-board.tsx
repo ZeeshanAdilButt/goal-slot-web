@@ -26,7 +26,6 @@ import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } 
 import { CSS } from '@dnd-kit/utilities'
 import { Calendar, Check, GripVertical, PencilLine, Play, Trash2 } from 'lucide-react'
 
-import { useTimerStore } from '@/lib/use-timer-store'
 import { cn, formatDate } from '@/lib/utils'
 import { useStartTimerWithConfirmation } from '@/features/time-tracker/hooks/use-start-timer-with-confirmation'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'

@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
-import { useTimerStore } from '@/lib/use-timer-store'
+import { useTimer } from '@/features/time-tracker/hooks/use-timer'
 import { ChevronDown, Loader2, Play, Plus, Search, X } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
@@ -190,7 +190,16 @@ function GoalAutocomplete({
 
 export function StartTrackingPopover({ open, onClose }: StartTrackingPopoverProps) {
   const { tasks, weeklySchedule, goals } = useTimeTrackerData()
-  const start = useTimerStore((s) => s.start)
+  // useTimer().start, not the raw Zustand store's start. The store only
+  // writes local browser state; useTimer additionally registers the session
+  // with the server (POST /timer/session), which is what makes it survive a
+  // refresh and show up on other devices. Using the store directly here meant
+  // every timer started from this popover - the always-visible "Start
+  // tracking" button and the Ctrl+K quick start, i.e. the most common way to
+  // start one - existed only in this tab. useTimer's own reconciliation then
+  // correctly cleared it on the next load, because the server had no such
+  // session, which is what read as "I started a timer and refreshing lost it".
+  const { start } = useTimer()
   const createTaskMutation = useCreateTaskMutation()
   const setStartTrackingOpen = useFloatingUiStore((s) => s.setStartTrackingOpen)
   const [query, setQuery] = useState('')

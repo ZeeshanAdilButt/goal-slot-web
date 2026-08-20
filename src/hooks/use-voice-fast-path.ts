@@ -9,11 +9,11 @@ import { useUpdateGoalMutation } from '@/features/goals/hooks/use-goals-mutation
 import { useCreateTaskMutation, useUpdateTaskMutation } from '@/features/tasks/hooks/use-tasks-mutations'
 import { taskQueries } from '@/features/tasks/utils/queries'
 import { useCreateTimeEntry } from '@/features/time-tracker/hooks/use-time-tracker-mutations'
+import { useTimer } from '@/features/time-tracker/hooks/use-timer'
 
 import { coachApi, goalsApi, tasksApi, type CoachVoiceIntentContext } from '@/lib/api'
 import { escapeHtml } from '@/lib/escape-html'
 import { appendToTodayJournal } from '@/lib/journal-quick-append'
-import { useTimerStore } from '@/lib/use-timer-store'
 import { formatDuration, getLocalDateString } from '@/lib/utils'
 import {
   planVoiceAction,
@@ -93,7 +93,12 @@ function findCachedTask(queryClient: QueryClient, id: string): CachedTask | unde
  */
 export function useVoiceFastPath() {
   const queryClient = useQueryClient()
-  const timer = useTimerStore()
+  // useTimer, not the raw Zustand store: the store's start/pause/resume/reset
+  // only touch this browser's local state, so a timer started or stopped by
+  // voice never reached the server - it vanished on the next refresh and never
+  // appeared on other devices. useTimer wraps those same actions with the
+  // /timer/session calls that make a session real.
+  const timer = useTimer()
   const createEntry = useCreateTimeEntry()
   const createTask = useCreateTaskMutation()
   const updateTask = useUpdateTaskMutation()
@@ -131,9 +136,7 @@ export function useVoiceFastPath() {
         }
 
         case 'pause-timer': {
-          const elapsed = timer.startTimestamp
-            ? Math.floor((Date.now() - timer.startTimestamp) / 1000) + timer.pausedElapsedTime
-            : timer.pausedElapsedTime
+          const elapsed = timer.elapsedTime
           timer.pause(elapsed)
           return { handled: true, summary: 'Timer paused.' }
         }
@@ -144,9 +147,7 @@ export function useVoiceFastPath() {
         }
 
         case 'stop-timer': {
-          const elapsed = timer.startTimestamp
-            ? Math.floor((Date.now() - timer.startTimestamp) / 1000) + timer.pausedElapsedTime
-            : timer.pausedElapsedTime
+          const elapsed = timer.elapsedTime
           const duration = Math.max(1, Math.floor(elapsed / 60))
           const startedAt = timer.startTimestamp ? new Date(timer.startTimestamp).toISOString() : undefined
           await createEntry.mutateAsync({
