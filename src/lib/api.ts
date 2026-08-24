@@ -1136,3 +1136,98 @@ export const integrationsApi = {
   getNotionPageContent: (pageId: string) =>
     api.get<NotionPageContentDto>(`/integrations/notion/pages/${pageId}`),
 }
+
+// --- Google Calendar import ---
+//
+// Three steps on purpose: connect, preview, import. `preview` creates nothing;
+// it returns what *would* be created so the user can review and choose. Only
+// the rows they tick are sent to `import`.
+
+export interface GoogleCalendarConnectionDto {
+  /** False when the API has no Google Calendar credentials configured at all. */
+  available: boolean
+  connected: boolean
+  accountEmail: string | null
+  /** 'stale' means the grant was revoked at Google and the user must reconnect. */
+  status: 'active' | 'stale' | null
+  importedCount: number
+}
+
+export interface GoogleCalendarListDto {
+  id: string
+  name: string
+  color: string | null
+  primary: boolean
+  accessRole: string
+}
+
+/** Why an event cannot become a weekly block. Rendered as a disabled row. */
+export type ImportBlockedReason = 'all-day' | 'spans-midnight' | 'zero-length'
+
+export interface ImportCandidateDto {
+  externalEventId: string
+  externalCalId: string
+  calendarName: string
+  title: string
+  startsAt: string
+  endsAt: string
+  /** 0=Sunday .. 6=Saturday, already projected into the browser's timezone. */
+  dayOfWeek: number
+  startTime: string
+  endTime: string
+  /** How many Google instances collapsed into this one weekly slot. */
+  occurrences: number
+  blocked: ImportBlockedReason | null
+  alreadyImported: boolean
+  /** Title of an existing schedule block this would overlap. */
+  conflictsWith: string | null
+}
+
+export interface ImportPreviewDto {
+  timeZone: string
+  candidates: ImportCandidateDto[]
+}
+
+export interface ImportEventInput {
+  externalEventId: string
+  externalCalId: string
+  title: string
+  dayOfWeek: number
+  startTime: string
+  endTime: string
+  category?: string
+  color?: string
+}
+
+export type ImportOutcome = 'imported' | 'skipped' | 'conflict' | 'error'
+
+export interface ImportResultDto {
+  imported: number
+  results: Array<{
+    externalEventId: string
+    title: string
+    status: ImportOutcome
+    scheduleBlockId?: string
+    message?: string
+  }>
+}
+
+export const googleCalendarApi = {
+  getConnection: () => api.get<GoogleCalendarConnectionDto>('/integrations/google-calendar'),
+  getConsentUrl: () => api.get<{ url: string }>('/integrations/google-calendar/connect'),
+  listCalendars: () => api.get<GoogleCalendarListDto[]>('/integrations/google-calendar/calendars'),
+  // The timezone is sent explicitly because the day column and time an event
+  // maps to depend on it, and the server has no other way to know the user's.
+  preview: (params: { calendarIds: string[]; from: string; to: string; timeZone: string }) =>
+    api.get<ImportPreviewDto>('/integrations/google-calendar/preview', {
+      params: {
+        calendarIds: params.calendarIds.join(','),
+        from: params.from,
+        to: params.to,
+        timeZone: params.timeZone,
+      },
+    }),
+  import: (events: ImportEventInput[]) =>
+    api.post<ImportResultDto>('/integrations/google-calendar/import', { events }),
+  disconnect: () => api.delete<{ success: boolean }>('/integrations/google-calendar'),
+}

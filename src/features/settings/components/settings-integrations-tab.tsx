@@ -8,6 +8,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useNotionConnection } from '@/features/settings/hooks/use-notion-connection'
 import { integrationsApi } from '@/lib/api'
 import { NotionTargetPicker } from '@/features/settings/components/notion-target-picker'
+import { GoogleCalendarCard } from '@/features/calendar'
+import { calendarQueries } from '@/features/calendar/utils/queries'
 import { KeyRound, Trash2 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
@@ -59,6 +61,34 @@ export function SettingsIntegrationsTab() {
       toast.error(`Notion connection failed: ${msg}`)
       router.replace('/dashboard/settings?tab=integrations', { scroll: false })
     }
+  }, [searchParams, router, queryClient])
+
+  // Kept separate from the Notion effect above rather than folded into it: the
+  // two callbacks use different query params and different cache keys, and
+  // sharing the one `handled` ref would let whichever ran first swallow the
+  // other's result.
+  const googleCalendarHandled = useRef(false)
+
+  useEffect(() => {
+    if (googleCalendarHandled.current) return
+    const result = searchParams.get('google_calendar')
+    if (!result) return
+    googleCalendarHandled.current = true
+
+    if (result === 'connected') {
+      toast.success('Google Calendar connected. You can import events now.')
+      queryClient.invalidateQueries({ queryKey: calendarQueries.root() })
+    } else {
+      // The API only ever sends a short stable reason code, never raw text from
+      // Google, so these are the full set.
+      const reason = searchParams.get('reason')
+      toast.error(
+        reason === 'denied'
+          ? 'Google Calendar access was not granted'
+          : 'Could not connect Google Calendar. Please try again.',
+      )
+    }
+    router.replace('/dashboard/settings?tab=integrations', { scroll: false })
   }, [searchParams, router, queryClient])
 
   const [isDisconnectDialogOpen, setIsDisconnectDialogOpen] = useState(false)
@@ -165,6 +195,8 @@ export function SettingsIntegrationsTab() {
 
   return (
     <div className="space-y-6">
+      <GoogleCalendarCard />
+
       {/* Notion Connection Card */}
       <GlassCard padded>
         <SectionHeader
