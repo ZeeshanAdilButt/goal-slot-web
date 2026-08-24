@@ -50,6 +50,14 @@ function SignupForm() {
       setResendCooldown(60)
     },
     onError: (error: any) => {
+      // The API rejects a SIGNUP OTP for an address that already has an
+      // account with a 409. Keep the actionable copy the removed client-side
+      // checkEmailExists pre-check used to show, so a returning user is still
+      // pointed at login rather than just told the email is taken.
+      if (error?.response?.status === 409) {
+        toast.error('Email already registered. Please login instead.')
+        return
+      }
       toast.error(error.response?.data?.message || 'Failed to send verification code')
     },
   })
