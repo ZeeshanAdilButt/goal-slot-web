@@ -219,7 +219,10 @@ export default function TermsOfUsePage() {
               <Link href="/faq" className="font-mono text-sm transition-colors hover:text-primary">
                 FAQ
               </Link>
-              <a href="#" className="font-mono text-sm transition-colors hover:text-primary">
+              <a
+                href="mailto:support@goalslot.io"
+                className="font-mono text-sm transition-colors hover:text-primary"
+              >
                 Support
               </a>
             </div>
