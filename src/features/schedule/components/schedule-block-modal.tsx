@@ -50,6 +50,7 @@ export function ScheduleBlockModal({
   const [selectedDays, setSelectedDays] = useState<number[]>([1])
   const [goalId, setGoalId] = useState('')
   const [color, setColor] = useState('#FFD700')
+  const [isPrivate, setIsPrivate] = useState(false)
   const [updateScope, setUpdateScope] = useState<ScheduleUpdateScope>('single')
   const { mutateAsync: createBlocks, isPending: isCreating } = useCreateScheduleBlocks()
   const { mutateAsync: updateBlock, isPending: isUpdating } = useUpdateScheduleBlock()
@@ -84,6 +85,7 @@ export function ScheduleBlockModal({
     setSelectedDays(dayOfWeek !== null ? [dayOfWeek] : [1])
     setGoalId('')
     setColor('#FFD700')
+    setIsPrivate(false)
   }
 
   useEffect(() => {
@@ -96,6 +98,7 @@ export function ScheduleBlockModal({
       setSelectedDays([block.dayOfWeek])
       setGoalId(block.goalId || '')
       setColor(block.color)
+      setIsPrivate(Boolean(block.isPrivate))
     } else {
       resetForm()
       if (dayOfWeek !== null) setSelectedDays([dayOfWeek])
@@ -148,6 +151,7 @@ export function ScheduleBlockModal({
         category,
         color,
         goalId: goalId || undefined,
+        isPrivate,
       }
 
       if (block) {
@@ -350,6 +354,27 @@ export function ScheduleBlockModal({
               placeholder="Select goal"
             />
           </div>
+
+          {/* Private toggle. When on, mentors / anyone the user has shared
+              with do NOT see this block (or the time they tracked against
+              it). The owner always sees it with a small lock indicator. */}
+          <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5">
+            <input
+              type="checkbox"
+              checked={isPrivate}
+              onChange={(e) => setIsPrivate(e.target.checked)}
+              className="mt-0.5 h-4 w-4 accent-[#f2cc0d]"
+            />
+            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span className="text-xs font-semibold text-zinc-900">
+                Private to me
+              </span>
+              <span className="text-[11px] leading-snug text-zinc-600">
+                Hide this block (and the time tracked against it) from anyone
+                I have shared my workspace with. Only I will see it.
+              </span>
+            </span>
+          </label>
 
           <DialogFooter className="flex-row gap-3 pt-4">
             <Button type="button" variant="secondary" onClick={onClose} className="flex-1">

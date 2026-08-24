@@ -2,23 +2,30 @@
 
 import { ReactNode, useEffect } from 'react'
 
-import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+
+import { initOfflineSync } from '@/lib/offline/sync'
+import { queryClient } from '@/lib/query-client'
+import { PERSIST_MAX_AGE, queryPersister, shouldDehydrateQuery } from '@/lib/query-persister'
+
+import '@/features/goals/utils/offline-operations'
+import '@/features/notes/utils/offline-operations'
+import '@/features/schedule/utils/offline-operations'
+import '@/features/tasks/utils/offline-operations'
+import '@/features/time-tracker/utils/offline-operations'
 
 type ReactQueryProviderProps = {
   children: ReactNode
 }
 
 const isDev = process.env.NODE_ENV !== 'production'
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      refetchOnWindowFocus: false,
-      retry: false,
-    },
-  },
-})
+
+function OfflineSyncInitializer() {
+  useEffect(() => initOfflineSync(), [])
+  return null
+}
 
 function QuerySyncInitializer() {
   const queryClient = useQueryClient()
@@ -55,11 +62,20 @@ function QuerySyncInitializer() {
 
 export function ReactQueryProvider({ children }: ReactQueryProviderProps) {
   return (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister: queryPersister,
+        maxAge: PERSIST_MAX_AGE,
+        dehydrateOptions: {
+          shouldDehydrateQuery,
+        },
+      }}
+    >
+      <OfflineSyncInitializer />
       <QuerySyncInitializer />
       {children}
       {isDev && <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />}
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   )
 }
-

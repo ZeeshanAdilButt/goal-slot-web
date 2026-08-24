@@ -1,34 +1,66 @@
 import { scheduleQueries } from '@/features/schedule/utils/queries'
 import { SchedulePayload, ScheduleUpdatePayload, WeekSchedule } from '@/features/schedule/utils/types'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 
-import { scheduleApi } from '@/lib/api'
+import { useOfflineMutation } from '@/hooks/use-offline-mutation'
+import { genId } from '@/lib/offline/id'
 import { timeToMinutes } from '@/lib/utils'
+
+import '@/features/schedule/utils/offline-operations'
+
+type ScheduleCreatePayload = SchedulePayload & { id?: string }
+
+const weeklyKey = scheduleQueries.weekly().queryKey
+
+const insertBlock = (schedule: WeekSchedule, block: ScheduleCreatePayload): WeekSchedule => {
+  const next: WeekSchedule = { ...schedule }
+  const day = block.dayOfWeek
+  next[day] = [
+    ...(next[day] || []),
+    {
+      id: block.id || genId(),
+      title: block.title,
+      startTime: block.startTime,
+      endTime: block.endTime,
+      dayOfWeek: block.dayOfWeek,
+      category: block.category,
+      color: block.color,
+      isRecurring: true,
+      seriesId: block.seriesId || block.id || genId(),
+      goalId: block.goalId,
+      isPrivate: block.isPrivate ?? false,
+    },
+  ].sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime))
+  return next
+}
 
 export function useCreateScheduleBlocks() {
   const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: (payloads: SchedulePayload[]) => Promise.all(payloads.map((payload) => scheduleApi.create(payload))),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: scheduleQueries.weekly().queryKey })
+  return useOfflineMutation<SchedulePayload[], { previous: WeekSchedule | undefined }>({
+    kind: 'schedule.createMany',
+    buildPayload: (payloads) => payloads.map((payload) => ({ ...payload, id: genId() })),
+    optimisticUpdate: (_payloads, _meta, payload) => {
+      const previous = queryClient.getQueryData<WeekSchedule>(weeklyKey)
+      const blocks = payload as ScheduleCreatePayload[]
+      queryClient.setQueryData<WeekSchedule>(weeklyKey, (current = {}) =>
+        blocks.reduce((next, block) => insertBlock(next, block), current),
+      )
+      return { previous }
     },
+    rollback: (ctx) => queryClient.setQueryData(weeklyKey, ctx?.previous),
+    invalidateKeys: [weeklyKey],
   })
 }
 
 export function useUpdateScheduleBlock() {
   const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationKey: scheduleQueries.mutation.update(),
-    mutationFn: async ({ id, data }: { id: string; data: ScheduleUpdatePayload }) => {
-      return scheduleApi.update(id, data)
-    },
-    onMutate: async ({ id, data }) => {
-      const queryKey = scheduleQueries.weekly().queryKey
-      await queryClient.cancelQueries({ queryKey })
-      const previous = queryClient.getQueryData(queryKey)
-      const rollback = () => queryClient.setQueryData(queryKey, previous)
+  return useOfflineMutation<{ id: string; data: ScheduleUpdatePayload }, { previous: WeekSchedule | undefined }>({
+    kind: 'schedule.update',
+    buildPayload: ({ id, data }) => ({ id, data }),
+    optimisticUpdate: ({ id, data }) => {
+      const previous = queryClient.getQueryData<WeekSchedule>(weeklyKey)
 
       if (previous && data.updateScope !== 'series') {
         const next: WeekSchedule = { ...previous }
@@ -60,27 +92,35 @@ export function useUpdateScheduleBlock() {
         )
         next[targetDay] = updatedDay
 
-        queryClient.setQueryData(queryKey, next)
+        queryClient.setQueryData(weeklyKey, next)
       }
 
-      return rollback
+      return { previous }
     },
-    onError: (_err, _variables, rollback) => {
-      rollback?.()
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: scheduleQueries.weekly().queryKey })
-    },
+    rollback: (ctx) => queryClient.setQueryData(weeklyKey, ctx?.previous),
+    invalidateKeys: [weeklyKey],
   })
 }
 
 export function useDeleteScheduleBlock() {
   const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: (id: string) => scheduleApi.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: scheduleQueries.weekly().queryKey })
+  return useOfflineMutation<string, { previous: WeekSchedule | undefined }>({
+    kind: 'schedule.delete',
+    buildPayload: (id) => ({ id }),
+    optimisticUpdate: (id) => {
+      const previous = queryClient.getQueryData<WeekSchedule>(weeklyKey)
+      if (previous) {
+        const next: WeekSchedule = { ...previous }
+        Object.keys(next).forEach((dayKey) => {
+          const day = Number(dayKey)
+          next[day] = (next[day] || []).filter((block) => block.id !== id)
+        })
+        queryClient.setQueryData(weeklyKey, next)
+      }
+      return { previous }
     },
+    rollback: (ctx) => queryClient.setQueryData(weeklyKey, ctx?.previous),
+    invalidateKeys: [weeklyKey],
   })
 }

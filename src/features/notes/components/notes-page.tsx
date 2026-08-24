@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import { useSearchParams, usePathname } from 'next/navigation'
 
 import { useNotesSelection } from '@/features/notes/hooks/use-notes-selection'
 import { useNoteQuery, useSharedNotesQuery, type SharedNoteSummary } from '@/features/notes/hooks/use-notes'
@@ -61,7 +61,6 @@ export function NotesPage({ initialNoteId }: NotesPageProps = {}) {
   // ?shared=<noteId> → land on a shared note opened from an invitation email.
   // Both params are stripped after they're handled so refreshing doesn't
   // re-fire the side effect.
-  const router = useRouter()
   const searchParams = useSearchParams()
   const pathname = usePathname()
   const handledActionRef = useRef(false)
@@ -75,8 +74,10 @@ export function NotesPage({ initialNoteId }: NotesPageProps = {}) {
     const params = new URLSearchParams(searchParams.toString())
     params.delete('action')
     const next = params.toString()
-    router.replace(next ? `${pathname}?${next}` : pathname)
-  }, [createNote, pathname, router, searchParams])
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', next ? `${pathname}?${next}` : pathname)
+    }
+  }, [createNote, pathname, searchParams])
 
   useEffect(() => {
     if (handledSharedRef.current) return
@@ -89,8 +90,10 @@ export function NotesPage({ initialNoteId }: NotesPageProps = {}) {
     const params = new URLSearchParams(searchParams.toString())
     params.delete('shared')
     const next = params.toString()
-    router.replace(next ? `${pathname}?${next}` : pathname)
-  }, [pathname, router, searchParams, sharedList])
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', next ? `${pathname}?${next}` : pathname)
+    }
+  }, [pathname, searchParams, sharedList])
 
   const handleSelectNote = (note: Parameters<typeof selectNote>[0]) => {
     setSelectedSharedSummary(null)

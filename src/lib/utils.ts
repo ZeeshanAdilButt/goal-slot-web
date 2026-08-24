@@ -119,3 +119,8 @@ export const TIME_OPTIONS = Array.from({ length: (24 * 60) / 15 }, (_, i) => {
     label: `${displayHour}:${minuteLabel} ${ampm}`,
   }
 })
+
+export const toISOString = (date: Date | string): string => {
+  const d = new Date(date)
+  return Number.isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString()
+}

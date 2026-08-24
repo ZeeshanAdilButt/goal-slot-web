@@ -8,6 +8,8 @@ import { useAuthStore } from '@/lib/store'
 import { useThemeStore } from '@/lib/use-theme'
 import { cn } from '@/lib/utils'
 import { UserAvatar } from '@/components/user-avatar'
+import { useSidebar } from './ui/sidebar'
+import { flushSync } from 'react-dom'
 
 interface SidebarFooterContentProps {
   onLogout: () => void
@@ -17,11 +19,23 @@ export function SidebarFooterContent({ onLogout }: SidebarFooterContentProps) {
   const { user } = useAuthStore()
   const isPro = user?.plan === 'PRO' || user?.unlimitedAccess
   const planLabel = isPro ? 'PRO' : user?.plan || 'FREE'
+  const { isMobile, setOpenMobile } = useSidebar()
+
+  /* this routine makes the sidebar to close when clicked on the page in the mobile screens,handling the mobile sidebar navigation's */
+  const handleMobileSidebarNav = () => {
+    if (isMobile) {
+      flushSync(() => {
+        setOpenMobile(false)
+      })
+    }
+  }
+
 
   return (
     <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 shadow-sm">
       <Link
         href="/dashboard/settings?tab=profile"
+        onClick={handleMobileSidebarNav}
         title={user?.email || user?.name || 'Profile'}
         className="flex min-w-0 flex-1 items-center gap-2 rounded-md px-1 py-0.5 transition-colors hover:bg-zinc-50"
       >
@@ -30,15 +44,11 @@ export function SidebarFooterContent({ onLogout }: SidebarFooterContentProps) {
         </span>
         <span className="flex min-w-0 flex-1 flex-col leading-tight">
           <span className="flex min-w-0 items-center gap-1.5">
-            <span className="min-w-0 flex-1 truncate text-sm font-semibold text-zinc-900">
-              {user?.name || 'User'}
-            </span>
+            <span className="min-w-0 flex-1 truncate text-sm font-semibold text-zinc-900">{user?.name || 'User'}</span>
             <span
               className={cn(
-                'shrink-0 rounded px-1.5 py-[1px] text-[9px] font-bold uppercase tracking-wider',
-                isPro
-                  ? 'bg-[#fff7d1] text-[#8a7307]'
-                  : 'bg-zinc-100 text-zinc-600',
+                'shrink-0 rounded px-1.5 py-[1px] text-xs font-bold uppercase tracking-wider',
+                isPro ? 'bg-[#fff7d1] text-[#8a7307]' : 'bg-zinc-100 text-zinc-600',
               )}
               title={`Plan: ${planLabel}`}
             >
@@ -53,6 +63,7 @@ export function SidebarFooterContent({ onLogout }: SidebarFooterContentProps) {
           re-enabled later without refactoring. */}
       <Link
         href="/dashboard/settings"
+        onClick={handleMobileSidebarNav}
         title="Settings"
         className="inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
       >

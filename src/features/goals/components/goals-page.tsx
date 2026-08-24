@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 
 import { GoalModal } from '@/features/goals/components/goal-modal'
 import { GoalsFilters } from '@/features/goals/components/goals-filters'
@@ -17,7 +17,6 @@ import { scheduleApi } from '@/lib/api'
 import { PageShell } from '@/components/ui/page-shell'
 
 export function GoalsPage() {
-  const router = useRouter()
   const searchParams = useSearchParams()
 
   const [filters, setFilters] = useState<GoalFilters>({ status: 'ACTIVE' })
@@ -104,7 +103,11 @@ export function GoalsPage() {
   const handleCloseModal = () => {
     setShowModal(false)
     setEditingGoal(null)
-    router.replace('/dashboard/goals')
+    // Strip the ?open=create param without a router navigation. router.replace
+    // triggers an RSC fetch that hard-navigates (and breaks) while offline.
+    if (typeof window !== 'undefined' && window.location.search) {
+      window.history.replaceState(null, '', '/dashboard/goals')
+    }
   }
 
   const handleFilterChange = (newFilters: GoalFilters) => {

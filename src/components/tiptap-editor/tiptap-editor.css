@@ -156,6 +156,37 @@
   @apply leading-relaxed;
 }
 
+/* Notion-style wrapper-block spacing. The Paragraph and Heading
+   extensions emit `<div class="gs-block"><p>...` and `<div class="gs-block"><h*>...`.
+   Spacing lives on the wrapper. The inner editable element carries no
+   spacing CSS, so a paste payload (which lands on the inner element)
+   can never reach the wrapper to defeat the rules. No !important is
+   needed: the wrapper class is owned by our renderHTML and nothing in
+   a paste payload can target it. */
+.tiptap-editor .ProseMirror .gs-block {
+  padding-top: 0.45em;
+  padding-bottom: 0.45em;
+}
+.tiptap-editor .ProseMirror .gs-block:first-child {
+  padding-top: 0;
+}
+.tiptap-editor .ProseMirror .gs-block:last-child {
+  padding-bottom: 0;
+}
+/* Tighter inside list items so a wrapped paragraph + adjacent bullet
+   doesn't look glued, but consecutive bullets stay compact. */
+.tiptap-editor .ProseMirror li .gs-block {
+  padding-top: 0.15em;
+  padding-bottom: 0.15em;
+}
+/* Inner editable element carries no margin (the wrapper owns spacing). */
+.tiptap-editor .ProseMirror .gs-block > p,
+.tiptap-editor .ProseMirror .gs-block > h1,
+.tiptap-editor .ProseMirror .gs-block > h2,
+.tiptap-editor .ProseMirror .gs-block > h3 {
+  margin: 0;
+}
+
 /* Lists */
 .tiptap-editor .ProseMirror ul {
   @apply list-disc pl-6;
@@ -205,6 +236,31 @@
 .tiptap-editor .ProseMirror ul ol,
 .tiptap-editor .ProseMirror ol ul {
   @apply mt-1;
+}
+
+/* Block indent for paragraphs/headings via IndentExtension. margin-left
+   (not padding-left) so the block's effective width shrinks with the
+   indent — keeps long lines from wrapping into the gutter and visually
+   overlapping the next block. display:block + box-sizing forces a fresh
+   layout context when the indented block sits between two lists. */
+.tiptap-editor .ProseMirror [data-indent] {
+  display: block;
+  box-sizing: border-box;
+}
+.tiptap-editor .ProseMirror [data-indent="1"] { margin-left: 2rem; }
+.tiptap-editor .ProseMirror [data-indent="2"] { margin-left: 4rem; }
+.tiptap-editor .ProseMirror [data-indent="3"] { margin-left: 6rem; }
+.tiptap-editor .ProseMirror [data-indent="4"] { margin-left: 8rem; }
+.tiptap-editor .ProseMirror [data-indent="5"] { margin-left: 10rem; }
+.tiptap-editor .ProseMirror [data-indent="6"] { margin-left: 12rem; }
+
+/* Defensive: a paragraph that lives inside a list item should never
+   carry block indent. Bullets express indent structurally; an inline
+   data-indent (left over from a paste, a legacy note, or an earlier bug
+   that fell through to indentBlock from a list-item Tab) just produces
+   a huge gap between the bullet marker and the text. Force-zero it. */
+.tiptap-editor .ProseMirror li [data-indent] {
+  margin-left: 0;
 }
 
 .tiptap-editor .ProseMirror .task-list .task-list {

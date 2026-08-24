@@ -86,7 +86,7 @@ export function SettingsCoachProfileTab() {
     <div className="space-y-6">
       <GlassCard padded>
         <SectionHeader title="Train the Coach" />
-        <p className="text-sm text-zinc-600 mb-3">
+        <p className="mb-3 text-sm text-zinc-600">
           The Coach reads these whenever it talks to you. Keep it short and honest. The more
           accurate, the better the narratives and suggestions it gives back.
         </p>

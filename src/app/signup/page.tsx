@@ -244,7 +244,7 @@ function SignupForm() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="John Doe"
-                      className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] pl-12"
+                      className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 pl-12 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
                       required
                       minLength={2}
                     />
@@ -260,7 +260,7 @@ function SignupForm() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@example.com"
-                      className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] pl-12"
+                      className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 pl-12 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d]"
                       required
                     />
                   </div>
@@ -348,7 +348,7 @@ function SignupForm() {
                 <button
                   type="submit"
                   disabled={sendOTPMutation.isPending || checkEmailMutation.isPending}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 flex w-full items-center justify-center gap-2"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50"
                 >
                   {sendOTPMutation.isPending || checkEmailMutation.isPending ? (
                     <Loading size="sm" className="h-5 w-5" />
@@ -358,6 +358,10 @@ function SignupForm() {
                     </>
                   )}
                 </button>
+                {/* "Continue with Google" hidden until the backend Google
+                    OAuth strategy is re-shipped (api PR #52 was reverted).
+                    Restore when the backend lands with conditional
+                    registration + env vars on the VPS. */}
               </form>
             </>
           ) : (
@@ -411,7 +415,7 @@ function SignupForm() {
                 <button
                   type="submit"
                   disabled={registerMutation.isPending || otp.length !== 6}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 text-white text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-800 disabled:opacity-50 flex w-full items-center justify-center gap-2"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50"
                 >
                   {registerMutation.isPending ? (
                     <Loading size="sm" className="h-5 w-5" />
@@ -427,7 +431,7 @@ function SignupForm() {
                     type="button"
                     onClick={handleResendOTP}
                     disabled={resendCooldown > 0 || sendOTPMutation.isPending}
-                    className="font-mono text-sm font-bold uppercase text-accent-blue hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                    className="text-accent-blue font-mono text-sm font-bold uppercase hover:underline disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {resendCooldown > 0
                       ? `Resend Code (${resendCooldown}s)`
@@ -444,7 +448,7 @@ function SignupForm() {
             Already have an account?{' '}
             <Link
               href={redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login'}
-              className="font-bold text-accent-blue hover:underline"
+              className="text-accent-blue font-bold hover:underline"
             >
               Login
             </Link>

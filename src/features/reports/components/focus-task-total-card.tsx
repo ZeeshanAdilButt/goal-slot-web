@@ -137,7 +137,7 @@ export function FocusTaskTotalCard({ view, filters, reportUserId }: FocusTaskTot
   const collapseAll = () => setExpandedDays(new Set())
 
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm relative">
+    <div className="relative rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
       {showUpdating && <FocusUpdatingOverlay active={showUpdating} />}
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -153,7 +153,7 @@ export function FocusTaskTotalCard({ view, filters, reportUserId }: FocusTaskTot
           <button
             type="button"
             onClick={() => setOffset((o) => o - 1)}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 px-3 py-2 text-xs"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 px-4 py-2 text-sm text-xs font-semibold text-zinc-900 transition-colors hover:bg-zinc-50 disabled:opacity-50"
           >
             Prev
           </button>
@@ -198,10 +198,10 @@ export function FocusTaskTotalCard({ view, filters, reportUserId }: FocusTaskTot
 
           {/* Controls */}
           <div className="flex items-center gap-2">
-            <button type="button" onClick={expandAll} className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 px-3 py-1 text-xs">
+            <button type="button" onClick={expandAll} className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 px-4 py-1 py-2 text-sm text-xs font-semibold text-zinc-900 transition-colors hover:bg-zinc-50 disabled:opacity-50">
               Expand All
             </button>
-            <button type="button" onClick={collapseAll} className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white text-zinc-900 text-sm font-semibold px-4 py-2 transition-colors hover:bg-zinc-50 disabled:opacity-50 px-3 py-1 text-xs">
+            <button type="button" onClick={collapseAll} className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 px-4 py-1 py-2 text-sm text-xs font-semibold text-zinc-900 transition-colors hover:bg-zinc-50 disabled:opacity-50">
               Collapse All
             </button>
           </div>

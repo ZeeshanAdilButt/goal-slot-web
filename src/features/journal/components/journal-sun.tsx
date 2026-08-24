@@ -34,7 +34,7 @@ export function JournalSun({ className }: JournalSunProps) {
         <circle cx="64" cy="64" r="60" fill="url(#journal-sun-glow)" />
         {/* Rays — slowly rotate around the sun's center */}
         <g
-          className="motion-safe:[animation:sun-rotate_60s_linear_infinite] origin-center"
+          className="origin-center motion-safe:[animation:sun-rotate_60s_linear_infinite]"
           style={{ transformOrigin: '64px 64px' }}
         >
           {Array.from({ length: 12 }).map((_, i) => {

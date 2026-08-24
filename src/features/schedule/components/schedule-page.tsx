@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import { useCategoriesQuery } from '@/features/categories'
+import { ClearScheduleButton } from '@/features/schedule/components/clear-schedule-button'
 import { ScheduleBlockDetailDialog } from '@/features/schedule/components/schedule-block-detail-dialog'
 import { ScheduleBlockModal } from '@/features/schedule/components/schedule-block-modal'
 import { ScheduleGrid } from '@/features/schedule/components/schedule-grid/schedule-grid'
@@ -122,10 +123,13 @@ export function SchedulePage() {
         title="Schedule"
         description="Plan your weekly time blocks"
         actions={
-          <Button onClick={() => handleAddBlock(1)} variant="brand" size="sm">
-            <Plus className="h-3.5 w-3.5" />
-            Add Block
-          </Button>
+          <div className="flex items-center gap-1.5">
+            <ClearScheduleButton totalBlocks={totalBlocks} />
+            <Button onClick={() => handleAddBlock(1)} variant="brand" size="sm">
+              <Plus className="h-3.5 w-3.5" />
+              Add Block
+            </Button>
+          </div>
         }
       />
 
@@ -173,7 +177,7 @@ export function SchedulePage() {
       )}
 
       {!hasProAccess && totalBlocks >= 5 && (
-        <GlassCard className="bg-yellow-50 border-yellow-200">
+        <GlassCard className="border-yellow-200 bg-yellow-50">
           <div className="flex items-center justify-between">
             <div>
               <p className="font-semibold text-zinc-900">Schedule limit reached (5 blocks)</p>

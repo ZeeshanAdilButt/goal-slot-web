@@ -172,12 +172,15 @@ export function TasksPage() {
   }, [goals, selectedGoalId, isGoalIdInitialized, isLoading, setSelectedGoalId])
 
   // Filter tasks for selected goal
-  const tasksForGoal =
-    selectedGoalId === WITHOUT_GOALS_ID
-      ? tasks.filter((t) => t.goalId === null)
-      : selectedGoalId
-        ? tasks.filter((t) => t.goalId === selectedGoalId)
-        : []
+  const tasksForGoal = useMemo(
+    () =>
+      selectedGoalId === WITHOUT_GOALS_ID
+        ? tasks.filter((t) => t.goalId === null)
+        : selectedGoalId
+          ? tasks.filter((t) => t.goalId === selectedGoalId)
+          : [],
+    [selectedGoalId, tasks],
+  )
 
   const hasActiveFilters = dueDateFilter !== 'all' || durationFilter !== 'all' || searchQuery.length > 0
   const resetFilters = () => {

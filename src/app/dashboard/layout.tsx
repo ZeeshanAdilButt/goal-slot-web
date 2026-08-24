@@ -7,7 +7,7 @@ import { ReleaseNoteBanner } from '@/features/release-notes/components/release-n
 import { motion } from 'framer-motion'
 
 import { useAuthStore } from '@/lib/store'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 import { useApplyTheme as _useApplyTheme } from '@/lib/use-theme'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
@@ -15,6 +15,7 @@ import { CommandPalette } from '@/components/command-palette'
 import { ShortcutsCheatsheet } from '@/components/shortcuts-cheatsheet'
 import { DailyCheckinBanner } from '@/components/daily-checkin-banner'
 import { GoalSlotSpinner } from '@/components/goalslot-logo'
+import { OfflineIndicator } from '@/components/offline-indicator'
 import { FocusNowBar } from '@/components/focus-now-bar'
 import { TimeEntryBanner } from '@/components/time-entry-banner'
 import { TipsCorner } from '@/components/tips-corner'
@@ -152,24 +153,32 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       />
       <SidebarInset className="flex flex-col bg-[#fafafa]">
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-zinc-200 bg-white px-4 md:hidden">
-          <SidebarTrigger className="h-9 w-9 rounded-md hover:bg-zinc-100 text-zinc-700" />
+          <SidebarTrigger className="h-9 w-9 rounded-md text-zinc-700 hover:bg-zinc-100" />
+          <OfflineIndicator className="mx-2" />
           <button
             onClick={() => setChangelogOpen(true)}
-            className="relative h-9 w-9 rounded-md hover:bg-zinc-100 text-zinc-700 flex items-center justify-center transition-colors"
+            className="relative flex h-9 w-9 items-center justify-center rounded-md text-zinc-700 transition-colors hover:bg-zinc-100"
             title="What's New"
             aria-label="What's New changelog"
           >
             <Sparkles className="h-5 w-5" />
             {hasUnseenChangelog && (
-              <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-[#f2cc0d] ring-1 ring-white" />
+              <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-[#f2cc0d] ring-1 ring-white" />
             )}
           </button>
         </div>
+        <OfflineIndicator className="m-3 hidden self-start md:flex" />
         <TimeEntryBanner />
         <FocusNowBar />
         <DailyCheckinBanner />
         <ReleaseNoteBanner />
-        <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+        {/* pb-28 reserves space below page content so the fixed
+            bottom-right floating cluster (Journal + Notifications +
+            Feedback at z-50) does not overlap controls that sit at
+            the bottom of a page (table paginators, composer forms,
+            sticky save bars, etc.). Applied once at the layout so
+            every dashboard route inherits the safe zone. */}
+        <div className="min-h-0 flex-1 overflow-y-auto pb-28">{children}</div>
       </SidebarInset>
       <CommandPalette
         open={paletteOpen}

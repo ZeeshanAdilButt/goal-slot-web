@@ -28,7 +28,7 @@ export function MathSection() {
               <p className="mt-1 text-sm text-gray-500">(8h sleep + 8h work = 8h free × 365)</p>
             </div>
             <div className="rounded-xl border border-white/10 bg-white/5 p-6">
-              <div className="text-5xl font-bold text-accent-orange">???</div>
+              <div className="text-accent-orange text-5xl font-bold">???</div>
               <p className="mt-2 text-gray-300">hours you actually tracked</p>
               <p className="mt-1 text-sm text-gray-500">(probably close to zero)</p>
             </div>

@@ -116,7 +116,7 @@ export function ManualEntryModal({ isOpen, onClose, goals, tasks, weeklySchedule
     if (activeBlock.goalId) setGoalId(activeBlock.goalId)
     if (activeBlock.category) setCategory(activeBlock.category)
     if (!title) setTitle(activeBlock.title)
-  }, [isOpen, weeklySchedule, date, startTime, userOverride])
+  }, [isOpen, weeklySchedule, date, startTime, userOverride, title])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

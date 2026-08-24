@@ -115,9 +115,9 @@ export function SettingsIntegrationsTab() {
         />
 
         <p className="mb-4 text-sm text-zinc-600">
-          Use your own API key to power the Coach. We send it to our server only to encrypt it (AES-GCM)
-          and store it for your future requests. It is never logged, never shared, and you can rotate
-          or remove it at any time. Charges go directly to your provider account.
+          Use your own API key to power the Coach. We send it to our server only to encrypt it (AES-GCM) and store it
+          for your future requests. It is never logged, never shared, and you can rotate or remove it at any time.
+          Charges go directly to your provider account.
         </p>
 
         {/* Provider switcher */}
@@ -133,9 +133,7 @@ export function SettingsIntegrationsTab() {
                   type="button"
                   onClick={() => {
                     if (status === 'active' && savedProvider !== p) {
-                      toast(
-                        `Remove the current ${PROVIDER_META[savedProvider].label} key first to switch providers.`,
-                      )
+                      toast(`Remove the current ${PROVIDER_META[savedProvider].label} key first to switch providers.`)
                       return
                     }
                     setPendingProvider(p)
@@ -147,7 +145,7 @@ export function SettingsIntegrationsTab() {
                 >
                   {m.label}
                   {m.isFree && (
-                    <span className="rounded-full bg-emerald-100 px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider text-emerald-700">
+                    <span className="rounded-full bg-emerald-100 px-1.5 py-0 text-xs font-bold uppercase tracking-wider text-emerald-700">
                       Free
                     </span>
                   )}
@@ -185,8 +183,7 @@ export function SettingsIntegrationsTab() {
             </Button>
           </div>
           <p className="text-[11px] leading-relaxed text-zinc-500">
-            <span className="font-semibold text-zinc-700">How to get a key.</span>{' '}
-            {meta.howTo}{' '}
+            <span className="font-semibold text-zinc-700">How to get a key.</span> {meta.howTo}{' '}
             <a
               href={meta.consoleUrl}
               target="_blank"
@@ -237,8 +234,8 @@ export function SettingsIntegrationsTab() {
               )}
             </div>
             <p className="text-[11px] text-zinc-500">
-              Lower-tier models (e.g. gpt-4o-mini, claude-3-5-haiku) cost less per request. Pick what
-              matches your comfort with your provider bill. Whitelist enforced server-side.
+              Lower-tier models (e.g. gpt-4o-mini, claude-3-5-haiku) cost less per request. Pick what matches your
+              comfort with your provider bill. Whitelist enforced server-side.
             </p>
           </div>
         </GlassCard>
@@ -260,7 +257,8 @@ export function SettingsIntegrationsTab() {
               </div>
               <p className="text-[11px] text-zinc-500">
                 Usage resets on the first day of each month. With BYOK active, charges go directly to your{' '}
-                {PROVIDER_META[savedProvider].label} account. When the budget is hit, Coach requests pause until next month.
+                {PROVIDER_META[savedProvider].label} account. When the budget is hit, Coach requests pause until next
+                month.
               </p>
             </div>
 
@@ -312,8 +310,8 @@ export function SettingsIntegrationsTab() {
                 </div>
               </div>
               <p className="text-[11px] text-zinc-500">
-                Soft cap enforced server-side. Pick something that matches your comfort with your provider bill.
-                Minimum 1,000. Maximum 100M.
+                Soft cap enforced server-side. Pick something that matches your comfort with your provider bill. Minimum
+                1,000. Maximum 100M.
               </p>
             </div>
           </div>

@@ -62,10 +62,10 @@ export const ReleaseNoteBanner = () => {
         </button>
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
-        <Button size="sm" onClick={handleSeen} disabled={markSeen.isPending}>
-          {markSeen.isPending ? 'Saving…' : 'Got it'}
+        <Button size="sm" onClick={handleSeen}>
+          Got it
         </Button>
-        <Button size="sm" variant="outline" onClick={handleDismiss} disabled={markSeen.isPending}>
+        <Button size="sm" variant="outline" onClick={handleDismiss}>
           Dismiss
         </Button>
       </div>

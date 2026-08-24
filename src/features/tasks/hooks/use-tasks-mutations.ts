@@ -1,11 +1,12 @@
 import { taskQueries } from '@/features/tasks/utils/queries'
 import { CreateTaskForm, Task, TaskStatus } from '@/features/tasks/utils/types'
-import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
+import { useQueryClient, type QueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 
+import { useOfflineMutation } from '@/hooks/use-offline-mutation'
 import { tasksApi } from '@/lib/api'
-
-// --- 1. TYPES & HELPERS ---
+import '@/features/tasks/utils/offline-operations'
 
 type TaskListFilters = { status?: TaskStatus; statuses?: TaskStatus[]; goalId?: string }
 
@@ -22,9 +23,6 @@ const getListFilters = (queryKey: readonly unknown[]): TaskListFilters | undefin
   return queryKey[2] as TaskListFilters | undefined
 }
 
-/**
- * Logic to determine if a task should reside in a specific filtered list.
- */
 const matchesFilters = (task: Task, filters?: TaskListFilters) => {
   if (!filters) return true
   if (filters.statuses && filters.statuses.length > 0 && !filters.statuses.includes(task.status)) return false
@@ -33,11 +31,6 @@ const matchesFilters = (task: Task, filters?: TaskListFilters) => {
   return true
 }
 
-/**
- * THE SYNC ENGINE
- * Automatically adds, updates, or removes a task from ALL active queries
- * based on whether the task still matches that query's filters.
- */
 const syncTaskInCache = (
   queryClient: QueryClient,
   task: Task,
@@ -54,7 +47,6 @@ const syncTaskInCache = (
     const filters = getListFilters(queryKey)
     const shouldInclude = !options.isDeleted && matchesFilters(task, filters)
 
-    // Find index by current ID or the temporary optimistic ID
     const existingIndex = data.findIndex(
       (t) => t.id === task.id || (options.optimisticId && t.id === options.optimisticId),
     )
@@ -62,11 +54,9 @@ const syncTaskInCache = (
     let newData = [...data]
 
     if (!shouldInclude) {
-      // Remove if it no longer belongs here
       if (existingIndex === -1) return
       newData = newData.filter((_, i) => i !== existingIndex)
     } else {
-      // Update existing or Add to top
       if (existingIndex >= 0) {
         newData[existingIndex] = task
       } else {
@@ -78,110 +68,104 @@ const syncTaskInCache = (
   })
 }
 
-/**
- * Standardized error recovery logic
- */
-const handleMutationError = (queryClient: QueryClient, context: any, error: any, defaultMsg: string) => {
-  if (context?.previous) {
-    context.previous.forEach(([key, data]: any) => queryClient.setQueryData(key, data))
-  }
-  const message = error.response?.data?.message || defaultMsg
-  toast.error(message, { id: context?.toastId })
+const snapshotCache = (queryClient: QueryClient) => queryClient.getQueriesData({ queryKey: taskQueries.all })
+
+const rollbackCache = (queryClient: QueryClient, previous: ReturnType<typeof snapshotCache> | undefined) => {
+  previous?.forEach(([key, data]) => queryClient.setQueryData(key, data))
 }
 
-// --- 2. MUTATION HOOKS ---
+const findTaskInCache = (queryClient: QueryClient, taskId: string): Task | undefined => {
+  const lists = queryClient.getQueriesData<Task[]>({ queryKey: taskQueries.all })
+  for (const [, data] of lists) {
+    if (!Array.isArray(data)) continue
+    const found = data.find((t) => t.id === taskId)
+    if (found) return found
+  }
+  return undefined
+}
 
 export function useCreateTaskMutation() {
   const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: async (form: CreateTaskForm) => {
-      const res = await tasksApi.create(normalizeTaskInput(form))
-      return res.data
-    },
-    onMutate: async (form) => {
-      const toastId = toast.loading('Creating task...')
-      await queryClient.cancelQueries({ queryKey: taskQueries.all })
-      const previous = queryClient.getQueriesData({ queryKey: taskQueries.all })
-
-      const optimisticId = `optimistic-${Date.now()}`
-      const normalized = normalizeTaskInput(form)
+  return useOfflineMutation<CreateTaskForm, { previous: ReturnType<typeof snapshotCache> }>({
+    kind: 'task.create',
+    buildPayload: (form, meta) => ({
+      id: meta.entityId,
+      ...normalizeTaskInput(form),
+      title: form.title,
+    }),
+    optimisticUpdate: (form, meta) => {
+      const previous = snapshotCache(queryClient)
       const optimisticTask: Task = {
-        id: optimisticId,
+        id: meta.entityId,
         title: form.title,
-        description: normalized.description || undefined,
+        description: normalizeTaskInput(form).description,
         status: 'BACKLOG',
-        category: normalized.category || undefined,
-        estimatedMinutes: normalized.estimatedMinutes,
-        goalId: normalized.goalId,
-        scheduleBlockId: normalized.scheduleBlockId,
-        dueDate: normalized.dueDate,
-        notes: normalized.notes || undefined,
+        category: normalizeTaskInput(form).category,
+        estimatedMinutes: normalizeTaskInput(form).estimatedMinutes,
+        goalId: normalizeTaskInput(form).goalId,
+        scheduleBlockId: normalizeTaskInput(form).scheduleBlockId,
+        dueDate: normalizeTaskInput(form).dueDate,
+        notes: normalizeTaskInput(form).notes,
       } as Task
-
       syncTaskInCache(queryClient, optimisticTask)
-      return { previous, optimisticId, toastId }
+      return { previous }
     },
-    onSuccess: (createdTask, _, context) => {
-      syncTaskInCache(queryClient, createdTask, { optimisticId: context?.optimisticId })
-      toast.success('Task created', { id: context?.toastId })
+    rollback: (ctx) => rollbackCache(queryClient, ctx?.previous),
+    invalidateKeys: [taskQueries.all],
+    messages: {
+      offline: 'Task saved offline — will sync when you reconnect',
+      success: 'Task created',
+      error: 'Failed to create task',
     },
-    onError: (err, _, context) => handleMutationError(queryClient, context, err, 'Failed to create task'),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: taskQueries.all }),
   })
 }
 
 export function useUpdateTaskMutation() {
   const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: async ({
-      taskId,
-      data,
-    }: {
-      taskId: string
-      data: Partial<CreateTaskForm & { status?: TaskStatus }>
-    }) => {
-      const res = await tasksApi.update(taskId, {
-        ...normalizeTaskInput(data),
-      })
-      return res.data
-    },
-    onMutate: async ({ taskId, data }) => {
-      await queryClient.cancelQueries({ queryKey: taskQueries.all })
-      const previous = queryClient.getQueriesData({ queryKey: taskQueries.all })
-
-      // Logic to find the current task state across cache to merge updates
-      const allTasks = (previous as [any, Task[]][]).flatMap((l) => l[1] || [])
-      const original = allTasks.find((t) => t.id === taskId)
-
-      if (original) syncTaskInCache(queryClient, { ...original, ...normalizeTaskInput(data) } as Task)
+  return useOfflineMutation<
+    { taskId: string; data: Partial<CreateTaskForm & { status?: TaskStatus }> },
+    { previous: ReturnType<typeof snapshotCache> }
+  >({
+    kind: 'task.update',
+    buildPayload: ({ taskId, data }) => ({
+      id: taskId,
+      data: normalizeTaskInput(data),
+    }),
+    optimisticUpdate: ({ taskId, data }) => {
+      const previous = snapshotCache(queryClient)
+      const original = findTaskInCache(queryClient, taskId)
+      if (original) {
+        syncTaskInCache(queryClient, { ...original, ...normalizeTaskInput(data) } as Task)
+      }
       return { previous }
     },
-    onSuccess: (updatedTask) => {
-      syncTaskInCache(queryClient, updatedTask)
-      toast.success('Task updated')
+    rollback: (ctx) => rollbackCache(queryClient, ctx?.previous),
+    invalidateKeys: [taskQueries.all],
+    messages: {
+      offline: 'Task update saved offline',
+      success: 'Task updated',
+      error: 'Failed to update task',
     },
-    onError: (err, _, context) => handleMutationError(queryClient, context, err, 'Failed to update task'),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: taskQueries.all }),
   })
 }
 
 export function useCompleteTaskMutation() {
   const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: async ({ taskId, minutes, notes }: { taskId: string; minutes: number; notes?: string }) => {
-      const res = await tasksApi.complete(taskId, { actualMinutes: minutes, notes: notes || undefined })
-      return res.data
-    },
-    onMutate: async ({ taskId, minutes }) => {
-      await queryClient.cancelQueries({ queryKey: taskQueries.all })
-      const previous = queryClient.getQueriesData({ queryKey: taskQueries.all })
-
-      const allTasks = (previous as [any, Task[]][]).flatMap((l) => l[1] || [])
-      const original = allTasks.find((t) => t.id === taskId)
-
+  return useOfflineMutation<
+    { taskId: string; minutes: number; notes?: string },
+    { previous: ReturnType<typeof snapshotCache> }
+  >({
+    kind: 'task.complete',
+    buildPayload: ({ taskId, minutes, notes }) => ({
+      id: taskId,
+      data: { actualMinutes: minutes, notes: notes || undefined },
+    }),
+    optimisticUpdate: ({ taskId, minutes }) => {
+      const previous = snapshotCache(queryClient)
+      const original = findTaskInCache(queryClient, taskId)
       if (original) {
         syncTaskInCache(queryClient, {
           ...original,
@@ -192,33 +176,34 @@ export function useCompleteTaskMutation() {
       }
       return { previous }
     },
-    onSuccess: (data) => {
-      if (data?.task) syncTaskInCache(queryClient, data.task)
-      toast.success('Task completed and logged')
-      // Invalidate related aggregates
-      queryClient.invalidateQueries({ queryKey: ['time-tracker'] })
-      queryClient.invalidateQueries({ queryKey: ['goals'] })
+    rollback: (ctx) => rollbackCache(queryClient, ctx?.previous),
+    invalidateKeys: [taskQueries.all, ['time-tracker'], ['goals']],
+    messages: {
+      offline: 'Task completion saved offline',
+      success: 'Task completed and logged',
+      error: 'Failed to complete task',
     },
-    onError: (err, _, context) => handleMutationError(queryClient, context, err, 'Failed to complete task'),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: taskQueries.all }),
   })
 }
 
 export function useDeleteTaskMutation() {
   const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: (taskId: string) => tasksApi.delete(taskId),
-    onMutate: async (taskId) => {
-      await queryClient.cancelQueries({ queryKey: taskQueries.all })
-      const previous = queryClient.getQueriesData({ queryKey: taskQueries.all })
-
+  return useOfflineMutation<string, { previous: ReturnType<typeof snapshotCache> }>({
+    kind: 'task.delete',
+    buildPayload: (taskId) => ({ id: taskId }),
+    optimisticUpdate: (taskId) => {
+      const previous = snapshotCache(queryClient)
       syncTaskInCache(queryClient, { id: taskId } as Task, { isDeleted: true })
       return { previous }
     },
-    onSuccess: () => toast.success('Task deleted'),
-    onError: (err, _, context) => handleMutationError(queryClient, context, err, 'Failed to delete task'),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: taskQueries.all }),
+    rollback: (ctx) => rollbackCache(queryClient, ctx?.previous),
+    invalidateKeys: [taskQueries.all],
+    messages: {
+      offline: 'Task deletion saved offline',
+      success: 'Task deleted',
+      error: 'Failed to delete task',
+    },
   })
 }
 
@@ -231,9 +216,7 @@ export function useRestoreTaskMutation() {
       await queryClient.cancelQueries({ queryKey: taskQueries.all })
       const previous = queryClient.getQueriesData({ queryKey: taskQueries.all })
 
-      const allTasks = (previous as [any, Task[]][]).flatMap((l) => l[1] || [])
-      const original = allTasks.find((t) => t.id === taskId)
-
+      const original = findTaskInCache(queryClient, taskId)
       if (original) {
         syncTaskInCache(queryClient, {
           ...original,
@@ -245,7 +228,10 @@ export function useRestoreTaskMutation() {
       return { previous }
     },
     onSuccess: () => toast.success('Task restored'),
-    onError: (err, _, context) => handleMutationError(queryClient, context, err, 'Failed to restore task'),
+    onError: (_err, _vars, context) => {
+      rollbackCache(queryClient, context?.previous)
+      toast.error('Failed to restore task')
+    },
     onSettled: () => queryClient.invalidateQueries({ queryKey: taskQueries.all }),
   })
 }
@@ -258,13 +244,9 @@ export function useReorderTasksMutation() {
       await tasksApi.reorder(ids)
     },
     onMutate: async (ids) => {
-      // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: taskQueries.all })
-
-      // Snapshot previous state for rollback
       const previous = queryClient.getQueriesData({ queryKey: taskQueries.all })
 
-      // Optimistically update cache with new order
       const activeLists = queryClient.getQueriesData<Task[]>({
         queryKey: taskQueries.all,
         type: 'active',
@@ -273,17 +255,11 @@ export function useReorderTasksMutation() {
       activeLists.forEach(([queryKey, data]) => {
         if (!Array.isArray(data) || queryKey[1] !== 'list') return
 
-        // Create a map of ID to new index
         const orderMap = new Map(ids.map((id, index) => [id, index]))
-
-        // Sort tasks by new order, keeping tasks not in the reorder list at the end
         const reordered = [...data].sort((a, b) => {
           const aOrder = orderMap.get(a.id)
           const bOrder = orderMap.get(b.id)
-
-          if (aOrder !== undefined && bOrder !== undefined) {
-            return aOrder - bOrder
-          }
+          if (aOrder !== undefined && bOrder !== undefined) return aOrder - bOrder
           if (aOrder !== undefined) return -1
           if (bOrder !== undefined) return 1
           return 0
@@ -294,15 +270,10 @@ export function useReorderTasksMutation() {
 
       return { previous }
     },
-    onError: (err, _, context) => {
-      // Rollback on error
-      if (context?.previous) {
-        context.previous.forEach(([key, data]: any) => queryClient.setQueryData(key, data))
-      }
+    onError: (_err, _vars, context) => {
+      rollbackCache(queryClient, context?.previous)
       toast.error('Failed to reorder tasks')
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: taskQueries.all })
-    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: taskQueries.all }),
   })
 }

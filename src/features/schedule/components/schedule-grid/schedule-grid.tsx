@@ -96,7 +96,13 @@ export function ScheduleGrid({
     const startMin = timeToMinutes(block.startTime)
     const endMin = timeToMinutes(block.endTime)
     const top = (startMin - DAY_START_MIN) * PX_PER_MIN
-    const height = Math.max((endMin - startMin) * PX_PER_MIN, 32)
+    // Render each block at its true time-proportional height. The previous
+    // Math.max(..., 32) floor inflated 15-min blocks to span 32 minutes,
+    // which made them overlap any block that started in the next 17
+    // minutes. DraggableBlock has its own compact-render path for short
+    // heights so short blocks still stay readable without lying about
+    // their time span.
+    const height = (endMin - startMin) * PX_PER_MIN
 
     return (
       <DraggableBlock

@@ -66,7 +66,7 @@ export function ScheduleBlockDetailDialog({
                 <Button
                   variant="secondary"
                   size="icon"
-                  className="h-8 w-8 text-rose-600 hover:bg-rose-50 hover:border-rose-200"
+                  className="h-8 w-8 text-rose-600 hover:border-rose-200 hover:bg-rose-50"
                   onClick={handleDeleteClick}
                   title="Delete block"
                 >

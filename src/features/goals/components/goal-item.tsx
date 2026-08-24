@@ -35,14 +35,13 @@ export function GoalItem({ goal, index, onEdit, isLocked = false }: GoalItemProp
 
   const progress = goal.targetHours > 0 ? Math.min(100, Math.round((goal.loggedHours / goal.targetHours) * 100)) : 0
 
-  const statusVariant =
-    isLocked
-      ? 'warning'
-      : goal.status === 'ACTIVE'
-        ? 'success'
-        : goal.status === 'COMPLETED'
-          ? 'default'
-          : 'default'
+  const statusVariant = isLocked
+    ? 'warning'
+    : goal.status === 'ACTIVE'
+      ? 'success'
+      : goal.status === 'COMPLETED'
+        ? 'default'
+        : 'default'
 
   return (
     <motion.div
@@ -67,21 +66,18 @@ export function GoalItem({ goal, index, onEdit, isLocked = false }: GoalItemProp
             <div className="flex items-center gap-2">
               <span
                 aria-hidden
-                className={cn(
-                  'h-1.5 w-1.5 rounded-full',
-                  goal.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-zinc-300',
-                )}
+                className={cn('h-1.5 w-1.5 rounded-full', goal.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-zinc-300')}
               />
               <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
                 {goal.category}
               </span>
               {isLocked && (
-                <Badge variant="warning" className="text-[9px]">LOCKED</Badge>
+                <Badge variant="warning" className="text-xs">
+                  LOCKED
+                </Badge>
               )}
             </div>
-            <h3 className="mt-1 line-clamp-2 text-sm font-semibold leading-snug text-zinc-900">
-              {goal.title}
-            </h3>
+            <h3 className="mt-1 line-clamp-2 text-sm font-semibold leading-snug text-zinc-900">{goal.title}</h3>
           </div>
           <div className="flex shrink-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100">
             <Button
@@ -149,9 +145,7 @@ export function GoalItem({ goal, index, onEdit, isLocked = false }: GoalItemProp
             />
           </div>
           {goal.deadline && (
-            <div className="text-[10px] text-zinc-500">
-              Deadline · {format(new Date(goal.deadline), 'MMM d, yyyy')}
-            </div>
+            <div className="text-xs text-zinc-500">Deadline · {format(new Date(goal.deadline), 'MMM d, yyyy')}</div>
           )}
         </div>
 
