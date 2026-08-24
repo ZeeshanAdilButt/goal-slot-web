@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 import { Button1 } from '@/features/feedback/components/ui/button-1'
 import { Material } from '@/features/feedback/components/ui/material-1'
@@ -11,6 +12,7 @@ import {
   useMarkNotificationRead,
   useNotificationsQuery,
 } from '@/features/notifications/hooks/use-notifications'
+import { resolveNotificationAction } from '@/features/notifications/utils/notification-routing'
 import clsx from 'clsx'
 import { Bell, X } from 'lucide-react'
 
@@ -19,6 +21,7 @@ import { useClickOutside } from '@/hooks/use-click-outside'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 
 export const NotificationsButton = () => {
+  const router = useRouter()
   const { isAuthenticated, isLoading } = useAuthStore()
   const openThread = useFeedbackWidgetStore((state) => state.openThread)
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading: isQueryLoading } =
@@ -71,10 +74,21 @@ export const NotificationsButton = () => {
     if (!item.readAt) {
       markRead.mutate(item.id)
     }
-    if (item.type === 'FEEDBACK_REPLY' && item.data?.feedbackId) {
-      openThread(item.data.feedbackId)
-    }
+
+    // Previously this only handled FEEDBACK_REPLY, so clicking any of the
+    // other four notification types just closed the popover and left the user
+    // wherever they already were - the click looked broken because nothing
+    // happened. resolveNotificationAction covers every type, and is the same
+    // resolver the service worker uses for push clicks, so an in-app click and
+    // a push notification for the same event now land in the same place.
+    const action = resolveNotificationAction(item)
     setIsOpen(false)
+
+    if (action.kind === 'open-feedback-thread') {
+      openThread(action.feedbackId)
+      return
+    }
+    router.push(action.href)
   }
 
   const handleMarkAllRead = () => {

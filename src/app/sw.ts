@@ -2,6 +2,8 @@
 import { defaultCache } from '@serwist/next/worker'
 import type { PrecacheEntry, RouteMatchCallbackOptions, SerwistGlobalConfig } from 'serwist'
 import { NetworkOnly, Serwist } from 'serwist'
+import { resolveNotificationUrl } from '@/features/notifications/utils/notification-routing'
+import type { NotificationPayload } from '@/features/notifications/utils/types'
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -59,31 +61,15 @@ sw.addEventListener('push', (event: PushEvent) => {
   )
 })
 
-// Every NotificationType the API dispatches through ReminderDispatchService
-// sends its routing payload as `data` shaped like the mobile app's deep-link
-// data (see goalslot-mobile's deep-links.ts) — a `type` discriminant plus
-// whatever id that type needs. No dispatch path sets a literal `data.url`
-// today, so resolving straight from `data.url` (as this used to) silently
-// fell through to '/dashboard' for every notification, message clicks
-// included. Mirror the mobile resolver's known shapes here; unrecognized or
-// future types fall back to '/dashboard', which is also the right landing
-// spot for INSTRUCTION_ASSIGNED today since assigned instructions render
-// directly on the dashboard rather than a dedicated per-instruction route.
+// Routing lives in one shared resolver rather than a copy here. This file
+// used to carry its own switch over the payload discriminant, duplicating the
+// in-app bell's logic; two copies of the same rules is exactly the sort of
+// thing that drifts the moment a new notification type is added, and the two
+// surfaces then disagree about where the same event should land.
+// resolveNotificationUrl always yields a URL, which is all a service worker
+// can act on - a push click may have no page running to open a modal in.
 function resolveTargetUrl(data: Record<string, unknown> | undefined): string {
-  if (!data) return '/dashboard'
-  if (typeof data.url === 'string' && data.url) return data.url
-
-  switch (data.type) {
-    case 'conversation':
-      return typeof data.conversationId === 'string' ? `/dashboard/messages?c=${data.conversationId}` : '/dashboard/messages'
-    case 'schedule':
-      // SHARED_REPORT_UNVIEWED's payload — sharedAccessId isn't
-      // deep-linkable on this page yet, but the sharing tab is still a
-      // much better landing spot than the generic dashboard fallback.
-      return '/dashboard/sharing'
-    default:
-      return '/dashboard'
-  }
+  return resolveNotificationUrl(data as NotificationPayload | undefined)
 }
 
 // Same focus-or-open-a-client approach as the local timer reminders in
