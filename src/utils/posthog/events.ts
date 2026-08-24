@@ -44,9 +44,40 @@ export const Events = {
 
 export type EventName = (typeof Events)[keyof typeof Events]
 
+// Goal categories are per-user rows, and the goal modal lets people create
+// their own, so the raw `category` value on a goal is user-authored text.
+// Only the values the API seeds for every new account are safe to send as an
+// event property; anything else is bucketed as CUSTOM so a category someone
+// named after their employer, their therapist, or a health condition never
+// leaves the browser. Keep this in sync with the seed list in the API
+// (auth.service.ts / categories.service.ts).
+export const SEEDED_GOAL_CATEGORIES = [
+  'LEARNING',
+  'WORK',
+  'HEALTH',
+  'CREATIVE',
+  'DEEP_WORK',
+  'EXERCISE',
+  'SIDE_PROJECT',
+  'DSA',
+  'MEETING',
+  'ADMIN',
+  'BREAK',
+  'SPIRITUAL',
+  'COMMUNITY',
+  'OTHER',
+] as const
+
+export type GoalCategoryProperty = (typeof SEEDED_GOAL_CATEGORIES)[number] | 'CUSTOM'
+
+export function goalCategoryProperty(value?: string | null): GoalCategoryProperty | undefined {
+  if (!value) return undefined
+  return (SEEDED_GOAL_CATEGORIES as readonly string[]).includes(value) ? (value as GoalCategoryProperty) : 'CUSTOM'
+}
+
 // Per-event typed properties — TypeScript enforces correct props at call sites
 export type EventProperties = {
-  [Events.GOAL_CREATED]: { category?: string; hasDeadline: boolean }
+  [Events.GOAL_CREATED]: { category?: GoalCategoryProperty; hasDeadline: boolean }
   [Events.GOAL_COMPLETED]: { ageDays: number }
   [Events.TASK_COMPLETED]: { source: 'list' | 'schedule' | 'coach' }
   [Events.TRACK_STARTED]: { source: 'task' | 'goal' | 'adhoc' }

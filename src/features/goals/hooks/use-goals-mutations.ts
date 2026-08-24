@@ -2,7 +2,7 @@ import { goalQueries } from '@/features/goals/utils/queries'
 import { CreateGoalForm, Goal, GoalFilters, UpdateGoalForm } from '@/features/goals/utils/types'
 import { labelQueries } from '@/features/labels'
 import { capture } from '@/utils/posthog/capture'
-import { Events } from '@/utils/posthog/events'
+import { Events, goalCategoryProperty } from '@/utils/posthog/events'
 import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
 
 import { useOfflineMutation } from '@/hooks/use-offline-mutation'
@@ -99,7 +99,7 @@ export function useCreateGoalMutation() {
     },
     onServerSuccess: (_result, data) => {
       capture(Events.GOAL_CREATED, {
-        category: data.category ?? undefined,
+        category: goalCategoryProperty(data.category),
         hasDeadline: Boolean(data.deadline),
       })
     },
