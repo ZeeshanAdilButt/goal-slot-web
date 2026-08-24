@@ -194,14 +194,18 @@ export function WhiteboardsPage({ initialWhiteboardId }: WhiteboardsPageProps = 
       )
     }
   } else if (selectedWhiteboard) {
-    const displayWhiteboard = ownedFetch.data?.whiteboard ?? selectedWhiteboard
-    const resolvedContent = resolveWhiteboardScene(displayWhiteboard.id, displayWhiteboard.content)
-    const hasElements = (resolvedContent?.elements?.length ?? 0) > 0
-    const waitingForServer =
-      !!ownedWhiteboardId &&
-      ownedFetch.isFetching &&
-      !hasElements &&
-      !resolveWhiteboardScene(selectedWhiteboard.id, selectedWhiteboard.content)?.elements?.length
+    // Scene content comes from the detail query only. The list response is
+    // metadata (a scene is capped at 2 MB, so shipping every board's content
+    // to draw a sidebar was a multi-megabyte fetch), so there is nothing to
+    // render the canvas from until the detail resolves.
+    const detail = ownedFetch.data?.whiteboard ?? null
+    // Chrome metadata only (title/icon/colour). Prefer the fresher detail row,
+    // fall back to the list summary so the header never blanks mid-flight.
+    const displayWhiteboard = detail ?? selectedWhiteboard
+    const resolvedContent = resolveWhiteboardScene(selectedWhiteboard.id, detail?.content ?? null)
+    // `!ownedFetch.isError` is load-bearing: without it a detail request that
+    // never resolves (a board deleted in another tab) spins forever.
+    const waitingForServer = !!ownedWhiteboardId && !detail && !ownedFetch.isError
 
     mainContent = (
       <OwnedWhiteboardPanel

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { NOTE_COLORS, NOTE_ICONS } from '@/features/notes/utils/types'
 import { useUpdateWhiteboardMutation } from '@/features/whiteboards/hooks/use-whiteboards'
-import type { Whiteboard } from '@/features/whiteboards/types'
+import type { WhiteboardSummary } from '@/features/whiteboards/types'
 import { Eye, Plus, Share2, Star, StarOff } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -14,7 +14,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ShareWhiteboardDialog } from './share-whiteboard-dialog'
 
 interface WhiteboardHeaderProps {
-  whiteboard: Whiteboard
+  /** Metadata only — the header never needs scene content. */
+  whiteboard: WhiteboardSummary
   readOnly?: boolean
   sharedBy?: { name: string; email: string } | null
   autoFocusTitle?: boolean

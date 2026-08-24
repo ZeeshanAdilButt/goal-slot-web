@@ -1,14 +1,28 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import dynamic from 'next/dynamic'
 
 import { JournalEntry } from '@/features/journal/hooks/use-journal-entries'
 import { Check, Loader2 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
-import { TiptapEditor } from '@/components/tiptap-editor/tiptap-editor'
 import { VoiceDictationButton } from '@/components/voice-dictation-button'
 import { JournalUntangle } from '@/features/journal/components/journal-untangle'
+
+// TiptapEditor pulls in the full StarterKit + a dozen extension packages
+// plus lowlight. JournalEntryEditor mounts on first paint of the Journal
+// route regardless of which panel is focused, so a static import shipped
+// that whole editor bundle up front. Loading it on demand keeps it out of
+// the initial route bundle (same pattern as create-task-modal.tsx /
+// goal-modal.tsx / note-editor.tsx).
+const TiptapEditor = dynamic(
+  () => import('@/components/tiptap-editor/tiptap-editor').then((mod) => mod.TiptapEditor),
+  {
+    ssr: false,
+    loading: () => <div className="min-h-[250px] animate-pulse rounded-lg bg-zinc-50" />,
+  },
+)
 
 interface JournalEntryEditorProps {
   entry: JournalEntry | null

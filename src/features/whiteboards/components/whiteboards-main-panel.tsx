@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Loading } from '@/components/ui/loading'
 import { cn } from '@/lib/utils'
 
-import type { ExcalidrawScene, SharedWithMeItem, Whiteboard } from '../types'
+import type { ExcalidrawScene, SharedWithMeItem, Whiteboard, WhiteboardSummary } from '../types'
 import { resolveWhiteboardScene } from '../whiteboard-draft'
 import { WhiteboardCanvas, type FlushWhiteboardSave } from '../WhiteboardCanvas'
 import { WhiteboardHeader } from './whiteboard-header'
@@ -17,7 +17,7 @@ function whiteboardColorClass(color?: string) {
 }
 
 interface OwnedWhiteboardPanelProps {
-  displayWhiteboard: Whiteboard
+  displayWhiteboard: WhiteboardSummary
   resolvedContent: ExcalidrawScene | null
   waitingForServer: boolean
   focusTitleId: string | null

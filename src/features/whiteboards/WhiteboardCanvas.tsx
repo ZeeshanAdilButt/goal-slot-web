@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils'
 import { useIsMobile } from '@/hooks/use-mobile'
 
 import { WHITEBOARDS_QUERY_KEY } from './hooks/use-whiteboards'
+import { buildScene, isSceneSafeToPersist } from './scene'
 import type { ExcalidrawScene, Whiteboard } from './types'
 import { clearWhiteboardDraft, resolveWhiteboardScene, saveWhiteboardDraft } from './whiteboard-draft'
 
@@ -23,6 +24,9 @@ const ExcalidrawCanvasInner = dynamic(
 )
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
+
+/** Minimum gap between sessionStorage draft writes. See `saveDraft`. */
+const DRAFT_SAVE_INTERVAL_MS = 1000
 
 export type FlushWhiteboardSave = () => Promise<void>
 
@@ -45,34 +49,6 @@ function hasEditingElement(appState: unknown): boolean {
     'editingElement' in appState &&
     (appState as ExcalidrawAppStateSlice).editingElement != null
   )
-}
-
-function buildScene(
-  elements: readonly Record<string, unknown>[],
-  appState: Record<string, unknown>,
-  files: Record<string, unknown>,
-): ExcalidrawScene {
-  const {
-    collaborators: _c,
-    editingElement: _e,
-    draggingElement: _d,
-    openMenu: _m,
-    openPopup: _p,
-    contextMenu: _ctx,
-    width: _w,
-    height: _h,
-    offsetTop: _ot,
-    offsetLeft: _ol,
-    showWelcomeScreen: _sw,
-    isLoading: _il,
-    ...persistedAppState
-  } = appState
-
-  return {
-    elements: elements as Record<string, unknown>[],
-    appState: persistedAppState,
-    files,
-  }
 }
 
 const UI_OPTIONS = {
@@ -100,12 +76,22 @@ export function WhiteboardCanvas({ whiteboardId, initialData, readOnly, onRegist
   const isReadyRef = useRef(false)
   const lastPersistedHashRef = useRef<string | null>(null)
   const latestSceneRef = useRef<ExcalidrawScene | null>(null)
+  const lastDraftSaveRef = useRef<number>(0)
+  /**
+   * True once this canvas has seen a non-empty scene — either it mounted with
+   * one, or the user drew something we successfully persisted. Guards against
+   * ever PUTting an empty scene over a board whose content simply failed to
+   * load. See `persistScene`.
+   */
+  const knownNonEmptyRef = useRef(false)
 
   useEffect(() => {
     whiteboardIdRef.current = whiteboardId
     isReadyRef.current = false
     lastPersistedHashRef.current = null
     latestSceneRef.current = null
+    lastDraftSaveRef.current = 0
+    knownNonEmptyRef.current = false
   }, [whiteboardId])
 
   useEffect(() => {
@@ -154,12 +140,17 @@ export function WhiteboardCanvas({ whiteboardId, initialData, readOnly, onRegist
     return editMountScene
   }, [readOnly, forceViewOnly, whiteboardId, initialData, editMountScene])
 
+  useEffect(() => {
+    if ((mountScene?.elements?.length ?? 0) > 0) {
+      knownNonEmptyRef.current = true
+    }
+  }, [mountScene])
+
   const patchCaches = useCallback(
     (targetId: string, scene: ExcalidrawScene) => {
-      queryClient.setQueryData<Whiteboard[]>(WHITEBOARDS_QUERY_KEY, (prev) => {
-        if (!prev) return prev
-        return prev.map((w) => (w.id === targetId ? { ...w, content: scene } : w))
-      })
+      // Detail cache only. The list response no longer carries `content`
+      // (see WhiteboardSummary) — writing scenes back into it would rebuild
+      // the multi-megabyte in-memory list this change exists to remove.
       queryClient.setQueryData<{ whiteboard: Whiteboard; readOnly: boolean }>(
         [...WHITEBOARDS_QUERY_KEY, targetId],
         (prev) => {
@@ -174,6 +165,9 @@ export function WhiteboardCanvas({ whiteboardId, initialData, readOnly, onRegist
   const persistScene = useCallback(
     async (scene: ExcalidrawScene, targetId: string, options?: { silent?: boolean; force?: boolean }) => {
       if (readOnlyRef.current) return
+
+      if (!isSceneSafeToPersist(scene, knownNonEmptyRef.current)) return
+      if (scene.elements.length > 0) knownNonEmptyRef.current = true
 
       const hash = JSON.stringify(scene)
       if (!options?.force && hash === lastPersistedHashRef.current) return
@@ -202,6 +196,21 @@ export function WhiteboardCanvas({ whiteboardId, initialData, readOnly, onRegist
     return buildScene(api.getSceneElements(), api.getAppState(), api.getFiles())
   }, [])
 
+  /**
+   * Excalidraw fires `onChange` from `componentDidUpdate`, i.e. once per React
+   * commit — every frame while a pointer is down. `saveWhiteboardDraft` is a
+   * `JSON.stringify` plus a *synchronous* `sessionStorage.setItem`, so on a
+   * board carrying a pasted screenshot that was megabytes of blocking
+   * main-thread work per frame. Throttle it; force a write at the points where
+   * the draft actually has to be current (drag end, unmount, page unload).
+   */
+  const saveDraft = useCallback((scene: ExcalidrawScene, options?: { force?: boolean }) => {
+    const now = Date.now()
+    if (!options?.force && now - lastDraftSaveRef.current < DRAFT_SAVE_INTERVAL_MS) return
+    lastDraftSaveRef.current = now
+    saveWhiteboardDraft(whiteboardIdRef.current, scene)
+  }, [])
+
   const flushSave = useCallback(async () => {
     if (debounceRef.current) {
       clearTimeout(debounceRef.current)
@@ -228,7 +237,7 @@ export function WhiteboardCanvas({ whiteboardId, initialData, readOnly, onRegist
         files as Record<string, unknown>,
       )
       latestSceneRef.current = scene
-      saveWhiteboardDraft(whiteboardIdRef.current, scene)
+      saveDraft(scene)
 
       const isDragging =
         typeof appState === 'object' &&
@@ -245,6 +254,7 @@ export function WhiteboardCanvas({ whiteboardId, initialData, readOnly, onRegist
       } else if (wasDraggingRef.current) {
         wasDraggingRef.current = false
         lastSaveRef.current = Date.now()
+        saveDraft(scene, { force: true })
         void persistScene(scene, whiteboardIdRef.current)
         // Clear debounce to prevent duplicate POST after drag ends
         if (debounceRef.current) {
@@ -257,7 +267,7 @@ export function WhiteboardCanvas({ whiteboardId, initialData, readOnly, onRegist
         void persistScene(scene, whiteboardIdRef.current)
       }, 1000)
     },
-    [persistScene],
+    [persistScene, saveDraft],
   )
 
   useEffect(() => {
@@ -269,7 +279,12 @@ export function WhiteboardCanvas({ whiteboardId, initialData, readOnly, onRegist
       }
       const scene = latestSceneRef.current ?? getSceneFromApi()
       if (scene && !readOnlyRef.current) {
-        updateWhiteboardKeepalive(idAtMount, scene)
+        // Force the draft: the throttle means the stored copy can be up to
+        // DRAFT_SAVE_INTERVAL_MS stale, and this is a recovery point.
+        saveWhiteboardDraft(idAtMount, scene)
+        if (isSceneSafeToPersist(scene, knownNonEmptyRef.current)) {
+          updateWhiteboardKeepalive(idAtMount, scene)
+        }
         void persistScene(scene, idAtMount, { silent: true, force: true }).catch(() => {})
       }
     }
@@ -279,7 +294,10 @@ export function WhiteboardCanvas({ whiteboardId, initialData, readOnly, onRegist
     const saveOnPageUnload = () => {
       const scene = latestSceneRef.current ?? getSceneFromApi()
       if (scene && !readOnlyRef.current) {
-        updateWhiteboardKeepalive(whiteboardIdRef.current, scene)
+        saveWhiteboardDraft(whiteboardIdRef.current, scene)
+        if (isSceneSafeToPersist(scene, knownNonEmptyRef.current)) {
+          updateWhiteboardKeepalive(whiteboardIdRef.current, scene)
+        }
       }
     }
     window.addEventListener('beforeunload', saveOnPageUnload)

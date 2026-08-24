@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 import { appendCurrentHash } from '@/features/whiteboards/excalidraw-library-url'
 import { useCreateWhiteboardMutation, useWhiteboardsQuery } from '@/features/whiteboards/hooks/use-whiteboards'
-import type { Whiteboard } from '@/features/whiteboards/types'
+import type { WhiteboardSummary } from '@/features/whiteboards/types'
 
 const LAST_WHITEBOARD_KEY = 'dw-last-whiteboard-id'
 
@@ -77,13 +77,13 @@ export function useWhiteboardsSelection({ initialWhiteboardId }: UseWhiteboardsS
     pathname,
   ])
 
-  const selectedWhiteboard = useMemo<Whiteboard | null>(
+  const selectedWhiteboard = useMemo<WhiteboardSummary | null>(
     () => whiteboards.find((w) => w.id === selectedWhiteboardId) ?? null,
     [whiteboards, selectedWhiteboardId],
   )
 
   const selectWhiteboard = useCallback(
-    (whiteboard: Whiteboard) => {
+    (whiteboard: WhiteboardSummary) => {
       setSelectedWhiteboardId(whiteboard.id)
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(LAST_WHITEBOARD_KEY, whiteboard.id)

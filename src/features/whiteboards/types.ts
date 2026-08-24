@@ -17,6 +17,16 @@ export interface Whiteboard {
   updatedAt: string
 }
 
+/**
+ * A whiteboard row as returned by the LIST endpoint (`GET /whiteboards`).
+ *
+ * The list deliberately omits `content`: an Excalidraw scene is capped at
+ * 2 MB server-side, so shipping it for every board turned a sidebar fetch
+ * into a multi-megabyte response. Scene content comes from the detail
+ * query (`GET /whiteboards/:id`) only — never off a list row.
+ */
+export type WhiteboardSummary = Omit<Whiteboard, 'content'>
+
 export interface WhiteboardWithAccess {
   whiteboard: Whiteboard
   readOnly: boolean

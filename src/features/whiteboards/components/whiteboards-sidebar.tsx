@@ -14,11 +14,11 @@ import {
   useUpdateWhiteboardMutation,
   useWhiteboardsQuery,
 } from '../hooks/use-whiteboards'
-import type { Whiteboard } from '../types'
+import type { WhiteboardSummary } from '../types'
 
 interface WhiteboardsSidebarProps {
   selectedWhiteboardId: string | null
-  onSelectWhiteboard: (whiteboard: Whiteboard) => void
+  onSelectWhiteboard: (whiteboard: WhiteboardSummary) => void
   /** Called when the currently selected whiteboard was deleted. */
   onAfterDeleteSelected?: () => void
   className?: string
@@ -79,13 +79,13 @@ export function WhiteboardsSidebar({
     [updateMutation],
   )
 
-  const startEdit = (wb: Whiteboard, e: React.MouseEvent) => {
+  const startEdit = (wb: WhiteboardSummary, e: React.MouseEvent) => {
     e.stopPropagation()
     setEditingId(wb.id)
     setEditTitle(wb.title || 'Untitled')
   }
 
-  const handleToggleFavorite = (wb: Whiteboard) => {
+  const handleToggleFavorite = (wb: WhiteboardSummary) => {
     updateMutation.mutate({
       id: wb.id,
       data: { isFavorite: !wb.isFavorite },
@@ -121,7 +121,7 @@ export function WhiteboardsSidebar({
     setDeleteConfirmWhiteboardId(null)
   }
 
-  const renderFavoriteRow = (wb: Whiteboard) => {
+  const renderFavoriteRow = (wb: WhiteboardSummary) => {
     const isSelected = selectedWhiteboardId === wb.id
     return (
       <div
@@ -156,7 +156,7 @@ export function WhiteboardsSidebar({
     )
   }
 
-  const renderWhiteboardRow = (wb: Whiteboard) => {
+  const renderWhiteboardRow = (wb: WhiteboardSummary) => {
     const isSelected = selectedWhiteboardId === wb.id
     const isEditing = editingId === wb.id
     return (

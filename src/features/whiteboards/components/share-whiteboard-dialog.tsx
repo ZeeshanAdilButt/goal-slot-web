@@ -11,7 +11,7 @@ import {
   useRevokeWhiteboardShareMutation,
   useWhiteboardShareState,
 } from '@/features/whiteboards/hooks/use-whiteboard-share'
-import type { Whiteboard } from '@/features/whiteboards/types'
+import type { WhiteboardSummary } from '@/features/whiteboards/types'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -24,7 +24,7 @@ import { Input } from '@/components/ui/input'
 import { Loading } from '@/components/ui/loading'
 
 interface ShareWhiteboardDialogProps {
-  whiteboard: Whiteboard
+  whiteboard: WhiteboardSummary
   open: boolean
   onClose: () => void
 }

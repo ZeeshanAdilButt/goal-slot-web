@@ -8,22 +8,35 @@ import {
   SharedWithMeItem,
   UpdateWhiteboardDto,
   Whiteboard,
+  WhiteboardSummary,
 } from '../types'
 
 export const WHITEBOARDS_QUERY_KEY = ['whiteboards']
 export const SHARED_WHITEBOARDS_QUERY_KEY = ['whiteboards', 'shared-with-me']
 
+/** Ids of not-yet-created boards held optimistically in the list cache. */
+export function isOptimisticWhiteboardId(id: string): boolean {
+  return id.startsWith('tmp_')
+}
+
+/**
+ * The list. Rows are metadata only — `content` is not returned by the API
+ * and must never be read here. Use `useWhiteboardQuery` for scene content.
+ */
 export function useWhiteboardsQuery() {
   return useQuery({
     queryKey: WHITEBOARDS_QUERY_KEY,
     queryFn: async () => {
       const { data } = await whiteboardsApi.getAll()
-      return data as Whiteboard[]
+      return data as WhiteboardSummary[]
     },
   })
 }
 
 export function useWhiteboardQuery(id: string | null) {
+  // An optimistic `tmp_` row has no server record yet — querying it is a
+  // guaranteed 404 and would leave the caller's loading state unresolved.
+  const enabled = !!id && !isOptimisticWhiteboardId(id)
   return useQuery({
     queryKey: [...WHITEBOARDS_QUERY_KEY, id],
     queryFn: async () => {
@@ -31,7 +44,7 @@ export function useWhiteboardQuery(id: string | null) {
       const { data } = await whiteboardsApi.getOne(id)
       return data as { whiteboard: Whiteboard; readOnly: boolean }
     },
-    enabled: !!id,
+    enabled,
     staleTime: 0,
     refetchOnMount: 'always',
   })
@@ -57,13 +70,12 @@ export function useCreateWhiteboardMutation() {
     },
     onMutate: async (data) => {
       await queryClient.cancelQueries({ queryKey: WHITEBOARDS_QUERY_KEY })
-      const previous = queryClient.getQueryData<Whiteboard[]>(WHITEBOARDS_QUERY_KEY)
+      const previous = queryClient.getQueryData<WhiteboardSummary[]>(WHITEBOARDS_QUERY_KEY)
       const tmpId = `tmp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
       const now = new Date().toISOString()
-      const optimistic: Whiteboard = {
+      const optimistic: WhiteboardSummary = {
         id: tmpId,
         title: data.title,
-        content: null,
         icon: data.icon,
         color: data.color,
         isFavorite: false,
@@ -71,15 +83,16 @@ export function useCreateWhiteboardMutation() {
         updatedAt: now,
         userId: '',
       }
-      queryClient.setQueryData<Whiteboard[]>(WHITEBOARDS_QUERY_KEY, (prev) => [...(prev ?? []), optimistic])
+      queryClient.setQueryData<WhiteboardSummary[]>(WHITEBOARDS_QUERY_KEY, (prev) => [...(prev ?? []), optimistic])
       return { previous, tmpId }
     },
     onSuccess: (newWhiteboard, _vars, context) => {
-      queryClient.setQueryData<Whiteboard[]>(WHITEBOARDS_QUERY_KEY, (prev) => {
+      const { content: _content, ...summary } = newWhiteboard
+      queryClient.setQueryData<WhiteboardSummary[]>(WHITEBOARDS_QUERY_KEY, (prev) => {
         if (!prev) return prev
         const tmpId = context?.tmpId
-        if (!tmpId) return [...prev.filter((w) => w.id !== newWhiteboard.id), newWhiteboard]
-        return prev.map((w) => (w.id === tmpId ? newWhiteboard : w))
+        if (!tmpId) return [...prev.filter((w) => w.id !== summary.id), summary]
+        return prev.map((w) => (w.id === tmpId ? summary : w))
       })
       queryClient.invalidateQueries({ queryKey: WHITEBOARDS_QUERY_KEY, refetchType: 'inactive' })
     },
@@ -103,15 +116,18 @@ export function useUpdateWhiteboardMutation() {
     onMutate: async ({ id, data }) => {
       await queryClient.cancelQueries({ queryKey: WHITEBOARDS_QUERY_KEY })
       const detailKey = [...WHITEBOARDS_QUERY_KEY, id] as const
-      const previousList = queryClient.getQueryData<Whiteboard[]>(WHITEBOARDS_QUERY_KEY)
+      const previousList = queryClient.getQueryData<WhiteboardSummary[]>(WHITEBOARDS_QUERY_KEY)
       const previousDetail = queryClient.getQueryData<{ whiteboard: Whiteboard; readOnly: boolean }>(
         detailKey,
       )
       const previousShared = queryClient.getQueryData<SharedWithMeItem[]>(SHARED_WHITEBOARDS_QUERY_KEY)
 
-      queryClient.setQueryData<Whiteboard[]>(WHITEBOARDS_QUERY_KEY, (prev) => {
+      // Metadata only: `content` is not part of a list row. `data` may carry a
+      // scene when a caller updates content, so strip it before merging.
+      const { content: _content, ...listPatch } = data
+      queryClient.setQueryData<WhiteboardSummary[]>(WHITEBOARDS_QUERY_KEY, (prev) => {
         if (!prev) return prev
-        return prev.map((w) => (w.id === id ? { ...w, ...data } : w))
+        return prev.map((w) => (w.id === id ? { ...w, ...listPatch } : w))
       })
 
       queryClient.setQueryData<{ whiteboard: Whiteboard; readOnly: boolean }>(detailKey, (prev) => {
