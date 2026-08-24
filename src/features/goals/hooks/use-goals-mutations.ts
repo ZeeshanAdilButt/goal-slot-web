@@ -1,6 +1,8 @@
 import { goalQueries } from '@/features/goals/utils/queries'
 import { CreateGoalForm, Goal, GoalFilters, UpdateGoalForm } from '@/features/goals/utils/types'
 import { labelQueries } from '@/features/labels'
+import { capture } from '@/utils/posthog/capture'
+import { Events } from '@/utils/posthog/events'
 import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
 
 import { useOfflineMutation } from '@/hooks/use-offline-mutation'
@@ -94,6 +96,12 @@ export function useCreateGoalMutation() {
       offline: 'Goal saved offline',
       success: 'Goal created',
       error: 'Failed to create goal',
+    },
+    onServerSuccess: (_result, data) => {
+      capture(Events.GOAL_CREATED, {
+        category: data.category ?? undefined,
+        hasDeadline: Boolean(data.deadline),
+      })
     },
   })
 }

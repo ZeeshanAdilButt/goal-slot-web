@@ -4,6 +4,8 @@ import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 
+import { capture } from '@/utils/posthog/capture'
+import { Events } from '@/utils/posthog/events'
 import { useMutation } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, Dice6, Eye, EyeOff, Lock, Mail, User } from 'lucide-react'
@@ -69,6 +71,8 @@ function SignupForm() {
     },
     onSuccess: async () => {
       toast.success('Account created successfully!')
+      capture(Events.AUTH_SIGNUP_COMPLETED)
+
       if (redirect) {
         router.push(redirect)
         return

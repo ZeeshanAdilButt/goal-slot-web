@@ -1,8 +1,10 @@
-import { focusQueries } from '@/features/reports/hooks/use-focus-time-entries'
 import { goalQueries } from '@/features/goals/utils/queries'
+import { focusQueries } from '@/features/reports/hooks/use-focus-time-entries'
 import { taskQueries } from '@/features/tasks/utils/queries'
 import { timeTrackerQueries } from '@/features/time-tracker/utils/queries'
 import { CreateTimeEntryPayload, TimeEntry, UpdateTimeEntryPayload } from '@/features/time-tracker/utils/types'
+import { capture } from '@/utils/posthog/capture'
+import { Events } from '@/utils/posthog/events'
 import { useQueryClient } from '@tanstack/react-query'
 
 import { useOfflineMutation } from '@/hooks/use-offline-mutation'
@@ -67,6 +69,11 @@ export function useCreateTimeEntry() {
       success: 'Time entry saved!',
       error: (err) =>
         isPlanLimitError(err) ? { message: PLAN_LIMIT_MESSAGE, duration: 10000 } : 'Failed to save entry',
+    },
+    onServerSuccess: (_result, payload) => {
+      capture(Events.TRACK_STARTED, {
+        source: payload.taskId ? 'task' : payload.goalId ? 'goal' : 'adhoc',
+      })
     },
   })
 }

@@ -5,6 +5,8 @@ import { ReactNode, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import posthog from 'posthog-js'
+import { PostHogProvider } from 'posthog-js/react'
 
 import { initOfflineSync } from '@/lib/offline/sync'
 import { queryClient } from '@/lib/query-client'
@@ -62,20 +64,22 @@ function QuerySyncInitializer() {
 
 export function ReactQueryProvider({ children }: ReactQueryProviderProps) {
   return (
-    <PersistQueryClientProvider
-      client={queryClient}
-      persistOptions={{
-        persister: queryPersister,
-        maxAge: PERSIST_MAX_AGE,
-        dehydrateOptions: {
-          shouldDehydrateQuery,
-        },
-      }}
-    >
-      <OfflineSyncInitializer />
-      <QuerySyncInitializer />
-      {children}
-      {isDev && <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />}
-    </PersistQueryClientProvider>
+    <PostHogProvider client={posthog}>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{
+          persister: queryPersister,
+          maxAge: PERSIST_MAX_AGE,
+          dehydrateOptions: {
+            shouldDehydrateQuery,
+          },
+        }}
+      >
+        <OfflineSyncInitializer />
+        <QuerySyncInitializer />
+        {children}
+        {isDev && <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />}
+      </PersistQueryClientProvider>
+    </PostHogProvider>
   )
 }

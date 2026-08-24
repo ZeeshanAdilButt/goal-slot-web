@@ -1,5 +1,7 @@
 import { taskQueries } from '@/features/tasks/utils/queries'
 import { CreateTaskForm, Task, TaskStatus } from '@/features/tasks/utils/types'
+import { capture } from '@/utils/posthog/capture'
+import { Events } from '@/utils/posthog/events'
 import { useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
@@ -182,6 +184,9 @@ export function useCompleteTaskMutation() {
       offline: 'Task completion saved offline',
       success: 'Task completed and logged',
       error: 'Failed to complete task',
+    },
+    onServerSuccess: () => {
+      capture(Events.TASK_COMPLETED, { source: 'list' })
     },
   })
 }

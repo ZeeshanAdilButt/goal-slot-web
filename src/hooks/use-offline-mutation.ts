@@ -35,6 +35,14 @@ export interface OfflineMutationConfig<TVars, TContext, TResult = unknown> {
   rollback?: (context: TContext | undefined) => void
   invalidateKeys?: QueryKey[]
   messages?: { offline?: string; success?: string; error?: string | ((err: unknown) => MutationErrorMessage) }
+  // Side effects to run once the server has actually accepted the mutation.
+  // Deliberately NOT called when the mutation was only queued to the outbox
+  // while offline: analytics and similar consumers should describe what the
+  // backend really has, not what is still sitting in the outbox. Note that the
+  // outbox drain calls operation.execute() directly, so a queued mutation
+  // never fires this hook at all -- undercounting offline work is the
+  // intended trade-off versus counting writes that may never land.
+  onServerSuccess?: (result: TResult, vars: TVars) => void
 }
 
 interface InternalVars<TVars> {
@@ -91,12 +99,13 @@ export function useOfflineMutation<TVars, TContext = unknown, TResult = unknown>
       const ctx = config.optimisticUpdate?.(vars, meta, payload)
       return (ctx ?? {}) as TContext
     },
-    onSuccess: (result) => {
+    onSuccess: (result, { vars }) => {
       config.invalidateKeys?.forEach((key) => queryClient.invalidateQueries({ queryKey: key }))
       if (isQueued(result)) {
         if (config.messages?.offline) toast.success(config.messages.offline)
-      } else if (config.messages?.success) {
-        toast.success(config.messages.success)
+      } else {
+        if (config.messages?.success) toast.success(config.messages.success)
+        config.onServerSuccess?.(result as TResult, vars)
       }
     },
     onError: (err, _vars, context) => {
