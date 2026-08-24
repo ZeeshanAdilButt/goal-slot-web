@@ -14,20 +14,6 @@ import { useAuthStore } from '@/lib/store'
 import { GoogleIcon } from '@/components/ui/google-icon'
 import { Loading } from '@/components/ui/loading'
 
-/**
- * Origin of the DW Platform that serves the SSO handoff at `/auth/sso`.
- *
- * `NEXT_PUBLIC_` variables are inlined by Next at build time, so an unset
- * variable becomes the literal `undefined` in the bundle rather than
- * failing at runtime. Reading it once here, and treating anything falsy as
- * "SSO is not configured", is what keeps the button off the page instead of
- * sending people to `undefined/auth/sso`, which resolves against the current
- * origin and 404s.
- *
- * The trailing slash is trimmed so the value works whether or not whoever
- * set it included one.
- */
-const DW_SSO_URL = (process.env.NEXT_PUBLIC_DW_SSO_URL ?? '').trim().replace(/\/+$/, '')
 
 function LoginForm() {
   const router = useRouter()
@@ -54,19 +40,6 @@ function LoginForm() {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const handleSSOLogin = () => {
-    // Belt and braces: the button below only renders when DW_SSO_URL is set,
-    // but the handler refuses to build a URL without it either, so no code
-    // path can navigate to `undefined/auth/sso`.
-    if (!DW_SSO_URL) {
-      toast.error('SSO is not configured for this environment')
-      return
-    }
-
-    const returnUrl = `${window.location.origin}/auth/callback`
-    window.location.href = `${DW_SSO_URL}/auth/sso?redirect=${encodeURIComponent(returnUrl)}`
   }
 
   const handleGoogleLogin = () => {
@@ -160,27 +133,6 @@ function LoginForm() {
               Continue with Google
             </button>
           </form>
-
-          {/* Only rendered when NEXT_PUBLIC_DW_SSO_URL is set at build time.
-              An environment without it gets the email and password form and
-              nothing else, rather than a button that dead ends on a 404. */}
-          {DW_SSO_URL && (
-            <>
-              <div className="my-6 flex items-center gap-3">
-                <span className="h-px flex-1 bg-zinc-200" />
-                <span className="font-mono text-xs font-bold uppercase text-zinc-400">Or</span>
-                <span className="h-px flex-1 bg-zinc-200" />
-              </div>
-
-              <button
-                type="button"
-                onClick={handleSSOLogin}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-900 transition-colors hover:bg-zinc-50"
-              >
-                Sign in with SSO
-              </button>
-            </>
-          )}
 
           <p className="mt-6 text-center font-mono text-sm">
             Don't have an account?{' '}
