@@ -4,8 +4,21 @@ import { TimeEntry } from '@/features/time-tracker/utils/types'
 import { useQuery } from '@tanstack/react-query'
 
 import { timeEntriesApi } from '@/lib/api'
+import { useAuthStore } from '@/lib/store'
 
-export const DAILY_STREAK_GOAL = 30
+/**
+ * Fallback for the per-user daily focus goal, in minutes.
+ *
+ * This used to be `DAILY_STREAK_GOAL = 30` and was the goal itself, which
+ * meant anyone tracking real hours cleared it before breakfast -- the card
+ * read "304 / 30 min today" and the bar sat at 100% every day. The goal now
+ * lives on the user (`User.dailyFocusGoalMinutes`, API default 240).
+ *
+ * The constant survives only as a fallback for the window where the browser
+ * holds a persisted user object minted before the API shipped that field.
+ * It matches the server default so the card reads the same either way.
+ */
+export const DEFAULT_DAILY_FOCUS_GOAL_MINUTES = 240
 
 const STREAK_LOOKBACK_DAYS = 366
 
@@ -111,7 +124,21 @@ const fetchFocusStreakEntries = async (): Promise<StreakTimeEntry[]> => {
   return Array.isArray(res.data) ? res.data : []
 }
 
+/**
+ * Resolves the goal the streak is measured against.
+ *
+ * Guards the value rather than trusting it: a persisted user object can
+ * predate the field entirely, and a zero or negative would divide the
+ * progress bar by zero.
+ */
+export const resolveDailyGoalMinutes = (goalFromUser: number | undefined): number =>
+  typeof goalFromUser === 'number' && Number.isFinite(goalFromUser) && goalFromUser > 0
+    ? goalFromUser
+    : DEFAULT_DAILY_FOCUS_GOAL_MINUTES
+
 export function useFocusStreak(): FocusStreakResult {
+  const dailyGoalMinutes = useAuthStore((state) => resolveDailyGoalMinutes(state.user?.dailyFocusGoalMinutes))
+
   const query = useQuery({
     queryKey: ['dashboard', 'focus-streak'],
     queryFn: fetchFocusStreakEntries,
@@ -125,20 +152,20 @@ export function useFocusStreak(): FocusStreakResult {
   const dailyTotals = buildDailyTotals(entries)
   const successfulDays = new Set(
     Array.from(dailyTotals.entries())
-      .filter(([, minutes]) => minutes >= DAILY_STREAK_GOAL)
+      .filter(([, minutes]) => minutes >= dailyGoalMinutes)
       .map(([date]) => date),
   )
 
   const todayMinutesTracked = dailyTotals.get(todayKey) ?? 0
-  const minutesRemainingToday = Math.max(DAILY_STREAK_GOAL - todayMinutesTracked, 0)
+  const minutesRemainingToday = Math.max(dailyGoalMinutes - todayMinutesTracked, 0)
   const showMotivation = minutesRemainingToday > 0 && minutesRemainingToday <= 5
 
   return {
     currentStreak: calculateCurrentStreak(successfulDays, today),
     bestStreak: calculateBestStreak(successfulDays),
     todayMinutesTracked,
-    dailyGoalMinutes: DAILY_STREAK_GOAL,
-    todayProgressPercent: Math.min((todayMinutesTracked / DAILY_STREAK_GOAL) * 100, 100),
+    dailyGoalMinutes,
+    todayProgressPercent: Math.min((todayMinutesTracked / dailyGoalMinutes) * 100, 100),
     minutesRemainingToday,
     showMotivation,
     motivationalMessage: showMotivation

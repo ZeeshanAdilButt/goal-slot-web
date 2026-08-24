@@ -11,9 +11,10 @@ import { Brain, Check, CreditCard, Crown, Download, Eye, EyeOff, Key, KeyRound, 
 import { toast } from 'react-hot-toast'
 
 import { authApi, stripeApi, usersApi } from '@/lib/api'
+import { DEFAULT_DAILY_FOCUS_GOAL_MINUTES } from '@/features/dashboard/hooks/useFocusStreak'
 import { useAuthStore } from '@/lib/store'
 import { useThemeStore } from '@/lib/use-theme'
-import { cn } from '@/lib/utils'
+import { cn, formatDuration } from '@/lib/utils'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
 import { PageHeader } from '@/components/ui/page-header'
 import { PageShell } from '@/components/ui/page-shell'
@@ -274,6 +275,8 @@ function ProfileSettings() {
         </div>
       </div>
 
+      <FocusGoalSettings />
+
       {/* Account Type */}
       <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-xl font-bold uppercase">Account Type</h2>
@@ -306,6 +309,124 @@ function ProfileSettings() {
         <EnablePushNotificationsButton />
       </div>
     </motion.div>
+  )
+}
+
+// Daily Focus Goal
+//
+// The threshold the dashboard Focus Streak card measures each day against.
+// It used to be a hardcoded 30 minutes, which anyone tracking real hours
+// cleared before breakfast -- so the streak never broke and measured nothing.
+//
+// Stored and sent in minutes, matching TimeEntry.duration and the API column.
+// Minutes are also what people reach for when they want 90 or 200, so the
+// input stays in minutes and an hours-and-minutes hint sits underneath rather
+// than splitting this into two fields.
+//
+// The bounds mirror the API's validation (15-1440). 240 is the default, NOT a
+// floor: a hard 4h minimum would lock out anyone who tracks an hour a day.
+const FOCUS_GOAL_MIN_MINUTES = 15
+const FOCUS_GOAL_MAX_MINUTES = 1440
+const FOCUS_GOAL_PRESETS = [60, 120, 240, 360]
+
+function FocusGoalSettings() {
+  const { user, setUser } = useAuthStore()
+  const savedGoalMinutes = user?.dailyFocusGoalMinutes ?? DEFAULT_DAILY_FOCUS_GOAL_MINUTES
+
+  const [goalInput, setGoalInput] = useState(String(savedGoalMinutes))
+  const [isLoading, setIsLoading] = useState(false)
+
+  const parsedGoal = Number(goalInput)
+  const isValid =
+    goalInput.trim() !== '' &&
+    Number.isInteger(parsedGoal) &&
+    parsedGoal >= FOCUS_GOAL_MIN_MINUTES &&
+    parsedGoal <= FOCUS_GOAL_MAX_MINUTES
+  const hasChanged = isValid && parsedGoal !== savedGoalMinutes
+
+  const handleSave = async () => {
+    if (!hasChanged) return
+
+    setIsLoading(true)
+    try {
+      const res = await usersApi.updateProfile({ dailyFocusGoalMinutes: parsedGoal })
+      setUser(res.data)
+      toast.success(`Daily focus goal set to ${formatDuration(parsedGoal)}`)
+    } catch (error) {
+      toast.error('Failed to update focus goal')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <h2 className="mb-1 text-xl font-bold uppercase">Daily Focus Goal</h2>
+      <p className="mb-5 text-xs text-zinc-500">
+        How much focused time counts as a win. Your dashboard streak keeps going for every day you hit it.
+      </p>
+
+      <div className="space-y-4">
+        <div>
+          <label htmlFor="daily-focus-goal" className="mb-2 block text-sm font-bold uppercase">
+            Minutes per day
+          </label>
+          <input
+            id="daily-focus-goal"
+            type="number"
+            inputMode="numeric"
+            min={FOCUS_GOAL_MIN_MINUTES}
+            max={FOCUS_GOAL_MAX_MINUTES}
+            step={5}
+            value={goalInput}
+            onChange={(e) => setGoalInput(e.target.value)}
+            aria-invalid={!isValid}
+            aria-describedby="daily-focus-goal-hint"
+            className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm transition-colors placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] sm:max-w-[200px]"
+          />
+          <p
+            id="daily-focus-goal-hint"
+            className={cn('mt-1 font-mono text-xs', isValid ? 'text-gray-500' : 'text-rose-600')}
+          >
+            {isValid
+              ? `That's ${formatDuration(parsedGoal)} a day`
+              : `Pick between ${FOCUS_GOAL_MIN_MINUTES} minutes and ${formatDuration(FOCUS_GOAL_MAX_MINUTES)}`}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {FOCUS_GOAL_PRESETS.map((preset) => {
+            const isActive = isValid && parsedGoal === preset
+            return (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => setGoalInput(String(preset))}
+                aria-pressed={isActive}
+                className={cn(
+                  'rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all',
+                  isActive
+                    ? 'border-[#f2cc0d] bg-[#fffbea] text-zinc-900 ring-2 ring-[#f2cc0d]/40'
+                    : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:text-zinc-900',
+                )}
+              >
+                {formatDuration(preset)}
+              </button>
+            )
+          })}
+        </div>
+
+        <div className="pt-2">
+          <button
+            onClick={handleSave}
+            disabled={!hasChanged || isLoading}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50"
+          >
+            {isLoading ? 'Saving...' : 'Save Goal'}
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
