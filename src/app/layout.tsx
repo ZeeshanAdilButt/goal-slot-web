@@ -26,6 +26,12 @@ export const metadata: Metadata = {
   description: 'Track your hours, see real progress, and level up. The productivity stack for developers and learners.',
   keywords: ['productivity', 'time tracking', 'goals', 'developer', 'learning', 'progress tracking'],
   authors: [{ name: 'GoalSlot' }],
+  // Proves domain ownership to Google Search Console, which Google OAuth
+  // verification requires before it will show our branding on the consent
+  // screen. Do not remove, verification is rechecked periodically.
+  verification: {
+    google: 'T7mpu0TGB7h3VkL4URpNT9aIqcIVpZD174N08Uqru_E',
+  },
   icons: {
     icon: '/icons/goalslot-logo-boxed.svg',
     shortcut: '/icons/goalslot-logo-boxed.svg',
