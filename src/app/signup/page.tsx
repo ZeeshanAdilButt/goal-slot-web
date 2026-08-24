@@ -40,14 +40,6 @@ function SignupForm() {
 
   const register = useAuthStore((state) => state.register)
 
-  // Check email exists mutation
-  const checkEmailMutation = useMutation({
-    mutationFn: async (email: string) => {
-      const response = await authApi.checkEmailExists(email)
-      return response.data
-    },
-  })
-
   // Send OTP mutation
   const sendOTPMutation = useMutation({
     mutationFn: async (email: string) => {
@@ -60,6 +52,14 @@ function SignupForm() {
       setResendCooldown(60)
     },
     onError: (error: any) => {
+      // The API rejects a SIGNUP OTP for an address that already has an
+      // account with a 409. Keep the actionable copy the removed client-side
+      // checkEmailExists pre-check used to show, so a returning user is still
+      // pointed at login rather than just told the email is taken.
+      if (error?.response?.status === 409) {
+        toast.error('Email already registered. Please login instead.')
+        return
+      }
       toast.error(error.response?.data?.message || 'Failed to send verification code')
     },
   })
@@ -107,13 +107,6 @@ function SignupForm() {
 
     if (password.length < 8) {
       toast.error('Password must be at least 8 characters')
-      return
-    }
-
-    // Check if email exists
-    const emailCheck = await checkEmailMutation.mutateAsync(email)
-    if (emailCheck.exists) {
-      toast.error('Email already registered. Please login instead.')
       return
     }
 
@@ -356,10 +349,10 @@ function SignupForm() {
 
                 <button
                   type="submit"
-                  disabled={sendOTPMutation.isPending || checkEmailMutation.isPending}
+                  disabled={sendOTPMutation.isPending}
                   className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50"
                 >
-                  {sendOTPMutation.isPending || checkEmailMutation.isPending ? (
+                  {sendOTPMutation.isPending ? (
                     <Loading size="sm" className="h-5 w-5" />
                   ) : (
                     <>

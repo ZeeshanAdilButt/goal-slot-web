@@ -79,6 +79,11 @@ export interface User {
   userType: 'INTERNAL' | 'EXTERNAL' | 'SSO'
   plan: 'FREE' | 'BASIC' | 'PRO'
   unlimitedAccess: boolean
+  // Threshold the dashboard Focus Streak card measures the day against.
+  // Optional on the client only because a browser can be holding a persisted
+  // user object minted before the API shipped this field; useFocusStreak
+  // falls back to DEFAULT_DAILY_FOCUS_GOAL_MINUTES when it is missing.
+  dailyFocusGoalMinutes?: number
   subscriptionStatus?: string
   subscriptionEndDate?: string | null
   preferences?: {
