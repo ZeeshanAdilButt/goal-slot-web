@@ -103,15 +103,11 @@ export function ExcalidrawCanvasInner({
     async (tokens: LibraryTokens, source: 'url' | 'sessionStorage') => {
       if (!excalidrawAPI || importInFlightRef.current) return
 
-      // importInFlightRef.current = true
-      console.log(`[Excalidraw] addLibrary param found in ${source}:`, tokens.libraryUrl)
+      importInFlightRef.current = true
 
       try {
         const libraryUrl = decodeURIComponent(tokens.libraryUrl)
         const libraryItems = await fetchLibraryItems(libraryUrl)
-
-        console.log('[Excalidraw] fetched library data:', libraryItems)
-        console.log('[Excalidraw] calling updateLibrary with', libraryItems.length, 'items')
 
         await excalidrawAPI.updateLibrary({
           libraryItems,
@@ -124,14 +120,14 @@ export function ExcalidrawCanvasInner({
         sessionStorage.removeItem(PENDING_LIBRARY_KEY)
       } catch (err) {
         console.error('[Excalidraw] Failed to load library:', err)
-        importInFlightRef.current = false
+
         try {
           sessionStorage.setItem(PENDING_LIBRARY_KEY, JSON.stringify(tokens))
         } catch {
           // ignore
-        } finally {
-          importInFlightRef.current = false
         }
+      } finally {
+        importInFlightRef.current = false
       }
     },
     [excalidrawAPI],
