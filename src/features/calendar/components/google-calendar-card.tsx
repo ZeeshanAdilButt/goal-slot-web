@@ -146,8 +146,20 @@ export function GoogleCalendarCard() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={disconnect.isPending}>Cancel</AlertDialogCancel>
+            {/*
+              Radix composes AlertDialogAction with DialogPrimitive.Close, so a
+              plain onClick would close the dialog the instant it is pressed -
+              before the request resolves. That would flash the "Disconnecting..."
+              label away immediately, make `disabled` useless against a
+              double-press, and pop any failure toast over an already-dismissed
+              dialog. Preventing the default close lets handleDisconnect own the
+              dismissal, and it only dismisses on success.
+            */}
             <AlertDialogAction
-              onClick={handleDisconnect}
+              onClick={(event) => {
+                event.preventDefault()
+                void handleDisconnect()
+              }}
               className="bg-rose-500 text-white hover:bg-rose-600 disabled:opacity-50"
               disabled={disconnect.isPending}
             >
