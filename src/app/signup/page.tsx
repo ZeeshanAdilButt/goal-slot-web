@@ -144,33 +144,47 @@ function SignupForm() {
     }
   }, [resendCooldown])
   // Password generator
-  function generateStrongPassword(): string {
-    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    const lowercase = 'abcdefghijklmnopqrstuvwxyz'
-    const numbers = '0123456789'
-    const symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?'
-    const all = uppercase + lowercase + numbers + symbols
+ function generateStrongPassword(): string {
+  const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  const lowercase = 'abcdefghijklmnopqrstuvwxyz'
+  const numbers = '0123456789'
+  const symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?'
+  const all = uppercase + lowercase + numbers + symbols
 
-    // Ensure at least one of each type
-    const password = [
-      uppercase[Math.floor(Math.random() * uppercase.length)],
-      uppercase[Math.floor(Math.random() * uppercase.length)],
-      lowercase[Math.floor(Math.random() * lowercase.length)],
-      lowercase[Math.floor(Math.random() * lowercase.length)],
-      numbers[Math.floor(Math.random() * numbers.length)],
-      numbers[Math.floor(Math.random() * numbers.length)],
-      symbols[Math.floor(Math.random() * symbols.length)],
-      symbols[Math.floor(Math.random() * symbols.length)],
-    ]
-
-    // Fill remaining to reach 16 characters
-    for (let i = password.length; i < 16; i++) {
-      password.push(all[Math.floor(Math.random() * all.length)])
-    }
-
-    // Shuffle the array
-    return password.sort(() => Math.random() - 0.5).join('')
+  // Using crypto.getRandomValues 
+  const pick = (charset: string): string => {
+    const buf = new Uint32Array(1)
+    crypto.getRandomValues(buf)
+    return charset[buf[0] % charset.length]
   }
+
+  // Ensure at least one of each type
+  const password: string[] = [
+    pick(uppercase),
+    pick(uppercase),
+    pick(lowercase),
+    pick(lowercase),
+    pick(numbers),
+    pick(numbers),
+    pick(symbols),
+    pick(symbols),
+  ]
+
+  // Fill remaining to reach 16 characters
+  for (let i = password.length; i < 16; i++) {
+    password.push(pick(all))
+  }
+
+  // using Fisher-Yates shuffle
+  for (let i = password.length - 1; i > 0; i--) {
+    const buf = new Uint32Array(1)
+    crypto.getRandomValues(buf)
+    const j = buf[0] % (i + 1)
+    ;[password[i], password[j]] = [password[j], password[i]]
+  }
+
+  return password.join('')
+}
 
   // Password strength checker
   function getPasswordStrength(pwd: string): {
