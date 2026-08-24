@@ -9,7 +9,6 @@ If your todo list is in one app, your calendar in another, your time tracking in
 - **Backend repo:** [goal-slot-api](https://github.com/ZeeshanAdilButt/goal-slot-api)
 
 ## What it does
-
 | Module | What it covers |
 |---|---|
 | **Goals** | Kanban-style goals with deadlines, progress, categories, labels, and linked tasks |
@@ -20,13 +19,12 @@ If your todo list is in one app, your calendar in another, your time tracking in
 | **Coach AI** | Optional Socratic layer using your own OpenAI, Anthropic, or Gemini key (BYOK), with a shared fallback for users without a key |
 | **Reports** | Daily, weekly, and monthly focus charts and CSV exports |
 | **Sharing** | Per-goal and per-report public links plus email invites |
-| **Integrations** | Notion (in progress, [#190](https://github.com/ZeeshanAdilButt/goal-slot-web/issues/190)),
-| **Whiteboards** | FigJam style infinite canvas with sticky notes, shapes, freehand drawing, text, image upload, autosave, public link sharing, and email invites. Public viewer at `/w/[token]`. Mobile read-only.
- | `goalslot` CLI (open scope, [api#27](https://github.com/ZeeshanAdilButt/goal-slot-api/issues/27)) |
+| **Integrations** | Notion (in progress, [#190](https://github.com/ZeeshanAdilButt/goal-slot-web/issues/190)) |
+| **Whiteboards** | FigJam style infinite canvas with sticky notes, shapes, freehand drawing, text, image upload, autosave, public link sharing, and email invites. Public viewer at `/w/[token]`. Mobile read-only. |
+| `goalslot` CLI (open scope, [api#27](https://github.com/ZeeshanAdilButt/goal-slot-api/issues/27)) | |
 | **Auth** | Email + OTP, Google OAuth (in progress), token refresh, optional Supabase SSO |
 | **PWA** | Installable progressive web app |
 | **Analytics** | Optional PostHog integration |
-
 ## Why open source?
 
 Most productivity tools either own your data or rent it back to you. GoalSlot is open source, self-hostable, and contributor-driven. The roadmap lives on the public issue board, not behind a paywall.
