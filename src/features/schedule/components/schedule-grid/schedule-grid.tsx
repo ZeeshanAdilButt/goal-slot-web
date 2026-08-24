@@ -129,13 +129,20 @@ export function ScheduleGrid({
   const totalBlocks = Object.values(weekSchedule).reduce((sum, blocks) => sum + blocks.length, 0)
   const isEmpty = totalBlocks === 0
 
-  // 'compact' keeps the original ~129px-per-day-column floor (960px total)
-  // so the whole week fits with minimal horizontal scroll. 'comfortable'
-  // raises the floor to ~191px per column (1400px total) — enough for most
-  // real block titles to fit without truncating. overflow-x-auto on the
-  // outer wrapper means both degrade to horizontal scroll on narrow
-  // viewports rather than ever squeezing columns below their floor.
-  const gridMinWidthClass = density === 'comfortable' ? 'min-w-[1400px]' : 'min-w-[960px]'
+  // These are FLOORS, not fixed widths: the day columns are 1fr, so the grid
+  // fills whatever width the page gives it and only scrolls once a column
+  // would fall below the floor. Both floors are (64px time gutter + 7 cols).
+  //
+  // 'compact' keeps the original ~128px-per-column floor (960px total), which
+  // fits the full week beside the 16rem sidebar from ~1280px viewports up.
+  // 'comfortable' uses a ~148px-per-column floor (1100px total) so the week
+  // fits from ~1440px up. It used to be a fixed-feeling 1400px floor, which no
+  // ordinary desktop could satisfy inside the old max-w-6xl page shell, so
+  // comfortable ALWAYS pushed Fri/Sat off behind a horizontal scrollbar. Now
+  // that the shell is full-width, comfortable also grows *past* 1400px on
+  // viewports over ~1720px instead of being pinned there. overflow-x-auto
+  // still catches narrow/tablet/mobile viewports.
+  const gridMinWidthClass = density === 'comfortable' ? 'min-w-[1100px]' : 'min-w-[960px]'
 
   return (
     <div className="overflow-x-auto">

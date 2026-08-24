@@ -99,8 +99,12 @@ export function SchedulePage() {
   }
 
   const totalBlocks = Object.values(weekSchedule).flat().length
+  // width="wide": the 7-day grid is a table-like view, so it gets the full
+  // width beside the sidebar rather than the default 1152px reading column.
+  // Inside that column a full week never fit, so Fri/Sat were clipped while
+  // page margin sat empty on both sides.
   return (
-    <PageShell className="isolate">
+    <PageShell width="wide" className="isolate">
       <PageHeader
         eyebrow="Plan your week"
         title="Schedule"
