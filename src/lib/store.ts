@@ -2,17 +2,67 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 import { authApi } from '@/lib/api'
+import { clearOutbox } from '@/lib/offline/outbox'
 import { queryClient } from '@/lib/query-client'
 import { clearPersistedQueryCache } from '@/lib/query-persister'
+import { useOfflineQueueStore } from '@/lib/use-offline-queue-store'
+import { useTimerStore } from '@/lib/use-timer-store'
 
-// Cleared on login/logout so one user's cached data can't leak into another's session.
-function resetQueryCaches() {
+/**
+ * Wipes every piece of per-user client state that outlives a page load, so one
+ * account's data can't be read - or written - under another account's session.
+ *
+ * There are four such stores, and all four have to go together:
+ *  - the in-memory React Query cache;
+ *  - its dehydrated copy in IndexedDB, which `PersistQueryClientProvider`
+ *    restores on the next mount and would otherwise put the old data straight
+ *    back;
+ *  - the offline outbox, whose entries carry no owner and would replay the
+ *    previous account's queued writes against the new account's token;
+ *  - the timer store, which pins a task/goal/schedule-block id from the
+ *    previous account.
+ *
+ * Note this also covers the messaging JWT: it lives in the React Query cache
+ * (`messagingQueries.token()`), stays fresh for four minutes, and is what
+ * jiffy-messaging authenticates against. Left behind, the new account would
+ * fetch the previous account's conversations *live* - not merely render them
+ * from cache.
+ */
+function resetClientState() {
   try {
     queryClient.clear()
   } catch {
     // ignore
   }
   void clearPersistedQueryCache()
+  void clearOutbox().then(() => {
+    useOfflineQueueStore.getState().setPendingCount(0)
+    useOfflineQueueStore.getState().setLastSyncError(null)
+  })
+  try {
+    useTimerStore.getState().reset()
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * The catch-all guard: any time we learn who the session belongs to, compare it
+ * against who it belonged to a moment ago and wipe the client if they differ.
+ *
+ * This is deliberately the mechanism rather than a `resetClientState()` call
+ * bolted onto each sign-in path. `/auth/callback` (the Google OAuth landing
+ * page) never goes through `login`/`ssoLogin` at all - it calls `setTokens()`
+ * and `loadUser()` directly - which is exactly how it missed the reset the
+ * other paths had. Any future sign-in path is covered here for free.
+ *
+ * A `previousUserId` of undefined is a cold start, not a switch: there is no
+ * prior identity to leak from, and resetting there would throw away a warm
+ * offline cache on every first load.
+ */
+function resetIfIdentityChanged(previousUserId: string | undefined, nextUserId: string | undefined): void {
+  if (!previousUserId || previousUserId === nextUserId) return
+  resetClientState()
 }
 
 function isAuthFailure(error: unknown): boolean {
@@ -68,7 +118,10 @@ export const useAuthStore = create<AuthState>()(
       isLoading: true,
       isAuthenticated: false,
 
-      setUser: (user) => set({ user, isAuthenticated: !!user }),
+      setUser: (user) => {
+        resetIfIdentityChanged(get().user?.id, user?.id)
+        set({ user, isAuthenticated: !!user })
+      },
 
       setTokens: (accessToken, refreshToken) => {
         localStorage.setItem('accessToken', accessToken)
@@ -80,7 +133,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true })
         try {
           const { data } = await authApi.login({ email, password })
-          resetQueryCaches()
+          resetClientState()
           get().setTokens(data.accessToken, data.refreshToken)
           set({ user: data.user, isAuthenticated: true, isLoading: false })
         } catch (error) {
@@ -93,7 +146,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true })
         try {
           const { data } = await authApi.register({ email, password, name, otp })
-          resetQueryCaches()
+          resetClientState()
           get().setTokens(data.accessToken, data.refreshToken)
           set({ user: data.user, isAuthenticated: true, isLoading: false })
         } catch (error) {
@@ -106,7 +159,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true })
         try {
           const { data } = await authApi.ssoLogin({ token, email, name })
-          resetQueryCaches()
+          resetClientState()
           get().setTokens(data.accessToken, data.refreshToken)
           set({ user: data.user, isAuthenticated: true, isLoading: false })
         } catch (error) {
@@ -118,7 +171,7 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
-        resetQueryCaches()
+        resetClientState()
         set({
           user: null,
           accessToken: null,
@@ -136,6 +189,11 @@ export const useAuthStore = create<AuthState>()(
 
         try {
           const { data } = await authApi.getProfile()
+          // The OAuth callback lands here holding the *previous* user in the
+          // rehydrated store while `data` is the newly signed-in one. This is
+          // the point at which the switch becomes knowable, and it runs before
+          // the dashboard mounts and reads the cache.
+          resetIfIdentityChanged(get().user?.id, data?.id)
           set({ user: data, isAuthenticated: true, isLoading: false })
         } catch (error) {
           if (isAuthFailure(error)) {

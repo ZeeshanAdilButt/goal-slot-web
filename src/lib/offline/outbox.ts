@@ -45,3 +45,16 @@ export function bumpRetries(id: string): Promise<void> {
     result: undefined,
   }))
 }
+
+/**
+ * Drops every queued write. Called when the signed-in identity changes:
+ * entries are recorded without an owner, so anything still queued from the
+ * previous account would replay against the new account's token.
+ *
+ * Goes through `mutate` rather than deleting the IndexedDB key directly so it
+ * joins the same serialization chain as every other write - a concurrent
+ * enqueue can't land between the read and the clear and survive it.
+ */
+export function clearOutbox(): Promise<void> {
+  return mutate(() => ({ next: [], result: undefined }))
+}
