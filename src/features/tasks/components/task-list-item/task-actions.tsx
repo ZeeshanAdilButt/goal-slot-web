@@ -1,6 +1,6 @@
 import { useUpdateTaskMutation } from '@/features/tasks/hooks/use-tasks-mutations'
 import { Task } from '@/features/tasks/utils/types'
-import { Edit, Play, RotateCcw, Trash2 } from 'lucide-react'
+import { Play, RotateCcw, Trash2 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { useStartTimerWithConfirmation } from '@/features/time-tracker/hooks/use-start-timer-with-confirmation'
@@ -9,12 +9,11 @@ import { TimerSwitchDialog } from '@/features/time-tracker/components/timer-swit
 interface TaskActionsProps {
   task: Task
   isHovered: boolean
-  onEdit?: (task: Task) => void
   onDelete: () => void
   onRestore: () => void
 }
 
-export function TaskActions({ task, isHovered, onEdit, onDelete, onRestore }: TaskActionsProps) {
+export function TaskActions({ task, isHovered, onDelete, onRestore }: TaskActionsProps) {
   const updateTaskMutation = useUpdateTaskMutation()
   const {
     startTimer,
@@ -71,15 +70,6 @@ export function TaskActions({ task, isHovered, onEdit, onDelete, onRestore }: Ta
             title="Restore task"
           >
             <RotateCcw className="h-3.5 w-3.5 text-green-600" />
-          </button>
-        )}
-        {onEdit && (
-          <button
-            onClick={() => onEdit(task)}
-            className="rounded-sm border border-zinc-200 bg-white p-1.5 shadow-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-sm"
-            title="Edit task"
-          >
-            <Edit className="h-3.5 w-3.5 text-gray-700" />
           </button>
         )}
         <button

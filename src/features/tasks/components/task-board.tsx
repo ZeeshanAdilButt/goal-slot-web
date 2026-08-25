@@ -1,9 +1,16 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type MouseEvent,
+  type ReactNode,
+} from 'react'
 
-import { TaskMetadata } from '@/features/tasks/components/task-list-item/task-metadata'
-import { TaskProgress } from '@/features/tasks/components/task-list-item/task-progress'
 import {
   useDeleteTaskMutation,
   useReorderTasksMutation,
@@ -24,11 +31,10 @@ import {
 } from '@dnd-kit/core'
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Calendar, Check, GripVertical, PencilLine, Play, Trash2 } from 'lucide-react'
+import { Check, GripVertical, Play, Trash2 } from 'lucide-react'
 
-import { cn, formatDate } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import { useStartTimerWithConfirmation } from '@/features/time-tracker/hooks/use-start-timer-with-confirmation'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { HtmlContent } from '@/components/html-content'
 import { TimerSwitchDialog } from '@/features/time-tracker/components/timer-switch-dialog'
@@ -68,7 +74,6 @@ export function TaskBoard({ tasks, onEdit, onComplete }: TaskBoardProps) {
   })
 
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
-  const [detailTask, setDetailTask] = useState<Task | null>(null)
 
   // Sync props to local state whenever tasks change (but not during drag)
   useEffect(() => {
@@ -188,7 +193,6 @@ export function TaskBoard({ tasks, onEdit, onComplete }: TaskBoardProps) {
                   columnId={colDef.id}
                   onEdit={onEdit}
                   onComplete={onComplete}
-                  onView={setDetailTask}
                   onDelete={handleDelete}
                 />
               )}
@@ -209,7 +213,6 @@ export function TaskBoard({ tasks, onEdit, onComplete }: TaskBoardProps) {
             />
           ) : null}
         </DragOverlay>
-        <TaskDetailDialog task={detailTask} onClose={() => setDetailTask(null)} />
       </DndContext>
     </div>
   )
@@ -276,7 +279,6 @@ interface TaskCardProps {
   task: Task
   onEdit?: (task: Task) => void
   onComplete?: (task: Task) => void
-  onView?: (task: Task) => void
   onDelete?: (task: Task) => void
   listeners?: any
   attributes?: any
@@ -289,7 +291,6 @@ function TaskCard({
   task,
   onEdit,
   onComplete,
-  onView,
   onDelete,
   listeners,
   attributes,
@@ -339,15 +340,44 @@ function TaskCard({
     }
   }
 
+  // Clicking the card opens the edit form directly. It used to open a
+  // read-only detail dialog, which meant seeing a task and changing it were
+  // two separate trips through the UI for no reason.
+  const openEditor = (): void => {
+    if (!dragging) onEdit?.(task)
+  }
+  const handleCardClick = (event: MouseEvent<HTMLDivElement>): void => {
+    // The confirm and timer-switch dialogs below are children of this card in
+    // the React tree but render into a portal, so React still bubbles their
+    // clicks through here while their DOM lives outside the card. Ignore
+    // anything that is not physically inside the card.
+    if (!event.currentTarget.contains(event.target as Node)) return
+    openEditor()
+  }
+  const handleCardKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
+    // A keyboard Enter/Space on a nested action button (drag, Play, Complete,
+    // Delete) still bubbles a keydown up to this handler even though the
+    // button's own onClick calls stopPropagation - stopPropagation on click
+    // never stops a keydown from bubbling. Only react when the event
+    // originated on the card itself, not on a descendant.
+    if (event.target !== event.currentTarget) return
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      openEditor()
+    }
+  }
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      onClick={() => {
-        if (!dragging) onView?.(task)
-      }}
+      role={onEdit ? 'button' : undefined}
+      tabIndex={onEdit ? 0 : undefined}
+      onClick={onEdit ? handleCardClick : undefined}
+      onKeyDown={onEdit ? handleCardKeyDown : undefined}
       className={cn(
-        'group relative flex cursor-pointer flex-col gap-2 rounded-md border border-l-4 border-zinc-200 bg-white p-3 transition-all sm:p-3',
+        'group relative flex flex-col gap-2 rounded-md border border-l-4 border-zinc-200 bg-white p-3 transition-all sm:p-3',
+        onEdit && 'cursor-pointer',
         statusStyle.border,
         dragging ? '' : 'hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-sm',
       )}
@@ -414,18 +444,6 @@ function TaskCard({
               <Check className="h-3 w-3 text-green-700" />
             </button>
           )}
-          {onEdit && (
-            <button
-              onClick={(event) => {
-                event.stopPropagation()
-                onEdit(task)
-              }}
-              className="rounded-sm border border-zinc-200 bg-white p-1 transition sm:hover:-translate-x-0.5 sm:hover:-translate-y-0.5"
-              aria-label="Edit task"
-            >
-              <PencilLine className="h-3 w-3 text-zinc-900" />
-            </button>
-          )}
           <button
             onClick={(event) => {
               event.stopPropagation()
@@ -435,19 +453,19 @@ function TaskCard({
             aria-label="Delete task"
           >
             <Trash2 className="h-3 w-3 text-red-600" />
-
-            <TimerSwitchDialog
-              open={showConfirmDialog}
-              onOpenChange={setShowConfirmDialog}
-              currentTask={currentTask}
-              elapsedTime={elapsedTime}
-              onSaveAndSwitch={handleSaveAndSwitch}
-              onDiscardAndContinue={handleDiscardAndContinue}
-              isLoading={isLoading}
-            />
           </button>
         </div>
       </div>
+
+      <TimerSwitchDialog
+        open={showConfirmDialog}
+        onOpenChange={setShowConfirmDialog}
+        currentTask={currentTask}
+        elapsedTime={elapsedTime}
+        onSaveAndSwitch={handleSaveAndSwitch}
+        onDiscardAndContinue={handleDiscardAndContinue}
+        isLoading={isLoading}
+      />
 
       <ConfirmDialog
         open={showDeleteConfirm}
@@ -469,11 +487,10 @@ interface DraggableTaskCardProps {
   columnId: TaskStatus
   onEdit?: (task: Task) => void
   onComplete?: (task: Task) => void
-  onView?: (task: Task) => void
   onDelete?: (task: Task) => void
 }
 
-function SortableTaskCard({ task, columnId, onEdit, onComplete, onView, onDelete }: DraggableTaskCardProps) {
+function SortableTaskCard({ task, columnId, onEdit, onComplete, onDelete }: DraggableTaskCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
     data: { type: 'task', columnId },
@@ -490,7 +507,6 @@ function SortableTaskCard({ task, columnId, onEdit, onComplete, onView, onDelete
       task={task}
       onEdit={onEdit}
       onComplete={onComplete}
-      onView={onView}
       onDelete={onDelete}
       listeners={listeners}
       attributes={attributes}
@@ -498,45 +514,5 @@ function SortableTaskCard({ task, columnId, onEdit, onComplete, onView, onDelete
       style={style}
       dragging={isDragging}
     />
-  )
-}
-
-interface TaskDetailDialogProps {
-  task: Task | null
-  onClose: () => void
-}
-
-function TaskDetailDialog({ task, onClose }: TaskDetailDialogProps) {
-  if (!task) return null
-
-  return (
-    <Dialog open={!!task} onOpenChange={(open) => (!open ? onClose() : null)}>
-      <DialogContent className=" w-[90vw] max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold uppercase text-zinc-900 sm:text-2xl">Task Details</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <h4 className="font-display text-base font-bold uppercase leading-tight text-zinc-900 sm:text-lg">
-              {task.title}
-            </h4>
-            {task.description ? (
-              <HtmlContent
-                html={task.description}
-                className="max-w-full break-words text-xs text-gray-700 sm:text-sm"
-              />
-            ) : null}
-          </div>
-          <TaskMetadata task={task} />
-          <TaskProgress task={task} />
-          {task.createdAt && (
-            <div className="flex items-center gap-2 border-t border-dashed border-secondary/20 pt-4 text-xs text-gray-600">
-              <Calendar className="h-4 w-4 shrink-0" />
-              <span>Created on {formatDate(task.createdAt, 'MMM d, yyyy')}</span>
-            </div>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
   )
 }
