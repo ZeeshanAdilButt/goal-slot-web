@@ -63,11 +63,11 @@ export function Navigation({ showSectionLinks = true }: NavigationProps) {
               <a href="#pricing" className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
                 Pricing
               </a>
-              <Link href="/guides" className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
-                Guides
-              </Link>
             </>
           )}
+          <Link href="/guides" className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
+            Guides
+          </Link>
         </div>
 
         <div className="flex items-center gap-3">
