@@ -253,7 +253,7 @@ export function SharingInviteModal({ isOpen, onClose, onSuccess }: SharingInvite
 
         {/* Batch Email Invite Result */}
         {batchResults && (
-          <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-1">
+          <div className="max-h-[40vh] space-y-2 overflow-y-auto pr-1">
             {(() => {
               const sent = batchResults.filter((r) => r.status === 'sent').length
               const dupe = batchResults.filter((r) => r.status === 'duplicate').length

@@ -95,7 +95,7 @@ function GroupedBlockRenderer({ block }: { block: GroupedBlock }) {
   const renderChildren = () => {
     if (!block.children || block.children.length === 0) return null
     return (
-      <div className="pl-4 border-l border-zinc-100 mt-1 space-y-0.5">
+      <div className="mt-1 space-y-0.5 border-l border-zinc-100 pl-4">
         {block.children.map((child) => (
           <GroupedBlockRenderer key={child.id} block={child} />
         ))}
@@ -132,7 +132,7 @@ function GroupedBlockRenderer({ block }: { block: GroupedBlock }) {
             <li key={idx} className="leading-relaxed">
               <span>{item.text}</span>
               {item.children && item.children.length > 0 && (
-                <div className="pl-4 border-l border-zinc-100 mt-1 space-y-0.5">
+                <div className="mt-1 space-y-0.5 border-l border-zinc-100 pl-4">
                   {item.children.map((child) => (
                     <GroupedBlockRenderer key={child.id} block={child} />
                   ))}
@@ -149,7 +149,7 @@ function GroupedBlockRenderer({ block }: { block: GroupedBlock }) {
             <li key={idx} className="leading-relaxed">
               <span>{item.text}</span>
               {item.children && item.children.length > 0 && (
-                <div className="pl-4 border-l border-zinc-100 mt-1 space-y-0.5">
+                <div className="mt-1 space-y-0.5 border-l border-zinc-100 pl-4">
                   {item.children.map((child) => (
                     <GroupedBlockRenderer key={child.id} block={child} />
                   ))}
@@ -238,7 +238,7 @@ export function NotionReferencePanel({
     <Sheet modal={false} open={!!pageId} onOpenChange={(open) => !open && onClose()}>
       <SheetContent
         side="right"
-        className="flex w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-lg border-l border-zinc-200 shadow-2xl"
+        className="flex w-full flex-col gap-0 overflow-hidden border-l border-zinc-200 p-0 shadow-2xl sm:max-w-lg"
         hideOverlay
         onEscapeKeyDown={(event) => {
           if (isPaletteOpen) {

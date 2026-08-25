@@ -34,13 +34,13 @@ function AuthCallbackInner() {
     })()
   }, [params, router, setTokens, loadUser])
 
-  return <div className="min-h-screen flex items-center justify-center">Signing you in…</div>
+  return <div className="flex min-h-screen items-center justify-center">Signing you in…</div>
 }
 
 export default function AuthCallbackPage() {
   return (
     <Suspense
-      fallback={<div className="min-h-screen flex items-center justify-center">Signing you in…</div>}
+      fallback={<div className="flex min-h-screen items-center justify-center">Signing you in…</div>}
     >
       <AuthCallbackInner />
     </Suspense>
