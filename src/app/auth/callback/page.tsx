@@ -26,6 +26,11 @@ function AuthCallbackInner() {
     const refresh = params.get('refresh')
     // Read before the history scrub below wipes the query string.
     const passedThrough = params.get('redirect')
+    // Consumed unconditionally, before the token guard, so a destination left
+    // over from a sign-in that was abandoned halfway cannot hijack the next
+    // one - most concretely, sending a later Google login to a CLI approval
+    // page the user has long since forgotten about.
+    const stored = consumePostLoginRedirect()
 
     if (!token) {
       toast.error('Authentication failed')
@@ -54,8 +59,7 @@ function AuthCallbackInner() {
     // Google, or passed straight through if the provider ever forwards it.
     // Only same-origin relative paths are honoured, so this cannot be turned
     // into an open redirect laundered through our own callback.
-    const destination =
-      (isSafeInternalPath(passedThrough) ? passedThrough : null) ?? consumePostLoginRedirect() ?? '/dashboard'
+    const destination = (isSafeInternalPath(passedThrough) ? passedThrough : null) ?? stored ?? '/dashboard'
 
     ;(async () => {
       try {

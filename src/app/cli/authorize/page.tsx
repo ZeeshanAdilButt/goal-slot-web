@@ -29,8 +29,12 @@ import { GoalSlotBrand } from '@/components/goalslot-logo'
 /** Device mode disables Approve briefly so a lure link cannot ride a mis-click. */
 const DEVICE_APPROVE_DELAY_MS = 3000
 
-/** How long before we offer the copyable code as a loopback fallback. */
-const REDIRECT_FALLBACK_MS = 3000
+/**
+ * Beat between rendering the approved state and handing off to the loopback
+ * listener. Long enough for the browser to paint the fallback code, short
+ * enough that a working listener still feels instant.
+ */
+const REDIRECT_HANDOFF_MS = 800
 
 type Phase = 'loading' | 'code-entry' | 'review' | 'approved' | 'denied' | 'invalid'
 
@@ -152,7 +156,10 @@ function CliAuthorizeInner() {
           setSession(data)
           // Loopback needs no delay: the session was created by a process on
           // this same machine, so there is no lure-link vector to slow down.
-          setApproveUnlockedAt(0)
+          // A device session can also be reached through ?session= though, and
+          // that one is exactly the lure-link case, so the delay follows the
+          // session's mode rather than how the page was opened.
+          setApproveUnlockedAt(data.mode === 'DEVICE' ? Date.now() + DEVICE_APPROVE_DELAY_MS : 0)
           setPhase('review')
         } catch (error) {
           const described = describeError(error)
@@ -184,14 +191,21 @@ function CliAuthorizeInner() {
     setIsSubmitting(true)
     try {
       const { data } = await cliAuthApi.approve(session.sessionId)
+      setFallback(data)
       setPhase('approved')
 
       if (data.redirectUri) {
-        setFallback(data)
-        // Client-side navigation to a string the API composed from the redirect
-        // URI it validated at session creation. This page never builds that URL
-        // itself, and the API never issues a 3xx.
-        window.location.assign(data.redirectUri)
+        // Paint the approved state, code and all, before leaving. Navigating
+        // immediately destroys this document, so if the CLI's local listener
+        // has died the user lands on the browser's connection-error page and
+        // the fallback code they now need was never rendered. Rendering first
+        // and navigating a beat later means Back always returns them to a page
+        // that has the code on it.
+        //
+        // The URL itself is a string the API composed from the redirect URI it
+        // validated at session creation. This page never builds it, and the
+        // API never issues a 3xx.
+        window.setTimeout(() => window.location.assign(data.redirectUri as string), REDIRECT_HANDOFF_MS)
       }
     } catch (error) {
       const described = describeError(error)
@@ -227,13 +241,6 @@ function CliAuthorizeInner() {
       toast.error('Could not copy. Select the code and copy it manually.')
     }
   }
-
-  const [showFallback, setShowFallback] = useState(false)
-  useEffect(() => {
-    if (phase !== 'approved' || !fallback?.redirectUri) return
-    const timer = setTimeout(() => setShowFallback(true), REDIRECT_FALLBACK_MS)
-    return () => clearTimeout(timer)
-  }, [phase, fallback])
 
   if (!isAuthenticated) {
     return <Centered>Redirecting you to sign in…</Centered>
@@ -338,7 +345,7 @@ function CliAuthorizeInner() {
               <h1 className="mb-2 text-xl font-bold uppercase">Approved</h1>
               <p className="text-sm text-zinc-500">Return to your terminal.</p>
 
-              {showFallback && fallback?.authorizationCode && (
+              {fallback?.authorizationCode && (
                 <div className="mt-6 rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-left">
                   <p className="mb-2 text-sm text-zinc-600">Not redirected? Paste this code into your terminal.</p>
                   <div className="flex items-center gap-2">
