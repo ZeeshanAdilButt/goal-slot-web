@@ -70,6 +70,21 @@ describe('HtmlContent sanitisation', () => {
     expect(out).toContain('<td>cell</td>')
   })
 
+  it('strips a vbscript: href', () => {
+    const out = render('<a href="vbscript:msgbox(1)">click</a>')
+
+    expect(out).not.toContain('vbscript:')
+    expect(out).toContain('click')
+  })
+
+  it('keeps a data: image the editor pasted but not a data: href', () => {
+    const img = render('<img src="data:image/png;base64,AAAA" alt="pasted">')
+    expect(img).toContain('data:image/png;base64,AAAA')
+
+    const link = render('<a href="data:text/html,<script>alert(1)</script>">click</a>')
+    expect(link).not.toContain('data:text/html')
+  })
+
   it('keeps an inline image the editor embedded', () => {
     const out = render('<img src="https://example.com/a.png" alt="a" width="100">')
 
