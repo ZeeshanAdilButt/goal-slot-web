@@ -6,7 +6,7 @@
     "dev": "next dev --webpack -p 3010",
     "build": "next build --webpack",
     "start": "next start -p 3010",
-    "test": "node --test \"src/**/*.test.ts\"",
+    "test": "node --experimental-strip-types --test \"src/**/*.test.ts\"",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier . --write",
