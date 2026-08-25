@@ -34,10 +34,14 @@ without them.
 
 | Tool | Minimum version | How to check | How to install |
 |---|---|---|---|
-| Node.js | 20.x or 22.x | `node --version` | https://nodejs.org/ (the LTS download) |
+| Node.js | 22.6 or newer | `node --version` | https://nodejs.org/ (the LTS download) |
 | pnpm | 9.x or 10.x | `pnpm --version` | `npm install -g pnpm` after Node is installed |
 | Git | Any recent | `git --version` | https://git-scm.com/ |
 | A GitHub account | n/a | sign in at github.com | https://github.com/signup |
+
+**Why Node 22.6 or newer?** `npm test` runs the unit tests on Node's
+built-in test runner with native TypeScript type stripping. Older Node
+releases cannot load a `.ts` file and the tests fail to start.
 
 **Why pnpm and not npm or yarn?** The repo's lockfile is `pnpm-lock.yaml`.
 Vercel builds with pnpm. Using a different package manager will
