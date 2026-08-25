@@ -5,9 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation'
 
 import { CategoryManagement } from '@/features/categories/components/category-management'
 import { EnablePushNotificationsButton } from '@/features/push-notifications/components/enable-push-notifications-button'
-import { SettingsCoachProfileTab, SettingsIntegrationsTab } from '@/features/settings'
+import { SettingsCliTokensTab, SettingsCoachProfileTab, SettingsIntegrationsTab } from '@/features/settings'
 import { motion } from 'framer-motion'
-import { Brain, Check, CreditCard, Crown, Download, Eye, EyeOff, Key, KeyRound, LogOut, Moon, Palette, Shield, Sun, Tag, Trash2, User } from 'lucide-react'
+import { Brain, Check, CreditCard, Crown, Download, Eye, EyeOff, Key, KeyRound, LogOut, Moon, Palette, Shield, Sun, Tag, Terminal, Trash2, User } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 import { authApi, stripeApi, usersApi } from '@/lib/api'
@@ -38,6 +38,7 @@ const TABS = [
   { id: 'security', label: 'Security', icon: Shield },
   { id: 'data', label: 'Data & Privacy', icon: Download },
   { id: 'integrations', label: 'Integrations', icon: KeyRound },
+  { id: 'cli', label: 'CLI tokens', icon: Terminal },
   { id: 'coach-profile', label: 'Coach Profile', icon: Brain },
 ]
 
@@ -104,6 +105,7 @@ export default function SettingsPage() {
           {activeTab === 'security' && <SecuritySettings />}
           {activeTab === 'data' && <DataSettings />}
           {activeTab === 'integrations' && <SettingsIntegrationsTab />}
+          {activeTab === 'cli' && <SettingsCliTokensTab />}
           {activeTab === 'coach-profile' && <SettingsCoachProfileTab />}
         </div>
       </div>

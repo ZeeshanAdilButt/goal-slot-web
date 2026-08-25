@@ -203,6 +203,63 @@ export const authApi = {
 }
 
 // Goals API
+/**
+ * CLI authorization, backing /cli/authorize and the Settings "CLI tokens" tab.
+ *
+ * Only the browser half lives here. The CLI itself never calls these: it talks
+ * to POST /auth/cli/session, /auth/cli/token and /auth/cli/token/refresh, which
+ * are unauthenticated and need no bearer.
+ */
+export interface CliSessionMetadata {
+  sessionId: string
+  mode: 'LOOPBACK' | 'DEVICE'
+  status: 'PENDING' | 'APPROVED' | 'CONSUMED' | 'DENIED' | 'EXPIRED'
+  clientName: string
+  clientVersion: string
+  deviceLabel: string
+  platform: string
+  scopes: string[]
+  requestIp: string | null
+  requestedAt: string
+  expiresAt: string
+}
+
+export interface CliApproveResult {
+  status: 'APPROVED'
+  /** LOOPBACK only. Composed by the API from the URI it validated at creation. */
+  redirectUri?: string
+  /** LOOPBACK only. Shown as a copyable fallback if the local listener died. */
+  authorizationCode?: string
+}
+
+export interface CliToken {
+  id: string
+  name: string
+  clientName: string
+  clientVersion: string
+  deviceLabel: string
+  platform: string
+  scopes: string[]
+  createdAt: string
+  lastUsedAt: string | null
+  lastUsedIp: string | null
+  expiresAt: string
+  revokedAt: string | null
+  revokedReason: string | null
+}
+
+export const cliAuthApi = {
+  getSession: (sessionId: string) => api.get<CliSessionMetadata>(`/auth/cli/sessions/${sessionId}`),
+  lookupDeviceCode: (userCode: string) =>
+    api.get<CliSessionMetadata>('/auth/cli/device/lookup', { params: { userCode } }),
+  approve: (sessionId: string) => api.post<CliApproveResult>(`/auth/cli/sessions/${sessionId}/approve`, {}),
+  deny: (sessionId: string) => api.post(`/auth/cli/sessions/${sessionId}/deny`, {}),
+  listTokens: () => api.get<CliToken[]>('/auth/cli/tokens'),
+  renameToken: (id: string, name: string) => api.patch(`/auth/cli/tokens/${id}`, { name }),
+  revokeToken: (id: string) => api.delete(`/auth/cli/tokens/${id}`),
+  revokeAllTokens: () => api.post<{ revoked: number }>('/auth/cli/tokens/revoke-all', {}),
+}
+
 export const goalsApi = {
   getAll: (params?: { status?: string; category?: string; categories?: string; labelIds?: string }) =>
     api.get('/goals', { params }),
