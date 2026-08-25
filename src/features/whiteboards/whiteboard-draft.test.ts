@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
-import { beforeEach, test } from 'node:test'
+
+import { beforeEach, test } from 'vitest'
 
 class FakeSessionStorage {
   store = new Map<string, string>()

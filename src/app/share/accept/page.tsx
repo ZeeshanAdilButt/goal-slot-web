@@ -121,9 +121,9 @@ function PublicShareViewContent() {
       if (message.includes('already been accepted')) {
         toast.error('This invitation has already been accepted')
       } else if (message.includes('not for you')) {
-        toast.error('This invitation is not for your email address')
+        toast.error('This invitation is not for you. Please log in with the correct email account.')
       } else if (message.includes('expired')) {
-        toast.error('This invitation has expired')
+        toast.error('This invitation has expired. Please ask the owner to send a new one.')
       } else {
         toast.error(message)
       }
@@ -238,7 +238,7 @@ function PublicShareViewContent() {
           <p className="font-mono text-gray-600">
             This share link has expired or is no longer valid. Please ask the owner to send you a new invitation.
           </p>
-          <Link href="/" className="mt-6 inline-block inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50">
+          <Link href="/" className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50">
             Go to Homepage
           </Link>
         </div>
@@ -279,7 +279,7 @@ function PublicShareViewContent() {
               {!isAuthenticated && (
                 <Link
                   href={`/signup?redirect=${encodeURIComponent(`/share/accept?token=${token}`)}`}
-                  className="flex inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50"
                 >
                   <ExternalLink className="h-4 w-4" />
                   Sign Up to Track Your Own Time
@@ -312,7 +312,7 @@ function PublicShareViewContent() {
               <>
                 {/* Email Matches */}
                 {userQuery.data.email === shareInfoQuery.data.inviteEmail && (
-                  <div className="rounded-xl border border-zinc-200 bg-blue-50 bg-white p-4 shadow-sm">
+                  <div className="rounded-xl border border-zinc-200 bg-blue-50 p-4 shadow-sm">
                     <div className="mb-4">
                       <h3 className="mb-2 text-lg font-bold">Accept Invitation</h3>
                       <p className="font-mono text-sm text-gray-700">

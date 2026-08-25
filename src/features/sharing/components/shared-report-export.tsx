@@ -5,13 +5,14 @@ import { useState } from 'react'
 import { fetchSharedUserTimeEntries } from '@/features/sharing/utils/queries'
 import type { SharedTimeEntry } from '@/features/sharing/utils/types'
 import { Download } from 'lucide-react'
+import { toast } from 'react-hot-toast'
 
+import { buildCsv } from '@/lib/csv'
 import { dateRangeValueToRange, getDefaultDateRangeValue } from '@/lib/date-range-utils'
 import { formatDuration } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import DateRangePicker from '@/components/DateRangePicker'
 import type { DateRangeValue } from '@/components/DateRangePicker/types'
-import { toast } from 'react-hot-toast'
 
 function buildAndDownloadCSV(entries: SharedTimeEntry[], fileName: string): void {
   const headers = ['Date', 'Duration', 'Goal', 'Task']
@@ -22,9 +23,10 @@ function buildAndDownloadCSV(entries: SharedTimeEntry[], fileName: string): void
     entry.taskName || '',
   ])
 
-  const csvContent = [headers, ...rows]
-    .map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(','))
-    .join('\n')
+  // escapeCsvCell, not inline quoting: these goal titles and task names are
+  // the *mentee's* data, so a cell starting with = + - @ would execute as a
+  // formula in the mentor's spreadsheet. See src/lib/csv.ts.
+  const csvContent = buildCsv([headers, ...rows])
   const blob = new Blob([csvContent], { type: 'text/csv' })
   const url = window.URL.createObjectURL(blob)
   const a = document.createElement('a')
