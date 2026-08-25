@@ -63,7 +63,7 @@ export function NewConversationPicker({
     }
 
     startConversation.mutate(person.id, {
-      onSuccess: (conversationId) => {
+      onSuccess: ({ conversationId }) => {
         onOpenConversation(conversationId)
         setOpen(false)
         setQuery('')
@@ -105,9 +105,7 @@ export function NewConversationPicker({
                   className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate font-medium text-zinc-800">
-                      {displayName(person, person.id)}
-                    </span>
+                    <span className="block truncate font-medium text-zinc-800">{displayName(person)}</span>
                     {person.email && <span className="block truncate text-xs text-zinc-500">{person.email}</span>}
                   </span>
                 </button>

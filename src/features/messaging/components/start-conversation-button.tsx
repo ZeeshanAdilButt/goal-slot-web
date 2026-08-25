@@ -44,7 +44,7 @@ export function StartConversationButton({
 
   const handleClick = () => {
     startConversation.mutate(userId, {
-      onSuccess: (conversationId) => router.push(messagingConversationHref(conversationId)),
+      onSuccess: ({ conversationId }) => router.push(messagingConversationHref(conversationId)),
     })
   }
 

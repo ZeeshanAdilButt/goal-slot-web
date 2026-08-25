@@ -122,11 +122,22 @@ export const sortConversationsByActivity = (conversations: Conversation[]): Conv
 export const getConversationPreview = (conversation: Conversation): string =>
   conversation.lastMessage?.body?.trim() || 'No messages yet'
 
-export const displayName = (person: MessagingPerson | undefined, fallbackId: string): string =>
-  person?.name?.trim() || person?.email?.trim() || `Member ${fallbackId.slice(0, 6)}`
+/**
+ * Shown when nothing this client knows can put a name to a participant id.
+ * It used to be `Member ${id.slice(0, 6)}`, which read as a bug rather than
+ * as a person - a truncated UUID in the conversation title, the thread
+ * header, the message author and the composer placeholder all at once.
+ */
+const UNKNOWN_MEMBER = 'GoalSlot member'
 
-export const displayInitial = (person: MessagingPerson | undefined, fallbackId: string): string =>
-  displayName(person, fallbackId).charAt(0).toUpperCase()
+const knownLabel = (person: MessagingPerson | undefined): string | undefined =>
+  person?.name?.trim() || person?.email?.trim() || undefined
+
+export const displayName = (person: MessagingPerson | undefined): string => knownLabel(person) ?? UNKNOWN_MEMBER
+
+/** '?' rather than the fallback's initial, which is the same for everyone. */
+export const displayInitial = (person: MessagingPerson | undefined): string =>
+  knownLabel(person)?.charAt(0).toUpperCase() ?? '?'
 
 const safeDate = (value: string | null | undefined): Date | null => {
   if (!value) return null

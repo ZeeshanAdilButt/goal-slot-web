@@ -1,6 +1,6 @@
 import { messagingRequest } from '@/features/messaging/utils/client'
 import { MESSAGE_PAGE_SIZE } from '@/features/messaging/utils/config'
-import { Conversation, Message } from '@/features/messaging/utils/types'
+import { Conversation, Message, MessagingPerson } from '@/features/messaging/utils/types'
 
 import { messagingApi } from '@/lib/api'
 
@@ -12,6 +12,11 @@ export const messagingQueries = {
   conversation: (conversationId: string) => [...messagingQueries.conversationRoot(), conversationId] as const,
   messagesRoot: () => [...messagingQueries.all, 'messages'] as const,
   messages: (conversationId: string) => [...messagingQueries.messagesRoot(), conversationId] as const,
+  /**
+   * Not a fetch: the client-side name cache behind `useMessagingDirectory`,
+   * written through `rememberPeople` in `./directory`.
+   */
+  knownPeople: () => [...messagingQueries.all, 'known-people'] as const,
 }
 
 const asArray = <T>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) : [])
@@ -32,19 +37,47 @@ export const fetchMessagingToken = async (): Promise<string> => {
   return token
 }
 
+export interface OpenedConversation {
+  conversationId: string
+  /**
+   * The person on the other end, as GoalSlot knows them. jiffy-messaging
+   * itself only ever returns bare user ids, so this response is the one
+   * place the messaging surface hands back a name - worth keeping.
+   */
+  counterpart?: MessagingPerson
+}
+
+interface OpenConversationPayload {
+  id?: string
+  conversationId?: string
+  counterpart?: { id?: string; name?: string; email?: string; avatar?: string | null }
+}
+
 /**
  * Asks GoalSlot to open (or reuse) the conversation with a counterpart. The
  * API enforces that a sharing relationship exists and answers 403 when it
  * does not, which is why this never talks to the messaging service directly.
  */
-export const createConversationWith = async (userId: string): Promise<string> => {
+export const createConversationWith = async (userId: string): Promise<OpenedConversation> => {
   const res = await messagingApi.createConversation(userId)
-  const payload = res.data as string | { id?: string; conversationId?: string } | undefined
+  const payload = res.data as string | OpenConversationPayload | undefined
 
   const conversationId = typeof payload === 'string' ? payload : payload?.id || payload?.conversationId
 
   if (!conversationId) throw new Error('The server did not return a conversation id.')
-  return conversationId
+
+  const counterpart = typeof payload === 'string' ? undefined : payload?.counterpart
+  return {
+    conversationId,
+    counterpart: counterpart?.id
+      ? {
+          id: counterpart.id,
+          name: counterpart.name,
+          email: counterpart.email,
+          avatar: counterpart.avatar ?? undefined,
+        }
+      : undefined,
+  }
 }
 
 export const fetchConversations = async (token: string): Promise<Conversation[]> => {
