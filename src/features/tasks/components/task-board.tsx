@@ -347,19 +347,16 @@ function TaskCard({
     if (!dragging) onEdit?.(task)
   }
   const handleCardClick = (event: MouseEvent<HTMLDivElement>): void => {
-    // The confirm and timer-switch dialogs below are children of this card in
-    // the React tree but render into a portal, so React still bubbles their
-    // clicks through here while their DOM lives outside the card. Ignore
-    // anything that is not physically inside the card.
+    // A task description renders through HtmlContent inside this surface and
+    // can contain links; portalled descendants would bubble through here too.
+    // Only a click that landed on this surface's own DOM opens the editor.
     if (!event.currentTarget.contains(event.target as Node)) return
     openEditor()
   }
   const handleCardKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
-    // A keyboard Enter/Space on a nested action button (drag, Play, Complete,
-    // Delete) still bubbles a keydown up to this handler even though the
-    // button's own onClick calls stopPropagation - stopPropagation on click
-    // never stops a keydown from bubbling. Only react when the event
-    // originated on the card itself, not on a descendant.
+    // stopPropagation on a click never stops a keydown from bubbling, so a
+    // focusable descendant handling Enter would otherwise also open the
+    // editor. Only react when the event originated on this surface itself.
     if (event.target !== event.currentTarget) return
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
@@ -371,47 +368,56 @@ function TaskCard({
     <div
       ref={setNodeRef}
       style={style}
-      role={onEdit ? 'button' : undefined}
-      tabIndex={onEdit ? 0 : undefined}
-      onClick={onEdit ? handleCardClick : undefined}
-      onKeyDown={onEdit ? handleCardKeyDown : undefined}
       className={cn(
         'group relative flex flex-col gap-2 rounded-md border border-l-4 border-zinc-200 bg-white p-3 transition-all sm:p-3',
-        onEdit && 'cursor-pointer',
         statusStyle.border,
         dragging ? '' : 'hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-sm',
       )}
     >
       <div className="relative flex flex-col gap-2">
-        <div className="flex items-start gap-2">
-          <h3 className="flex-1 text-sm font-semibold leading-snug text-zinc-900 transition-colors hover:text-zinc-700 sm:text-[15px]">
-            {task.title}
-          </h3>
-          {task.estimatedMinutes ? (
-            <span className="hidden shrink-0 items-center rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-zinc-600 sm:inline-flex">
-              {parseFloat((task.estimatedMinutes / 60).toFixed(2))}h
-            </span>
+        {/* The clickable surface is a sibling of the action toolbar rather
+            than its ancestor. A role="button" wrapping the Play, Complete and
+            Delete buttons would be nested interactive content: invalid ARIA,
+            and a screen reader announces one control where there are four. */}
+        <div
+          role={onEdit ? 'button' : undefined}
+          tabIndex={onEdit ? 0 : undefined}
+          aria-label={onEdit ? `Edit "${task.title}"` : undefined}
+          onClick={onEdit ? handleCardClick : undefined}
+          onKeyDown={onEdit ? handleCardKeyDown : undefined}
+          className={cn('flex flex-col gap-2 text-left', onEdit && 'cursor-pointer')}
+        >
+          <div className="flex items-start gap-2">
+            <h3 className="flex-1 text-sm font-semibold leading-snug text-zinc-900 transition-colors hover:text-zinc-700 sm:text-[15px]">
+              {task.title}
+            </h3>
+            {task.estimatedMinutes ? (
+              <span className="hidden shrink-0 items-center rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-zinc-600 sm:inline-flex">
+                {parseFloat((task.estimatedMinutes / 60).toFixed(2))}h
+              </span>
+            ) : null}
+          </div>
+          {task.description ? (
+            <HtmlContent
+              html={task.description}
+              truncate={2}
+              className="hidden text-[12px] leading-relaxed text-zinc-600 sm:block"
+            />
           ) : null}
+          <div className="hidden flex-wrap items-center gap-1.5 sm:flex">
+            {task.goal?.title ? (
+              <span className="rounded border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 text-[10px] font-medium text-zinc-700">
+                {task.goal.title}
+              </span>
+            ) : null}
+            {task.dueDate ? (
+              <span className="rounded border border-dashed border-zinc-300 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500">
+                Due {new Date(task.dueDate).toLocaleDateString()}
+              </span>
+            ) : null}
+          </div>
         </div>
-        {task.description ? (
-          <HtmlContent
-            html={task.description}
-            truncate={2}
-            className="hidden text-[12px] leading-relaxed text-zinc-600 sm:block"
-          />
-        ) : null}
-        <div className="hidden flex-wrap items-center gap-1.5 sm:flex">
-          {task.goal?.title ? (
-            <span className="rounded border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 text-[10px] font-medium text-zinc-700">
-              {task.goal.title}
-            </span>
-          ) : null}
-          {task.dueDate ? (
-            <span className="rounded border border-dashed border-zinc-300 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500">
-              Due {new Date(task.dueDate).toLocaleDateString()}
-            </span>
-          ) : null}
-        </div>
+
         <div className="flex items-center gap-0.5 rounded-sm border border-zinc-200/30 bg-secondary/20 p-0.5 shadow-sm transition sm:pointer-events-none sm:absolute sm:right-0 sm:top-0 sm:opacity-0 sm:group-focus-within:pointer-events-auto sm:group-focus-within:opacity-100 sm:group-hover:pointer-events-auto sm:group-hover:opacity-100">
           <button
             {...listeners}
