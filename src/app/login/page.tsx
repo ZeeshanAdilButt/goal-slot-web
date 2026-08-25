@@ -10,6 +10,7 @@ import { ArrowRight, Eye, EyeOff, Lock, Mail } from 'lucide-react'
 import { GoalSlotBrand } from '@/components/goalslot-logo'
 import { toast } from 'react-hot-toast'
 
+import { rememberPostLoginRedirect } from '@/lib/post-login-redirect'
 import { useAuthStore } from '@/lib/store'
 import { GoogleIcon } from '@/components/ui/google-icon'
 import { Loading } from '@/components/ui/loading'
@@ -43,6 +44,12 @@ function LoginForm() {
   }
 
   const handleGoogleLogin = () => {
+    // Google sends the browser back to /auth/callback with only the tokens in
+    // the query string, so ?redirect cannot survive that round trip in the URL.
+    // Without this, someone sent to /login from a page that needs them signed
+    // in (the CLI approval page, for one) lands on /dashboard after Google and
+    // has to find their way back by hand.
+    rememberPostLoginRedirect(redirect)
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`
   }
 

@@ -150,6 +150,22 @@ const nextConfig = {
           },
         ],
       },
+      // /cli/authorize is the one page where a single click grants a machine
+      // full account access, which makes it the clickjacking target worth
+      // paying for beyond the app-wide rules above: frame it in an attacker's
+      // page, overlay a harmless-looking button on Approve, and the victim
+      // authorizes a CLI they never ran.
+      //
+      // X-Frame-Options: DENY above already blocks that in every current
+      // browser. This adds the *enforcing* CSP counterpart, which the app-wide
+      // policy cannot give it because that one is deliberately report-only
+      // until its violations have been read. Scoped to /cli/* so it carries
+      // no risk of white-screening anything else, and it sets a different
+      // header key from the report-only policy, so the two do not collide.
+      {
+        source: '/cli/:path*',
+        headers: [{ key: 'Content-Security-Policy', value: "frame-ancestors 'none'" }],
+      },
     ]
   },
 
