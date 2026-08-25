@@ -10,28 +10,14 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Shield } from 'lucide-react'
 
+import { Navigation } from '@/features/home'
 import { GoalSlotBrand } from '@/components/goalslot-logo'
 
 export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-zinc-50">
       {/* Navigation */}
-      <nav className="fixed left-0 right-0 top-0 z-50 border-b border-zinc-200 bg-zinc-50">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
-          <Link href="/">
-            <GoalSlotBrand size="md" tagline="Your growth, measured." />
-          </Link>
-
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-900 transition-colors hover:bg-zinc-50 disabled:opacity-50">
-              Login
-            </Link>
-            <Link href="/signup" className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50">
-              Get Started
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <Navigation showSectionLinks={false} />
 
       {/* Main Content */}
       <main className="px-4 pb-12 pt-24 sm:px-6 sm:pb-20 sm:pt-28 md:pt-32">
