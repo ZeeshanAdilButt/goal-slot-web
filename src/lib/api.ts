@@ -975,13 +975,21 @@ export const coachApi = {
     postCoachStream(`/coach/chat/${scopeKey}`, { content }, opts?.signal),
 
   // Coach Proposals — apply Coach-emitted structured action batches
+  // `confirmDeletions` lists the target id of every DELETE_* action in the
+  // batch. Sending it tells the API the user was shown those exact rows and
+  // confirmed them, which is what lets a real cleanup ("delete the 15 goals
+  // that aren't linked to anything") through the destructive-batch caps. It is
+  // strict on the API side: send it and every delete must be listed, so build
+  // it from the SAME array being applied, never from the full proposal.
   applyProposals: (
     actions: CoachProposalAction[],
     sourceMessageId?: string,
+    confirmDeletions?: string[],
   ) =>
     api.post<{ results: CoachProposalResult[] }>('/coach/proposals/apply', {
       actions,
       ...(sourceMessageId ? { sourceMessageId } : {}),
+      ...(confirmDeletions ? { confirmDeletions } : {}),
     }),
 
   // Coach Insights

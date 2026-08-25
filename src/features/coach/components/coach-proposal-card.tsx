@@ -31,6 +31,7 @@ import {
 } from '@/lib/api'
 import { cn, formatDuration, formatTime12h } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 
 const ACTION_META: Record<
   CoachProposalActionType,
@@ -500,6 +501,7 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
     () => new Set(block.actions.map((_, i) => i)),
   )
   const [applying, setApplying] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   // Hydrate persisted state on mount so previously-applied/rejected proposals
   // show their final state when the user reopens the chat or refreshes.
@@ -514,6 +516,16 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
     [block.actions],
   )
 
+  const selectedActions = useMemo(
+    () => block.actions.filter((_, i) => selected.has(i)),
+    [block.actions, selected],
+  )
+
+  const selectedDeletes = useMemo(
+    () => selectedActions.filter((a) => ACTION_META[a.type]?.verb === 'delete'),
+    [selectedActions],
+  )
+
   const toggle = (i: number) => {
     setSelected((prev) => {
       const next = new Set(prev)
@@ -523,16 +535,42 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
     })
   }
 
-  const handleApply = async () => {
+  // Apply is one click for an ordinary proposal and two for one that deletes
+  // something. The second click is what the API's `confirmDeletions` stands
+  // for: without it a bulk cleanup ("delete the 15 goals with nothing linked
+  // to them") is refused outright by the destructive-batch caps, and with it
+  // the deletes have to be named one id at a time.
+  const handleApply = () => {
     if (applying || results) return
-    const toApply = block.actions.filter((_, i) => selected.has(i))
-    if (!toApply.length) {
+    if (!selectedActions.length) {
       toast.error('Nothing selected to apply.')
       return
     }
+    if (selectedDeletes.length) {
+      setConfirmOpen(true)
+      return
+    }
+    void runApply()
+  }
+
+  const runApply = async () => {
+    if (applying || results) return
+    const toApply = selectedActions
+    if (!toApply.length) return
+    // Only send the confirmations when every selected delete actually carries
+    // an id. The API reads the field strictly: one delete missing from the
+    // list fails the whole batch rather than just that action.
+    const confirmDeletions =
+      selectedDeletes.length > 0 && selectedDeletes.every((a) => a.id)
+        ? selectedDeletes.map((a) => a.id as string)
+        : undefined
     setApplying(true)
     try {
-      const res = await coachApi.applyProposals(toApply, sourceMessageId)
+      const res = await coachApi.applyProposals(
+        toApply,
+        sourceMessageId,
+        confirmDeletions,
+      )
       setResults(res.data.results)
       saveProposalState(stateKey, {
         status: 'applied',
@@ -752,8 +790,40 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
           Done. Refresh Goals / Schedule to see the changes in their pages.
         </div>
       )}
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        variant="destructive"
+        title={`Delete ${selectedDeletes.length} item${selectedDeletes.length === 1 ? '' : 's'}?`}
+        description={describeDeletes(selectedDeletes)}
+        confirmButtonText={`Delete ${selectedDeletes.length}`}
+        onConfirm={runApply}
+        isLoading={applying}
+      />
     </div>
   )
+}
+
+const DELETE_NOUNS: Partial<Record<CoachProposalActionType, [string, string]>> = {
+  DELETE_GOAL: ['goal', 'goals'],
+  DELETE_SCHEDULE_BLOCK: ['schedule block', 'schedule blocks'],
+  DELETE_TASK: ['task', 'tasks'],
+  DELETE_TIME_ENTRY: ['time entry', 'time entries'],
+}
+
+/**
+ * Plain-language summary of what the confirmation is about to remove, counted
+ * by kind so a 15-goal cleanup reads as "15 goals" rather than fifteen
+ * identical lines.
+ */
+function describeDeletes(actions: CoachProposalAction[]): string {
+  const counts = new Map<CoachProposalActionType, number>()
+  for (const a of actions) counts.set(a.type, (counts.get(a.type) ?? 0) + 1)
+  const parts = [...counts.entries()].map(([type, n]) => {
+    const noun = DELETE_NOUNS[type] ?? ['item', 'items']
+    return `${n} ${n === 1 ? noun[0] : noun[1]}`
+  })
+  return `This permanently removes ${parts.join(', ')}. It cannot be undone.`
 }
 
 /**
