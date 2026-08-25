@@ -62,7 +62,7 @@ export function MessageThread({ conversationId, directory, onBack }: MessageThre
   const messages = useMemo(() => messagesQuery.data ?? [], [messagesQuery.data])
   const conversation = conversationQuery.data
 
-  const nameFor = useCallback((userId: string) => displayName(directory.get(userId), userId), [directory])
+  const nameFor = useCallback((userId: string) => displayName(directory.get(userId)), [directory])
 
   const lastOwnMessageId = useMemo(() => {
     for (let index = messages.length - 1; index >= 0; index -= 1) {

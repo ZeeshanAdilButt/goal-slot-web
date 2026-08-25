@@ -32,7 +32,7 @@ export function ConversationListItem({
   const person = primaryId ? directory.get(primaryId) : undefined
 
   const name = counterpartIds.length
-    ? counterpartIds.map((userId) => displayName(directory.get(userId), userId)).join(', ')
+    ? counterpartIds.map((userId) => displayName(directory.get(userId))).join(', ')
     : 'Conversation'
   const preview = getConversationPreview(conversation)
   const timestamp = formatConversationTimestamp(getLastActivityAt(conversation))
@@ -56,7 +56,7 @@ export function ConversationListItem({
           aria-hidden="true"
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 text-sm font-bold text-zinc-700"
         >
-          {primaryId ? displayInitial(person, primaryId) : '?'}
+          {primaryId ? displayInitial(person) : '?'}
         </span>
 
         <span className="min-w-0 flex-1">

@@ -9,6 +9,7 @@ import {
   upsertMessageInCache,
 } from '@/features/messaging/utils/cache'
 import { MessagingApiError, messagingErrorMessage } from '@/features/messaging/utils/client'
+import { rememberPeople } from '@/features/messaging/utils/directory'
 import { createOptimisticMessage } from '@/features/messaging/utils/helpers'
 import {
   createConversationWith,
@@ -112,7 +113,11 @@ export function useStartConversationMutation() {
 
   return useMutation({
     mutationFn: (userId: string) => createConversationWith(userId),
-    onSuccess: () => {
+    onSuccess: (opened) => {
+      // The only response on the messaging surface that carries a name for
+      // a participant, rather than a bare user id. Keep it: it is what puts
+      // a name on this thread if the share behind it is ever revoked.
+      rememberPeople(queryClient, [opened.counterpart])
       void queryClient.invalidateQueries({ queryKey: messagingQueries.conversations() })
     },
     onError: (error: unknown) => {

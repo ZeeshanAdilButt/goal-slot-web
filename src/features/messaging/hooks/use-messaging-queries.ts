@@ -1,10 +1,12 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 
 import { useMessagingTokenQuery } from '@/features/messaging/hooks/use-messaging-token'
 import { isMessagingConfigured } from '@/features/messaging/utils/config'
+import { rememberPeople } from '@/features/messaging/utils/directory'
 import { hasUnreadMessages } from '@/features/messaging/utils/helpers'
+import { KnownPeople, sortPeople, withPeople } from '@/features/messaging/utils/people'
 import {
   fetchConversation,
   fetchConversations,
@@ -14,7 +16,7 @@ import {
 import { Conversation, MessagingPerson, ThreadMessage } from '@/features/messaging/utils/types'
 import { useMySharesQuery, useSharedWithMeQuery } from '@/features/sharing/hooks/use-sharing-queries'
 import { DataShare, SharedWithMeUser } from '@/features/sharing/utils/types'
-import { useQuery } from '@tanstack/react-query'
+import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuthStore } from '@/lib/store'
 
@@ -87,12 +89,31 @@ export function useMessagesQuery(conversationId: string | null) {
   })
 }
 
+const NO_KNOWN_PEOPLE: KnownPeople = {}
+
 /**
- * jiffy-messaging only knows participants by user id. Names come from the
- * sharing graph, which is exactly the set of people a user is allowed to
- * message, so both directions of it are folded into one lookup.
+ * Names we have already resolved, kept so they outlive whatever supplied
+ * them.
+ *
+ * `skipToken` because this query is never fetched: it is a local store that
+ * happens to live in the query cache, written only through
+ * `rememberPeople`. That also means an invalidate of the messaging root
+ * cannot blank it, and there is no in-flight fetch that could resolve on
+ * top of a write.
  */
-export function useMessagingDirectory(): Map<string, MessagingPerson> {
+function useKnownPeople(): KnownPeople {
+  return (
+    useQuery<KnownPeople>({
+      queryKey: messagingQueries.knownPeople(),
+      queryFn: skipToken,
+      staleTime: Infinity,
+      gcTime: Infinity,
+    }).data ?? NO_KNOWN_PEOPLE
+  )
+}
+
+/** Both directions of the sharing graph, as people rather than as shares. */
+function useSharingPeople(): MessagingPerson[] {
   const mySharesQuery = useMySharesQuery()
   const sharedWithMeQuery = useSharedWithMeQuery()
 
@@ -100,41 +121,88 @@ export function useMessagingDirectory(): Map<string, MessagingPerson> {
   const sharedWithMe = sharedWithMeQuery.data
 
   return useMemo(() => {
-    const directory = new Map<string, MessagingPerson>()
+    const people: MessagingPerson[] = []
 
-    const add = (person: MessagingPerson | undefined) => {
-      if (!person?.id) return
-      const existing = directory.get(person.id)
-      directory.set(person.id, {
-        id: person.id,
-        name: person.name || existing?.name,
-        email: person.email || existing?.email,
-        avatar: person.avatar || existing?.avatar,
-      })
-    }
+    // Unlike `useMessageablePeople` below, this is not filtered by
+    // acceptance. Acceptance decides who you may open a conversation
+    // with; it has no bearing on whether we are allowed to put a name on
+    // an id we already have on screen.
+    ;(Array.isArray(myShares) ? (myShares as DataShare[]) : []).forEach((share) => {
+      if (share.sharedWith) people.push(share.sharedWith)
+    })
+    ;(Array.isArray(sharedWithMe) ? (sharedWithMe as SharedWithMeUser[]) : []).forEach((share) => {
+      if (share.owner) people.push(share.owner)
+    })
 
-    // getMyShares (unlike getSharedWithMe) isn't filtered server-side by
-    // acceptance, so it includes shares the recipient hasn't accepted yet.
-    // Offering someone here before they've accepted would let the user pick
-    // them and then 403 against the server's canMessage check, which does
-    // require an accepted share.
-    ;(Array.isArray(myShares) ? (myShares as DataShare[]) : [])
-      .filter((share) => share.status === 'ACCEPTED')
-      .forEach((share) => add(share.sharedWith))
-    ;(Array.isArray(sharedWithMe) ? (sharedWithMe as SharedWithMeUser[]) : []).forEach((share) => add(share.owner))
-
-    return directory
+    return people
   }, [myShares, sharedWithMe])
 }
 
-/** People the user shares with, deduplicated, for the "new conversation" list. */
+/**
+ * jiffy-messaging only knows participants by user id, so every name in
+ * Messages is resolved here.
+ *
+ * The sharing graph is the only place the web client can read a name from,
+ * but it is the *current* graph: revoking a share deletes the row outright
+ * (`SharingService.revokeAccess`), which used to retroactively anonymize a
+ * conversation that had been running for months into `Member 606d49`. So
+ * the graph seeds a remembered set rather than being the set: once an id
+ * has a name it keeps it, until the signed-in identity changes and the
+ * whole client cache goes with it.
+ *
+ * A real fix for the remaining hole - a participant whose name this client
+ * has never seen, e.g. one resolved on another device - needs the
+ * participant name to come down with the conversation. See #307.
+ */
+export function useMessagingDirectory(): Map<string, MessagingPerson> {
+  const queryClient = useQueryClient()
+  const known = useKnownPeople()
+  const sharingPeople = useSharingPeople()
+
+  useEffect(() => {
+    rememberPeople(queryClient, sharingPeople)
+  }, [queryClient, sharingPeople])
+
+  // Merged rather than read straight out of `known` so a name is on screen
+  // in the same render the sharing query resolved in, instead of waiting a
+  // frame for the effect above to write it back.
+  return useMemo(() => new Map(Object.entries(withPeople(known, sharingPeople))), [known, sharingPeople])
+}
+
+/**
+ * People the user shares with, deduplicated, for the "new conversation"
+ * list.
+ *
+ * Accepted shares only, in both directions. `getMyShares` (unlike
+ * `getSharedWithMe`) is not filtered server-side by acceptance, and
+ * offering someone here before they have accepted would let the user pick
+ * them and then 403 against the server's `canMessage` check, which does
+ * require an accepted share.
+ */
 export function useMessageablePeople(): MessagingPerson[] {
-  const directory = useMessagingDirectory()
-  return useMemo(
-    () =>
-      Array.from(directory.values()).sort((a, b) => (a.name || a.email || '').localeCompare(b.name || b.email || '')),
-    [directory],
-  )
+  const mySharesQuery = useMySharesQuery()
+  const sharedWithMeQuery = useSharedWithMeQuery()
+
+  const myShares = mySharesQuery.data
+  const sharedWithMe = sharedWithMeQuery.data
+
+  return useMemo(() => {
+    const people = withPeople(
+      {},
+      (Array.isArray(myShares) ? (myShares as DataShare[]) : [])
+        .filter((share) => share.status === 'ACCEPTED')
+        .map((share) => share.sharedWith),
+    )
+
+    return sortPeople(
+      Object.values(
+        withPeople(
+          people,
+          (Array.isArray(sharedWithMe) ? (sharedWithMe as SharedWithMeUser[]) : []).map((share) => share.owner),
+        ),
+      ),
+    )
+  }, [myShares, sharedWithMe])
 }
 
 /** The conversation the user already has with a given counterpart, if any. */
