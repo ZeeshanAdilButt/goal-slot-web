@@ -1,3 +1,4 @@
+import { isDeletedMessage } from '@/features/messaging/utils/helpers'
 import { messagingQueries } from '@/features/messaging/utils/queries'
 import { Conversation, Message, ThreadMessage } from '@/features/messaging/utils/types'
 import type { QueryClient } from '@tanstack/react-query'
@@ -14,7 +15,18 @@ import type { QueryClient } from '@tanstack/react-query'
 export function upsertMessageInCache(queryClient: QueryClient, message: Message): void {
   queryClient.setQueryData<ThreadMessage[]>(messagingQueries.messages(message.conversationId), (existing) => {
     if (!existing) return existing
-    if (existing.some((candidate) => candidate.id === message.id)) return existing
+
+    const index = existing.findIndex((candidate) => candidate.id === message.id)
+    if (index >= 0) {
+      // Already on screen. The one thing that legitimately arrives twice for
+      // the same id is a deletion: the service pushes the tombstone over the
+      // same socket, so it has to replace the row rather than be discarded as
+      // a duplicate. Anything else is genuinely a duplicate and is ignored.
+      if (!isDeletedMessage(message)) return existing
+      const next = [...existing]
+      next[index] = message
+      return next
+    }
 
     // Our own send may already be on screen as an optimistic row; swap it in
     // place so the bubble does not jump or duplicate.
@@ -58,6 +70,47 @@ export function replaceOptimisticMessage(queryClient: QueryClient, optimisticId:
     next[optimisticIndex] = message
     return next
   })
+}
+
+/**
+ * Folds a message deletion into everywhere the message is shown: the thread
+ * itself, and the conversation list's preview when the deleted message was
+ * the one being previewed.
+ *
+ * The list is patched by id rather than refetched so a deletion does not
+ * reorder the list - `lastMessageAt` and `updatedAt` are deliberately left
+ * alone, because deleting an old message is not new activity.
+ */
+export function applyMessageDeletionToCaches(queryClient: QueryClient, message: Message): void {
+  upsertMessageInCache(queryClient, message)
+
+  queryClient.setQueryData<Conversation[]>(messagingQueries.conversations(), (existing) => {
+    if (!existing) return existing
+
+    const index = existing.findIndex((conversation) => conversation.id === message.conversationId)
+    if (index === -1) return existing
+    if (existing[index].lastMessage?.id !== message.id) return existing
+
+    const next = [...existing]
+    next[index] = { ...next[index], lastMessage: message }
+    return next
+  })
+}
+
+/**
+ * Drops a conversation the user deleted for themselves out of the cached
+ * list, along with the thread and conversation entries behind it.
+ *
+ * Removing the per-conversation caches matters as much as the list: the
+ * service now hides that history from this user, so leaving a stale copy in
+ * the cache would keep rendering messages a refetch would no longer return.
+ */
+export function removeConversationFromCache(queryClient: QueryClient, conversationId: string): void {
+  queryClient.setQueryData<Conversation[]>(messagingQueries.conversations(), (existing) =>
+    existing ? existing.filter((conversation) => conversation.id !== conversationId) : existing,
+  )
+  queryClient.removeQueries({ queryKey: messagingQueries.conversation(conversationId) })
+  queryClient.removeQueries({ queryKey: messagingQueries.messages(conversationId) })
 }
 
 export function removeMessageFromCache(queryClient: QueryClient, conversationId: string, messageId: string): void {

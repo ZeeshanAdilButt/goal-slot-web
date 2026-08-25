@@ -161,6 +161,7 @@ export function MessagingPage() {
               conversationId={selectedConversationId}
               directory={directory}
               onBack={() => selectConversation(null)}
+              onDeleted={() => selectConversation(null)}
             />
           ) : (
             <div className="hidden rounded-xl border border-zinc-200 bg-white shadow-sm md:block">

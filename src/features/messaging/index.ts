@@ -14,6 +14,8 @@ export {
   useSendMessageMutation,
   useMarkConversationReadMutation,
   useStartConversationMutation,
+  useDeleteMessageMutation,
+  useDeleteConversationMutation,
 } from '@/features/messaging/hooks/use-messaging-mutations'
 export { useMessagingSocket } from '@/features/messaging/hooks/use-messaging-socket'
 export {

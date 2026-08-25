@@ -3,6 +3,18 @@ import { format, isThisYear, isToday, isYesterday } from 'date-fns'
 
 const OPTIMISTIC_PREFIX = 'optimistic_'
 
+/** What a deleted message reads as, everywhere it is shown. */
+export const DELETED_MESSAGE_TEXT = 'This message was deleted'
+
+/**
+ * The service empties a deleted message's body, so an empty body alone is
+ * not the signal - `deletedAt` is. Written as a null check rather than a
+ * truthiness check so a service that has not shipped the delete endpoints
+ * yet (no field at all, or an explicit null) reads as "not deleted".
+ */
+export const isDeletedMessage = (message: Message | null | undefined): boolean =>
+  !!message?.deletedAt
+
 export const isOptimisticId = (id: string) => id.startsWith(OPTIMISTIC_PREFIX)
 
 export const createOptimisticMessage = (conversationId: string, senderId: string, body: string): ThreadMessage => ({
@@ -11,6 +23,7 @@ export const createOptimisticMessage = (conversationId: string, senderId: string
   senderId,
   body,
   createdAt: new Date().toISOString(),
+  deletedAt: null,
   pending: true,
 })
 
@@ -119,8 +132,15 @@ export const hasUnreadMessages = (
 export const sortConversationsByActivity = (conversations: Conversation[]): Conversation[] =>
   [...conversations].sort((a, b) => toTime(getLastActivityAt(b)) - toTime(getLastActivityAt(a)))
 
-export const getConversationPreview = (conversation: Conversation): string =>
-  conversation.lastMessage?.body?.trim() || 'No messages yet'
+export const getConversationPreview = (conversation: Conversation): string => {
+  const lastMessage = conversation.lastMessage
+  if (!lastMessage) return 'No messages yet'
+  // A deleted message has an empty body, which would otherwise fall through
+  // to "No messages yet" and read as if the conversation had never been
+  // used at all.
+  if (isDeletedMessage(lastMessage)) return DELETED_MESSAGE_TEXT
+  return lastMessage.body?.trim() || 'No messages yet'
+}
 
 export const displayName = (person: MessagingPerson | undefined, fallbackId: string): string =>
   person?.name?.trim() || person?.email?.trim() || `Member ${fallbackId.slice(0, 6)}`
@@ -200,5 +220,9 @@ export const parseSocketMessage = (raw: unknown): Message | null => {
     senderId: candidate.senderId,
     body: candidate.body,
     createdAt: candidate.createdAt,
+    // The service pushes a deletion over the same socket as a new message,
+    // as the tombstone itself. Dropping this field here would turn every
+    // pushed deletion into an ordinary empty-bodied message.
+    deletedAt: isString(candidate.deletedAt) ? candidate.deletedAt : null,
   }
 }
