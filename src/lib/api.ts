@@ -196,7 +196,13 @@ export const authApi = {
   login: (data: { email: string; password: string }) => api.post('/auth/login', data),
   ssoLogin: (data: { token: string; email: string; name?: string }) => api.post('/auth/sso', data),
   getProfile: () => api.get('/auth/me'),
-  refresh: (data: { refreshToken: string }) => api.post('/auth/refresh', data),
+  // Currently unused -- the live refresh path is the 401 interceptor above.
+  // The explicit Authorization header is load-bearing anyway: /auth/refresh
+  // now requires a *refresh*-typed token and rejects an access token, and the
+  // shared `api` instance's request interceptor would otherwise attach the
+  // access token from localStorage and get a 401.
+  refresh: (data: { refreshToken: string }) =>
+    api.post('/auth/refresh', data, { headers: { Authorization: `Bearer ${data.refreshToken}` } }),
   sendChangePasswordOTP: (data: { currentPassword: string }) => api.post('/auth/send-change-password-otp', data),
   changePassword: (data: { currentPassword: string; otp: string; newPassword: string }) =>
     api.post('/auth/change-password', data),
