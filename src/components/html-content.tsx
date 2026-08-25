@@ -2,18 +2,22 @@
 
 import { useMemo } from 'react'
 
-import DOMPurify from 'isomorphic-dompurify'
+import sanitizeHtml from 'sanitize-html'
 
 // Allowlist mirrors what the Tiptap editor can actually produce (see
 // tiptap-editor.tsx's extension list) plus the tags the server-side note
 // builder emits. Anything outside this is dropped rather than escaped.
 //
-// isomorphic-dompurify rather than plain dompurify on purpose: two of the
-// four call sites (task-header.tsx, compact-task-expanded.tsx) have no
-// 'use client' directive of their own, and Next server-renders client
-// components on first load anyway -- so this runs in Node with no
-// `document`, where browser-only DOMPurify would be a no-op and would ship
-// the unsanitised markup straight into the SSR payload.
+// sanitize-html rather than dompurify because this has to run in Node as
+// well as the browser: two of the four call sites (task-header.tsx,
+// compact-task-expanded.tsx) have no 'use client' directive of their own,
+// and Next server-renders client components on first load anyway, so a
+// browser-only sanitiser would no-op and ship the unsanitised markup
+// straight into the SSR payload. isomorphic-dompurify covers that by
+// pulling in jsdom, which reads its default stylesheet off disk by
+// relative path and so breaks Vercel's pnpm prerender with ENOENT on
+// browser/default-stylesheet.css. sanitize-html parses with htmlparser2
+// and needs no DOM at all.
 const ALLOWED_TAGS = [
   'p',
   'br',
@@ -68,16 +72,21 @@ const ALLOWED_ATTR = [
 ]
 
 function sanitize(html: string): string {
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS,
-    ALLOWED_ATTR,
-    // Belt and braces: ALLOWED_ATTR already excludes event handlers, but
-    // this makes an accidental future addition to that list non-fatal.
-    FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus'],
-    FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form'],
-    // Blocks javascript:/data: URLs in href and src while keeping the
-    // http/https/mailto/tel links and data: images the editor produces.
-    ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i,
+  return sanitizeHtml(html, {
+    allowedTags: ALLOWED_TAGS,
+    // sanitize-html takes attributes per tag; the previous allowlist was
+    // global, so keep it global under the '*' key.
+    allowedAttributes: { '*': ALLOWED_ATTR },
+    // Anything not listed here is dropped from href/src, which is what
+    // kills javascript: and vbscript: URLs.
+    allowedSchemes: ['http', 'https', 'mailto', 'tel'],
+    // The editor embeds pasted images as data: URIs, so src alone keeps it.
+    allowedSchemesByTag: { img: ['http', 'https', 'data'] },
+    allowProtocolRelative: false,
+    // Drop the contents of these, do not just unwrap the tag, so
+    // <script>alert(1)</script> leaves no text behind.
+    nonTextTags: ['script', 'style', 'textarea', 'option', 'noscript'],
+    disallowedTagsMode: 'discard',
   })
 }
 
