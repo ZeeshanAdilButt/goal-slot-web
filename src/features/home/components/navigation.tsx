@@ -54,13 +54,13 @@ export function Navigation({ showSectionLinks = true }: NavigationProps) {
         <div className="hidden items-center gap-8 md:flex">
           {showSectionLinks && (
             <>
-              <a href="/#how-it-works" className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
+              <a href="#how-it-works" className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
                 Methodology
               </a>
-              <a href="/#features" className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
+              <a href="#features" className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
                 Features
               </a>
-              <a href="/#pricing" className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
+              <a href="#pricing" className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
                 Pricing
               </a>
               <Link href="/guides" className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
