@@ -2,8 +2,10 @@
 
 import { useMessagingTokenQuery } from '@/features/messaging/hooks/use-messaging-token'
 import {
+  applyMessageDeletionToCaches,
   applyMessageToConversationList,
   markConversationReadInCache,
+  removeConversationFromCache,
   removeMessageFromCache,
   replaceOptimisticMessage,
   upsertMessageInCache,
@@ -13,6 +15,8 @@ import { rememberPeople } from '@/features/messaging/utils/directory'
 import { createOptimisticMessage } from '@/features/messaging/utils/helpers'
 import {
   createConversationWith,
+  deleteConversation,
+  deleteMessage,
   messagingQueries,
   postConversationRead,
   postMessage,
@@ -99,6 +103,62 @@ export function useMarkConversationReadMutation() {
       // Read state is server-owned; pull the truth back rather than guessing.
       void queryClient.invalidateQueries({ queryKey: messagingQueries.conversation(conversationId) })
       void queryClient.invalidateQueries({ queryKey: messagingQueries.conversations() })
+    },
+  })
+}
+
+/**
+ * Deletes one of the user's own messages for everyone in the conversation.
+ *
+ * Not optimistic. A tombstone is not a local edit: the server decides
+ * whether the caller is allowed to delete this at all (only the sender is,
+ * enforced there rather than by hiding the button), and it owns the
+ * `deletedAt` that every client renders from. Painting the tombstone before
+ * the response would have to be unpainted on a 403, which is exactly the
+ * case that matters.
+ */
+export function useDeleteMessageMutation(conversationId: string | null) {
+  const queryClient = useQueryClient()
+  const tokenQuery = useMessagingTokenQuery()
+
+  return useMutation<Message, unknown, string>({
+    mutationFn: async (messageId: string) => {
+      if (!conversationId) throw new Error('No conversation is open.')
+      if (!tokenQuery.data) throw new MessagingApiError(401, 'Still connecting to messaging. Try again in a moment.')
+      return deleteMessage(tokenQuery.data, conversationId, messageId)
+    },
+    onSuccess: (message) => {
+      applyMessageDeletionToCaches(queryClient, message)
+    },
+    onError: (error) => {
+      toast.error(messagingErrorMessage(error))
+    },
+  })
+}
+
+/**
+ * Deletes a conversation for the signed-in user only.
+ *
+ * The other participant keeps theirs untouched, and anything they send
+ * afterwards brings this one back with only the new messages - which is why
+ * this drops the cached copies outright rather than trying to keep them in
+ * sync with a thread the server will no longer return.
+ */
+export function useDeleteConversationMutation() {
+  const queryClient = useQueryClient()
+  const tokenQuery = useMessagingTokenQuery()
+
+  return useMutation<void, unknown, string>({
+    mutationFn: async (conversationId: string) => {
+      if (!tokenQuery.data) throw new MessagingApiError(401, 'Still connecting to messaging. Try again in a moment.')
+      await deleteConversation(tokenQuery.data, conversationId)
+    },
+    onSuccess: (_result, conversationId) => {
+      removeConversationFromCache(queryClient, conversationId)
+      toast.success('Conversation deleted')
+    },
+    onError: (error) => {
+      toast.error(messagingErrorMessage(error))
     },
   })
 }

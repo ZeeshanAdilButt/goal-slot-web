@@ -109,3 +109,28 @@ export const postConversationRead = (token: string, conversationId: string): Pro
     token,
     method: 'POST',
   })
+
+/**
+ * Deletes a message for everyone in the conversation. The service allows
+ * this only for the account that sent it and answers 403 otherwise, so the
+ * hidden button is a courtesy and never the check.
+ *
+ * Answers with the tombstone - same id, empty body, a `deletedAt` - which is
+ * what goes back into the cache in place of the original.
+ */
+export const deleteMessage = (token: string, conversationId: string, messageId: string): Promise<Message> =>
+  messagingRequest<Message>(
+    `/conversations/${encodeURIComponent(conversationId)}/messages/${encodeURIComponent(messageId)}`,
+    { token, method: 'DELETE' },
+  )
+
+/**
+ * Deletes the conversation for the signed-in user only. The other
+ * participant keeps theirs, and anything they send afterwards brings this
+ * one back with only the new messages in it.
+ */
+export const deleteConversation = (token: string, conversationId: string): Promise<void> =>
+  messagingRequest<void>(`/conversations/${encodeURIComponent(conversationId)}`, {
+    token,
+    method: 'DELETE',
+  })

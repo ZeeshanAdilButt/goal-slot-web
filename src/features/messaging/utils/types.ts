@@ -9,6 +9,14 @@ export interface Message {
   senderId: string
   body: string
   createdAt: string
+  /**
+   * Set once the sender deleted the message for everyone. The service keeps
+   * the row and empties the body, so a deleted message still occupies its
+   * place in the thread and must render as a tombstone rather than as an
+   * empty bubble. Optional because a response from a service older than the
+   * delete endpoints omits it entirely; read it through `isDeletedMessage`.
+   */
+  deletedAt?: string | null
 }
 
 /**

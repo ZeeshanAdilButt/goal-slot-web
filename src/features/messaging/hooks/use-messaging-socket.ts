@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react'
 
 import { useMessagingTokenQuery } from '@/features/messaging/hooks/use-messaging-token'
 import {
+  applyMessageDeletionToCaches,
   applyMessageToConversationList,
   resyncMessagingCaches,
   upsertMessageInCache,
 } from '@/features/messaging/utils/cache'
 import { isMessagingConfigured, isMessagingRealtimeConfigured, messagingWsUrl } from '@/features/messaging/utils/config'
-import { parseSocketMessage } from '@/features/messaging/utils/helpers'
+import { isDeletedMessage, parseSocketMessage } from '@/features/messaging/utils/helpers'
 import { MessagingConnectionStatus } from '@/features/messaging/utils/types'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -103,6 +104,15 @@ export function useMessagingSocket(): MessagingConnectionStatus {
         if (cancelled) return
         const message = parseSocketMessage(event.data)
         if (!message) return
+
+        // The service pushes a deletion as the tombstone itself, on the same
+        // socket as a new message. Treating it as one would move the
+        // conversation to the top of the list and overwrite its preview with
+        // "this message was deleted" even when a newer message exists.
+        if (isDeletedMessage(message)) {
+          applyMessageDeletionToCaches(queryClient, message)
+          return
+        }
 
         upsertMessageInCache(queryClient, message)
         applyMessageToConversationList(queryClient, message)

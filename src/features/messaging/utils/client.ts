@@ -61,7 +61,7 @@ const extractServerMessage = async (response: Response): Promise<string> => {
 
 interface MessagingRequestOptions {
   token: string
-  method?: 'GET' | 'POST'
+  method?: 'GET' | 'POST' | 'DELETE'
   body?: unknown
   query?: Record<string, string | number | undefined>
   signal?: AbortSignal
