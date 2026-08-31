@@ -12,7 +12,7 @@ import {
 } from '@/features/schedule/utils/types'
 import { toast } from 'react-hot-toast'
 
-import { cn, DAYS_OF_WEEK_FULL, TIME_OPTIONS } from '@/lib/utils'
+import { cn, DAYS_OF_WEEK_FULL, timeOptionsIncluding } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -56,6 +56,14 @@ export function ScheduleBlockModal({
   const { mutateAsync: updateBlock, isPending: isUpdating } = useUpdateScheduleBlock()
   const { data: goals = [], isPending: isGoalsPending } = useGoalsQuery({ status: 'ACTIVE' })
   const { data: categories = [] } = useCategoriesQuery()
+
+  // Fold whatever time is actually set into the dropdown. Stored times are not
+  // restricted to the 15-minute grid TIME_OPTIONS builds (the Coach proposes
+  // real-world times, and production has blocks at 04:20, 09:25 and 13:05), and
+  // a Select whose value matches no item silently renders its placeholder, so
+  // those blocks opened showing an empty time with no way to read it back.
+  const startTimeOptions = useMemo(() => timeOptionsIncluding(startTime), [startTime])
+  const endTimeOptions = useMemo(() => timeOptionsIncluding(endTime), [endTime])
 
   const categoryOptions = useMemo(() => {
     return categories.map((cat) => ({
@@ -327,7 +335,7 @@ export function ScheduleBlockModal({
                   <SelectValue placeholder="Start time" />
                 </SelectTrigger>
                 <SelectContent>
-                  {TIME_OPTIONS.map((t) => (
+                  {startTimeOptions.map((t) => (
                     <SelectItem key={t.value} value={t.value}>
                       {t.label}
                     </SelectItem>
@@ -342,7 +350,7 @@ export function ScheduleBlockModal({
                   <SelectValue placeholder="End time" />
                 </SelectTrigger>
                 <SelectContent>
-                  {TIME_OPTIONS.map((t) => (
+                  {endTimeOptions.map((t) => (
                     <SelectItem key={t.value} value={t.value}>
                       {t.label}
                     </SelectItem>
