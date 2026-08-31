@@ -101,6 +101,46 @@ export const TIME_OPTIONS = Array.from({ length: (24 * 60) / 15 }, (_, i) => {
   }
 })
 
+/**
+ * TIME_OPTIONS with `values` folded in, so a `<Select>` always has an item
+ * matching whatever it is currently showing.
+ *
+ * TIME_OPTIONS is a fixed 15-minute grid, but stored times are not: the Coach
+ * proposes real-world times, and production carries blocks at 04:20, 09:25,
+ * 13:05 and 23:59. A Select whose value matches no item renders its
+ * placeholder, so those blocks opened with the time fields looking blank and
+ * no way to see, let alone re-pick, the time already set. That reads as
+ * "cannot edit the time".
+ *
+ * Off-grid values are inserted in chronological order rather than appended,
+ * so the dropdown stays scannable.
+ */
+export function timeOptionsIncluding(...values: (string | null | undefined)[]): { value: string; label: string }[] {
+  const extras = values.filter(
+    (v): v is string => typeof v === 'string' && /^\d{2}:\d{2}$/.test(v) && !TIME_OPTIONS.some((o) => o.value === v),
+  )
+  if (extras.length === 0) return TIME_OPTIONS
+
+  const toMinutes = (v: string) => {
+    const [h, m] = v.split(':')
+    return Number(h) * 60 + Number(m)
+  }
+  const labelFor = (v: string) => {
+    const [h, m] = v.split(':')
+    const hour = Number(h)
+    const ampm = hour >= 12 ? 'PM' : 'AM'
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
+    return `${displayHour}:${m} ${ampm}`
+  }
+
+  const merged = [...TIME_OPTIONS]
+  for (const value of Array.from(new Set(extras))) {
+    if (merged.some((o) => o.value === value)) continue
+    merged.push({ value, label: labelFor(value) })
+  }
+  return merged.sort((a, b) => toMinutes(a.value) - toMinutes(b.value))
+}
+
 export const toISOString = (date: Date | string): string => {
   const d = new Date(date)
   return Number.isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString()
