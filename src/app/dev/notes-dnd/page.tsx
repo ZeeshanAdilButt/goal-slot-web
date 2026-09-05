@@ -144,6 +144,11 @@ function Playground() {
   const [selected, setSelected] = useState<Note | null>(null)
 
   useMemo(() => {
+    // This runs during render, so in dev it also runs on the server, where
+    // window and localStorage do not exist and it threw a 500 on every
+    // load. Production never reaches this line because NotesDndPlayground
+    // calls notFound() first. Everything below is client-only.
+    if (typeof window === 'undefined') return
     api.defaults.adapter = devAdapter
     // Purge the offline outbox — queued mutations from real (or
     // earlier playground) sessions replay against whatever adapter is
