@@ -273,25 +273,25 @@ function NoteItemImpl({
           />
         )}
 
-        {/* Expand/Collapse button — only on the top-level row. Sub-notes
-            and deeper descendants get an invisible spacer of the same
-            width so their content stays aligned past the parent's
-            chevron (otherwise the first sub-note falls left of where
-            the parent's title started). */}
-        {depth === 0 ? (
-          <button
-            onClick={(e) => onToggleExpand(note.id, e)}
-            className={cn(
-              'flex h-5 w-5 shrink-0 items-center justify-center rounded',
-              hasChildren ? 'hover:bg-black/10 dark:hover:bg-white/10' : 'invisible',
-            )}
-          >
-            {hasChildren &&
-              (isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />)}
-          </button>
-        ) : (
-          <span aria-hidden className="block h-5 w-5 shrink-0" />
-        )}
+        {/* Expand/Collapse button, at every depth. A row without children
+            keeps the button but makes it invisible, so every row reserves
+            the same 20px and titles stay aligned down the whole tree. This
+            used to be root-only with a spacer below, which left sub-pages
+            permanently expanded with no way to fold them (#345). */}
+        <button
+          type="button"
+          onClick={(e) => onToggleExpand(note.id, e)}
+          aria-label={hasChildren ? (isExpanded ? 'Collapse' : 'Expand') : undefined}
+          aria-expanded={hasChildren ? isExpanded : undefined}
+          tabIndex={hasChildren ? 0 : -1}
+          className={cn(
+            'flex h-5 w-5 shrink-0 items-center justify-center rounded',
+            hasChildren ? 'hover:bg-black/10 dark:hover:bg-white/10' : 'invisible',
+          )}
+        >
+          {hasChildren &&
+            (isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />)}
+        </button>
 
         {/* Icon — only render when the user picked a custom one. The
             default 📄 fallback was just visual noise on every row. */}
@@ -371,10 +371,13 @@ function NoteItemImpl({
         </button>
       </div>
 
-      {/* Children. At depth 0, respect the chevron's collapsed/expanded
-          state. Below the root, always render so the subtree behaves
-          like a flat indented outline once the root is opened. */}
-      {hasChildren && (depth > 0 || isExpanded) && (
+      {/* Children render only while this row is expanded, at every depth.
+          The old rule rendered everything below the root unconditionally
+          as a flat outline, which is what made long note trees unfoldable.
+          Deeper levels default to collapsed since expandedIds starts
+          empty; the select handler already expands every ancestor of the
+          selected note, so deep-linking into a note still reveals it. */}
+      {hasChildren && isExpanded && (
         <div>
           {note.children.map((child) => (
             <NoteItem
