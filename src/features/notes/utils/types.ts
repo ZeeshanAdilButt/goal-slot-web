@@ -1,6 +1,6 @@
 // Notes System Types - OneNote-like hierarchical notes structure
 
-import { Block } from '@/components/block-editor'
+import type { Block } from '@/components/block-editor'
 
 export interface Note {
   id: string

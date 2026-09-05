@@ -447,6 +447,12 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
   // Stable closure so the ref is only read at event time — sensors
   // capture their coordinate getter once at construction.
   const getSensorContext = useCallback(() => sensorContext.current, [])
+  // react-hooks/refs flags this because a ref-reading function is passed
+  // into a call that runs during render. It is a false positive here:
+  // sortableTreeKeyboardCoordinates only STORES the getter, and dnd-kit
+  // invokes it on keyboard events, never during render. That is the whole
+  // reason getSensorContext exists rather than reading the ref inline.
+  // eslint-disable-next-line react-hooks/refs
   const [coordinateGetter] = useState(() =>
     sortableTreeKeyboardCoordinates(getSensorContext, INDENTATION_WIDTH),
   )
