@@ -1,44 +1,32 @@
 'use client'
 
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 import toast from 'react-hot-toast'
 
 import {
+  type Announcements,
   closestCenter,
-  type CollisionDetection,
   DndContext,
-  DragEndEvent,
-  DragOverEvent,
+  type DragEndEvent,
+  type DragMoveEvent,
+  type DragOverEvent,
   DragOverlay,
-  DragStartEvent,
+  type DragStartEvent,
+  KeyboardSensor,
   MeasuringStrategy,
   MouseSensor,
-  pointerWithin,
   TouchSensor,
-  useDraggable,
-  useDroppable,
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
+import { SortableContext, useSortable, type SortingStrategy } from '@dnd-kit/sortable'
 import { useQueryClient } from '@tanstack/react-query'
-import {
-  ChevronDown,
-  ChevronRight,
-  FileText,
-  FolderPlus,
-  MoreHorizontal,
-  Pencil,
-  Plus,
-  Search,
-  Star,
-  StarOff,
-  Trash2,
-} from 'lucide-react'
+import { ChevronDown, ChevronRight, Plus, Search, Star, Trash2 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Loading } from '@/components/ui/loading'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 
 import {
@@ -49,46 +37,58 @@ import {
   useReorderNotesMutation,
   useUpdateNoteMutation,
 } from '../hooks/use-notes'
-import { buildNoteTree, Note, NOTE_ICONS, NoteTreeItem } from '../utils/types'
+import { buildNoteTree, Note } from '../utils/types'
+import {
+  buildReorderPayload,
+  type FlatNote,
+  flattenVisibleTree,
+  getProjection,
+  INDENTATION_WIDTH,
+  type SensorContext,
+  sortableTreeKeyboardCoordinates,
+} from '../utils/tree-dnd'
 
-// Walks the flat note list (parent → children) and collects every
-// descendant id of `noteId`. Used by the cycle guard so we never let a
-// note become its own grand-…-child (which would orphan its subtree
-// once `buildNoteTree` re-runs and silently looked like "nothing
-// moved" in the sidebar). O(n) — cheap relative to a drag interaction.
-function findDescendantIds(noteId: string, notes: Note[]): Set<string> {
-  const childrenByParent = new Map<string, Note[]>()
-  for (const n of notes) {
-    const pid = n.parentId ?? null
-    if (pid === null) continue
-    const list = childrenByParent.get(pid) ?? []
-    list.push(n)
-    childrenByParent.set(pid, list)
-  }
-  const out = new Set<string>()
-  const stack: string[] = [noteId]
-  while (stack.length) {
-    const cur = stack.pop()!
-    const kids = childrenByParent.get(cur)
-    if (!kids) continue
-    for (const k of kids) {
-      if (out.has(k.id)) continue
-      out.add(k.id)
-      stack.push(k.id)
-    }
-  }
-  return out
-}
+/**
+ * Notes tree sidebar — OneNote-style pages + subpages.
+ *
+ * Drag model: the tree renders as a single flat sortable list.
+ * Dragging vertically picks the slot; dragging horizontally changes
+ * the indent level, nesting the note as a subpage of the row above
+ * (or un-nesting it back toward the root).
+ *
+ * Presentation is deliberately the calm OneNote/Atlassian style, NOT
+ * the Notion collapse-into-a-line style: while dragging, no row moves
+ * or changes size — the grabbed row dims in place, the moving visual
+ * is exclusively the DragOverlay clone under the pointer, and a
+ * floating yellow insertion line (with a dot at its left end) marks
+ * the drop slot, indented to the projected level. Zero layout shift
+ * until the drop commits. The dragged note's subtree tucks away for
+ * the duration and follows it to the drop, which also makes dropping
+ * into your own subtree impossible.
+ */
 
-// Custom collision detection: prefer the droppable directly under the
-// pointer (more intuitive for tree drops), fall back to nearest-center
-// only when the pointer is outside every droppable rect (e.g. the user
-// has drifted into the sidebar's padding). Mirrors the dnd-kit
-// recommendation for sortable trees.
-const notesCollision: CollisionDetection = (args) => {
-  const pointerHits = pointerWithin(args)
-  if (pointerHits.length > 0) return pointerHits
-  return closestCenter(args)
+const ROW_BASE_PADDING = 8
+
+/** Collapse state — default-expanded (OneNote model), so we persist
+ *  the COLLAPSED set. The legacy key persisted the expanded set for
+ *  root notes only (deeper levels were always expanded); migration
+ *  derives the equivalent collapsed set so nobody's sidebar changes
+ *  shape on upgrade. */
+const COLLAPSED_KEY = 'dw-notes-collapsed-ids'
+const LEGACY_EXPANDED_KEY = 'dw-notes-expanded-ids'
+
+const AUTO_EXPAND_HOVER_MS = 500
+
+const measuring = { droppable: { strategy: MeasuringStrategy.Always } }
+
+// No-displacement strategy: rows never shift or resize during a drag.
+// The floating insertion line carries all the "where will it land"
+// information instead (OneNote/Atlassian model — zero layout shift).
+const noDisplacement: SortingStrategy = () => null
+
+const screenReaderInstructions = {
+  draggable:
+    'To pick up a note, press space or enter. While dragging, use the up and down arrow keys to move it, and the left and right arrow keys to change its level in the tree. Press space or enter again to drop the note, or press escape to cancel.',
 }
 
 interface NotesSidebarProps {
@@ -97,346 +97,225 @@ interface NotesSidebarProps {
   className?: string
 }
 
-/**
- * OneNote-pure drop model: every drag is a sibling reorder.
- *   - top half of the target row    → drop ABOVE (previous sibling)
- *   - bottom half of the target row → drop BELOW (next sibling)
- *
- * There is NO drag-to-nest zone. OneNote itself doesn't have one
- * (it uses right-click → Make Sub Page); ours uses the per-row
- * "+ sub-note" button. A middle "inside" zone made the most common
- * gesture (move within a parent) feel broken because hovering near
- * the middle of a row turned a sibling-reorder into a nesting drop.
- *
- * To un-nest a deeply nested note, drag it onto any other note at
- * the desired depth (it'll join their parent), or onto the dedicated
- * root-drop zones at the very top / bottom of the tree.
- */
-type DropZone = 'above' | 'below'
-
-interface DropTarget {
-  /** dnd-kit droppable id — usually a note id, or one of ROOT_TOP_ID / ROOT_BOTTOM_ID. */
-  id: string
-  zone: DropZone
-}
-
-/** Synthetic droppable ids for the "drop as first/last root note" zones. */
-const ROOT_TOP_ID = '__root_top__'
-const ROOT_BOTTOM_ID = '__root_bottom__'
-
-/** Auto-expand a collapsed target after the pointer has hovered its
- *  inside-zone for this many ms. Matches Notion / Linear cadence. */
-const AUTO_EXPAND_HOVER_MS = 600
-
-/**
- * Decide the drop zone from where the pointer is inside the target's
- * bounding rect. Strict 50/50 split — top half goes above, bottom
- * half goes below. No middle zone, no fuzz factor; predictability
- * matters more than "almost any drop counts".
- */
-function zoneFromPointer(pointerY: number, rect: DOMRect): DropZone {
-  if (rect.height <= 0) return 'above'
-  return pointerY < rect.top + rect.height / 2 ? 'above' : 'below'
-}
-
-/**
- * Resolve the *effective* drop target after applying the "drop below an
- * expanded parent with children = drop above its first child" tree-DnD
- * convention. Gives users a much larger target area for "make X the first
- * child of Y" than the thin top half of the current first child row, and
- * avoids the failure mode where pointer drift onto the parent's bottom
- * half drops the note as a sibling-after-parent instead.
- */
-function resolveDropTarget(
-  notes: Note[],
-  overId: string,
-  rawZone: DropZone,
-  draggedNoteId: string,
-  expandedIds: Set<string>,
-): DropTarget {
-  if (overId === ROOT_TOP_ID || overId === ROOT_BOTTOM_ID) {
-    return { id: overId, zone: rawZone }
-  }
-  if (rawZone !== 'below') return { id: overId, zone: rawZone }
-  if (!expandedIds.has(overId)) return { id: overId, zone: rawZone }
-  const firstChild = notes
-    .filter((n) => n.parentId === overId && n.id !== draggedNoteId)
-    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))[0]
-  if (!firstChild) return { id: overId, zone: rawZone }
-  return { id: firstChild.id, zone: 'above' }
-}
-
-interface NoteItemProps {
-  note: NoteTreeItem
-  depth: number
-  isExpanded: boolean
+interface NoteRowProps {
+  note: FlatNote
+  /** True for the row being dragged: dims in place, nothing moves. */
+  isActive: boolean
+  isSorting: boolean
   isSelected: boolean
   isMultiSelected: boolean
-  expandedIds: Set<string>
+  isCollapsed: boolean
+  /** Post-drop attention flash for the row that just moved. */
+  flash: boolean
   onSelect: (note: Note, modifier: boolean) => void
-  onToggleExpand: (id: string, e: React.MouseEvent) => void
+  onToggleCollapse: (id: string) => void
   onCreateSubNote: (parentId: string) => void
-  onToggleFavorite: (note: Note) => void
+  onToggleFavorite: (id: string) => void
   onDelete: (id: string) => void
-  multiSelectIds: Set<string>
-  /** Global active drop target (forwarded down so recursive children
-   *  can each decide if THEY are the target). null when no drag. */
-  activeDropTarget: DropTarget | null
-  className?: string
 }
 
-function NoteItemImpl({
+const NoteRow = memo(function NoteRow({
   note,
-  depth,
-  isExpanded,
+  isActive,
+  isSorting,
   isSelected,
   isMultiSelected,
-  expandedIds,
+  isCollapsed,
+  flash,
   onSelect,
-  onToggleExpand,
+  onToggleCollapse,
   onCreateSubNote,
   onToggleFavorite,
   onDelete,
-  multiSelectIds,
-  activeDropTarget,
-  className,
-}: NoteItemProps) {
-  const dropZone: DropZone | null =
-    activeDropTarget && activeDropTarget.id === note.id ? activeDropTarget.zone : null
-  const { attributes, listeners, setNodeRef, isDragging, transform } = useDraggable({
+}: NoteRowProps) {
+  // Transforms/transitions deliberately unused — rows never displace
+  // during a drag (noDisplacement strategy); useSortable is here for
+  // droppable registration, rect measurement, and keyboard support.
+  const { attributes, listeners, setNodeRef } = useSortable({
     id: note.id,
-    data: note,
+    animateLayoutChanges: () => false,
   })
 
-  // The dragged row disables its own droppable so it never targets itself.
-  const { setNodeRef: setDroppableRef } = useDroppable({
-    id: note.id,
-    data: note,
-    disabled: isDragging,
-  })
+  const indentPx = ROW_BASE_PADDING + note.depth * INDENTATION_WIDTH
 
-  const style = transform
-    ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-        opacity: isDragging ? 0.3 : 1,
-        zIndex: isDragging ? 999 : 'auto',
-      }
-    : undefined
-
-  const hasChildren = note.children.length > 0
-
-  // Whole row owns drag listeners + droppable — grab from anywhere.
-  const setRowRef = (node: HTMLDivElement | null) => {
-    setNodeRef(node)
-    setDroppableRef(node)
+  const style: React.CSSProperties = {
+    paddingLeft: `${indentPx}px`,
+    // iOS: no text-selection loupe / share callout on long-press.
+    WebkitTouchCallout: 'none',
   }
 
-  // Indent offset for the drop indicator lines so they visually
-  // align with the target's own indent depth (OneNote pattern: the
-  // insertion line tells you both where AND at what level the note
-  // will land).
-  const indentPx = depth * 12 + 8
+  const hasChildren = note.childCount > 0
 
   return (
-    <div className={className}>
-      <div
-        ref={setRowRef}
-        {...attributes}
-        {...listeners}
-        style={{
-          paddingLeft: `${indentPx}px`,
-          ...style,
-        }}
-        className={cn(
-          'group relative flex cursor-move select-none items-center gap-1 rounded-md px-2 py-1.5 text-sm transition-[background-color,box-shadow,transform] duration-150',
-          isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-zinc-50',
-          isMultiSelected && !isSelected && 'bg-[#fff7d1] ring-1 ring-[#f2cc0d]/60',
-        )}
-        onClick={(e) => onSelect(note, e.ctrlKey || e.metaKey)}
-      >
-        {/* ABOVE drop indicator — solid brand-yellow line at the top
-            edge, starting from the target's indent so the user sees the
-            exact column the note lands in. */}
-        {dropZone === 'above' && (
-          <div
-            aria-hidden
-            style={{ left: `${indentPx}px` }}
-            className="pointer-events-none absolute right-2 top-0 z-50 h-[3px] -translate-y-[1px] rounded-full bg-[#f2cc0d] shadow-[0_0_8px_rgba(242,204,13,0.55)]"
-          />
-        )}
-        {/* BELOW drop indicator — same line at the bottom edge. */}
-        {dropZone === 'below' && (
-          <div
-            aria-hidden
-            style={{ left: `${indentPx}px` }}
-            className="pointer-events-none absolute bottom-0 right-2 z-50 h-[3px] translate-y-[1px] rounded-full bg-[#f2cc0d] shadow-[0_0_8px_rgba(242,204,13,0.55)]"
-          />
-        )}
-
-        {/* Expand/Collapse button — only on the top-level row. Sub-notes
-            and deeper descendants get an invisible spacer of the same
-            width so their content stays aligned past the parent's
-            chevron (otherwise the first sub-note falls left of where
-            the parent's title started). */}
-        {depth === 0 ? (
-          <button
-            onClick={(e) => onToggleExpand(note.id, e)}
-            className={cn(
-              'flex h-5 w-5 shrink-0 items-center justify-center rounded',
-              hasChildren ? 'hover:bg-black/10 dark:hover:bg-white/10' : 'invisible',
-            )}
-          >
-            {hasChildren &&
-              (isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />)}
-          </button>
-        ) : (
-          <span aria-hidden className="block h-5 w-5 shrink-0" />
-        )}
-
-        {/* Icon — only render when the user picked a custom one. The
-            default 📄 fallback was just visual noise on every row. */}
-        {note.icon && <span className="shrink-0 text-base">{note.icon}</span>}
-
-        {/* Title */}
-        <span className="flex-1 truncate">{note.title || 'Untitled'}</span>
-
-        {/* Inline quick actions: add sub-note + delete. Render in the
-            row to the LEFT of the favorite star so the star always
-            anchors the right edge. Opacity + pointer-events gate
-            visibility/interaction so the layout doesn't shift on hover.
-            Toggle-favorite gets the same treatment for unfavorited
-            rows so the user can add a favorite from the row directly. */}
-        <button
-          type="button"
-          title="Add sub-note"
-          aria-label="Add sub-note"
-          onClick={(e) => {
-            e.stopPropagation()
-            onCreateSubNote(note.id)
-          }}
-          onPointerDown={(e) => e.stopPropagation()}
-          className={cn(
-            'flex h-5 w-5 shrink-0 items-center justify-center rounded text-zinc-500 opacity-0 transition-opacity hover:bg-[#fff7d1] hover:text-[#8a7307] group-hover:opacity-100 group-hover:pointer-events-auto pointer-events-none',
-            isSelected && 'hover:bg-black/10',
-          )}
-        >
-          <Plus className="h-3.5 w-3.5" />
-        </button>
-        <button
-          type="button"
-          title="Delete note"
-          aria-label="Delete note"
-          onClick={(e) => {
-            e.stopPropagation()
-            onDelete(note.id)
-          }}
-          onPointerDown={(e) => e.stopPropagation()}
-          className={cn(
-            'flex h-5 w-5 shrink-0 items-center justify-center rounded text-zinc-500 opacity-0 transition-opacity hover:bg-rose-50 hover:text-rose-600 group-hover:opacity-100 group-hover:pointer-events-auto pointer-events-none',
-            isSelected && 'hover:bg-black/10',
-          )}
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
-        <button
-          type="button"
-          title={note.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-          aria-label={note.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-          aria-pressed={note.isFavorite}
-          onClick={(e) => {
-            e.stopPropagation()
-            onToggleFavorite(note)
-          }}
-          onPointerDown={(e) => e.stopPropagation()}
-          className={cn(
-            'flex h-5 w-5 shrink-0 items-center justify-center rounded transition-opacity hover:bg-[#fff7d1]',
-            // Stays put on the far right. When favorited it's always
-            // visible; when not, it reveals on hover (still in the same
-            // slot, so no layout shift) so the user can flag it from
-            // the row without an overflow menu.
-            note.isFavorite
-              ? 'opacity-100'
-              : 'opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto',
-            isSelected && 'hover:bg-black/10',
-          )}
-        >
-          <Star
-            className={cn(
-              'h-3.5 w-3.5',
-              note.isFavorite
-                ? 'fill-current text-yellow-500'
-                : 'text-zinc-400 hover:text-yellow-500',
-            )}
-          />
-        </button>
-      </div>
-
-      {/* Children. At depth 0, respect the chevron's collapsed/expanded
-          state. Below the root, always render so the subtree behaves
-          like a flat indented outline once the root is opened. */}
-      {hasChildren && (depth > 0 || isExpanded) && (
-        <div>
-          {note.children.map((child) => (
-            <NoteItem
-              key={child.id}
-              note={child}
-              depth={depth + 1}
-              isExpanded={expandedIds.has(child.id)}
-              isSelected={false} // Only highlighting direct selection in recursive render is limiting, better fix in parent
-              isMultiSelected={multiSelectIds.has(child.id)}
-              expandedIds={expandedIds}
-              onSelect={onSelect}
-              onToggleExpand={onToggleExpand}
-              onCreateSubNote={onCreateSubNote}
-              onToggleFavorite={onToggleFavorite}
-              onDelete={onDelete}
-              multiSelectIds={multiSelectIds}
-              activeDropTarget={activeDropTarget}
-              className={className}
-            />
-          ))}
-        </div>
+    <div
+      ref={setNodeRef}
+      style={style}
+      data-note-id={note.id}
+      {...attributes}
+      {...listeners}
+      onContextMenu={isSorting ? (e) => e.preventDefault() : undefined}
+      className={cn(
+        'group relative flex cursor-grab touch-manipulation select-none items-center gap-1 rounded-md px-2 py-1.5 text-sm transition-colors duration-300',
+        isSelected ? 'bg-primary text-primary-foreground' : !isSorting && 'hover:bg-zinc-50',
+        isMultiSelected && !isSelected && 'bg-[#fff7d1] ring-1 ring-[#f2cc0d]/60',
+        // The grabbed row dims in place; the DragOverlay clone is the
+        // only thing that moves.
+        isActive && 'opacity-40',
+        flash && 'bg-[#fff7d1]',
+        // Kill hover states + stray hit-testing under the overlay
+        // while a drag is in flight.
+        isSorting && 'pointer-events-none',
       )}
+      onClick={(e) => onSelect(note, e.ctrlKey || e.metaKey)}
+    >
+      {/* Chevron — any note with subpages can collapse, at any depth
+          (OneNote model). Leaf rows keep an invisible spacer so titles
+          align within a level. */}
+      {hasChildren ? (
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggleCollapse(note.id)
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          aria-label={isCollapsed ? 'Expand subpages' : 'Collapse subpages'}
+          aria-expanded={!isCollapsed}
+          className="flex h-5 w-5 shrink-0 items-center justify-center rounded hover:bg-black/10 dark:hover:bg-white/10"
+        >
+          {isCollapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+        </button>
+      ) : (
+        <span aria-hidden className="block h-5 w-5 shrink-0" />
+      )}
+
+      {note.icon && <span className="shrink-0 text-base">{note.icon}</span>}
+
+      <span className="flex-1 truncate">{note.title || 'Untitled'}</span>
+
+      {/* Quick actions: add sub-note + delete reveal on hover; the
+          favorite star anchors the right edge and stays visible when
+          set. Opacity + pointer-events gating avoids layout shift. */}
+      <button
+        type="button"
+        title="Add sub-note"
+        aria-label="Add sub-note"
+        onClick={(e) => {
+          e.stopPropagation()
+          onCreateSubNote(note.id)
+        }}
+        onPointerDown={(e) => e.stopPropagation()}
+        className={cn(
+          'pointer-events-none flex h-5 w-5 shrink-0 items-center justify-center rounded text-zinc-500 opacity-0 transition-opacity hover:bg-[#fff7d1] hover:text-[#8a7307] group-hover:pointer-events-auto group-hover:opacity-100',
+          isSelected && 'hover:bg-black/10',
+        )}
+      >
+        <Plus className="h-3.5 w-3.5" />
+      </button>
+      <button
+        type="button"
+        title="Delete note"
+        aria-label="Delete note"
+        onClick={(e) => {
+          e.stopPropagation()
+          onDelete(note.id)
+        }}
+        onPointerDown={(e) => e.stopPropagation()}
+        className={cn(
+          'pointer-events-none flex h-5 w-5 shrink-0 items-center justify-center rounded text-zinc-500 opacity-0 transition-opacity hover:bg-rose-50 hover:text-rose-600 group-hover:pointer-events-auto group-hover:opacity-100',
+          isSelected && 'hover:bg-black/10',
+        )}
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
+      <button
+        type="button"
+        title={note.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        aria-label={note.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        aria-pressed={note.isFavorite}
+        onClick={(e) => {
+          e.stopPropagation()
+          onToggleFavorite(note.id)
+        }}
+        onPointerDown={(e) => e.stopPropagation()}
+        className={cn(
+          'flex h-5 w-5 shrink-0 items-center justify-center rounded transition-opacity hover:bg-[#fff7d1]',
+          note.isFavorite
+            ? 'opacity-100'
+            : 'pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100',
+          isSelected && 'hover:bg-black/10',
+        )}
+      >
+        <Star
+          className={cn(
+            'h-3.5 w-3.5',
+            note.isFavorite ? 'fill-current text-yellow-500' : 'text-zinc-400 hover:text-yellow-500',
+          )}
+        />
+      </button>
+    </div>
+  )
+})
+
+/**
+ * Floating insertion line — a 2.5px yellow line with a dot terminal,
+ * absolutely positioned inside the scroll container directly below
+ * the projection's insertAfterId row (or above the first row when
+ * dropping at the very top), indented to the projected depth.
+ * Positioned in content coordinates so autoscroll doesn't detach it
+ * from its row.
+ */
+function DropIndicatorLine({
+  containerRef,
+  visible,
+  insertAfterId,
+  depth,
+}: {
+  containerRef: React.RefObject<HTMLDivElement | null>
+  visible: boolean
+  insertAfterId: string | null
+  depth: number
+}) {
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+
+  useLayoutEffect(() => {
+    const container = containerRef.current
+    if (!container || !visible) {
+      setPos(null)
+      return
+    }
+    const cRect = container.getBoundingClientRect()
+    let edge: number | null = null
+    if (insertAfterId) {
+      const el = container.querySelector<HTMLElement>(
+        `[data-note-id="${window.CSS.escape(insertAfterId)}"]`,
+      )
+      if (el) edge = el.getBoundingClientRect().bottom
+    } else {
+      const first = container.querySelector<HTMLElement>('[data-note-id]')
+      if (first) edge = first.getBoundingClientRect().top
+    }
+    if (edge === null) {
+      setPos(null)
+      return
+    }
+    setPos({
+      top: edge - cRect.top + container.scrollTop,
+      left: ROW_BASE_PADDING + depth * INDENTATION_WIDTH,
+    })
+  }, [containerRef, visible, insertAfterId, depth])
+
+  if (!pos) return null
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute right-2 z-40 flex -translate-y-1/2 items-center"
+      style={{ top: pos.top, left: pos.left }}
+    >
+      <span className="h-2.5 w-2.5 shrink-0 rounded-full border-2 border-[#f2cc0d] bg-white shadow" />
+      <span className="h-[2.5px] flex-1 rounded-full bg-[#f2cc0d] shadow-[0_0_8px_rgba(242,204,13,0.6)]" />
     </div>
   )
 }
-
-// Custom equality: `activeDropTarget` gets a new object identity on
-// nearly every `onDragOver` while a note is being dragged, and it's
-// forwarded unchanged to every row in the tree (see recursive render
-// above). A plain React.memo would still re-render the entire tree on
-// every hovered-row change because the prop reference always differs.
-// Since a row's rendered output only actually depends on whether IT is
-// (or just stopped being) the active drop target, we only treat
-// `activeDropTarget` as "changed" for a row when that row was, or now
-// is, the target — every other row skips re-rendering during the drag.
-function areNoteItemPropsEqual(prev: NoteItemProps, next: NoteItemProps): boolean {
-  if (
-    prev.note !== next.note ||
-    prev.depth !== next.depth ||
-    prev.isExpanded !== next.isExpanded ||
-    prev.isSelected !== next.isSelected ||
-    prev.isMultiSelected !== next.isMultiSelected ||
-    prev.expandedIds !== next.expandedIds ||
-    prev.onSelect !== next.onSelect ||
-    prev.onToggleExpand !== next.onToggleExpand ||
-    prev.onCreateSubNote !== next.onCreateSubNote ||
-    prev.onToggleFavorite !== next.onToggleFavorite ||
-    prev.onDelete !== next.onDelete ||
-    prev.multiSelectIds !== next.multiSelectIds ||
-    prev.className !== next.className
-  ) {
-    return false
-  }
-
-  const noteId = next.note.id
-  const wasTarget = prev.activeDropTarget?.id === noteId
-  const isTarget = next.activeDropTarget?.id === noteId
-  if (!wasTarget && !isTarget) return true
-  return wasTarget === isTarget && prev.activeDropTarget?.zone === next.activeDropTarget?.zone
-}
-
-const NoteItem = memo(NoteItemImpl, areNoteItemPropsEqual)
 
 export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesSidebarProps) {
   const queryClient = useQueryClient()
@@ -447,116 +326,143 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
   const reorderMutation = useReorderNotesMutation()
 
   const [searchQuery, setSearchQuery] = useState('')
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
-  const [contextMenuNoteId, setContextMenuNoteId] = useState<string | null>(null)
   const [deleteConfirmNoteId, setDeleteConfirmNoteId] = useState<string | null>(null)
-  // Multi-select via Ctrl/Cmd-click. A plain click clears this set
-  // and behaves like before (open the doc). Modifier-click toggles
-  // membership without opening the doc, so the user can mark several
-  // notes and delete them as a batch from the floating toolbar.
+  // Multi-select via Ctrl/Cmd-click; a plain click clears it.
   const [multiSelectIds, setMultiSelectIds] = useState<Set<string>>(new Set())
   const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false)
 
-  // Initialize expandedIds from localStorage
+  // ----- Collapse state (persisted) -----
+  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set())
+  const [collapsedLoaded, setCollapsedLoaded] = useState(false)
+  const [needsLegacyMigration, setNeedsLegacyMigration] = useState(false)
+
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('dw-notes-expanded-ids')
-      if (stored) {
-        setExpandedIds(new Set(JSON.parse(stored)))
+      const stored = localStorage.getItem(COLLAPSED_KEY)
+      if (stored != null) {
+        setCollapsedIds(new Set(JSON.parse(stored)))
+        setCollapsedLoaded(true)
+        return
       }
     } catch {
-      toast.error('Failed to load saved data')
+      // Corrupt storage — fall through to migration/defaults.
     }
+    setNeedsLegacyMigration(true)
   }, [])
 
-  // Sync expandedIds to localStorage
+  // One-time migration from the legacy expanded-set key: previously
+  // only root notes could collapse, and did unless present in the
+  // expanded set. Reproduce that exact shape as a collapsed set.
   useEffect(() => {
-    if (expandedIds.size > 0) {
-      localStorage.setItem('dw-notes-expanded-ids', JSON.stringify(Array.from(expandedIds)))
+    if (!needsLegacyMigration || notes.length === 0) return
+    let expanded = new Set<string>()
+    try {
+      const legacy = localStorage.getItem(LEGACY_EXPANDED_KEY)
+      if (legacy) expanded = new Set(JSON.parse(legacy))
+    } catch {
+      // Ignore corrupt legacy state.
     }
-  }, [expandedIds])
-
-  // Build tree structure
-  const noteTree = useMemo(() => buildNoteTree(notes), [notes])
-
-  // Filter notes based on search
-  const filteredNotes = useMemo(() => {
-    if (!searchQuery.trim()) return notes
-    const query = searchQuery.toLowerCase()
-    return notes.filter(
-      (note) => note.title.toLowerCase().includes(query) || note.content.toLowerCase().includes(query),
+    const hasChildren = new Set(notes.map((n) => n.parentId).filter(Boolean) as string[])
+    const collapsed = new Set(
+      notes
+        .filter((n) => (n.parentId ?? null) === null && hasChildren.has(n.id) && !expanded.has(n.id))
+        .map((n) => n.id),
     )
-  }, [notes, searchQuery])
+    setCollapsedIds(collapsed)
+    setCollapsedLoaded(true)
+    setNeedsLegacyMigration(false)
+  }, [needsLegacyMigration, notes])
 
-  // Get favorites
-  const favorites = useMemo(() => notes.filter((note) => note.isFavorite), [notes])
-
-  // Auto-expand parents of selected note
   useEffect(() => {
-    if (selectedNoteId && notes.length > 0) {
-      const parentsToExpand = new Set<string>()
+    if (!collapsedLoaded) return
+    localStorage.setItem(COLLAPSED_KEY, JSON.stringify(Array.from(collapsedIds)))
+  }, [collapsedIds, collapsedLoaded])
 
-      let currentNote = notes.find((n) => n.id === selectedNoteId)
-      // Traverse up to find all parents
-      while (currentNote?.parentId) {
-        parentsToExpand.add(currentNote.parentId)
-        const parentId = currentNote.parentId
-        currentNote = notes.find((n) => n.id === parentId)
-      }
-
-      if (parentsToExpand.size > 0) {
-        setExpandedIds((prev) => {
-          // check if all are already expanded to avoid loop/re-render if possible
-          let needsUpdate = false
-          for (const id of Array.from(parentsToExpand)) {
-            if (!prev.has(id)) {
-              needsUpdate = true
-              break
-            }
-          }
-
-          if (!needsUpdate) return prev
-
-          return new Set([...prev, ...Array.from(parentsToExpand)])
-        })
-      }
+  // Reveal the selected note: clear collapsed state on its ancestors.
+  useEffect(() => {
+    if (!selectedNoteId || notes.length === 0) return
+    const byId = new Map(notes.map((n) => [n.id, n]))
+    const ancestors: string[] = []
+    let cur = byId.get(selectedNoteId)
+    const seen = new Set<string>()
+    while (cur?.parentId && !seen.has(cur.parentId)) {
+      seen.add(cur.parentId)
+      ancestors.push(cur.parentId)
+      cur = byId.get(cur.parentId)
     }
+    if (ancestors.length === 0) return
+    setCollapsedIds((prev) => {
+      if (!ancestors.some((id) => prev.has(id))) return prev
+      const next = new Set(prev)
+      ancestors.forEach((id) => next.delete(id))
+      return next
+    })
   }, [selectedNoteId, notes])
 
-  const toggleExpanded = useCallback((noteId: string, e?: React.MouseEvent) => {
-    e?.stopPropagation()
-    setExpandedIds((prev) => {
+  const toggleCollapse = useCallback((noteId: string) => {
+    setCollapsedIds((prev) => {
       const next = new Set(prev)
-      if (next.has(noteId)) {
-        next.delete(noteId)
-      } else {
-        next.add(noteId)
-      }
+      if (next.has(noteId)) next.delete(noteId)
+      else next.add(noteId)
       return next
     })
   }, [])
 
-  // DnD Logic — OneNote-style drop zones, no axis lock, no horizontal swipe.
-  const [activeNote, setActiveNote] = useState<NoteTreeItem | null>(null)
-  const [activeDropTarget, setActiveDropTarget] = useState<DropTarget | null>(null)
-
-  // Raw pointer Y is the source of truth for zone calculation. dnd-kit
-  // doesn't expose live cursor coords during a drag (it tracks the
-  // ghost's translated rect), so we install a global pointermove
-  // listener for the lifetime of the drag and read from this ref in
-  // handleDragOver / handleDragEnd.
-  const pointerYRef = useRef(0)
-  // Snapshot the dragged note's descendants on drag start so the
-  // cycle guard ("can't drop into your own subtree") runs in O(1).
-  const descendantsRef = useRef<Set<string>>(new Set())
-  // Auto-expand timer: when the pointer hovers a collapsed row's
-  // inside-zone, after AUTO_EXPAND_HOVER_MS we expand it so the user
-  // can drop into a nested location without manually clicking the
-  // chevron first.
+  // ----- Drag state -----
+  const [activeId, setActiveId] = useState<string | null>(null)
+  const [overId, setOverId] = useState<string | null>(null)
+  // Horizontal offset, quantized to whole indent steps so drag frames
+  // between depth boundaries don't re-render anything.
+  const [offsetLeft, setOffsetLeft] = useState(0)
+  const offsetRef = useRef(0)
   const autoExpandTimerRef = useRef<number | null>(null)
   const autoExpandTargetRef = useRef<string | null>(null)
+  // Rows we auto-expanded during THIS drag — re-collapsed on cancel,
+  // left open on drop.
+  const autoExpandedRef = useRef<Set<string>>(new Set())
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null)
+  // Row that just moved — briefly highlighted so the eye can follow
+  // the drop.
+  const [flashId, setFlashId] = useState<string | null>(null)
 
-  const cancelAutoExpand = useCallback(() => {
+  const noteTree = useMemo(() => buildNoteTree(notes), [notes])
+  const flattenedItems = useMemo(
+    () => flattenVisibleTree(noteTree, collapsedIds, activeId),
+    [noteTree, collapsedIds, activeId],
+  )
+  const sortedIds = useMemo(() => flattenedItems.map(({ id }) => id), [flattenedItems])
+  const activeItem = activeId ? flattenedItems.find(({ id }) => id === activeId) : null
+
+  const projected =
+    activeId && overId
+      ? getProjection(flattenedItems, activeId, overId, offsetLeft, INDENTATION_WIDTH)
+      : null
+
+  const sensorContext: SensorContext = useRef({ items: flattenedItems, offset: offsetLeft })
+  useEffect(() => {
+    sensorContext.current = { items: flattenedItems, offset: offsetLeft }
+  }, [flattenedItems, offsetLeft])
+  // Stable closure so the ref is only read at event time — sensors
+  // capture their coordinate getter once at construction.
+  const getSensorContext = useCallback(() => sensorContext.current, [])
+  const [coordinateGetter] = useState(() =>
+    sortableTreeKeyboardCoordinates(getSensorContext, INDENTATION_WIDTH),
+  )
+
+  const sensors = useSensors(
+    // Separate mouse/touch sensors on purpose: TouchSensor's events
+    // are cancelable AFTER long-press activation, so rows can keep
+    // touch-action: manipulation and the sidebar still scrolls
+    // normally — the classic cause of janky touch DnD is PointerSensor
+    // forcing touch-action: none everywhere.
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter }),
+  )
+
+  const clearAutoExpandTimer = useCallback(() => {
     if (autoExpandTimerRef.current != null) {
       window.clearTimeout(autoExpandTimerRef.current)
       autoExpandTimerRef.current = null
@@ -564,231 +470,132 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
     autoExpandTargetRef.current = null
   }, [])
 
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event
-    const findNote = (items: NoteTreeItem[], id: string): NoteTreeItem | null => {
-      for (const item of items) {
-        if (item.id === id) return item
-        if (item.children.length) {
-          const found = findNote(item.children, id)
-          if (found) return found
-        }
-      }
-      return null
+  const resetDragState = useCallback(() => {
+    setActiveId(null)
+    setOverId(null)
+    setOffsetLeft(0)
+    offsetRef.current = 0
+    clearAutoExpandTimer()
+    document.body.style.cursor = ''
+  }, [clearAutoExpandTimer])
+
+  const handleDragStart = ({ active }: DragStartEvent) => {
+    setActiveId(String(active.id))
+    setOverId(String(active.id))
+    document.body.style.cursor = 'grabbing'
+  }
+
+  const handleDragMove = ({ delta }: DragMoveEvent) => {
+    const quantized = Math.round(delta.x / INDENTATION_WIDTH) * INDENTATION_WIDTH
+    if (quantized !== offsetRef.current) {
+      offsetRef.current = quantized
+      setOffsetLeft(quantized)
     }
-    const note = findNote(noteTree, active.id as string)
-    setActiveNote(note)
-    setActiveDropTarget(null)
+  }
+
+  const handleDragOver = ({ over }: DragOverEvent) => {
+    const nextOverId = over ? String(over.id) : null
+    setOverId(nextOverId)
+
+    // Hovering a collapsed parent auto-expands it after a beat, so
+    // nested drop positions are reachable mid-drag.
+    if (nextOverId && nextOverId !== activeId) {
+      const overItem = flattenedItems.find(({ id }) => id === nextOverId)
+      if (overItem && overItem.childCount > 0 && collapsedIds.has(overItem.id)) {
+        if (autoExpandTargetRef.current !== overItem.id) {
+          clearAutoExpandTimer()
+          autoExpandTargetRef.current = overItem.id
+          autoExpandTimerRef.current = window.setTimeout(() => {
+            autoExpandedRef.current.add(overItem.id)
+            setCollapsedIds((prev) => {
+              const next = new Set(prev)
+              next.delete(overItem.id)
+              return next
+            })
+            autoExpandTimerRef.current = null
+            autoExpandTargetRef.current = null
+          }, AUTO_EXPAND_HOVER_MS)
+        }
+        return
+      }
+    }
+    clearAutoExpandTimer()
+  }
+
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    // Capture render-scope values before reset.
+    const finalProjection = projected
+    autoExpandedRef.current = new Set()
+    resetDragState()
+
+    if (!finalProjection || !over) return
 
     const freshNotes = queryClient.getQueryData<Note[]>(NOTES_QUERY_KEY) ?? notes
-    descendantsRef.current = findDescendantIds(active.id as string, freshNotes)
+    const payload = buildReorderPayload(freshNotes, String(active.id), finalProjection)
+    if (!payload) return
 
-    // Track raw pointer Y for the rest of the drag.
-    const onMove = (ev: PointerEvent) => {
-      pointerYRef.current = ev.clientY
-    }
-    document.addEventListener('pointermove', onMove)
-    // Stash the cleanup on a ref so cancel/end can detach.
-    pointerCleanupRef.current = () => document.removeEventListener('pointermove', onMove)
-  }
+    reorderMutation.mutate(payload)
 
-  const pointerCleanupRef = useRef<(() => void) | null>(null)
+    const movedId = String(active.id)
+    setFlashId(movedId)
+    window.setTimeout(() => setFlashId((cur) => (cur === movedId ? null : cur)), 700)
 
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event
-    if (!over || !active || over.id === active.id) {
-      if (activeDropTarget !== null) setActiveDropTarget(null)
-      cancelAutoExpand()
-      return
-    }
-
-    const overId = String(over.id)
-
-    // Root drop zones — synthetic; zone label irrelevant, we only use
-    // the id at drop time. Pick 'above' for ROOT_TOP and 'below' for
-    // ROOT_BOTTOM so the indicator on the strip reads naturally.
-    if (overId === ROOT_TOP_ID || overId === ROOT_BOTTOM_ID) {
-      const zone: DropZone = overId === ROOT_TOP_ID ? 'above' : 'below'
-      if (activeDropTarget?.id !== overId || activeDropTarget.zone !== zone) {
-        setActiveDropTarget({ id: overId, zone })
-      }
-      cancelAutoExpand()
-      return
-    }
-
-    // Cycle guard.
-    if (descendantsRef.current.has(overId)) {
-      if (activeDropTarget !== null) setActiveDropTarget(null)
-      cancelAutoExpand()
-      return
-    }
-
-    const rect = over.rect as unknown as DOMRect
-    const rawZone = zoneFromPointer(pointerYRef.current, rect)
-    const resolved = resolveDropTarget(
-      notes,
-      overId,
-      rawZone,
-      String(active.id),
-      expandedIds,
-    )
-
-    if (activeDropTarget?.id !== resolved.id || activeDropTarget.zone !== resolved.zone) {
-      setActiveDropTarget(resolved)
-    }
-
-    // Auto-expand: hovering a collapsed parent for AUTO_EXPAND_HOVER_MS
-    // expands it so the user can target one of its children for the
-    // sibling reorder. Fires regardless of zone — we just need the
-    // user lingering on a collapsed row.
-    const isCollapsedParent =
-      !expandedIds.has(overId) && notes.some((n: Note) => n.parentId === overId)
-    if (isCollapsedParent) {
-      if (autoExpandTargetRef.current !== overId) {
-        cancelAutoExpand()
-        autoExpandTargetRef.current = overId
-        autoExpandTimerRef.current = window.setTimeout(() => {
-          setExpandedIds((prev) => {
-            const next = new Set(prev)
-            next.add(overId)
-            return next
-          })
-          autoExpandTimerRef.current = null
-          autoExpandTargetRef.current = null
-        }, AUTO_EXPAND_HOVER_MS)
-      }
-    } else {
-      cancelAutoExpand()
+    // Keep the drop visible: the new parent must be expanded.
+    if (finalProjection.parentId) {
+      setCollapsedIds((prev) => {
+        if (!prev.has(finalProjection.parentId!)) return prev
+        const next = new Set(prev)
+        next.delete(finalProjection.parentId!)
+        return next
+      })
     }
   }
-
-  const cleanupDrag = useCallback(() => {
-    setActiveNote(null)
-    setActiveDropTarget(null)
-    descendantsRef.current = new Set()
-    cancelAutoExpand()
-    if (pointerCleanupRef.current) {
-      pointerCleanupRef.current()
-      pointerCleanupRef.current = null
-    }
-  }, [cancelAutoExpand])
 
   const handleDragCancel = () => {
-    cleanupDrag()
+    // Undo hover-triggered expansions from this drag.
+    if (autoExpandedRef.current.size > 0) {
+      const toRestore = autoExpandedRef.current
+      setCollapsedIds((prev) => new Set([...prev, ...toRestore]))
+      autoExpandedRef.current = new Set()
+    }
+    resetDragState()
   }
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-    const noteId = String(active.id)
-
-    // Snapshot end state up front so any early-return below still
-    // tears down the global pointermove listener and cleanup.
-    const target = activeDropTarget
-    cleanupDrag()
-
-    if (!over) return
-    const overId = String(over.id)
-
-    const freshNotes = queryClient.getQueryData<Note[]>(NOTES_QUERY_KEY) ?? notes
-    const draggedNote = freshNotes.find((n: Note) => n.id === noteId)
-    if (!draggedNote) return
-
-    // ROOT zones land the note as a top-level (parentId = null) note
-    // at the very top or the very bottom of the root list.
-    if (overId === ROOT_TOP_ID || overId === ROOT_BOTTOM_ID) {
-      const roots = freshNotes
-        .filter((n: Note) => (n.parentId ?? null) === null && n.id !== noteId)
-        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-      const next = overId === ROOT_TOP_ID ? [draggedNote, ...roots] : [...roots, draggedNote]
-      reorderMutation.mutate(
-        next.map((n, i) => ({ noteId: n.id, parentId: null, order: (i + 1) * 1000 })),
-      )
-      return
-    }
-
-    if (overId === noteId) return
-
-    // Cycle guard: never let a note become its own descendant.
-    const descendants = descendantsRef.current.size
-      ? descendantsRef.current
-      : findDescendantIds(noteId, freshNotes)
-    if (descendants.has(overId)) {
-      toast.error("Can't move a note into its own descendant")
-      return
-    }
-
-    // Re-derive the zone from the final event geometry — `target` from
-    // state could be one render stale on a fast release, but the rects
-    // on the event itself are always current. Then apply the
-    // "drop-below-expanded-parent = drop-above-its-first-child"
-    // resolution so the effective target matches what handleDragOver
-    // showed in the indicator.
-    let rawZone: DropZone = target?.id === overId && target?.zone ? target.zone : 'below'
-    const overRect = (over.rect as unknown as DOMRect | undefined) ?? null
-    if (overRect) {
-      rawZone = zoneFromPointer(pointerYRef.current, overRect)
-    }
-    const resolved = resolveDropTarget(freshNotes, overId, rawZone, noteId, expandedIds)
-    const resolvedOverId = resolved.id
-    const zone = resolved.zone
-
-    const targetNote = freshNotes.find((n: Note) => n.id === resolvedOverId)
-    if (!targetNote) return
-
-    // Sibling reorder. Land in the target's parent list immediately
-    // before or after the target row. (No drag-to-nest — nesting is
-    // done via the per-row "+ sub-note" button, matching OneNote.)
-    const targetParentId = targetNote.parentId ?? null
-    const siblings = freshNotes
-      .filter((n: Note) => (n.parentId ?? null) === targetParentId && n.id !== noteId)
-      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-
-    const targetIndex = siblings.findIndex((n: Note) => n.id === resolvedOverId)
-    const insertAt =
-      targetIndex === -1
-        ? siblings.length
-        : zone === 'above'
-          ? targetIndex
-          : targetIndex + 1
-    siblings.splice(insertAt, 0, draggedNote)
-
-    reorderMutation.mutate(
-      siblings.map((n, i) => ({
-        noteId: n.id,
-        parentId: targetParentId,
-        order: (i + 1) * 1000,
-      })),
-    )
-  }
-
-  const sensors = useSensors(
-    useSensor(MouseSensor, {
-      // Tight distance threshold = drag starts on a small wrist movement
-      // without firing on accidental click jiggle.
-      activationConstraint: { distance: 4 },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: { delay: 200, tolerance: 5 },
-    }),
+  // ----- Screen-reader announcements -----
+  const titleOf = useCallback(
+    (id: string | null | undefined) => {
+      if (!id) return null
+      const note = notes.find((n) => n.id === id)
+      return note ? note.title || 'Untitled' : null
+    },
+    [notes],
   )
 
-  // Body cursor + selection lock during a drag. Pure cosmetics: shows
-  // the move-cross cursor everywhere (not just on the row) and stops
-  // text from being accidentally selected while the user is dragging.
-  useEffect(() => {
-    if (activeNote) {
-      document.body.style.cursor = 'move'
-      document.body.style.userSelect = 'none'
-    } else {
-      document.body.style.cursor = ''
-      document.body.style.userSelect = ''
-    }
-    return () => {
-      document.body.style.cursor = ''
-      document.body.style.userSelect = ''
-    }
-  }, [activeNote])
+  const announcements: Announcements = {
+    onDragStart({ active }) {
+      return `Picked up ${titleOf(String(active.id)) ?? 'note'}.`
+    },
+    onDragMove() {
+      return undefined
+    },
+    onDragOver({ active }) {
+      if (!projected) return undefined
+      const activeTitle = titleOf(String(active.id)) ?? 'Note'
+      const parentTitle = titleOf(projected.parentId)
+      return parentTitle
+        ? `${activeTitle} will become a subpage of ${parentTitle}.`
+        : `${activeTitle} will move to the top level.`
+    },
+    onDragEnd({ active }) {
+      const activeTitle = titleOf(String(active.id)) ?? 'Note'
+      return `${activeTitle} dropped.`
+    },
+    onDragCancel({ active }) {
+      return `Moving ${titleOf(String(active.id)) ?? 'note'} cancelled.`
+    },
+  }
 
+  // ----- CRUD handlers -----
   const handleCreateNote = useCallback(
     (parentId?: string | null) => {
       createMutation.mutate(
@@ -801,7 +608,12 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
           onSuccess: (newNote) => {
             onSelectNote(newNote)
             if (parentId) {
-              setExpandedIds((prev) => new Set([...prev, parentId]))
+              setCollapsedIds((prev) => {
+                if (!prev.has(parentId)) return prev
+                const next = new Set(prev)
+                next.delete(parentId)
+                return next
+              })
             }
           },
         },
@@ -811,18 +623,16 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
   )
 
   const handleToggleFavorite = useCallback(
-    (note: Note) => {
-      updateMutation.mutate({
-        id: note.id,
-        data: { isFavorite: !note.isFavorite },
-      })
+    (noteId: string) => {
+      const note = (queryClient.getQueryData<Note[]>(NOTES_QUERY_KEY) ?? []).find((n) => n.id === noteId)
+      if (!note) return
+      updateMutation.mutate({ id: noteId, data: { isFavorite: !note.isFavorite } })
     },
-    [updateMutation],
+    [queryClient, updateMutation],
   )
 
   const handleDeleteNote = useCallback((noteId: string) => {
     setDeleteConfirmNoteId(noteId)
-    setContextMenuNoteId(null)
   }, [])
 
   const confirmDeleteNote = async () => {
@@ -834,10 +644,9 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
       return
     }
 
-    // Re-parent direct children to the target's parent BEFORE we
-    // delete the target — otherwise the DB cascade would drag them
-    // down with their parent. The user wants only the target row
-    // removed; its children should pop up one level and stay.
+    // Re-parent direct children to the target's parent BEFORE deleting
+    // so the DB cascade doesn't take them down too — deleting a page
+    // promotes its subpages one level.
     const directChildren = notes
       .filter((n) => n.parentId === targetId)
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
@@ -852,14 +661,11 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
         )
       } catch {
         // If reparenting fails we still attempt the delete; the
-        // cascade will then take children down with the parent
-        // (server-truthful behaviour, not silently lost).
+        // cascade then takes children with the parent (server-truthful
+        // behaviour, not silently lost).
       }
     }
 
-    // Snapshot the deleted note for the Undo toast (re-create from
-    // the snapshot if the user clicks Undo within 10s). Captures
-    // title / content / icon / color / parentId / order.
     const snapshot = {
       title: target.title,
       content: target.content,
@@ -896,11 +702,6 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
     setDeleteConfirmNoteId(null)
   }
 
-  // Open the doc on a plain click; ctrl/cmd-click toggles the note in
-  // the multi-select set without opening anything, so the user can
-  // mark several notes and delete them together. A plain click also
-  // clears any existing multi-select so the user doesn't have a stale
-  // selection hanging around once they move on.
   const handleNoteClick = useCallback(
     (note: Note, modifier: boolean) => {
       if (modifier) {
@@ -912,10 +713,10 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
         })
         return
       }
-      if (multiSelectIds.size > 0) setMultiSelectIds(new Set())
+      setMultiSelectIds((prev) => (prev.size > 0 ? new Set<string>() : prev))
       onSelectNote(note)
     },
-    [multiSelectIds, onSelectNote],
+    [onSelectNote],
   )
 
   const clearMultiSelect = () => setMultiSelectIds(new Set())
@@ -923,10 +724,6 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
   const performBulkDelete = async () => {
     const ids = Array.from(multiSelectIds)
     if (ids.length === 0) return
-    // Server cascades children when a parent is deleted; we still
-    // fire one mutation per top-level selected id sequentially so the
-    // cache invalidation matches what useDeleteNoteMutation already
-    // wires up.
     for (const id of ids) {
       try {
         await deleteMutation.mutateAsync(id)
@@ -942,42 +739,16 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
     setShowBulkDeleteConfirm(false)
   }
 
-  const renderNoteItem = (note: NoteTreeItem, depth = 0) => {
-    return (
-      <NoteItem
-        key={note.id}
-        note={note}
-        depth={depth}
-        isExpanded={expandedIds.has(note.id)}
-        isSelected={selectedNoteId === note.id}
-        isMultiSelected={multiSelectIds.has(note.id)}
-        expandedIds={expandedIds}
-        onSelect={handleNoteClick}
-        onToggleExpand={toggleExpanded}
-        onCreateSubNote={handleCreateNote}
-        onToggleFavorite={handleToggleFavorite}
-        onDelete={handleDeleteNote}
-        multiSelectIds={multiSelectIds}
-        activeDropTarget={activeDropTarget}
-      />
+  // ----- Derived view data -----
+  const filteredNotes = useMemo(() => {
+    if (!searchQuery.trim()) return notes
+    const query = searchQuery.toLowerCase()
+    return notes.filter(
+      (note) => note.title.toLowerCase().includes(query) || note.content.toLowerCase().includes(query),
     )
-  }
+  }, [notes, searchQuery])
 
-  // Live drop-target pill copy.
-  const previewLabel = (() => {
-    if (!activeDropTarget) return 'Drag to move'
-    if (activeDropTarget.id === ROOT_TOP_ID) return 'Top of the list'
-    if (activeDropTarget.id === ROOT_BOTTOM_ID) return 'Bottom of the list'
-    const target = notes.find((n: Note) => n.id === activeDropTarget.id)
-    const title = target?.title || 'Untitled'
-    return activeDropTarget.zone === 'above' ? `Above "${title}"` : `Below "${title}"`
-  })()
-
-  const previewArrow = (() => {
-    // Reserved for future indicators (e.g. nest-via-modifier). Empty
-    // for plain above/below — the row indicator carries the meaning.
-    return ''
-  })()
+  const favorites = useMemo(() => notes.filter((note) => note.isFavorite), [notes])
 
   if (isLoading) {
     return (
@@ -1005,8 +776,7 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
         </div>
       </div>
 
-      {/* New Note button — optimistic, no disabled state. The new row
-          shows up in the tree instantly via the mutation's onMutate. */}
+      {/* New Note */}
       <div className="px-3 pb-2">
         <button
           onClick={() => handleCreateNote()}
@@ -1017,14 +787,10 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
         </button>
       </div>
 
-      {/* Multi-select discoverability — the floating delete bar at the
-          bottom of a long list isn't obvious. A persistent hint above
-          the tree teaches the shortcut, and an inline selection chip
-          at the top mirrors the bottom bar's count + delete so users
-          don't have to scroll to act on a selection. */}
+      {/* Multi-select hint / selection chip */}
       {multiSelectIds.size === 0 ? (
         <div className="hidden px-3 pb-1.5 text-[10.5px] leading-tight text-muted-foreground sm:block">
-          Tip: hold <kbd className="rounded border border-zinc-200 bg-white px-1 py-0.5 font-mono text-[10px] text-zinc-700">Ctrl</kbd> /<kbd className="rounded border border-zinc-200 bg-white px-1 py-0.5 font-mono text-[10px] text-zinc-700">⌘</kbd> + click to select multiple notes.
+          Tip: hold <kbd className="rounded border border-zinc-200 bg-white px-1 py-0.5 font-mono text-[10px] text-zinc-700">Ctrl</kbd> /<kbd className="rounded border border-zinc-200 bg-white px-1 py-0.5 font-mono text-[10px] text-zinc-700">⌘</kbd> + click to select multiple notes. Drag to move; drag right to nest.
         </div>
       ) : (
         <div className="mx-3 mb-2 flex items-center justify-between gap-2 rounded-md border border-zinc-900 bg-zinc-900 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm">
@@ -1052,26 +818,30 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
         </div>
       )}
 
-      {/* Notes tree */}
       <DndContext
         sensors={sensors}
-        collisionDetection={notesCollision}
+        collisionDetection={closestCenter}
+        measuring={measuring}
+        accessibility={{ announcements, screenReaderInstructions }}
+        autoScroll={{ threshold: { x: 0, y: 0.2 } }}
         onDragStart={handleDragStart}
+        onDragMove={handleDragMove}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
-        measuring={{
-          // WhileDragging is the sweet spot: we get fresh rects exactly
-          // when we need them (during a drag) without dnd-kit
-          // re-measuring every droppable on every frame at idle, which
-          // was a measurable source of the user-reported "lag".
-          droppable: {
-            strategy: MeasuringStrategy.WhileDragging,
-          },
-        }}
       >
-        <div className="flex-1 overflow-y-auto px-2">
-          {/* Favorites section */}
+        <div ref={scrollContainerRef} className="relative flex-1 overflow-y-auto overscroll-contain px-2">
+          <DropIndicatorLine
+            containerRef={scrollContainerRef}
+            // Hidden only before any movement — once the user drags
+            // (vertically OR just horizontally in place, e.g. a pure
+            // indent/outdent), the line shows the landing slot,
+            // including smart-outdent hops past the rest of a subtree.
+            visible={!!projected && !(overId === activeId && offsetLeft === 0)}
+            insertAfterId={projected ? projected.insertAfterId : null}
+            depth={projected ? projected.depth : 0}
+          />
+          {/* Favorites */}
           {favorites.length > 0 && !searchQuery && (
             <div className="mb-4">
               <div className="mb-1 px-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -1081,7 +851,7 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
                 <div
                   key={`fav-${note.id}`}
                   className={cn(
-                    'flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors cursor-pointer',
+                    'flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors',
                     selectedNoteId === note.id ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
                   )}
                   onClick={(e) => handleNoteClick(note, e.ctrlKey || e.metaKey)}
@@ -1094,7 +864,7 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
                     aria-label="Remove from favorites"
                     onClick={(e) => {
                       e.stopPropagation()
-                      handleToggleFavorite(note)
+                      handleToggleFavorite(note.id)
                     }}
                     className="flex h-5 w-5 shrink-0 items-center justify-center rounded transition-colors hover:bg-[#fff7d1]"
                   >
@@ -1111,13 +881,12 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
               {searchQuery ? 'Search Results' : 'All Notes'}
             </div>
             {searchQuery ? (
-              // Flat list for search results - No DnD in search view for now
               filteredNotes.length > 0 ? (
                 filteredNotes.map((note) => (
                   <div
                     key={note.id}
                     className={cn(
-                      'flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors cursor-pointer',
+                      'flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors',
                       selectedNoteId === note.id ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
                     )}
                     onClick={(e) => handleNoteClick(note, e.ctrlKey || e.metaKey)}
@@ -1129,18 +898,28 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
               ) : (
                 <div className="px-2 py-4 text-center text-sm text-muted-foreground">No notes found</div>
               )
-            ) : // Tree view for normal display
-            noteTree.length > 0 ? (
-              <div className="flex flex-col gap-0.5">
-                {/* ROOT drop zone (top) — appears as a thin spacer at
-                    the top of the tree; only renders a visible line
-                    while a drag is active. Lets the user drop into
-                    the very top of the root list explicitly. */}
-                <RootDropZone id={ROOT_TOP_ID} activeDropTarget={activeDropTarget} active={!!activeNote} />
-                {noteTree.map((note) => renderNoteItem(note))}
-                {/* ROOT drop zone (bottom) — same idea at the bottom. */}
-                <RootDropZone id={ROOT_BOTTOM_ID} activeDropTarget={activeDropTarget} active={!!activeNote} />
-              </div>
+            ) : flattenedItems.length > 0 ? (
+              <SortableContext items={sortedIds} strategy={noDisplacement}>
+                <div className="flex flex-col gap-0.5 pb-2">
+                  {flattenedItems.map((note) => (
+                    <NoteRow
+                      key={note.id}
+                      note={note}
+                      isActive={note.id === activeId}
+                      isSorting={activeId !== null}
+                      isSelected={selectedNoteId === note.id}
+                      isMultiSelected={multiSelectIds.has(note.id)}
+                      isCollapsed={collapsedIds.has(note.id)}
+                      flash={note.id === flashId}
+                      onSelect={handleNoteClick}
+                      onToggleCollapse={toggleCollapse}
+                      onCreateSubNote={handleCreateNote}
+                      onToggleFavorite={handleToggleFavorite}
+                      onDelete={handleDeleteNote}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
             ) : (
               <div className="px-2 py-4 text-center text-sm text-muted-foreground">
                 No notes yet. Create your first note!
@@ -1149,67 +928,54 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
           </div>
         </div>
 
-        {/* Live drop-target pill — brand-yellow card at the bottom of
-            the sidebar that says exactly what will happen if the user
-            releases now ("Above 'X'", "Sub-note of 'Y'", "Top of the
-            list"). Disappears the instant the drag ends. */}
-        {activeNote && (
-          <div className="pointer-events-none absolute bottom-3 left-3 z-40 max-w-[16rem]">
-            <div
-              role="status"
-              aria-live="polite"
-              className={cn(
-                'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold shadow-lg transition-colors',
-                activeDropTarget ? 'bg-[#f2cc0d] text-zinc-900' : 'bg-zinc-900 text-zinc-300',
-              )}
-            >
-              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-zinc-900" />
-              <span className="truncate">
-                {previewArrow}
-                {previewLabel}
-              </span>
-            </div>
-          </div>
-        )}
-
-        <DragOverlay dropAnimation={{ duration: 180, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
-          {activeNote ? (
-            <div className="flex max-w-[14rem] cursor-grabbing items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-sm font-medium text-zinc-900 shadow-[0_10px_30px_rgba(0,0,0,0.15),0_0_0_2px_rgba(242,204,13,0.4)]">
-              {activeNote.icon && <span className="shrink-0 text-base">{activeNote.icon}</span>}
-              <span className="flex-1 truncate">{activeNote.title || 'Untitled'}</span>
-            </div>
-          ) : null}
-        </DragOverlay>
+        {/* The moving visual lives ONLY here — the source row never
+            gets a transform, so nothing ever slides over other rows'
+            text. Portaled to <body> so the sidebar's overflow can't
+            clip it. */}
+        {mounted &&
+          createPortal(
+            <DragOverlay dropAnimation={null}>
+              {activeItem ? (
+                <div className="relative flex max-w-[16rem] cursor-grabbing items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-sm font-medium text-zinc-900 shadow-[0_10px_30px_rgba(0,0,0,0.18),0_0_0_2px_rgba(242,204,13,0.4)]">
+                  {activeItem.icon && <span className="shrink-0 text-base">{activeItem.icon}</span>}
+                  <span className="flex-1 truncate">{activeItem.title || 'Untitled'}</span>
+                  {activeItem.descendantCount > 0 && (
+                    <span className="absolute -right-2 -top-2 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[#f2cc0d] px-1 text-[10px] font-bold text-zinc-900 shadow">
+                      {activeItem.descendantCount + 1}
+                    </span>
+                  )}
+                </div>
+              ) : null}
+            </DragOverlay>,
+            document.body,
+          )}
       </DndContext>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete confirmation */}
       <ConfirmDialog
         open={!!deleteConfirmNoteId}
         onOpenChange={(open) => !open && setDeleteConfirmNoteId(null)}
         title="Delete Note"
-        description="Delete this note and all its children? This action cannot be undone."
+        description="Delete this note? Its subpages will move up one level."
         onConfirm={confirmDeleteNote}
         confirmButtonText="Delete"
         variant="destructive"
         isLoading={deleteMutation.isPending}
       />
 
-      {/* Bulk delete confirmation (for multi-select) */}
+      {/* Bulk delete confirmation */}
       <ConfirmDialog
         open={showBulkDeleteConfirm}
         onOpenChange={(open) => !open && setShowBulkDeleteConfirm(false)}
         title={`Delete ${multiSelectIds.size} notes?`}
-        description="Each note and all its children will be deleted. This action cannot be undone."
+        description="Each note and all its subpages will be deleted. This action cannot be undone."
         onConfirm={performBulkDelete}
         confirmButtonText={`Delete ${multiSelectIds.size}`}
         variant="destructive"
         isLoading={deleteMutation.isPending}
       />
 
-      {/* Floating multi-select action bar — appears whenever 1+ notes
-          are ctrl-clicked. Stays anchored at the bottom of the sidebar
-          so the user can scan their selection and clear / delete from
-          a single fixed surface. */}
+      {/* Floating multi-select action bar */}
       {multiSelectIds.size > 0 && (
         <div className="pointer-events-auto sticky bottom-2 z-30 mx-2 mb-1 flex items-center justify-between gap-2 rounded-lg border border-zinc-900 bg-zinc-900 px-2.5 py-2 text-[12px] font-semibold text-white shadow-lg">
           <span className="inline-flex items-center gap-1.5">
@@ -1235,49 +1001,6 @@ export function NotesSidebar({ selectedNoteId, onSelectNote, className }: NotesS
           </span>
         </div>
       )}
-    </div>
-  )
-}
-
-/**
- * Tiny droppable zone rendered at the very top and very bottom of the
- * tree. While idle it's an 8px invisible spacer; during a drag it
- * shows a thin dashed yellow zone with a "Drop here" hint when the
- * pointer is over it. Lets the user explicitly land a note at the
- * root level without having to drop above/below another root row.
- */
-function RootDropZone({
-  id,
-  active,
-  activeDropTarget,
-}: {
-  id: string
-  active: boolean
-  activeDropTarget: DropTarget | null
-}) {
-  const { setNodeRef } = useDroppable({ id })
-  const isHot = activeDropTarget?.id === id
-  if (!active) {
-    // Invisible during idle so the tree layout is unchanged when no drag.
-    return <div ref={setNodeRef} aria-hidden className="h-2" />
-  }
-  return (
-    <div
-      ref={setNodeRef}
-      className={cn(
-        'mx-2 my-1 rounded-md border border-dashed text-center text-[10px] font-medium uppercase tracking-wider transition-colors',
-        isHot
-          ? 'border-[#f2cc0d] bg-[#f2cc0d]/15 py-2 text-[#8a7307]'
-          : 'border-zinc-200 py-1.5 text-zinc-400',
-      )}
-    >
-      {isHot
-        ? id === ROOT_TOP_ID
-          ? '↑ Top of the list'
-          : '↓ Bottom of the list'
-        : id === ROOT_TOP_ID
-          ? 'Drop here for top'
-          : 'Drop here for bottom'}
     </div>
   )
 }

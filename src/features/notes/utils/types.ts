@@ -61,25 +61,50 @@ export const NOTE_ICONS = [
   '🔔', '⚡', '🌟', '💫', '🎪', '🎭', '🎬', '🎮',
 ]
 
-// Helper to build tree structure from flat notes array
+// Helper to build tree structure from flat notes array.
+// Depths are assigned by walking down from the roots (NOT during the
+// linking pass, which was order-dependent), and parentId cycles are
+// broken deterministically: any note unreachable from a root is
+// re-rooted and duplicate links are pruned, so bad data renders as a
+// flat entry instead of vanishing or recursing forever.
 export function buildNoteTree(notes: Note[]): NoteTreeItem[] {
   const noteMap = new Map<string, NoteTreeItem>()
   const roots: NoteTreeItem[] = []
 
-  // First pass: create NoteTreeItem for each note
   notes.forEach((note) => {
     noteMap.set(note.id, { ...note, children: [], depth: 0 })
   })
 
-  // Second pass: build tree structure
-  notes.forEach((note) => {
-    const treeItem = noteMap.get(note.id)!
-    if (note.parentId && noteMap.has(note.parentId)) {
-      const parent = noteMap.get(note.parentId)!
-      treeItem.depth = parent.depth + 1
-      parent.children.push(treeItem)
+  noteMap.forEach((treeItem) => {
+    if (treeItem.parentId && treeItem.parentId !== treeItem.id && noteMap.has(treeItem.parentId)) {
+      noteMap.get(treeItem.parentId)!.children.push(treeItem)
     } else {
       roots.push(treeItem)
+    }
+  })
+
+  // Walk down from the roots assigning depths; prune any child link
+  // that would revisit a note (cycle guard).
+  const visited = new Set<string>()
+  const walk = (item: NoteTreeItem, depth: number) => {
+    item.depth = depth
+    item.children = item.children.filter((child) => {
+      if (visited.has(child.id)) return false
+      visited.add(child.id)
+      return true
+    })
+    item.children.forEach((child) => walk(child, depth + 1))
+  }
+  roots.forEach((root) => visited.add(root.id))
+  roots.forEach((root) => walk(root, 0))
+
+  // Anything not reached from a root sits on a parentId cycle —
+  // surface it at the root level rather than losing it.
+  noteMap.forEach((item) => {
+    if (!visited.has(item.id)) {
+      visited.add(item.id)
+      roots.push(item)
+      walk(item, 0)
     }
   })
 

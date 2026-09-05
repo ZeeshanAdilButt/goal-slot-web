@@ -182,7 +182,10 @@ module.exports = withPostHogConfig(withSerwist(nextConfig), {
   envId: process.env.POSTHOG_ENV_ID ?? '',
   host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
   sourcemaps: {
-    enabled: true, // Enable sourcemaps generation and upload
+    // Set DISABLE_POSTHOG_SOURCEMAPS=true for local builds — the
+    // posthog-cli binary isn't installed everywhere and the upload
+    // step otherwise fails the whole build after a successful compile.
+    enabled: process.env.DISABLE_POSTHOG_SOURCEMAPS !== 'true',
     deleteAfterUpload: true, // Delete sourcemaps after upload for security
   },
 })
