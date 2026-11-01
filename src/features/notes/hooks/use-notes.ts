@@ -129,23 +129,61 @@ export function useCreateNoteMutation() {
   })
 }
 
+type NoteDetail = { note: Note; readOnly: boolean } | null
+
+interface UpdateNoteContext {
+  previous: Note[] | undefined
+  previousDetail: NoteDetail | undefined
+  id: string
+}
+
 // Update note mutation, optimistic so toggles (favorite, expand) feel instant.
+//
+// This is the autosave path: the editor fires it about a second after every
+// typing pause. It used to invalidate the whole ['notes'] prefix on success,
+// which refetched the full notes list (every note's body, 6.8 MB for the
+// heaviest account) plus every cached note and the shared list, on every
+// pause. That was most of the database's egress and the client's re-render
+// and persist cost.
+//
+// The optimistic update already writes the new values into both the list row
+// and the open note's cache, which is exactly what the server will hold, so
+// the refetch only re-downloaded what we already had. Now nothing is
+// refetched here. On server success the list is marked stale WITHOUT a
+// request (refetchType 'none'), so server-owned fields such as updatedAt
+// still reconcile on the next natural refetch (window focus, remount).
+//
+// Create, delete and reorder still invalidate as before: they are occasional
+// clicks, not keystrokes, and they change list membership or order.
 export function useUpdateNoteMutation() {
   const queryClient = useQueryClient()
 
-  return useOfflineMutation<{ id: string; data: UpdateNoteDto }, { previous: Note[] | undefined }>({
+  return useOfflineMutation<{ id: string; data: UpdateNoteDto }, UpdateNoteContext>({
     kind: 'note.update',
     buildPayload: ({ id, data }) => ({ id, data }),
     optimisticUpdate: ({ id, data }) => {
+      const detailKey = [...NOTES_QUERY_KEY, id]
       const previous = queryClient.getQueryData<Note[]>(NOTES_QUERY_KEY)
+      const previousDetail = queryClient.getQueryData<NoteDetail>(detailKey)
       queryClient.setQueryData<Note[]>(NOTES_QUERY_KEY, (prev) => {
         if (!prev) return prev
         return prev.map((n) => (n.id === id ? { ...n, ...data } : n))
       })
-      return { previous }
+      // Keep the single-note cache in step too, so anything reading the note
+      // through useNoteQuery sees the edit rather than the pre-save body.
+      queryClient.setQueryData<NoteDetail>(detailKey, (prev) =>
+        prev ? { ...prev, note: { ...prev.note, ...data } } : prev,
+      )
+      return { previous, previousDetail, id }
     },
-    rollback: (ctx) => queryClient.setQueryData(NOTES_QUERY_KEY, ctx?.previous),
-    invalidateKeys: [NOTES_QUERY_KEY],
+    rollback: (ctx) => {
+      if (!ctx) return
+      queryClient.setQueryData(NOTES_QUERY_KEY, ctx.previous)
+      queryClient.setQueryData([...NOTES_QUERY_KEY, ctx.id], ctx.previousDetail)
+    },
+    onServerSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: NOTES_QUERY_KEY, exact: true, refetchType: 'none' })
+    },
     messages: {
       offline: 'Note update saved offline',
       error: (err) => serverErrorMessage(err) ?? 'Failed to update note',
