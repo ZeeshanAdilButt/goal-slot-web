@@ -83,3 +83,57 @@ describe('formatDays', () => {
     expect(formatDays([0, 2, 4])).toBe('Tue, Thu, Sun')
   })
 })
+
+describe('series-scoped updates', () => {
+  const book: Record<string, KnownBlock> = {}
+  for (const d of [2, 3, 4, 5]) {
+    book[`b${d}`] = { title: 'Book', dayOfWeek: d, startTime: '09:00', endTime: '11:00', seriesId: 'book-series' }
+  }
+  const lab: KnownBlock = { title: 'Labs', dayOfWeek: 1, startTime: '07:00', endTime: '09:00', seriesId: 'lab-series' }
+  const labTue: KnownBlock = { ...lab, dayOfWeek: 2 }
+  const all: Record<string, KnownBlock> = { ...book, l1: lab, l2: labTue }
+  const findB = (id: string) => all[id]
+  const series = (sid: string) => Object.values(all).filter((b) => b.seriesId === sid)
+
+  it('shows a series rename on every day of the series, not the one id it was sent on', () => {
+    const rows = buildProposalRows([upd('b2', { title: 'Study', updateScope: 'series' }, 'Book')], findB, series)
+    expect(rows[0].line).toBe('Tue, Wed, Thu, Fri: "Book" 9:00 AM to 11:00 AM, renamed to "Study"')
+  })
+
+  it('shows a series time change on every day of the series', () => {
+    const rows = buildProposalRows([upd('b3', { startTime: '08:00', endTime: '11:00', updateScope: 'series' })], findB, series)
+    expect(rows[0].line).toBe('Tue, Wed, Thu, Fri: "Book" 9:00 AM to 11:00 AM, now 8:00 AM to 11:00 AM')
+  })
+
+  it('says "every day of this series" when the series is not in the cache, never one day', () => {
+    const rows = buildProposalRows([upd('b2', { title: 'Study', updateScope: 'series' })], findB, () => [])
+    expect(rows[0].line).toBe('Every day of this series: "Book" 9:00 AM to 11:00 AM, renamed to "Study"')
+  })
+
+  it('folds a split into a series-scoped update on all the series days', () => {
+    const rows = buildProposalRows(
+      [
+        upd('l1', { title: 'Core Engineering', startTime: '07:00', endTime: '08:00', updateScope: 'series' }),
+        { type: 'CREATE_SCHEDULE_BLOCK', payload: { title: 'Soft Skills Lab', startTime: '08:00', endTime: '09:00', daysOfWeek: [1, 2] } },
+      ],
+      findB,
+      series,
+    )
+    expect(rows.map((r) => r.line)).toEqual([
+      'Mon, Tue: "Labs" 7:00 AM to 9:00 AM becomes Core Engineering 7:00 AM to 8:00 AM, Soft Skills Lab 8:00 AM to 9:00 AM',
+    ])
+  })
+
+  it('does not fold into a series update whose days are unknown', () => {
+    const rows = buildProposalRows(
+      [
+        upd('l1', { title: 'Core Engineering', startTime: '07:00', endTime: '08:00', updateScope: 'series' }),
+        { type: 'CREATE_SCHEDULE_BLOCK', payload: { title: 'Soft Skills Lab', startTime: '08:00', endTime: '09:00', dayOfWeek: 1 } },
+      ],
+      findB,
+      () => [],
+    )
+    expect(rows).toHaveLength(2)
+    expect(rows[0].line).toMatch(/^Every day of this series:/)
+  })
+})

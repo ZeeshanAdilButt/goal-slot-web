@@ -23,6 +23,7 @@ export interface KnownBlock {
   dayOfWeek: number
   startTime: string
   endTime: string
+  seriesId?: string | null
 }
 
 export interface ProposalRow {
@@ -79,6 +80,8 @@ interface Group {
   end?: string
   payload: Record<string, unknown>
   absorbed: Group[]
+  /** A series-scoped update whose other days could not be found in the cache. */
+  seriesUnresolved?: boolean
 }
 
 function stable(payload: Record<string, unknown>): string {
@@ -105,7 +108,8 @@ function describeUpdate(g: Group): string {
     const e = hhmm(p.endTime) ? p.endTime : g.end
     if (s && e) bits.push(`now ${range(s, e)}`)
   }
-  if (typeof p.dayOfWeek === 'number') bits.push(`moves to ${DAY_SHORT[p.dayOfWeek]}`)
+  // A series update never moves a day (the API drops dayOfWeek for it).
+  if (typeof p.dayOfWeek === 'number' && p.updateScope !== 'series') bits.push(`moves to ${DAY_SHORT[p.dayOfWeek]}`)
   if (typeof p.goalId === 'string') bits.push('linked to a goal')
   if (typeof p.category === 'string') bits.push(`category ${p.category}`)
   return bits.length ? bits.join(', ') : 'updated'
@@ -114,6 +118,8 @@ function describeUpdate(g: Group): string {
 export function buildProposalRows(
   actions: CoachProposalAction[],
   findBlock: (id: string) => KnownBlock | undefined,
+  /** Every cached block in a series. Needed to show a series-scoped update on all its days. */
+  findSeries: (seriesId: string) => KnownBlock[] = () => [],
 ): ProposalRow[] {
   const groups = new Map<string, Group>()
   const singles: number[] = []
@@ -151,7 +157,16 @@ export function buildProposalRows(
         return
       }
       const kind = a.type === 'DELETE_SCHEDULE_BLOCK' ? 'delete' : 'update'
-      const key = `${kind}|${norm(block.title)}|${block.startTime}|${block.endTime}|${stable(p)}`
+      // updateScope "series" on ONE id changes every block in that series, so
+      // the row must name all of those days. Showing only the id's own day
+      // ("Tue: Book renamed to Study" for a Tue to Fri series) tells the user
+      // the opposite of what Apply does. If the series cannot be resolved from
+      // the cache, say so rather than naming a single day.
+      const seriesScoped = kind === 'update' && p.updateScope === 'series'
+      const members = seriesScoped && block.seriesId ? findSeries(block.seriesId) : []
+      const days = seriesScoped && members.length ? members.map((m) => m.dayOfWeek) : [block.dayOfWeek]
+      const seriesUnresolved = seriesScoped && members.length === 0
+      const key = `${kind}|${norm(block.title)}|${block.startTime}|${block.endTime}|${stable(p)}|${seriesUnresolved ? `unresolved:${a.id}` : ''}`
       const g = groups.get(key) ?? {
         indices: [],
         days: [],
@@ -161,9 +176,10 @@ export function buildProposalRows(
         end: block.endTime,
         payload: p,
         absorbed: [],
+        seriesUnresolved,
       }
       g.indices.push(i)
-      g.days.push(block.dayOfWeek)
+      g.days.push(...days)
       groups.set(key, g)
       return
     }
@@ -178,6 +194,8 @@ export function buildProposalRows(
   for (const u of all) {
     if (u.kind !== 'update' || !u.start || !u.end) continue
     if (!hhmm(u.payload.startTime) && !hhmm(u.payload.endTime)) continue
+    // Days unknown: a fold would claim the pieces line up with days we cannot see.
+    if (u.seriesUnresolved) continue
     const candidates = all.filter(
       (c) =>
         c.kind === 'create' &&
@@ -205,7 +223,7 @@ export function buildProposalRows(
   const rows: ProposalRow[] = []
   for (const g of all) {
     if (absorbed.has(g)) continue
-    const days = formatDays(g.days)
+    const days = g.seriesUnresolved ? 'Every day of this series' : formatDays(g.days)
     if (g.kind === 'create') {
       rows.push({ indices: g.indices, verb: 'create', line: `${days}: add "${g.title}" ${range(g.start!, g.end!)}` })
     } else if (g.kind === 'delete') {

@@ -47,3 +47,26 @@ describe('CoachProposalCard grouped rows', () => {
     expect(html).toMatch(/Apply <!-- -->\(2\)|Apply \(2\)/)
   })
 })
+
+describe('CoachProposalCard series update', () => {
+  it('renders a one-id series rename with every day of the series', () => {
+    const qc = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity, retry: false } } })
+    const week: Record<number, any[]> = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] }
+    for (const d of [2, 3, 4, 5]) {
+      week[d].push({ id: `b${d}`, title: 'Book', dayOfWeek: d, startTime: '09:00', endTime: '11:00', seriesId: 's1' })
+    }
+    qc.setQueryData(['schedule', 'weekly'], week)
+    qc.setQueryData(['goals', 'list', undefined], [])
+    qc.setQueryData(['time-tracker', 'coach-lookup'], [])
+    const html = renderToStaticMarkup(
+      <QueryClientProvider client={qc}>
+        <CoachProposalCard
+          block={{
+            actions: [{ type: 'UPDATE_SCHEDULE_BLOCK', id: 'b2', expectedTitle: 'Book', payload: { title: 'Study', updateScope: 'series' } }],
+          }}
+        />
+      </QueryClientProvider>,
+    )
+    expect(html).toContain('Tue, Wed, Thu, Fri: &quot;Book&quot; 9:00 AM to 11:00 AM, renamed to &quot;Study&quot;')
+  })
+})

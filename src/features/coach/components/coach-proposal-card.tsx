@@ -109,6 +109,16 @@ function findScheduleBlock(queryClient: QueryClient, id: string): any | undefine
   return undefined
 }
 
+/** Every cached block in one recurring series, for showing a series-scoped update on all its days. */
+function findSeriesBlocks(queryClient: QueryClient, seriesId: string): any[] {
+  const weekly = queryClient.getQueryData<Record<number, any[]>>(['schedule', 'weekly'])
+  if (!weekly) return []
+  return Object.values(weekly)
+    .filter(Array.isArray)
+    .flat()
+    .filter((b: any) => b?.seriesId === seriesId)
+}
+
 /** Look up an existing goal from any cached goal list, by id. */
 function findGoal(queryClient: QueryClient, id: string): any | undefined {
   const lists = queryClient.getQueriesData<any[]>({ queryKey: ['goals'] })
@@ -563,7 +573,11 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
 
   // One row per change, not per action (see proposal-rows.ts). Rebuilt each
   // render: it reads the schedule cache, which fills in after first paint.
-  const rows = buildProposalRows(block.actions, (id) => findScheduleBlock(queryClient, id))
+  const rows = buildProposalRows(
+    block.actions,
+    (id) => findScheduleBlock(queryClient, id),
+    (seriesId) => findSeriesBlocks(queryClient, seriesId),
+  )
   const selectedRowCount = rows.filter((r) => r.indices.every((k) => selected.has(k))).length
 
   // Apply is one click for an ordinary proposal and two for one that deletes
