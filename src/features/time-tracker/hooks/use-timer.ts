@@ -25,11 +25,21 @@ const POLL_MS = 20_000
  * session, whose stop/pause really can land from elsewhere while the user
  * watches this tab.
  *
+ * Fifteen minutes, not one, because of the database. Production Postgres on
+ * Neon suspends its compute after five minutes with no queries and is billed
+ * for every minute it is awake. A poll shorter than that window means a single
+ * dashboard tab left open (a second monitor, a tab nobody closed overnight)
+ * keeps the database awake for as long as the tab stays visible. The wake log
+ * showed exactly that: unbroken awake stretches of up to 18.6 hours, which is
+ * what made the database too expensive for Neon's free tier. Every idle poll in
+ * the app shell has to clear five minutes for the database to sleep at all.
+ *
  * The one behaviour this gives up: two browsers visible side by side, a timer
- * started in one now takes up to a minute rather than 20s to appear in the
- * other. Interacting with either window closes that gap immediately.
+ * started in one can take up to fifteen minutes to appear in the other. Coming
+ * back to, or clicking into, either window closes that gap immediately through
+ * the focus and visibility refetches.
  */
-const IDLE_POLL_MS = 60_000
+const IDLE_POLL_MS = 15 * 60_000
 
 /**
  * See the long comment at `serverSession` below for why this validates the
