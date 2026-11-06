@@ -31,6 +31,13 @@ import {
 } from '@/lib/api'
 import { cn, formatDuration, formatTime12h } from '@/lib/utils'
 import { describeApplyOutcome, mapResultsToCardRows } from './apply-outcome'
+import { buildProposalRows } from './proposal-rows'
+
+/** Distinct non-empty messages, joined; one line even when a row stands for seven actions. */
+function uniqueText(texts: Array<string | undefined>): string | undefined {
+  const seen = [...new Set(texts.filter((t): t is string => !!t))]
+  return seen.length ? seen.join(' ') : undefined
+}
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 
@@ -100,6 +107,16 @@ function findScheduleBlock(queryClient: QueryClient, id: string): any | undefine
     if (hit) return hit
   }
   return undefined
+}
+
+/** Every cached block in one recurring series, for showing a series-scoped update on all its days. */
+function findSeriesBlocks(queryClient: QueryClient, seriesId: string): any[] {
+  const weekly = queryClient.getQueryData<Record<number, any[]>>(['schedule', 'weekly'])
+  if (!weekly) return []
+  return Object.values(weekly)
+    .filter(Array.isArray)
+    .flat()
+    .filter((b: any) => b?.seriesId === seriesId)
 }
 
 /** Look up an existing goal from any cached goal list, by id. */
@@ -543,14 +560,35 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
     [selectedActions],
   )
 
-  const toggle = (i: number) => {
+  const toggleRow = (indices: number[], on: boolean) => {
     setSelected((prev) => {
       const next = new Set(prev)
-      if (next.has(i)) next.delete(i)
-      else next.add(i)
+      for (const i of indices) {
+        if (on) next.add(i)
+        else next.delete(i)
+      }
       return next
     })
   }
+
+  // One row per change, not per action (see proposal-rows.ts). Rebuilt each
+  // render: it reads the schedule cache, which fills in after first paint.
+  const grouped = buildProposalRows(
+    block.actions,
+    (id) => findScheduleBlock(queryClient, id),
+    (seriesId) => findSeriesBlocks(queryClient, seriesId),
+  )
+  // A grouped row is all-or-nothing. If its actions are only partly ticked
+  // (the user unticked one before the schedule cache loaded and the rows
+  // regrouped), show them as separate rows again, so nothing selected is
+  // hidden inside an unticked-looking row.
+  const rows = grouped.flatMap((r) => {
+    const on = r.indices.filter((k) => selected.has(k)).length
+    return on === 0 || on === r.indices.length
+      ? [r]
+      : r.indices.map((k) => ({ indices: [k], line: null, verb: null }))
+  })
+  const selectedRowCount = rows.filter((r) => r.indices.every((k) => selected.has(k))).length
 
   // Apply is one click for an ordinary proposal and two for one that deletes
   // something. The second click is what the API's `confirmDeletions` stands
@@ -708,28 +746,55 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
       </div>
 
       <ul className="divide-y divide-zinc-100">
-        {block.actions.map((action, i) => {
-          const meta = ACTION_META[action.type] ?? {
+        {rows.map((row) => {
+          const i = row.indices[0]
+          const action = block.actions[i]
+          const baseMeta = ACTION_META[action.type] ?? {
             label: action.type,
             verb: 'update' as const,
             icon: Edit3,
           }
+          const meta =
+            row.verb === 'restructure'
+              ? { ...baseMeta, label: 'Restructure block', verb: 'update' as const, icon: Edit3 }
+              : baseMeta
           const Icon = meta.icon
-          const isChecked = selected.has(i)
-          const result = resultByIndex.get(i)
-          const refused = refusalByIndex.get(i)
-          const { subject, detail, warning } = describeAction(action, queryClient)
+          // A grouped row stands for several actions: it is ticked when all
+          // of them are, and ticking it includes or leaves out all of them.
+          const isChecked = row.indices.every((k) => selected.has(k))
+          const rowResults = row.indices
+            .map((k) => resultByIndex.get(k))
+            .filter((r): r is CoachProposalResult => !!r)
+          const result: CoachProposalResult | undefined = rowResults.length
+            ? {
+                ...rowResults[0],
+                ok: rowResults.every((r) => r.ok),
+                error: uniqueText(rowResults.filter((r) => !r.ok).map((r) => r.error)),
+                warning: uniqueText(rowResults.filter((r) => r.ok).map((r) => r.warning)),
+              }
+            : undefined
+          const rowRefusals = row.indices
+            .map((k) => refusalByIndex.get(k))
+            .filter((r): r is CoachProposalResult => !!r)
+          const specific = rowRefusals.filter((r) => r.error && !r.error.startsWith('Not applied, because'))
+          const refused = rowRefusals.length
+            ? { ...rowRefusals[0], error: uniqueText((specific.length ? specific : rowRefusals).map((r) => r.error)) }
+            : undefined
+          const described = row.line
+            ? { subject: row.line, detail: undefined, warning: undefined }
+            : describeAction(action, queryClient)
+          const { subject, detail, warning } = described
 
           return (
-            <li key={i} className="flex items-start gap-3 px-3 py-2.5">
+            <li key={row.indices.join('-')} className="flex items-start gap-3 px-3 py-2.5">
               {!results && !rejected && (
                 <input
                   type="checkbox"
                   checked={isChecked}
-                  onChange={() => toggle(i)}
+                  onChange={() => toggleRow(row.indices, !isChecked)}
                   disabled={applying}
                   className="mt-1 h-4 w-4 rounded border-zinc-300 text-[#8a7307] focus:ring-[#f2cc0d]"
-                  aria-label={`Include ${meta.label}`}
+                  aria-label={`Include ${meta.label}${subject ? `: ${subject}` : ''}`}
                 />
               )}
               {rejected && (
@@ -757,7 +822,14 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
                   </span>
                 </div>
                 {subject && (
-                  <div className="mt-0.5 truncate text-sm font-medium text-zinc-900">{subject}</div>
+                  <div
+                    className={cn(
+                      'mt-0.5 text-sm font-medium text-zinc-900',
+                      row.line ? 'break-words' : 'truncate',
+                    )}
+                  >
+                    {subject}
+                  </div>
                 )}
                 {detail && (
                   <div className="mt-0.5 text-xs text-zinc-600">{detail}</div>
@@ -829,7 +901,7 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
               disabled={applying || selected.size === 0}
             >
               {applying && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-              Apply {selected.size > 0 ? `(${selected.size})` : ''}
+              Apply {selectedRowCount > 0 ? `(${selectedRowCount} change${selectedRowCount === 1 ? '' : 's'})` : ''}
             </Button>
           </div>
         </div>
@@ -843,7 +915,10 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
               : 'border-rose-100 bg-rose-50 text-rose-700',
           )}
         >
-          {describeApplyOutcome(results)}
+          {describeApplyOutcome(
+            results,
+            rows.map((r) => r.indices),
+          )}
         </div>
       )}
       <ConfirmDialog

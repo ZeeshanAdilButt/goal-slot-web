@@ -19,10 +19,26 @@ export function mapResultsToCardRows(
  * Goals / Schedule" whatever happened, including after every create in the
  * batch had failed.
  */
-export function describeApplyOutcome(results: CoachProposalResult[]): string {
-  const ok = results.filter((r) => r.ok).length
-  const failed = results.length - ok
-  const caveats = results.filter((r) => r.ok && r.warning && !r.alreadyDone).length
+export function describeApplyOutcome(
+  results: CoachProposalResult[],
+  /**
+   * The card's rows, as lists of action indexes. When given, counts are in
+   * rows, matching what the card shows: seven per-day renames in one row are
+   * "one change", not seven.
+   */
+  rows?: number[][],
+): string {
+  const units: CoachProposalResult[][] = rows
+    ? rows
+        .map((indices) => results.filter((r) => indices.includes(r.index)))
+        .filter((unit) => unit.length > 0)
+    : results.map((r) => [r])
+  const ok = units.filter((u) => u.every((r) => r.ok)).length
+  const failed = units.length - ok
+  const caveats = units.filter(
+    (u) => u.every((r) => r.ok) && u.some((r) => r.warning && !r.alreadyDone),
+  ).length
+  const total = units.length
   if (failed === 0 && caveats === 0) {
     return `Done. ${ok === 1 ? 'The change was' : `All ${ok} changes were`} applied.`
   }
@@ -32,5 +48,5 @@ export function describeApplyOutcome(results: CoachProposalResult[]): string {
   if (ok === 0) {
     return 'Nothing was applied. The reasons are on each row above. Ask the Coach to fix them.'
   }
-  return `Applied ${ok} of ${results.length}. ${failed} failed, see the red rows above. Ask the Coach to fix them.`
+  return `Applied ${ok} of ${total}. ${failed} failed, see the red rows above. Ask the Coach to fix them.`
 }

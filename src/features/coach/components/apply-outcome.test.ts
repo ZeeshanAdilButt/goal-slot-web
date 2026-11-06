@@ -49,3 +49,26 @@ describe('mapResultsToCardRows', () => {
     expect(mapped.map((r) => r.index)).toEqual([0, 2])
   })
 })
+
+describe('describeApplyOutcome with rows', () => {
+  it('counts a seven-action row as one change', () => {
+    const results = Array.from({ length: 7 }, (_, i) => ({ index: i, type: 'UPDATE_SCHEDULE_BLOCK' as const, ok: true }))
+    expect(describeApplyOutcome(results, [[0, 1, 2, 3, 4, 5, 6]])).toBe('Done. The change was applied.')
+  })
+
+  it('counts caveats by row, not by action', () => {
+    const results = [0, 1].map((i) => ({ index: i, type: 'CREATE_SCHEDULE_BLOCK' as const, ok: true, warning: 'skipped a day' }))
+    expect(describeApplyOutcome(results, [[0, 1]])).toMatch(/^Applied, but one change did not/)
+  })
+
+  it('counts a row with any failure as failed', () => {
+    const results = [
+      { index: 0, type: 'UPDATE_SCHEDULE_BLOCK' as const, ok: true },
+      { index: 1, type: 'UPDATE_SCHEDULE_BLOCK' as const, ok: false, error: 'x' },
+      { index: 2, type: 'CREATE_SCHEDULE_BLOCK' as const, ok: true },
+    ]
+    expect(describeApplyOutcome(results, [[0, 1], [2]])).toBe(
+      'Applied 1 of 2. 1 failed, see the red rows above. Ask the Coach to fix them.',
+    )
+  })
+})
