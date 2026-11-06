@@ -1,5 +1,9 @@
 import axios from 'axios'
 
+import { sanitizeTaskListParams, type TaskListParams } from '@/lib/task-list-params'
+
+export type { TaskListParams } from '@/lib/task-list-params'
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 export const api = axios.create({
@@ -418,7 +422,7 @@ export interface ExportReportParams extends ReportFilters {
 // Tasks API
 export const tasksApi = {
   create: (data: any) => api.post('/tasks', data),
-  list: (params?: any) => api.get('/tasks', { params }),
+  list: (params?: TaskListParams) => api.get('/tasks', { params: sanitizeTaskListParams(params) }),
   getOne: (id: string) => api.get(`/tasks/${id}`),
   update: (id: string, data: any) => api.put(`/tasks/${id}`, data),
   delete: (id: string) => api.delete(`/tasks/${id}`),
@@ -426,6 +430,36 @@ export const tasksApi = {
     api.post(`/tasks/${id}/complete`, data),
   restore: (id: string) => api.post(`/tasks/${id}/restore`),
   reorder: (ids: string[]) => api.put('/tasks/reorder', { ids }),
+}
+
+// Projects API (shared task spaces inside Tasks). Every route is JWT guarded
+// and membership is checked server side; non-members get 404.
+export type ProjectRoleValue = 'ADMIN' | 'MEMBER' | 'GUEST'
+
+export const projectsApi = {
+  list: () => api.get('/projects'),
+  create: (data: { name: string; color?: string; description?: string }) => api.post('/projects', data),
+  get: (id: string) => api.get(`/projects/${id}`),
+  // archived: true hides it from GET /projects and scope=mine (still readable by id).
+  update: (id: string, data: { name?: string; color?: string; description?: string; archived?: boolean }) =>
+    api.patch(`/projects/${id}`, data),
+  delete: (id: string) => api.delete(`/projects/${id}`),
+  members: (id: string) => api.get(`/projects/${id}/members`),
+  updateMember: (id: string, userId: string, role: ProjectRoleValue) =>
+    api.patch(`/projects/${id}/members/${userId}`, { role }),
+  // ADMIN removes someone, or anyone passes their own userId to leave.
+  removeMember: (id: string, userId: string) => api.delete(`/projects/${id}/members/${userId}`),
+  invite: (id: string, data: { emails: string[]; role: ProjectRoleValue }) =>
+    api.post(`/projects/${id}/invites`, data),
+  invites: (id: string) => api.get(`/projects/${id}/invites`),
+  resendInvite: (id: string, inviteId: string) => api.post(`/projects/${id}/invites/${inviteId}/resend`),
+  revokeInvite: (id: string, inviteId: string) => api.delete(`/projects/${id}/invites/${inviteId}`),
+  // Creates or returns the current multi-use link invite.
+  inviteLink: (id: string, role?: 'MEMBER' | 'GUEST') =>
+    api.post(`/projects/${id}/invite-link`, role ? { role } : {}),
+  revokeInviteLink: (id: string) => api.delete(`/projects/${id}/invite-link`),
+  previewInvite: (token: string) => api.get(`/projects/invites/${encodeURIComponent(token)}`),
+  acceptInvite: (token: string) => api.post(`/projects/invites/${encodeURIComponent(token)}/accept`),
 }
 
 // Sharing API

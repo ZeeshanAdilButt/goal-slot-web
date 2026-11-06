@@ -1,7 +1,24 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
+import { InviteDialog } from '@/features/projects/components/invite-dialog'
+import { MembersFilterMobile, MembersSidebarDesktop } from '@/features/projects/components/members-sidebar'
+import { NewProjectDialog } from '@/features/projects/components/new-project-dialog'
+import { ProjectSettingsDialog } from '@/features/projects/components/project-settings-dialog'
+import { ProjectSwitcher } from '@/features/projects/components/project-switcher'
+import { ProjectFilterChips, ProjectHeaderActions, ScopeToggle } from '@/features/projects/components/project-toolbar'
+import { useProjectMembersQuery, useProjectsQuery } from '@/features/projects/hooks/use-projects'
+import { buildSpaceHref, isTasksScope, spaceFromParams, taskListParamsFor, type TasksScope } from '@/features/projects/utils/space'
+import {
+  filterProjectTasks,
+  projectIdOf,
+  taskPermissions,
+  type AssigneeFilter,
+} from '@/features/projects/utils/task-fields'
+import type { TaskCardOptions } from '@/features/tasks/components/task-board'
+import { taskQueries } from '@/features/tasks/utils/queries'
 import { sortTasks, isTaskSort } from '@/features/tasks/utils/sort-tasks'
 import { CompleteTaskModal } from '@/features/tasks/components/complete-task-modal'
 import { CreateTaskModal } from '@/features/tasks/components/create-task-modal'
@@ -29,14 +46,100 @@ import {
 } from 'date-fns'
 
 import { cn } from '@/lib/utils'
+import { isTypingTarget } from '@/lib/keyboard'
+import { useAuthStore } from '@/lib/store'
 import { useLocalStorage } from '@/hooks/use-local-storage'
 
 export function TasksPage() {
-  const { tasks, scheduleBlocks, goals, isLoading, goalStatus, setGoalStatus } = useTasks()
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const focusedTaskId = searchParams?.get('taskId') ?? null
+  const queryClient = useQueryClient()
+  const me = useAuthStore((s) => s.user)
+
+  // Which space: My tasks, or a project from ?project=<id>.
+  const space = spaceFromParams(searchParams)
+  const projectId = space.kind === 'project' ? space.projectId : null
+  const projectsQuery = useProjectsQuery()
+  const projects = useMemo(() => projectsQuery.data ?? [], [projectsQuery.data])
+  const currentProject = projectId ? (projects.find((p) => p.id === projectId) ?? null) : null
+  // "Not available" only on a real answer from the server; a failed or
+  // offline-paused project list gets a retry instead.
+  const projectMissing = !!projectId && projectsQuery.isSuccess && !currentProject
+  const projectsUnavailable =
+    !!projectId &&
+    !currentProject &&
+    (projectsQuery.isError || (projectsQuery.isPending && projectsQuery.fetchStatus === 'paused'))
+  const isGuest = currentProject?.role === 'GUEST'
+  const [storedScope, setStoredScope, isScopeHydrated] = useLocalStorage<TasksScope>('tasks-scope', 'mine')
+  // With no projects, "Mine + assigned" and "Personal only" are the same
+  // list, so the request stays exactly what it was before projects existed.
+  // While the project list is still loading, keep the saved choice.
+  const scope: TasksScope =
+    projectsQuery.isSuccess && projects.length === 0 ? 'mine' : isTasksScope(storedScope) ? storedScope : 'mine'
+
+  const { tasks, scheduleBlocks, goals, isLoading, goalStatus, setGoalStatus } = useTasks(
+    taskListParamsFor(space, scope),
+  )
+  const membersQuery = useProjectMembersQuery(currentProject ? currentProject.id : null)
+  const members = useMemo(() => membersQuery.data ?? [], [membersQuery.data])
+
+  const [switcherOpen, setSwitcherOpen] = useState(false)
+  const [showNewProject, setShowNewProject] = useState(false)
+  // The project id a dialog was opened for; it is open only while that
+  // project is still the one on screen.
+  const [settingsFor, setSettingsFor] = useState<string | null>(null)
+  const [inviteFor, setInviteFor] = useState<string | null>(null)
+  // Filters belong to one board. They are stored with the board they were set
+  // on, so a different project renders with Everyone straight away instead of
+  // briefly showing the previous board's filters.
+  const [boardFilters, setBoardFilters] = useState<{
+    projectId: string | null
+    assignee: AssigneeFilter
+    dueThisWeek: boolean
+  }>({ projectId, assignee: 'all', dueThisWeek: false })
+  const activeFilters =
+    boardFilters.projectId === projectId ? boardFilters : { projectId, assignee: 'all' as AssigneeFilter, dueThisWeek: false }
+  const assigneeFilter = activeFilters.assignee
+  const dueThisWeek = activeFilters.dueThisWeek
+  const setAssigneeFilter = (assignee: AssigneeFilter) => setBoardFilters({ ...activeFilters, assignee })
+  const setDueThisWeek = (value: boolean) => setBoardFilters({ ...activeFilters, dueThisWeek: value })
+
+  const goToSpace = useCallback(
+    (nextProjectId: string | null) => {
+      router.push(buildSpaceHref(pathname || '/dashboard/tasks', searchParams, nextProjectId), { scroll: false })
+    },
+    [router, pathname, searchParams],
+  )
+
+  // P opens the switcher, like the other single-key shortcuts: never while
+  // typing, with a modifier held, or when a dialog is already open.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return
+      if (e.key !== 'p' && e.key !== 'P') return
+      if (isTypingTarget(e.target) || (e.target as HTMLElement | null)?.closest?.('[contenteditable="true"]')) return
+      if (document.querySelector('[role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"]')) return
+      e.preventDefault()
+      setSwitcherOpen(true)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  const rolesByProject = useMemo(() => new Map(projects.map((p) => [p.id, p.role])), [projects])
+  const permissionsFor = useCallback(
+    (task: Task) => {
+      const taskProjectId = projectIdOf(task)
+      return taskPermissions(task, { meId: me?.id, role: taskProjectId ? rolesByProject.get(taskProjectId) : undefined })
+    },
+    [me?.id, rolesByProject],
+  )
+  const cardOptions = useMemo<TaskCardOptions>(
+    () => ({ showProjectChip: !projectId, showAssignee: !!projectId, getPermissions: permissionsFor }),
+    [projectId, permissionsFor],
+  )
 
   const createTaskMutation = useCreateTaskMutation()
   const updateTaskMutation = useUpdateTaskMutation()
@@ -141,18 +244,16 @@ export function TasksPage() {
     if (!focusedTaskId || isLoading) return
     const task = tasks.find((t) => t.id === focusedTaskId)
     if (!task) {
-      // Tasks haven't streamed in yet, or the task was deleted. Wait one
-      // more render; if tasks are loaded and we still can't find it, drop
-      // the param so the URL doesn't stay stuck.
-      if (tasks.length > 0) {
-        router.replace(pathname || '/dashboard/tasks', { scroll: false })
-      }
+      // The list has loaded (isLoading is false) and the task is not in it:
+      // deleted, or not visible here. Drop the param, even when the list is
+      // empty (a fresh project board), so a refresh does not retry it.
+      router.replace(buildSpaceHref(pathname || '/dashboard/tasks', searchParams, projectId), { scroll: false })
       return
     }
-    setSelectedGoalId(task.goalId ?? WITHOUT_GOALS_ID)
+    if (!projectId) setSelectedGoalId(task.goalId ?? WITHOUT_GOALS_ID)
     setEditingTask(task)
-    router.replace(pathname || '/dashboard/tasks', { scroll: false })
-  }, [focusedTaskId, tasks, isLoading, router, pathname, setSelectedGoalId])
+    router.replace(buildSpaceHref(pathname || '/dashboard/tasks', searchParams, projectId), { scroll: false })
+  }, [focusedTaskId, tasks, isLoading, router, pathname, searchParams, projectId, setSelectedGoalId])
 
   // Auto-select first goal when goals change
   useEffect(() => {
@@ -171,15 +272,18 @@ export function TasksPage() {
     }
   }, [goals, selectedGoalId, isGoalIdInitialized, isLoading, setSelectedGoalId])
 
-  // Filter tasks for selected goal
+  // Filter tasks for selected goal. A project board filters by member
+  // instead: goals are personal and are not shown to other members.
   const tasksForGoal = useMemo(
     () =>
-      selectedGoalId === WITHOUT_GOALS_ID
+      projectId
+        ? filterProjectTasks(tasks, { assignee: assigneeFilter, dueThisWeek, meId: me?.id })
+        : selectedGoalId === WITHOUT_GOALS_ID
         ? tasks.filter((t) => t.goalId === null)
         : selectedGoalId
           ? tasks.filter((t) => t.goalId === selectedGoalId)
           : [],
-    [selectedGoalId, tasks],
+    [projectId, assigneeFilter, dueThisWeek, me?.id, selectedGoalId, tasks],
   )
 
   const hasActiveFilters = dueDateFilter !== 'all' || durationFilter !== 'all' || searchQuery.length > 0
@@ -318,6 +422,38 @@ export function TasksPage() {
   const goalsSidebarCollapsed = isGoalsSidebarInitialized ? isGoalsSidebarCollapsed : true
   const shouldAnimateLayout = isGoalsSidebarInitialized
 
+  // Open tasks in My tasks for the switcher: from this list in My tasks, from
+  // the cache otherwise (no extra request just for a number).
+  const myOpenCount = useMemo(() => {
+    const mine = projectId ? queryClient.getQueryData<Task[]>(taskQueries.list({})) : scope === 'mine' ? tasks : undefined
+    return Array.isArray(mine) ? mine.filter((t) => t.status !== 'DONE').length : undefined
+  }, [projectId, queryClient, scope, tasks])
+
+  const editingReadOnly = !!editingTask && !permissionsFor(editingTask).canEdit
+  const switcher = (
+    <ProjectSwitcher
+      open={switcherOpen}
+      onOpenChange={setSwitcherOpen}
+      projects={projects}
+      currentProject={currentProject}
+      userName={me?.name}
+      userAvatar={me?.avatar}
+      myOpenCount={myOpenCount}
+      onSelect={goToSpace}
+      onNewProject={() => setShowNewProject(true)}
+      onOpenSettings={() => setSettingsFor(projectId)}
+    />
+  )
+  const subtitle = currentProject
+    ? isGuest
+      ? 'You can see everything in this project. Only members can change it.'
+      : 'Shared with the project. Nobody here sees your personal tasks.'
+    : projects.length === 0
+      ? undefined
+      : scope === 'personal'
+        ? 'Only your personal tasks.'
+        : 'Your tasks, plus project tasks assigned to you.'
+
   return (
     <div
       className={cn(
@@ -336,6 +472,17 @@ export function TasksPage() {
         )}
         aria-hidden={goalsSidebarCollapsed}
       >
+        {projectId ? (
+          <MembersSidebarDesktop
+            members={members}
+            tasks={tasks}
+            selected={assigneeFilter}
+            onSelect={setAssigneeFilter}
+            meId={me?.id}
+            isLoading={membersQuery.isLoading}
+            onToggleCollapse={() => setIsGoalsSidebarCollapsed((prev) => !prev)}
+          />
+        ) : (
         <GoalsSidebar
           goals={goals}
           selectedGoalId={selectedGoalId}
@@ -350,18 +497,61 @@ export function TasksPage() {
           pastTodayIds={pastTodayIds}
           goalNextBlockMinutes={goalNextBlockMinutes}
         />
+        )}
       </div>
 
       <main className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden">
         <div className="flex min-h-0 flex-1 flex-col">
+          {projectsUnavailable ? (
+            <div className="p-4 sm:p-6">
+              <div className="mb-4">{switcher}</div>
+              <div className="rounded-xl border border-zinc-200 bg-white p-6 text-center shadow-sm">
+                <p className="text-sm font-semibold text-zinc-900">Could not load your projects</p>
+                <p className="mt-1 text-sm text-zinc-600">Check your connection and try again.</p>
+                <div className="mt-4 flex flex-wrap justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => projectsQuery.refetch()}
+                    className="inline-flex h-9 items-center rounded-lg bg-zinc-900 px-3.5 text-sm font-semibold text-white hover:bg-zinc-800"
+                  >
+                    Try again
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => goToSpace(null)}
+                    className="inline-flex h-9 items-center rounded-lg border border-zinc-200 bg-white px-3.5 text-sm font-semibold text-zinc-900 hover:bg-zinc-50"
+                  >
+                    Back to My tasks
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : projectMissing ? (
+            <div className="p-4 sm:p-6">
+              <div className="mb-4">{switcher}</div>
+              <div className="rounded-xl border border-zinc-200 bg-white p-6 text-center shadow-sm">
+                <p className="text-sm font-semibold text-zinc-900">This project is not available</p>
+                <p className="mt-1 text-sm text-zinc-600">
+                  It may have been deleted, or you are no longer a member.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => goToSpace(null)}
+                  className="mt-4 inline-flex h-9 items-center rounded-lg bg-zinc-900 px-3.5 text-sm font-semibold text-white hover:bg-zinc-800"
+                >
+                  Back to My tasks
+                </button>
+              </div>
+            </div>
+          ) : (
           <TasksView
             className="min-h-0 flex-1"
             tasks={visibleTasks}
             onComplete={setCompletingTask}
             onEdit={setEditingTask}
             onCreate={() => setShowCreate(true)}
-            hasSelectedGoal={!!selectedGoalId}
-            isLoading={isLoading}
+            hasSelectedGoal={!!projectId || !!selectedGoalId}
+            isLoading={isLoading || !isScopeHydrated || (!!projectId && projectsQuery.isLoading)}
             goals={goals}
             selectedGoalId={selectedGoalId}
             onSelectGoal={setSelectedGoalId}
@@ -390,7 +580,47 @@ export function TasksPage() {
             sortKey={isTaskSort(sortKey) ? sortKey : 'newest'}
             onSortChange={setSortKey}
             onToggleGoalsSidebar={() => setIsGoalsSidebarCollapsed((prev) => !prev)}
+            title={switcher}
+            subtitle={subtitle}
+            sidebarLabel={projectId ? 'Members' : 'Goals'}
+            canCreate={!isGuest}
+            cardOptions={cardOptions}
+            headerActions={
+              currentProject ? (
+                <ProjectHeaderActions
+                  members={members}
+                  canInvite={currentProject.role === 'ADMIN'}
+                  onInvite={() => setInviteFor(currentProject.id)}
+                  onOpenMembers={() => setSettingsFor(currentProject.id)}
+                />
+              ) : projects.length > 0 ? (
+                <ScopeToggle value={scope} onChange={setStoredScope} />
+              ) : null
+            }
+            subHeader={
+              currentProject ? (
+                <ProjectFilterChips
+                  assignee={assigneeFilter}
+                  onAssigneeChange={setAssigneeFilter}
+                  dueThisWeek={dueThisWeek}
+                  onDueThisWeekChange={setDueThisWeek}
+                  isGuest={isGuest}
+                />
+              ) : null
+            }
+            mobileSidebar={
+              currentProject ? (
+                <MembersFilterMobile
+                  members={members}
+                  tasks={tasks}
+                  selected={assigneeFilter}
+                  onSelect={setAssigneeFilter}
+                  meId={me?.id}
+                />
+              ) : undefined
+            }
           />
+          )}
 
           <CreateTaskModal
             isOpen={showCreate}
@@ -398,7 +628,10 @@ export function TasksPage() {
             onSubmit={createTask}
             scheduleBlocks={scheduleBlocks}
             goals={goals}
-            {...(selectedGoalId && selectedGoalId !== WITHOUT_GOALS_ID ? { defaultGoalId: selectedGoalId } : {})}
+            {...(!projectId && selectedGoalId && selectedGoalId !== WITHOUT_GOALS_ID ? { defaultGoalId: selectedGoalId } : {})}
+            projects={projects}
+            defaultProjectId={currentProject && !isGuest ? currentProject.id : undefined}
+            meId={me?.id}
           />
 
           <CreateTaskModal
@@ -417,9 +650,39 @@ export function TasksPage() {
             scheduleBlocks={scheduleBlocks}
             goals={goals}
             task={editingTask}
+            projects={projects}
+            meId={me?.id}
+            readOnly={editingReadOnly}
           />
 
           <CompleteTaskModal task={completingTask} onClose={() => setCompletingTask(null)} onConfirm={completeTask} />
+
+          <NewProjectDialog
+            open={showNewProject}
+            onOpenChange={setShowNewProject}
+            onCreated={(project) => goToSpace(project.id)}
+          />
+          {/* Keyed and opened per project: if Back/Forward switches the board
+              while a dialog or one of its confirmations is open, it closes
+              instead of acting on the new project. */}
+          {currentProject ? (
+            <ProjectSettingsDialog
+              key={currentProject.id}
+              open={settingsFor === currentProject.id}
+              onOpenChange={(open) => setSettingsFor(open ? currentProject.id : null)}
+              project={currentProject}
+              meId={me?.id}
+              onGone={() => goToSpace(null)}
+            />
+          ) : null}
+          {currentProject && currentProject.role === 'ADMIN' ? (
+            <InviteDialog
+              key={currentProject.id}
+              open={inviteFor === currentProject.id}
+              onOpenChange={(open) => setInviteFor(open ? currentProject.id : null)}
+              project={currentProject}
+            />
+          ) : null}
         </div>
       </main>
     </div>

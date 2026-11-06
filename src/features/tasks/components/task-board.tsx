@@ -16,6 +16,8 @@ import {
   useReorderTasksMutation,
   useUpdateTaskMutation,
 } from '@/features/tasks/hooks/use-tasks-mutations'
+import { MemberAvatar, ProjectChip } from '@/features/projects/components/member-avatar'
+import type { TaskPermissions } from '@/features/projects/utils/task-fields'
 import { taskStatusStyles } from '@/features/tasks/utils/task-status-styles'
 import { Task, TaskStatus } from '@/features/tasks/utils/types'
 import {
@@ -47,13 +49,27 @@ const BOARD_COLUMNS: Array<{ id: TaskStatus; title: string; helper: string; acce
   { id: 'DONE', title: 'Done', helper: 'Shipped and finished', accent: 'bg-zinc-50/50', text: 'text-zinc-700' },
 ]
 
+/**
+ * How cards render outside the personal board: project chip in My tasks,
+ * assignee avatar on a project board, and per-task permissions so a Guest
+ * (or a Member on someone else's task) is not offered actions that 403.
+ */
+export interface TaskCardOptions {
+  showProjectChip?: boolean
+  showAssignee?: boolean
+  getPermissions?: (task: Task) => TaskPermissions
+}
+
+const FULL_PERMISSIONS: TaskPermissions = { canEdit: true, canDelete: true }
+
 interface TaskBoardProps {
   tasks: Task[]
   onEdit?: (task: Task) => void
   onComplete?: (task: Task) => void
+  cardOptions?: TaskCardOptions
 }
 
-export function TaskBoard({ tasks, onEdit, onComplete }: TaskBoardProps) {
+export function TaskBoard({ tasks, onEdit, onComplete, cardOptions }: TaskBoardProps) {
   const updateTaskMutation = useUpdateTaskMutation()
   const reorderTasksMutation = useReorderTasksMutation()
   const deleteTaskMutation = useDeleteTaskMutation()
@@ -140,6 +156,7 @@ export function TaskBoard({ tasks, onEdit, onComplete }: TaskBoardProps) {
     const movingIndex = sourceItems.findIndex((t) => t.id === activeId)
     if (movingIndex === -1) return
     const movingTask = sourceItems[movingIndex]
+    if (!(cardOptions?.getPermissions?.(movingTask) ?? FULL_PERMISSIONS).canEdit) return
 
     if (sourceColumn === targetColumn) {
       // Reorder within same column - use arrayMove on original array
@@ -194,6 +211,7 @@ export function TaskBoard({ tasks, onEdit, onComplete }: TaskBoardProps) {
                   onEdit={onEdit}
                   onComplete={onComplete}
                   onDelete={handleDelete}
+                  cardOptions={cardOptions}
                 />
               )}
             />
@@ -210,6 +228,7 @@ export function TaskBoard({ tasks, onEdit, onComplete }: TaskBoardProps) {
                   .find((t) => t.id === activeTaskId) as Task
               }
               dragging
+              cardOptions={cardOptions}
             />
           ) : null}
         </DragOverlay>
@@ -285,6 +304,7 @@ interface TaskCardProps {
   setNodeRef?: (element: HTMLElement | null) => void
   style?: CSSProperties
   dragging?: boolean
+  cardOptions?: TaskCardOptions
 }
 
 function TaskCard({
@@ -297,8 +317,10 @@ function TaskCard({
   setNodeRef,
   style,
   dragging = false,
+  cardOptions,
 }: TaskCardProps) {
   const statusStyle = taskStatusStyles[task.status]
+  const { canEdit, canDelete } = cardOptions?.getPermissions?.(task) ?? FULL_PERMISSIONS
   const updateTaskMutation = useUpdateTaskMutation()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const deleteTaskMutation = useDeleteTaskMutation()
@@ -387,6 +409,9 @@ function TaskCard({
           onKeyDown={onEdit ? handleCardKeyDown : undefined}
           className={cn('flex flex-col gap-2 text-left', onEdit && 'cursor-pointer')}
         >
+          {cardOptions?.showProjectChip && task.project ? (
+            <ProjectChip name={task.project.name} color={task.project.color} className="self-start" />
+          ) : null}
           <div className="flex items-start gap-2">
             <h3 className="flex-1 text-sm font-semibold leading-snug text-zinc-900 transition-colors hover:text-zinc-700 sm:text-[15px]">
               {task.title}
@@ -395,6 +420,9 @@ function TaskCard({
               <span className="hidden shrink-0 items-center rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-zinc-600 sm:inline-flex">
                 {parseFloat((task.estimatedMinutes / 60).toFixed(2))}h
               </span>
+            ) : null}
+            {cardOptions?.showAssignee && task.assignee ? (
+              <MemberAvatar name={task.assignee.name} avatar={task.assignee.avatar} size="sm" />
             ) : null}
           </div>
           {task.description ? (
@@ -418,7 +446,9 @@ function TaskCard({
           </div>
         </div>
 
+        {canEdit || canDelete ? (
         <div className="flex items-center gap-0.5 rounded-sm border border-zinc-200/30 bg-secondary/20 p-0.5 shadow-sm transition sm:pointer-events-none sm:absolute sm:right-0 sm:top-0 sm:opacity-0 sm:group-focus-within:pointer-events-auto sm:group-focus-within:opacity-100 sm:group-hover:pointer-events-auto sm:group-hover:opacity-100">
+          {canEdit ? (
           <button
             {...listeners}
             {...attributes}
@@ -428,6 +458,8 @@ function TaskCard({
           >
             <GripVertical className="h-3 w-3 text-zinc-900" />
           </button>
+          ) : null}
+          {canEdit ? (
           <button
             onClick={(event) => {
               event.stopPropagation()
@@ -438,7 +470,8 @@ function TaskCard({
           >
             <Play className="h-3 w-3 fill-zinc-900 text-zinc-900" />
           </button>
-          {onComplete && task.status !== 'DONE' && (
+          ) : null}
+          {canEdit && onComplete && task.status !== 'DONE' && (
             <button
               onClick={(event) => {
                 event.stopPropagation()
@@ -450,6 +483,7 @@ function TaskCard({
               <Check className="h-3 w-3 text-green-700" />
             </button>
           )}
+          {canDelete ? (
           <button
             onClick={(event) => {
               event.stopPropagation()
@@ -460,7 +494,9 @@ function TaskCard({
           >
             <Trash2 className="h-3 w-3 text-red-600" />
           </button>
+          ) : null}
         </div>
+        ) : null}
       </div>
 
       <TimerSwitchDialog
@@ -494,12 +530,15 @@ interface DraggableTaskCardProps {
   onEdit?: (task: Task) => void
   onComplete?: (task: Task) => void
   onDelete?: (task: Task) => void
+  cardOptions?: TaskCardOptions
 }
 
-function SortableTaskCard({ task, columnId, onEdit, onComplete, onDelete }: DraggableTaskCardProps) {
+function SortableTaskCard({ task, columnId, onEdit, onComplete, onDelete, cardOptions }: DraggableTaskCardProps) {
+  const canDrag = (cardOptions?.getPermissions?.(task) ?? FULL_PERMISSIONS).canEdit
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
     data: { type: 'task', columnId },
+    disabled: !canDrag,
   })
 
   const style: CSSProperties = {
@@ -519,6 +558,7 @@ function SortableTaskCard({ task, columnId, onEdit, onComplete, onDelete }: Drag
       setNodeRef={setNodeRef}
       style={style}
       dragging={isDragging}
+      cardOptions={cardOptions}
     />
   )
 }

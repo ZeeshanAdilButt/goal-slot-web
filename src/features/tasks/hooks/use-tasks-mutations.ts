@@ -1,4 +1,5 @@
-import { taskQueries } from '@/features/tasks/utils/queries'
+import { belongsInMyTasks, projectIdOf } from '@/features/projects/utils/task-fields'
+import { taskQueries, type TaskListFilters } from '@/features/tasks/utils/queries'
 import { CreateTaskForm, Task, TaskStatus } from '@/features/tasks/utils/types'
 import { capture } from '@/utils/posthog/capture'
 import { Events } from '@/utils/posthog/events'
@@ -8,9 +9,8 @@ import { toast } from 'react-hot-toast'
 
 import { useOfflineMutation } from '@/hooks/use-offline-mutation'
 import { tasksApi } from '@/lib/api'
+import { useAuthStore } from '@/lib/store'
 import '@/features/tasks/utils/offline-operations'
-
-type TaskListFilters = { status?: TaskStatus; statuses?: TaskStatus[]; goalId?: string }
 
 const normalizeTaskInput = (data: Partial<CreateTaskForm>) => ({
   ...data,
@@ -25,12 +25,17 @@ const getListFilters = (queryKey: readonly unknown[]): TaskListFilters | undefin
   return queryKey[2] as TaskListFilters | undefined
 }
 
+// The invalidation after each mutation settles is the authority; this only
+// keeps optimistic writes out of lists the server would not put them in.
 const matchesFilters = (task: Task, filters?: TaskListFilters) => {
-  if (!filters) return true
+  // A list with no filters is a My tasks list (scope=mine by default).
+  if (!filters) return belongsInMyTasks(task, undefined, useAuthStore.getState().user?.id)
   if (filters.statuses && filters.statuses.length > 0 && !filters.statuses.includes(task.status)) return false
   if (filters.status && task.status !== filters.status) return false
   if (filters.goalId && task.goalId !== filters.goalId) return false
-  return true
+  // Project board lists hold only that project's tasks.
+  if (filters.projectId) return projectIdOf(task) === filters.projectId
+  return belongsInMyTasks(task, filters.scope, useAuthStore.getState().user?.id)
 }
 
 const syncTaskInCache = (
@@ -109,6 +114,9 @@ export function useCreateTaskMutation() {
         scheduleBlockId: normalizeTaskInput(form).scheduleBlockId,
         dueDate: normalizeTaskInput(form).dueDate,
         notes: normalizeTaskInput(form).notes,
+        projectId: form.projectId ?? null,
+        assigneeId: form.assigneeId ?? null,
+        userId: useAuthStore.getState().user?.id,
       } as Task
       syncTaskInCache(queryClient, optimisticTask)
       return { previous }
@@ -237,7 +245,13 @@ export function useRestoreTaskMutation() {
       rollbackCache(queryClient, context?.previous)
       toast.error('Failed to restore task')
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: taskQueries.all }),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: taskQueries.all })
+      // Restore removes the completer's COMPLETION time entry (even when a
+      // different project member restores it), so time and goal totals move.
+      queryClient.invalidateQueries({ queryKey: ['time-tracker'] })
+      queryClient.invalidateQueries({ queryKey: ['goals'] })
+    },
   })
 }
 
