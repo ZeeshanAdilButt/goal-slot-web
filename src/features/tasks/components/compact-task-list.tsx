@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 
 import { useReorderTasksMutation, useUpdateTaskMutation } from '@/features/tasks/hooks/use-tasks-mutations'
 import { GroupBy, Task, TaskStatus } from '@/features/tasks/utils/types'
+import type { TaskCardOptions } from '@/features/tasks/components/task-board'
 import { groupTasks } from '@/features/tasks/utils/utils'
 import {
   DndContext,
@@ -29,17 +30,20 @@ interface CompactTaskListProps {
   groupBy: GroupBy
   onEdit: (task: Task) => void
   onComplete?: (task: Task) => void
+  cardOptions?: TaskCardOptions
 }
 
-export function CompactTaskList({ tasks, groupBy, onEdit, onComplete }: CompactTaskListProps) {
+export function CompactTaskList({ tasks, groupBy, onEdit, onComplete, cardOptions }: CompactTaskListProps) {
   // Drag-and-drop reordering only makes sense for the status grouping - the
   // other groupings (day, schedule block) aren't statuses a task can be
   // dropped into, so there's nothing coherent to reorder or move between.
   if (groupBy === 'status') {
-    return <StatusGroupedTaskList tasks={tasks} onEdit={onEdit} onComplete={onComplete} />
+    return <StatusGroupedTaskList tasks={tasks} onEdit={onEdit} onComplete={onComplete} cardOptions={cardOptions} />
   }
 
-  return <StaticGroupedTaskList tasks={tasks} groupBy={groupBy} onEdit={onEdit} onComplete={onComplete} />
+  return (
+    <StaticGroupedTaskList tasks={tasks} groupBy={groupBy} onEdit={onEdit} onComplete={onComplete} cardOptions={cardOptions} />
+  )
 }
 
 // Every status section is always rendered, even when empty, so a task can be
@@ -56,10 +60,12 @@ function StatusGroupedTaskList({
   tasks,
   onEdit,
   onComplete,
+  cardOptions,
 }: {
   tasks: Task[]
   onEdit: (task: Task) => void
   onComplete?: (task: Task) => void
+  cardOptions?: TaskCardOptions
 }) {
   const updateTaskMutation = useUpdateTaskMutation()
   const reorderTasksMutation = useReorderTasksMutation()
@@ -125,6 +131,7 @@ function StatusGroupedTaskList({
     const movingIndex = sourceItems.findIndex((t) => t.id === activeId)
     if (movingIndex === -1) return
     const movingTask = sourceItems[movingIndex]
+    if (cardOptions?.getPermissions && !cardOptions.getPermissions(movingTask).canEdit) return
 
     if (sourceColumn === targetColumn) {
       const overIndex = sourceItems.findIndex((t) => t.id === overId)
@@ -181,6 +188,7 @@ function StatusGroupedTaskList({
             onHover={setHoveredTaskId}
             onEdit={onEdit}
             onComplete={onComplete}
+            cardOptions={cardOptions}
           />
         ))}
       </DndContext>
@@ -195,6 +203,7 @@ function StatusSection({
   onHover,
   onEdit,
   onComplete,
+  cardOptions,
 }: {
   section: { id: TaskStatus; title: string }
   tasks: Task[]
@@ -202,6 +211,7 @@ function StatusSection({
   onHover: (taskId: string | null) => void
   onEdit: (task: Task) => void
   onComplete?: (task: Task) => void
+  cardOptions?: TaskCardOptions
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: section.id, data: { type: 'column' } })
   const taskIds = useMemo(() => tasks.map((t) => t.id), [tasks])
@@ -240,6 +250,7 @@ function StatusSection({
                 onHover={onHover}
                 onEdit={onEdit}
                 onComplete={onComplete}
+                cardOptions={cardOptions}
               />
             </div>
           ))
@@ -260,6 +271,7 @@ function SortableCompactRow({
   onHover,
   onEdit,
   onComplete,
+  cardOptions,
 }: {
   task: Task
   columnId: TaskStatus
@@ -267,10 +279,13 @@ function SortableCompactRow({
   onHover: (taskId: string | null) => void
   onEdit: (task: Task) => void
   onComplete?: (task: Task) => void
+  cardOptions?: TaskCardOptions
 }) {
+  const canDrag = cardOptions?.getPermissions ? cardOptions.getPermissions(task).canEdit : true
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
     data: { type: 'task', columnId },
+    disabled: !canDrag,
   })
 
   const style: CSSProperties = {
@@ -285,7 +300,8 @@ function SortableCompactRow({
         {...listeners}
         {...attributes}
         onClick={(e) => e.stopPropagation()}
-        className="flex w-5 flex-shrink-0 cursor-grab items-center justify-center rounded-sm border border-zinc-200 bg-white text-zinc-400 transition hover:text-zinc-700 sm:w-6"
+        disabled={!canDrag}
+        className="flex w-5 flex-shrink-0 cursor-grab items-center justify-center rounded-sm border border-zinc-200 bg-white text-zinc-400 transition hover:text-zinc-700 disabled:invisible sm:w-6"
         aria-label="Drag task"
       >
         <GripVertical className="h-3.5 w-3.5" />
@@ -297,6 +313,7 @@ function SortableCompactRow({
           onHover={onHover}
           onEdit={onEdit}
           onComplete={onComplete}
+          cardOptions={cardOptions}
         />
       </div>
     </div>
@@ -308,11 +325,13 @@ function StaticGroupedTaskList({
   groupBy,
   onEdit,
   onComplete,
+  cardOptions,
 }: {
   tasks: Task[]
   groupBy: GroupBy
   onEdit: (task: Task) => void
   onComplete?: (task: Task) => void
+  cardOptions?: TaskCardOptions
 }) {
   const [hoveredTaskId, setHoveredTaskId] = useState<string | null>(null)
 
@@ -377,6 +396,7 @@ function StaticGroupedTaskList({
                 onHover={setHoveredTaskId}
                 onEdit={onEdit}
                 onComplete={onComplete}
+                cardOptions={cardOptions}
               />
             </div>
           )

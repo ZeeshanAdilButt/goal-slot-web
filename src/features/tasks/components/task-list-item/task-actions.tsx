@@ -11,9 +11,11 @@ interface TaskActionsProps {
   isHovered: boolean
   onDelete: () => void
   onRestore: () => void
+  canEdit?: boolean
+  canDelete?: boolean
 }
 
-export function TaskActions({ task, isHovered, onDelete, onRestore }: TaskActionsProps) {
+export function TaskActions({ task, isHovered, onDelete, onRestore, canEdit = true, canDelete = true }: TaskActionsProps) {
   const updateTaskMutation = useUpdateTaskMutation()
   const {
     startTimer,
@@ -54,7 +56,7 @@ export function TaskActions({ task, isHovered, onDelete, onRestore }: TaskAction
           isHovered && 'sm:opacity-100',
         )}
       >
-        {task.status !== 'DONE' && (
+        {canEdit && task.status !== 'DONE' && (
           <button
             onClick={handleStartTimer}
             className="rounded-sm border-2 border-primary bg-white p-1.5 shadow-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-sm"
@@ -63,7 +65,7 @@ export function TaskActions({ task, isHovered, onDelete, onRestore }: TaskAction
             <Play className="h-3.5 w-3.5 text-primary" />
           </button>
         )}
-        {task.status === 'DONE' && (
+        {canEdit && task.status === 'DONE' && (
           <button
             onClick={onRestore}
             className="rounded-sm border-2 border-green-300 bg-white p-1.5 shadow-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-sm"
@@ -72,6 +74,7 @@ export function TaskActions({ task, isHovered, onDelete, onRestore }: TaskAction
             <RotateCcw className="h-3.5 w-3.5 text-green-600" />
           </button>
         )}
+        {canDelete ? (
         <button
           onClick={onDelete}
           className="rounded-sm border-2 border-red-300 bg-white p-1.5 shadow-sm transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-sm"
@@ -79,6 +82,7 @@ export function TaskActions({ task, isHovered, onDelete, onRestore }: TaskAction
         >
           <Trash2 className="h-3.5 w-3.5 text-red-600" />
         </button>
+        ) : null}
       </div>
 
       <TimerSwitchDialog

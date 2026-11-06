@@ -4,6 +4,8 @@ import { TaskActions } from '@/features/tasks/components/task-list-item/task-act
 import { useDeleteTaskMutation, useRestoreTaskMutation } from '@/features/tasks/hooks/use-tasks-mutations'
 import { Task } from '@/features/tasks/utils/types'
 import { CheckCircle2 } from 'lucide-react'
+import { MemberAvatar, ProjectChip } from '@/features/projects/components/member-avatar'
+import type { TaskCardOptions } from '@/features/tasks/components/task-board'
 
 import { cn } from '@/lib/utils'
 import { ConfirmDialog } from '@/components/confirm-dialog'
@@ -16,6 +18,7 @@ interface CompactTaskListItemProps {
   onHover: (taskId: string | null) => void
   onEdit: (task: Task) => void
   onComplete?: (task: Task) => void
+  cardOptions?: TaskCardOptions
 }
 
 export function CompactTaskListItem({
@@ -24,7 +27,9 @@ export function CompactTaskListItem({
   onHover,
   onEdit,
   onComplete,
+  cardOptions,
 }: CompactTaskListItemProps) {
+  const { canEdit, canDelete } = cardOptions?.getPermissions?.(task) ?? { canEdit: true, canDelete: true }
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const deleteTaskMutation = useDeleteTaskMutation()
   const restoreTaskMutation = useRestoreTaskMutation()
@@ -89,6 +94,12 @@ export function CompactTaskListItem({
               isInProgress={isInProgress}
               goalColor={goalColor}
             />
+            {cardOptions?.showProjectChip && task.project ? (
+              <ProjectChip name={task.project.name} color={task.project.color} className="shrink-0 normal-case" />
+            ) : null}
+            {cardOptions?.showAssignee && task.assignee ? (
+              <MemberAvatar name={task.assignee.name} avatar={task.assignee.avatar} size="sm" />
+            ) : null}
           </div>
 
           {/* Right Side: Action Buttons + Status Badge */}
@@ -98,7 +109,7 @@ export function CompactTaskListItem({
           >
             {/* Action Buttons - Always visible on mobile, show on hover on desktop */}
             <div className="flex items-center gap-1.5 sm:gap-2">
-              {onComplete && task.status !== 'DONE' && (
+              {canEdit && onComplete && task.status !== 'DONE' && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
@@ -120,6 +131,8 @@ export function CompactTaskListItem({
                 isHovered={isHovered}
                 onDelete={() => setShowDeleteConfirm(true)}
                 onRestore={handleRestore}
+                canEdit={canEdit}
+                canDelete={canDelete}
               />
             </div>
 

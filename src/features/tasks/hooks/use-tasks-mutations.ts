@@ -1,4 +1,4 @@
-import { taskQueries } from '@/features/tasks/utils/queries'
+import { taskQueries, type TaskListFilters } from '@/features/tasks/utils/queries'
 import { CreateTaskForm, Task, TaskStatus } from '@/features/tasks/utils/types'
 import { capture } from '@/utils/posthog/capture'
 import { Events } from '@/utils/posthog/events'
@@ -8,9 +8,8 @@ import { toast } from 'react-hot-toast'
 
 import { useOfflineMutation } from '@/hooks/use-offline-mutation'
 import { tasksApi } from '@/lib/api'
+import { useAuthStore } from '@/lib/store'
 import '@/features/tasks/utils/offline-operations'
-
-type TaskListFilters = { status?: TaskStatus; statuses?: TaskStatus[]; goalId?: string }
 
 const normalizeTaskInput = (data: Partial<CreateTaskForm>) => ({
   ...data,
@@ -30,6 +29,17 @@ const matchesFilters = (task: Task, filters?: TaskListFilters) => {
   if (filters.statuses && filters.statuses.length > 0 && !filters.statuses.includes(task.status)) return false
   if (filters.status && task.status !== filters.status) return false
   if (filters.goalId && task.goalId !== filters.goalId) return false
+  // Project board lists hold only that project's tasks.
+  if (filters.projectId) return task.projectId === filters.projectId
+  if (task.projectId) {
+    // My tasks: Personal only never shows project tasks; Mine + assigned shows
+    // them when assigned to me or unassigned (server rule). The invalidation
+    // after the mutation settles is the authority; this only avoids a flicker.
+    if (filters.scope === 'personal') return false
+    const assignee = task.assigneeId ?? task.assignee?.id ?? null
+    const meId = useAuthStore.getState().user?.id
+    if (assignee && meId && assignee !== meId) return false
+  }
   return true
 }
 
@@ -109,6 +119,9 @@ export function useCreateTaskMutation() {
         scheduleBlockId: normalizeTaskInput(form).scheduleBlockId,
         dueDate: normalizeTaskInput(form).dueDate,
         notes: normalizeTaskInput(form).notes,
+        projectId: form.projectId ?? null,
+        assigneeId: form.assigneeId ?? null,
+        userId: useAuthStore.getState().user?.id,
       } as Task
       syncTaskInCache(queryClient, optimisticTask)
       return { previous }

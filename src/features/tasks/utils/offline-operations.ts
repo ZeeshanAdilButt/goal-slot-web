@@ -15,6 +15,8 @@ export interface TaskCreatePayload {
   scheduleBlockId?: string
   dueDate?: string
   notes?: string
+  projectId?: string | null
+  assigneeId?: string | null
 }
 
 interface TaskUpdatePayload {
