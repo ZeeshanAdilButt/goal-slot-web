@@ -137,3 +137,49 @@ describe('series-scoped updates', () => {
     expect(rows[0].line).toMatch(/^Every day of this series:/)
   })
 })
+
+describe('grouping edge cases (CodeRabbit #357)', () => {
+  const two: Record<string, KnownBlock> = {
+    a: { title: 'Gym', dayOfWeek: 1, startTime: '18:00', endTime: '19:00' },
+    b: { title: 'Gym', dayOfWeek: 1, startTime: '18:00', endTime: '19:00' },
+    x: { title: 'Labs', dayOfWeek: 2, startTime: '07:00', endTime: '09:00' },
+    y: { title: 'Labs', dayOfWeek: 2, startTime: '07:00', endTime: '09:00' },
+  }
+  const f = (id: string) => two[id]
+
+  it('keeps two same-title, same-time blocks on the same day as two rows', () => {
+    const rows = buildProposalRows([upd('a', { title: 'Lift' }), upd('b', { title: 'Lift' })], f)
+    expect(rows).toHaveLength(2)
+  })
+
+  it('keeps creates that link to different goals as separate rows', () => {
+    const c = (goalId: string): CoachProposalAction => ({
+      type: 'CREATE_SCHEDULE_BLOCK',
+      payload: { title: 'Read', startTime: '20:00', endTime: '21:00', dayOfWeek: 1, goalId },
+    })
+    expect(buildProposalRows([c('g1'), { ...c('g2'), payload: { ...c('g2').payload, dayOfWeek: 2 } }], f)).toHaveLength(2)
+  })
+
+  it('does not fold a create that two different updates could own', () => {
+    const rows = buildProposalRows(
+      [
+        upd('x', { title: 'A', startTime: '07:00', endTime: '08:00' }),
+        upd('y', { title: 'B', startTime: '07:00', endTime: '08:00' }),
+        { type: 'CREATE_SCHEDULE_BLOCK', payload: { title: 'Lab', startTime: '08:00', endTime: '09:00', dayOfWeek: 2 } },
+      ],
+      f,
+    )
+    expect(rows.find((r) => r.indices.includes(2))!.indices).toEqual([2])
+  })
+
+  it('does not treat an update that moves day as an in-place split', () => {
+    const rows = buildProposalRows(
+      [
+        upd('x', { startTime: '07:00', endTime: '08:00', dayOfWeek: 3 }),
+        { type: 'CREATE_SCHEDULE_BLOCK', payload: { title: 'Lab', startTime: '08:00', endTime: '09:00', dayOfWeek: 2 } },
+      ],
+      f,
+    )
+    expect(rows).toHaveLength(2)
+  })
+})

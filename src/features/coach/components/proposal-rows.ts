@@ -132,7 +132,9 @@ export function buildProposalRows(
         singles.push(i)
         return
       }
-      const key = `C|${p.title}|${p.startTime}|${p.endTime}|${String(p.category ?? '')}`
+      // goalId is part of the identity: two creates that link to different
+      // goals are different changes and must stay separately selectable.
+      const key = `C|${p.title}|${p.startTime}|${p.endTime}|${String(p.category ?? '')}|${String(p.goalId ?? '')}`
       const g = groups.get(key) ?? {
         indices: [],
         days: [],
@@ -166,7 +168,12 @@ export function buildProposalRows(
       const members = seriesScoped && block.seriesId ? findSeries(block.seriesId) : []
       const days = seriesScoped && members.length ? members.map((m) => m.dayOfWeek) : [block.dayOfWeek]
       const seriesUnresolved = seriesScoped && members.length === 0
-      const key = `${kind}|${norm(block.title)}|${block.startTime}|${block.endTime}|${stable(p)}|${seriesUnresolved ? `unresolved:${a.id}` : ''}`
+      let key = `${kind}|${norm(block.title)}|${block.startTime}|${block.endTime}|${stable(p)}|${seriesUnresolved ? `unresolved:${a.id}` : ''}`
+      // Two blocks with the same title and time on the SAME day are two
+      // targets, not one change on that day: keep each in its own row, or
+      // the user approves both while the row reads as one.
+      const existing = groups.get(key)
+      if (existing && days.some((d) => existing.days.includes(d))) key = `${key}|dup:${i}`
       const g = groups.get(key) ?? {
         indices: [],
         days: [],
@@ -191,18 +198,33 @@ export function buildProposalRows(
   // the row reads as one restructure of that block.
   const all = [...groups.values()]
   const daysKey = (g: Group) => [...new Set(g.days)].sort().join()
+  const couldOwn = (o: Group, c: Group) =>
+    o.kind === 'update' &&
+    !!o.start &&
+    !!o.end &&
+    !o.seriesUnresolved &&
+    (hhmm(o.payload.startTime) || hhmm(o.payload.endTime)) &&
+    daysKey(o) === daysKey(c) &&
+    toMin(c.start!) >= toMin(o.start) &&
+    toMin(c.end!) <= toMin(o.end)
   for (const u of all) {
     if (u.kind !== 'update' || !u.start || !u.end) continue
     if (!hhmm(u.payload.startTime) && !hhmm(u.payload.endTime)) continue
     // Days unknown: a fold would claim the pieces line up with days we cannot see.
     if (u.seriesUnresolved) continue
+    // A block that moves to another day is not being split in place.
+    if (typeof u.payload.dayOfWeek === 'number' && u.payload.updateScope !== 'series') continue
     const candidates = all.filter(
       (c) =>
         c.kind === 'create' &&
         !all.some((x) => x.absorbed.includes(c)) &&
         daysKey(c) === daysKey(u) &&
         toMin(c.start!) >= toMin(u.start!) &&
-        toMin(c.end!) <= toMin(u.end!),
+        toMin(c.end!) <= toMin(u.end!) &&
+        // Fold only when THIS update is the one plausible owner. If another
+        // update could also claim the create, the relationship is a guess, so
+        // the create keeps its own row and its own checkbox.
+        all.filter((o) => o !== u && couldOwn(o, c)).length === 0,
     )
     if (candidates.length === 0) continue
     // Only a real split folds: the pieces run back to back from the block's
