@@ -30,6 +30,7 @@ import {
   type CoachProposalResult,
 } from '@/lib/api'
 import { cn, formatDuration, formatTime12h } from '@/lib/utils'
+import { describeApplyOutcome, mapResultsToCardRows } from './apply-outcome'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 
@@ -154,6 +155,8 @@ interface DescribedAction {
   subject?: string
   /** Second line: what is changing or being created. */
   detail?: string
+  /** Said BEFORE Apply: something about this row the user should check. */
+  warning?: string
 }
 
 function describeAction(
@@ -169,6 +172,16 @@ function describeAction(
       const existing = id ? findScheduleBlock(queryClient, id) : undefined
       const subjectBits: string[] = []
       if (existing?.title) subjectBits.push(`"${existing.title}"`)
+      // The id did not resolve in a loaded schedule. Name the block the Coach
+      // meant instead of a bare "Schedule block", and say so up front: in the
+      // original report every row of a 5-delete card read "Schedule block,
+      // Delete this block." because every id was made up.
+      const scheduleLoaded = !!queryClient.getQueryData(['schedule', 'weekly'])
+      const unresolved = !existing && scheduleLoaded
+      if (!existing && action.expectedTitle) subjectBits.push(`"${action.expectedTitle}"`)
+      const warning = unresolved
+        ? 'Not found in your current schedule. Nothing changes unless the server can match it to your block.'
+        : undefined
       if (typeof existing?.dayOfWeek === 'number') subjectBits.push(DAYS_SHORT[existing.dayOfWeek])
       const existingRange = fmtTimeRange(existing?.startTime, existing?.endTime)
       if (existingRange) subjectBits.push(existingRange)
@@ -178,7 +191,7 @@ function describeAction(
       // what actually matters at approval time.
       const subject = subjectBits.length ? subjectBits.join(', ') : 'Schedule block'
 
-      if (action.type === 'DELETE_SCHEDULE_BLOCK') return { subject, detail: 'Delete this block.' }
+      if (action.type === 'DELETE_SCHEDULE_BLOCK') return { subject, detail: 'Delete this block.', warning }
 
       // UPDATE: show the patch.
       const patchBits: string[] = []
@@ -191,7 +204,7 @@ function describeAction(
       if (typeof p.category === 'string') patchBits.push(`category to ${p.category}`)
       if (typeof p.goalId === 'string') patchBits.push(`linked goal`)
       const detail = patchBits.length ? `Change ${patchBits.join(', ')}.` : 'Update this block.'
-      return { subject, detail }
+      return { subject, detail, warning }
     }
 
     case 'CREATE_SCHEDULE_BLOCK': {
@@ -510,6 +523,10 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
     persisted?.status === 'applied' ? persisted.results ?? [] : null,
   )
   const [rejected, setRejected] = useState(persisted?.status === 'rejected')
+  // A batch the API refused before writing anything. Kept apart from
+  // `results` on purpose: nothing changed, so the card stays applicable and
+  // shows why next to each row, instead of looking "applied".
+  const [refusal, setRefusal] = useState<CoachProposalResult[] | null>(null)
 
   const hasDestructive = useMemo(
     () => block.actions.some((a) => ACTION_META[a.type]?.verb === 'delete'),
@@ -571,17 +588,30 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
         sourceMessageId,
         confirmDeletions,
       )
-      setResults(res.data.results)
+      // The API indexes results by position in what was SENT, which is only
+      // the selected rows. Map them back to the card's own rows, or a result
+      // lands on the wrong line whenever the user unticked something.
+      const mapped = mapResultsToCardRows(res.data.results, block.actions.length, selected)
+      const okCount = mapped.filter((r) => r.ok).length
+      const failCount = mapped.length - okCount
+
+      if (mapped.length > 0 && mapped.every((r) => r.skipped)) {
+        setRefusal(mapped)
+        const reason = mapped.find((r) => r.error && !r.error.startsWith('Not applied, because'))
+        toast.error(`Nothing was changed. ${reason?.error ?? 'This proposal could not be applied.'}`)
+        return
+      }
+
+      setRefusal(null)
+      setResults(mapped)
       saveProposalState(stateKey, {
         status: 'applied',
-        results: res.data.results,
+        results: mapped,
         appliedAt: Date.now(),
       })
-      const okCount = res.data.results.filter((r) => r.ok).length
-      const failCount = res.data.results.length - okCount
       if (failCount === 0) toast.success(`Applied ${okCount} change${okCount === 1 ? '' : 's'}.`)
-      else if (okCount === 0) toast.error(`All ${failCount} change${failCount === 1 ? '' : 's'} failed.`)
-      else toast.success(`Applied ${okCount}, ${failCount} failed, see card.`)
+      else if (okCount === 0) toast.error(`All ${failCount} change${failCount === 1 ? '' : 's'} failed. See the card.`)
+      else toast.error(`Applied ${okCount}, ${failCount} failed. See the card.`)
 
       // Invalidate everything that could have changed.
       await Promise.all([
@@ -627,6 +657,11 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
 
   const resultByIndex = new Map<number, CoachProposalResult>()
   results?.forEach((r) => resultByIndex.set(r.index, r))
+  const refusalByIndex = new Map<number, CoachProposalResult>()
+  refusal?.forEach((r) => refusalByIndex.set(r.index, r))
+  const okCount = results?.filter((r) => r.ok).length ?? 0
+  const failedCount = (results?.length ?? 0) - okCount
+  const caveatCount = results?.filter((r) => r.ok && r.warning && !r.alreadyDone).length ?? 0
 
   return (
     <div className={cn(
@@ -654,7 +689,11 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
             {rejected
               ? 'Rejected, you can undo and apply'
               : results
-                ? 'Coach proposed change, applied'
+                ? failedCount === 0
+                  ? 'Coach proposed change, applied'
+                  : okCount === 0
+                    ? 'Coach proposed change, not applied'
+                    : 'Coach proposed change, partly applied'
                 : 'Coach proposed change, approval required'}
           </div>
           {block.summary && (
@@ -678,7 +717,8 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
           const Icon = meta.icon
           const isChecked = selected.has(i)
           const result = resultByIndex.get(i)
-          const { subject, detail } = describeAction(action, queryClient)
+          const refused = refusalByIndex.get(i)
+          const { subject, detail, warning } = describeAction(action, queryClient)
 
           return (
             <li key={i} className="flex items-start gap-3 px-3 py-2.5">
@@ -722,8 +762,17 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
                 {detail && (
                   <div className="mt-0.5 text-xs text-zinc-600">{detail}</div>
                 )}
+                {!results && warning && (
+                  <div className="mt-0.5 text-xs text-amber-700">{warning}</div>
+                )}
                 {result && !result.ok && result.error && (
                   <div className="mt-0.5 text-xs text-rose-600">Failed: {result.error}</div>
+                )}
+                {result?.ok && result.warning && (
+                  <div className="mt-0.5 text-xs text-amber-700">{result.warning}</div>
+                )}
+                {refused?.error && (
+                  <div className="mt-0.5 text-xs text-rose-600">Not applied: {refused.error}</div>
                 )}
               </div>
             </li>
@@ -786,8 +835,15 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
         </div>
       )}
       {results && (
-        <div className="border-t border-zinc-100 bg-zinc-50 px-3 py-2 text-xs text-zinc-600">
-          Done. Refresh Goals / Schedule to see the changes in their pages.
+        <div
+          className={cn(
+            'border-t px-3 py-2 text-xs',
+            failedCount === 0 && caveatCount === 0
+              ? 'border-zinc-100 bg-zinc-50 text-zinc-600'
+              : 'border-rose-100 bg-rose-50 text-rose-700',
+          )}
+        >
+          {describeApplyOutcome(results)}
         </div>
       )}
       <ConfirmDialog
