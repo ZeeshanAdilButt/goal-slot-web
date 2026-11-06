@@ -573,11 +573,21 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
 
   // One row per change, not per action (see proposal-rows.ts). Rebuilt each
   // render: it reads the schedule cache, which fills in after first paint.
-  const rows = buildProposalRows(
+  const grouped = buildProposalRows(
     block.actions,
     (id) => findScheduleBlock(queryClient, id),
     (seriesId) => findSeriesBlocks(queryClient, seriesId),
   )
+  // A grouped row is all-or-nothing. If its actions are only partly ticked
+  // (the user unticked one before the schedule cache loaded and the rows
+  // regrouped), show them as separate rows again, so nothing selected is
+  // hidden inside an unticked-looking row.
+  const rows = grouped.flatMap((r) => {
+    const on = r.indices.filter((k) => selected.has(k)).length
+    return on === 0 || on === r.indices.length
+      ? [r]
+      : r.indices.map((k) => ({ indices: [k], line: null, verb: null }))
+  })
   const selectedRowCount = rows.filter((r) => r.indices.every((k) => selected.has(k))).length
 
   // Apply is one click for an ordinary proposal and two for one that deletes
@@ -784,7 +794,7 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
                   onChange={() => toggleRow(row.indices, !isChecked)}
                   disabled={applying}
                   className="mt-1 h-4 w-4 rounded border-zinc-300 text-[#8a7307] focus:ring-[#f2cc0d]"
-                  aria-label={`Include ${meta.label}`}
+                  aria-label={`Include ${meta.label}${subject ? `: ${subject}` : ''}`}
                 />
               )}
               {rejected && (
@@ -891,7 +901,7 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
               disabled={applying || selected.size === 0}
             >
               {applying && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-              Apply {selectedRowCount > 0 ? `(${selectedRowCount})` : ''}
+              Apply {selectedRowCount > 0 ? `(${selectedRowCount} change${selectedRowCount === 1 ? '' : 's'})` : ''}
             </Button>
           </div>
         </div>
@@ -905,7 +915,10 @@ export function CoachProposalCard({ block, sourceMessageId }: CoachProposalCardP
               : 'border-rose-100 bg-rose-50 text-rose-700',
           )}
         >
-          {describeApplyOutcome(results)}
+          {describeApplyOutcome(
+            results,
+            rows.map((r) => r.indices),
+          )}
         </div>
       )}
       <ConfirmDialog

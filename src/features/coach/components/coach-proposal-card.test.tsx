@@ -44,7 +44,10 @@ describe('CoachProposalCard grouped rows', () => {
     expect(html).toContain('Tue, Thu: &quot;Reading &amp; Labs (Core Engineering)&quot; 7:00 AM to 9:00 AM becomes Core Engineering 7:00 AM to 8:00 AM, Soft Skills Lab 8:00 AM to 8:30 AM, Tech Lab 8:30 AM to 9:00 AM')
     expect(html).toContain('Every day: &quot;Community Time&quot; 4:00 PM to 5:00 PM, renamed to &quot;Dev Weekends&quot;')
     // The Apply count is in changes the user can see, not raw actions.
-    expect(html).toMatch(/Apply <!-- -->\(2\)|Apply \(2\)/)
+    expect(html).toMatch(/Apply <!-- -->\(2 changes\)|Apply \(2 changes\)/)
+    // Each checkbox is named after its row, so screen readers can tell them apart.
+    expect(html).toContain('aria-label="Include Restructure block: Tue, Thu: ')
+    expect(html).toContain('aria-label="Include Update schedule block: Every day: ')
   })
 })
 
