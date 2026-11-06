@@ -32,6 +32,7 @@ import {
   CoachProposalCard,
   extractCoachProposals,
 } from '@/features/coach/components/coach-proposal-card'
+import { ChatComposerInput } from '@/features/coach/components/chat-composer-input'
 
 function currentScopeKey(): string {
   const now = new Date()
@@ -91,7 +92,7 @@ export function FloatingCoachPopover({ open, onClose }: FloatingCoachPopoverProp
   const [confirmClear, setConfirmClear] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
   const scrollRef = useRef<HTMLDivElement | null>(null)
-  const inputRef = useRef<HTMLInputElement | null>(null)
+  const inputRef = useRef<HTMLTextAreaElement | null>(null)
   const [editingFromMessageId, setEditingFromMessageId] = useState<string | null>(null)
 
   const handleEditMessage = (id: string, content: string) => {
@@ -372,7 +373,7 @@ export function FloatingCoachPopover({ open, onClose }: FloatingCoachPopoverProp
       )}
       <form
         onSubmit={onSubmit}
-        className="flex items-center gap-2 border-t border-zinc-200 bg-white px-3 py-2"
+        className="flex items-end gap-2 border-t border-zinc-200 bg-white px-3 py-2"
       >
         <button
           type="button"
@@ -389,16 +390,16 @@ export function FloatingCoachPopover({ open, onClose }: FloatingCoachPopoverProp
         >
           <RotateCcw className="h-3.5 w-3.5" />
         </button>
-        <input
+        <ChatComposerInput
           ref={inputRef}
-          type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask anything..."
           disabled={streaming}
           // min-w-0 so the field can shrink in the row; text-base (16px) on
           // mobile stops iOS Safari zooming in on focus, text-sm from sm: up.
-          className="h-9 min-w-0 flex-1 rounded-md border border-zinc-200 bg-white px-2.5 text-base text-zinc-900 placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] disabled:opacity-50 sm:text-sm"
+          aria-label="Message the Coach"
+          className="min-h-9 min-w-0 flex-1 rounded-md border border-zinc-200 bg-white px-2.5 py-1.5 text-base leading-6 text-zinc-900 placeholder:text-zinc-400 focus:border-[#f2cc0d] focus:outline-none focus:ring-1 focus:ring-[#f2cc0d] disabled:opacity-50 sm:text-sm"
         />
         <VoiceDictationButton
           disabled={streaming}
