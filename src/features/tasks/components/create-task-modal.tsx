@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { SearchableSelect } from '@/components/ui/searchable-select'
 
@@ -6,6 +6,8 @@ import { useProjectMembersQuery } from '@/features/projects/hooks/use-projects'
 import {
   assignableMembers,
   assigneeAfterProjectChange,
+  assigneeIdOf,
+  projectIdOf,
   canChangeTaskProject,
   canSetTaskGoal,
   projectFieldsPayload,
@@ -116,8 +118,19 @@ export function CreateTaskModal({
     notes: '',
   })
 
+  // Fill the form once per opening (per task). Re-running on every prop
+  // change wiped an unsaved draft, e.g. when Back/Forward switched the board
+  // (new defaultProjectId) or goals refetched while the modal was open.
+  const initializedFor = useRef<string | null>(null)
   useEffect(() => {
-    if (task && isOpen) {
+    if (!isOpen) {
+      initializedFor.current = null
+      return
+    }
+    const key = task ? `task:${task.id}` : 'new'
+    if (initializedFor.current === key) return
+    initializedFor.current = key
+    if (task) {
       setForm({
         title: task.title || '',
         description: task.description || '',
@@ -129,8 +142,8 @@ export function CreateTaskModal({
         notes: task.notes || '',
       })
       setStatus(task.status || 'BACKLOG')
-      setProjectId(task.projectId || '')
-      setAssigneeId(task.assigneeId || task.assignee?.id || '')
+      setProjectId(projectIdOf(task) || '')
+      setAssigneeId(assigneeIdOf(task) || '')
 
       // Calculate hours from minutes (e.g. 90 mins -> 1.5 hours)
       if (task.estimatedMinutes) {
@@ -138,7 +151,7 @@ export function CreateTaskModal({
       } else {
         setEstimatedHours('')
       }
-    } else if (!task && isOpen) {
+    } else {
       const initialForm: CreateTaskForm = {
         title: '',
         description: '',
@@ -184,7 +197,11 @@ export function CreateTaskModal({
       status,
       // Goals stay personal: someone else's project task never carries a goal from us.
       goalId: goalLocked ? '' : form.goalId,
-      ...projectFieldsPayload(task, projectId, sanitizeAssignee(assigneeId, projectId, members)),
+      ...projectFieldsPayload(
+        task,
+        projectId,
+        sanitizeAssignee(assigneeId, projectId, members, task ? assigneeIdOf(task) : null),
+      ),
     }
     if (estimatedHours && !isNaN(parseFloat(estimatedHours))) {
       finalForm.estimatedMinutes = Math.round(parseFloat(estimatedHours) * 60).toString()

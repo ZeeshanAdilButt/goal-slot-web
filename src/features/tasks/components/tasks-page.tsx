@@ -11,7 +11,12 @@ import { ProjectSwitcher } from '@/features/projects/components/project-switcher
 import { ProjectFilterChips, ProjectHeaderActions, ScopeToggle } from '@/features/projects/components/project-toolbar'
 import { useProjectMembersQuery, useProjectsQuery } from '@/features/projects/hooks/use-projects'
 import { buildSpaceHref, isTasksScope, spaceFromParams, taskListParamsFor, type TasksScope } from '@/features/projects/utils/space'
-import { filterProjectTasks, taskPermissions, type AssigneeFilter } from '@/features/projects/utils/task-fields'
+import {
+  filterProjectTasks,
+  projectIdOf,
+  taskPermissions,
+  type AssigneeFilter,
+} from '@/features/projects/utils/task-fields'
 import type { TaskCardOptions } from '@/features/tasks/components/task-board'
 import { taskQueries } from '@/features/tasks/utils/queries'
 import { sortTasks, isTaskSort } from '@/features/tasks/utils/sort-tasks'
@@ -59,12 +64,20 @@ export function TasksPage() {
   const projectsQuery = useProjectsQuery()
   const projects = useMemo(() => projectsQuery.data ?? [], [projectsQuery.data])
   const currentProject = projectId ? (projects.find((p) => p.id === projectId) ?? null) : null
-  const projectMissing = !!projectId && !projectsQuery.isLoading && !currentProject
+  // "Not available" only on a real answer from the server; a failed or
+  // offline-paused project list gets a retry instead.
+  const projectMissing = !!projectId && projectsQuery.isSuccess && !currentProject
+  const projectsUnavailable =
+    !!projectId &&
+    !currentProject &&
+    (projectsQuery.isError || (projectsQuery.isPending && projectsQuery.fetchStatus === 'paused'))
   const isGuest = currentProject?.role === 'GUEST'
-  const [storedScope, setStoredScope] = useLocalStorage<TasksScope>('tasks-scope', 'mine')
+  const [storedScope, setStoredScope, isScopeHydrated] = useLocalStorage<TasksScope>('tasks-scope', 'mine')
   // With no projects, "Mine + assigned" and "Personal only" are the same
   // list, so the request stays exactly what it was before projects existed.
-  const scope: TasksScope = projects.length > 0 && isTasksScope(storedScope) ? storedScope : 'mine'
+  // While the project list is still loading, keep the saved choice.
+  const scope: TasksScope =
+    projectsQuery.isSuccess && projects.length === 0 ? 'mine' : isTasksScope(storedScope) ? storedScope : 'mine'
 
   const { tasks, scheduleBlocks, goals, isLoading, goalStatus, setGoalStatus } = useTasks(
     taskListParamsFor(space, scope),
@@ -74,16 +87,24 @@ export function TasksPage() {
 
   const [switcherOpen, setSwitcherOpen] = useState(false)
   const [showNewProject, setShowNewProject] = useState(false)
-  const [showProjectSettings, setShowProjectSettings] = useState(false)
-  const [showInvite, setShowInvite] = useState(false)
-  const [assigneeFilter, setAssigneeFilter] = useState<AssigneeFilter>('all')
-  const [dueThisWeek, setDueThisWeek] = useState(false)
-
-  // Filters belong to one board; a different project starts from Everyone.
-  useEffect(() => {
-    setAssigneeFilter('all')
-    setDueThisWeek(false)
-  }, [projectId])
+  // The project id a dialog was opened for; it is open only while that
+  // project is still the one on screen.
+  const [settingsFor, setSettingsFor] = useState<string | null>(null)
+  const [inviteFor, setInviteFor] = useState<string | null>(null)
+  // Filters belong to one board. They are stored with the board they were set
+  // on, so a different project renders with Everyone straight away instead of
+  // briefly showing the previous board's filters.
+  const [boardFilters, setBoardFilters] = useState<{
+    projectId: string | null
+    assignee: AssigneeFilter
+    dueThisWeek: boolean
+  }>({ projectId, assignee: 'all', dueThisWeek: false })
+  const activeFilters =
+    boardFilters.projectId === projectId ? boardFilters : { projectId, assignee: 'all' as AssigneeFilter, dueThisWeek: false }
+  const assigneeFilter = activeFilters.assignee
+  const dueThisWeek = activeFilters.dueThisWeek
+  const setAssigneeFilter = (assignee: AssigneeFilter) => setBoardFilters({ ...activeFilters, assignee })
+  const setDueThisWeek = (value: boolean) => setBoardFilters({ ...activeFilters, dueThisWeek: value })
 
   const goToSpace = useCallback(
     (nextProjectId: string | null) => {
@@ -109,8 +130,10 @@ export function TasksPage() {
 
   const rolesByProject = useMemo(() => new Map(projects.map((p) => [p.id, p.role])), [projects])
   const permissionsFor = useCallback(
-    (task: Task) =>
-      taskPermissions(task, { meId: me?.id, role: task.projectId ? rolesByProject.get(task.projectId) : undefined }),
+    (task: Task) => {
+      const taskProjectId = projectIdOf(task)
+      return taskPermissions(task, { meId: me?.id, role: taskProjectId ? rolesByProject.get(taskProjectId) : undefined })
+    },
     [me?.id, rolesByProject],
   )
   const cardOptions = useMemo<TaskCardOptions>(
@@ -221,12 +244,10 @@ export function TasksPage() {
     if (!focusedTaskId || isLoading) return
     const task = tasks.find((t) => t.id === focusedTaskId)
     if (!task) {
-      // Tasks haven't streamed in yet, or the task was deleted. Wait one
-      // more render; if tasks are loaded and we still can't find it, drop
-      // the param so the URL doesn't stay stuck.
-      if (tasks.length > 0) {
-        router.replace(buildSpaceHref(pathname || '/dashboard/tasks', searchParams, projectId), { scroll: false })
-      }
+      // The list has loaded (isLoading is false) and the task is not in it:
+      // deleted, or not visible here. Drop the param, even when the list is
+      // empty (a fresh project board), so a refresh does not retry it.
+      router.replace(buildSpaceHref(pathname || '/dashboard/tasks', searchParams, projectId), { scroll: false })
       return
     }
     if (!projectId) setSelectedGoalId(task.goalId ?? WITHOUT_GOALS_ID)
@@ -420,7 +441,7 @@ export function TasksPage() {
       myOpenCount={myOpenCount}
       onSelect={goToSpace}
       onNewProject={() => setShowNewProject(true)}
-      onOpenSettings={() => setShowProjectSettings(true)}
+      onOpenSettings={() => setSettingsFor(projectId)}
     />
   )
   const subtitle = currentProject
@@ -481,7 +502,31 @@ export function TasksPage() {
 
       <main className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden">
         <div className="flex min-h-0 flex-1 flex-col">
-          {projectMissing ? (
+          {projectsUnavailable ? (
+            <div className="p-4 sm:p-6">
+              <div className="mb-4">{switcher}</div>
+              <div className="rounded-xl border border-zinc-200 bg-white p-6 text-center shadow-sm">
+                <p className="text-sm font-semibold text-zinc-900">Could not load your projects</p>
+                <p className="mt-1 text-sm text-zinc-600">Check your connection and try again.</p>
+                <div className="mt-4 flex flex-wrap justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => projectsQuery.refetch()}
+                    className="inline-flex h-9 items-center rounded-lg bg-zinc-900 px-3.5 text-sm font-semibold text-white hover:bg-zinc-800"
+                  >
+                    Try again
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => goToSpace(null)}
+                    className="inline-flex h-9 items-center rounded-lg border border-zinc-200 bg-white px-3.5 text-sm font-semibold text-zinc-900 hover:bg-zinc-50"
+                  >
+                    Back to My tasks
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : projectMissing ? (
             <div className="p-4 sm:p-6">
               <div className="mb-4">{switcher}</div>
               <div className="rounded-xl border border-zinc-200 bg-white p-6 text-center shadow-sm">
@@ -506,7 +551,7 @@ export function TasksPage() {
             onEdit={setEditingTask}
             onCreate={() => setShowCreate(true)}
             hasSelectedGoal={!!projectId || !!selectedGoalId}
-            isLoading={isLoading || (!!projectId && projectsQuery.isLoading)}
+            isLoading={isLoading || !isScopeHydrated || (!!projectId && projectsQuery.isLoading)}
             goals={goals}
             selectedGoalId={selectedGoalId}
             onSelectGoal={setSelectedGoalId}
@@ -545,8 +590,8 @@ export function TasksPage() {
                 <ProjectHeaderActions
                   members={members}
                   canInvite={currentProject.role === 'ADMIN'}
-                  onInvite={() => setShowInvite(true)}
-                  onOpenMembers={() => setShowProjectSettings(true)}
+                  onInvite={() => setInviteFor(currentProject.id)}
+                  onOpenMembers={() => setSettingsFor(currentProject.id)}
                 />
               ) : projects.length > 0 ? (
                 <ScopeToggle value={scope} onChange={setStoredScope} />
@@ -617,17 +662,26 @@ export function TasksPage() {
             onOpenChange={setShowNewProject}
             onCreated={(project) => goToSpace(project.id)}
           />
+          {/* Keyed and opened per project: if Back/Forward switches the board
+              while a dialog or one of its confirmations is open, it closes
+              instead of acting on the new project. */}
           {currentProject ? (
             <ProjectSettingsDialog
-              open={showProjectSettings}
-              onOpenChange={setShowProjectSettings}
+              key={currentProject.id}
+              open={settingsFor === currentProject.id}
+              onOpenChange={(open) => setSettingsFor(open ? currentProject.id : null)}
               project={currentProject}
               meId={me?.id}
               onGone={() => goToSpace(null)}
             />
           ) : null}
           {currentProject && currentProject.role === 'ADMIN' ? (
-            <InviteDialog open={showInvite} onOpenChange={setShowInvite} project={currentProject} />
+            <InviteDialog
+              key={currentProject.id}
+              open={inviteFor === currentProject.id}
+              onOpenChange={(open) => setInviteFor(open ? currentProject.id : null)}
+              project={currentProject}
+            />
           ) : null}
         </div>
       </main>
