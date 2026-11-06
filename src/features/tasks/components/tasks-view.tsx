@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 
 import { CompactTaskList } from '@/features/tasks/components/compact-task-list'
 import { GoalsSidebarMobile } from '@/features/tasks/components/goals-sidebar/goals-sidebar-mobile'
-import { TaskBoard } from '@/features/tasks/components/task-board'
+import { TaskBoard, type TaskCardOptions } from '@/features/tasks/components/task-board'
 import { TasksAdvancedFilters } from '@/features/tasks/components/tasks-advanced-filters'
 import { TasksFilters } from '@/features/tasks/components/tasks-filters'
 import { Goal, Task } from '@/features/tasks/utils/types'
@@ -59,7 +59,18 @@ interface TasksViewProps {
   className?: string,
   sortKey: TaskSort,
   onSortChange: (value: TaskSort) => void
-
+  /** Replaces the "Tasks" title with the project switcher. */
+  title?: ReactNode
+  subtitle?: string
+  /** Rendered before the Board/List toggle (member stack, Invite, scope toggle). */
+  headerActions?: ReactNode
+  /** Rendered under the header row (project filter chips). */
+  subHeader?: ReactNode
+  /** Replaces the mobile goals selector (members filter in project mode). */
+  mobileSidebar?: ReactNode
+  sidebarLabel?: string
+  canCreate?: boolean
+  cardOptions?: TaskCardOptions
 }
 
 export function TasksView({
@@ -97,7 +108,15 @@ export function TasksView({
   onToggleGoalsSidebar,
   className,
   sortKey,
-  onSortChange
+  onSortChange,
+  title,
+  subtitle = 'Capture, prioritise, and ship the work that moves your goals.',
+  headerActions,
+  subHeader,
+  mobileSidebar,
+  sidebarLabel = 'Goals',
+  canCreate = true,
+  cardOptions,
 }: TasksViewProps) {
   const [viewMode, setViewMode] = useState<'board' | 'list'>('board')
 
@@ -131,26 +150,31 @@ export function TasksView({
                 type="button"
                 onClick={onToggleGoalsSidebar}
                 className="mt-0.5 hidden h-8 items-center gap-1.5 rounded-md border border-zinc-200 bg-primary px-2.5 text-[10px] font-semibold uppercase text-zinc-900 shadow-sm transition-colors hover:bg-[#dfb90c] md:inline-flex"
-                aria-label="Expand goals sidebar"
-                title="Show goals sidebar"
+                aria-label={`Expand ${sidebarLabel.toLowerCase()} sidebar`}
+                title={`Show ${sidebarLabel.toLowerCase()} sidebar`}
               >
                 <PanelLeft className="h-3.5 w-3.5" />
-                <span>Goals</span>
+                <span>{sidebarLabel}</span>
               </button>
             ) : null}
             <div className="min-w-0">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
-                Execute
-              </div>
-              <h1 className="text-lg font-bold leading-tight tracking-tight text-zinc-900 sm:text-xl">
-                Tasks
-              </h1>
+              {title ?? (
+                <>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+                    Execute
+                  </div>
+                  <h1 className="text-lg font-bold leading-tight tracking-tight text-zinc-900 sm:text-xl">
+                    Tasks
+                  </h1>
+                </>
+              )}
               <p className="mt-0.5 text-xs leading-snug text-zinc-500">
-                Capture, prioritise, and ship the work that moves your goals.
+                {subtitle}
               </p>
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            {headerActions}
             <div className="inline-flex rounded-md border border-zinc-200 bg-white p-0.5 shadow-sm">
               <button
                 onClick={() => setViewMode('board')}
@@ -175,6 +199,7 @@ export function TasksView({
                 List
               </button>
             </div>
+            {canCreate ? (
             <button
               onClick={onCreate}
               className="inline-flex h-8 items-center gap-1.5 rounded-md bg-zinc-900 px-2.5 text-xs font-semibold text-white transition-colors hover:bg-zinc-800"
@@ -183,10 +208,15 @@ export function TasksView({
               <span className="hidden sm:inline">New Task</span>
               <span className="sm:hidden">New</span>
             </button>
+            ) : null}
           </div>
         </div>
 
-        {onSelectGoal && onSelectStatus ? (
+        {subHeader}
+
+        {mobileSidebar ? (
+          <div className="mb-2 md:hidden">{mobileSidebar}</div>
+        ) : onSelectGoal && onSelectStatus ? (
           <div className="mb-2 md:hidden">
             <GoalsSidebarMobile
               goals={goals}
@@ -289,7 +319,7 @@ export function TasksView({
               </SelectContent>
             </Select>
             <TasksFilters showCompleted={showCompleted} onShowCompletedChange={onShowCompletedChange} />
-            {viewMode === 'board' && (
+            {viewMode === 'board' && canCreate && (
               <span className="hidden rounded-md border border-dashed border-zinc-300 px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-zinc-500 lg:inline">
                 Drag to reorder
               </span>
@@ -300,10 +330,10 @@ export function TasksView({
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         {viewMode === 'board' ? (
-          <TaskBoard tasks={tasks} onEdit={onEdit} onComplete={onComplete} />
+          <TaskBoard tasks={tasks} onEdit={onEdit} onComplete={onComplete} cardOptions={cardOptions} />
         ) : (
           <div className="flex min-h-0 flex-1 flex-col gap-4">
-            <CompactTaskList tasks={tasks} groupBy="status" onEdit={onEdit} onComplete={onComplete} />
+            <CompactTaskList tasks={tasks} groupBy="status" onEdit={onEdit} onComplete={onComplete} cardOptions={cardOptions} />
           </div>
         )}
       </div>
