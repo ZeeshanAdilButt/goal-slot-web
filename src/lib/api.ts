@@ -792,6 +792,8 @@ export interface CoachProposalAction {
   type: CoachProposalActionType
   id?: string
   payload?: Record<string, unknown>
+  /** The block's current title as the Coach believes it; the API checks it against the id. */
+  expectedTitle?: string
 }
 
 export interface CoachProposalResult {
@@ -800,7 +802,20 @@ export interface CoachProposalResult {
   ok: boolean
   resultId?: string
   error?: string
+  /**
+   * Never attempted: the API refused the whole batch before writing anything
+   * (a delete id that is not the user's, or a schedule that would overlap).
+   */
+  skipped?: boolean
+  /** Already in place, e.g. re-applying a delete that already worked. */
+  alreadyDone?: boolean
+  /** Succeeded, but not entirely as proposed (some days skipped). */
+  warning?: string
+  /** What the action targeted, e.g. `Delete "Book" Tue 9:00 AM to 11:00 AM`. */
+  label?: string
 }
+
+export type CoachApplyOutcome = 'applied' | 'partial' | 'failed' | 'refused'
 
 export interface CoachProposalBlock {
   summary?: string
@@ -1049,7 +1064,7 @@ export const coachApi = {
     sourceMessageId?: string,
     confirmDeletions?: string[],
   ) =>
-    api.post<{ results: CoachProposalResult[] }>('/coach/proposals/apply', {
+    api.post<{ results: CoachProposalResult[]; outcome?: CoachApplyOutcome }>('/coach/proposals/apply', {
       actions,
       ...(sourceMessageId ? { sourceMessageId } : {}),
       ...(confirmDeletions ? { confirmDeletions } : {}),
