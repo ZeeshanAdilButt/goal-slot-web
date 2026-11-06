@@ -20,7 +20,7 @@ import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuthStore } from '@/lib/store'
 
-export function useConversationsQuery(options?: { refetchInterval?: number }) {
+export function useConversationsQuery(options?: { refetchInterval?: number; refetchOnWindowFocus?: boolean }) {
   const tokenQuery = useMessagingTokenQuery()
   const token = tokenQuery.data
 
@@ -29,6 +29,8 @@ export function useConversationsQuery(options?: { refetchInterval?: number }) {
     queryFn: () => fetchConversations(token as string),
     enabled: isMessagingConfigured && !!token,
     refetchInterval: options?.refetchInterval,
+    // Only overridden when a caller asks: the app-wide default is false.
+    ...(options?.refetchOnWindowFocus !== undefined && { refetchOnWindowFocus: options.refetchOnWindowFocus }),
   })
 }
 
@@ -40,14 +42,21 @@ export function useConversationsQuery(options?: { refetchInterval?: number }) {
  * Messages. At the old 30s that was ~2,900 requests per user per day purely
  * to keep a number on a nav item.
  *
- * Two minutes because a badge is an ambient hint, not a delivery mechanism —
- * nothing is lost by learning about a message slightly later, and the moment
- * the user actually opens Messages the page mounts its own unthrottled
+ * Fifteen minutes because a badge is an ambient hint, not a delivery
+ * mechanism, and because of the database. jiffy-messaging shares the
+ * production Neon compute with the API, and Neon only suspends after five
+ * minutes with no queries, so any shell poll shorter than that keeps the
+ * database awake for as long as a tab stays visible (see IDLE_POLL_MS in
+ * use-timer.ts for the full reasoning and the measurement behind it).
+ *
+ * Staleness is covered from both ends: the badge refetches as soon as the
+ * user returns to the tab (refetchOnWindowFocus, enabled for this caller only,
+ * since it is off app-wide), and opening Messages mounts its own unthrottled
  * `useConversationsQuery()` and `useMessagingSocket()`, which push new
  * messages live. `refetchIntervalInBackground` defaults to false, so a
  * backgrounded tab already costs nothing.
  */
-const UNREAD_BADGE_POLL_MS = 120_000
+const UNREAD_BADGE_POLL_MS = 15 * 60_000
 
 /**
  * Total unread conversations, for a badge outside the Messages page itself
@@ -58,7 +67,10 @@ const UNREAD_BADGE_POLL_MS = 120_000
  */
 export function useUnreadConversationsCount(): number {
   const currentUserId = useAuthStore((state) => state.user?.id)
-  const conversationsQuery = useConversationsQuery({ refetchInterval: UNREAD_BADGE_POLL_MS })
+  const conversationsQuery = useConversationsQuery({
+    refetchInterval: UNREAD_BADGE_POLL_MS,
+    refetchOnWindowFocus: true,
+  })
 
   return useMemo(() => {
     if (!conversationsQuery.data) return 0
