@@ -506,7 +506,7 @@ export function TasksPage() {
             onEdit={setEditingTask}
             onCreate={() => setShowCreate(true)}
             hasSelectedGoal={!!projectId || !!selectedGoalId}
-            isLoading={isLoading}
+            isLoading={isLoading || (!!projectId && projectsQuery.isLoading)}
             goals={goals}
             selectedGoalId={selectedGoalId}
             onSelectGoal={setSelectedGoalId}
