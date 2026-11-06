@@ -64,9 +64,29 @@ export function TasksPage() {
   const projectsQuery = useProjectsQuery()
   const projects = useMemo(() => projectsQuery.data ?? [], [projectsQuery.data])
   const currentProject = projectId ? (projects.find((p) => p.id === projectId) ?? null) : null
-  // "Not available" only on a real answer from the server; a failed or
+  // The project list is persisted offline, so a list restored from cache can
+  // predate a project created or joined moments ago (seen in production: a
+  // freshly created project showed "not available" and no request was made,
+  // because the cached list still counted as fresh). Before declaring an id
+  // missing, ask the server once for that id.
+  const [verifiedMissingId, setVerifiedMissingId] = useState<string | null>(null)
+  const notInList = !!projectId && projectsQuery.isSuccess && !currentProject
+  const { refetch: refetchProjects } = projectsQuery
+  useEffect(() => {
+    if (!notInList || !projectId || verifiedMissingId === projectId) return
+    let cancelled = false
+    refetchProjects().then((result) => {
+      if (cancelled) return
+      const found = (result.data ?? []).some((p) => p.id === projectId)
+      if (!found && result.isSuccess) setVerifiedMissingId(projectId)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [notInList, projectId, verifiedMissingId, refetchProjects])
+  // "Not available" only on a real, fresh answer from the server; a failed or
   // offline-paused project list gets a retry instead.
-  const projectMissing = !!projectId && projectsQuery.isSuccess && !currentProject
+  const projectMissing = notInList && verifiedMissingId === projectId
   const projectsUnavailable =
     !!projectId &&
     !currentProject &&
@@ -551,7 +571,12 @@ export function TasksPage() {
             onEdit={setEditingTask}
             onCreate={() => setShowCreate(true)}
             hasSelectedGoal={!!projectId || !!selectedGoalId}
-            isLoading={isLoading || !isScopeHydrated || (!!projectId && projectsQuery.isLoading)}
+            isLoading={
+              isLoading ||
+              !isScopeHydrated ||
+              (!!projectId && projectsQuery.isLoading) ||
+              (notInList && verifiedMissingId !== projectId)
+            }
             goals={goals}
             selectedGoalId={selectedGoalId}
             onSelectGoal={setSelectedGoalId}
