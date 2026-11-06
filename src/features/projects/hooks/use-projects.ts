@@ -71,7 +71,22 @@ export function useCreateProjectMutation() {
       const res = await projectsApi.create(data)
       return res.data as ProjectSummary
     },
-    onSuccess: () => toast.success('Project created'),
+    onSuccess: (created) => {
+      // Put it in the list before the caller navigates to ?project=<id>, so
+      // the board never sees a list without it (the list is also persisted
+      // offline and can otherwise look fresh while missing the new project).
+      if (created?.id) {
+        queryClient.setQueryData<ProjectSummary[]>(projectQueries.all, (old) => {
+          const list = old ?? []
+          if (list.some((p) => p.id === created.id)) return list
+          return [
+            ...list,
+            { ...created, role: created.role ?? 'ADMIN', memberCount: created.memberCount ?? 1, openTaskCount: created.openTaskCount ?? 0 },
+          ]
+        })
+      }
+      toast.success('Project created')
+    },
     onError: (error) => toast.error(errorMessage(error, 'Could not create the project')),
     onSettled: () => queryClient.invalidateQueries({ queryKey: projectQueries.all }),
   })
