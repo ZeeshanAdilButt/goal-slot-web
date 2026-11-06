@@ -4,10 +4,14 @@ import { describe, expect, it } from 'vitest'
 import {
   assignableMembers,
   assigneeAfterProjectChange,
+  assigneeIdOf,
+  belongsInMyTasks,
   canChangeTaskProject,
   canSetTaskGoal,
   filterProjectTasks,
+  parseDueDate,
   projectFieldsPayload,
+  projectIdOf,
   sanitizeAssignee,
   taskPermissions,
   writableProjects,
@@ -156,6 +160,63 @@ describe('task permissions on the board', () => {
       canEdit: false,
       canDelete: false,
     })
+  })
+})
+
+describe('review follow-ups', () => {
+  it('reads the project from the nested ref when projectId is missing', () => {
+    const t = task({ project: { id: 'p', name: 'P', color: '#000' }, userId: 'other' })
+    expect(projectIdOf(t)).toBe('p')
+    expect(canChangeTaskProject(t, 'me')).toBe(false)
+    expect(taskPermissions(t, { meId: 'me', role: 'GUEST' })).toEqual({ canEdit: false, canDelete: false })
+  })
+
+  it('an explicit null assigneeId beats a stale nested assignee', () => {
+    expect(assigneeIdOf({ assigneeId: null, assignee: { id: 'u1', name: 'U' } })).toBeNull()
+    expect(assigneeIdOf({ assignee: { id: 'u1', name: 'U' } })).toBe('u1')
+  })
+
+  it('withholds actions when neither canEdit nor the role is known', () => {
+    expect(taskPermissions(task({ projectId: 'p', userId: 'me' }), { meId: 'me' })).toEqual({
+      canEdit: false,
+      canDelete: false,
+    })
+  })
+
+  it('drops a newly picked assignee who has become a guest, keeps an unchanged one', () => {
+    const members = [member('g', 'GUEST'), member('m')]
+    expect(sanitizeAssignee('g', 'p1', members)).toBe('')
+    expect(sanitizeAssignee('g', 'p1', members, 'u-other')).toBe('')
+    expect(sanitizeAssignee('g', 'p1', members, 'g')).toBe('g')
+    expect(sanitizeAssignee('m', 'p1', members)).toBe('m')
+  })
+
+  it('reads date-only due dates as local calendar days', () => {
+    expect(parseDueDate('2026-11-09').getTime()).toBe(new Date(2026, 10, 9).getTime())
+    expect(parseDueDate('2026-11-09T10:00:00.000Z').toISOString()).toBe('2026-11-09T10:00:00.000Z')
+  })
+
+  it('Due this week counts a date-only Monday and excludes next Monday', () => {
+    const now = new Date(2026, 10, 6, 12) // Friday, local
+    const list = [
+      task({ id: 'mon', projectId: 'p', dueDate: '2026-11-02' }),
+      task({ id: 'sun', projectId: 'p', dueDate: '2026-11-08' }),
+      task({ id: 'next', projectId: 'p', dueDate: '2026-11-09' }),
+    ]
+    expect(filterProjectTasks(list, { assignee: 'all', dueThisWeek: true, now }).map((t) => t.id)).toEqual([
+      'mon',
+      'sun',
+    ])
+  })
+
+  it('My tasks membership matches the server rule', () => {
+    expect(belongsInMyTasks(task(), 'personal', 'me')).toBe(true)
+    expect(belongsInMyTasks(task({ projectId: 'p', assigneeId: 'me' }), 'personal', 'me')).toBe(false)
+    expect(belongsInMyTasks(task({ projectId: 'p', assigneeId: 'me' }), undefined, 'me')).toBe(true)
+    expect(belongsInMyTasks(task({ projectId: 'p', assigneeId: 'u2' }), 'mine', 'me')).toBe(false)
+    expect(belongsInMyTasks(task({ projectId: 'p', userId: 'me' }), 'mine', 'me')).toBe(true)
+    // Someone else's unassigned project task is not mine.
+    expect(belongsInMyTasks(task({ projectId: 'p', userId: 'u2' }), 'mine', 'me')).toBe(false)
   })
 })
 

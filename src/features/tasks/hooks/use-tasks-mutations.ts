@@ -1,3 +1,4 @@
+import { belongsInMyTasks, projectIdOf } from '@/features/projects/utils/task-fields'
 import { taskQueries, type TaskListFilters } from '@/features/tasks/utils/queries'
 import { CreateTaskForm, Task, TaskStatus } from '@/features/tasks/utils/types'
 import { capture } from '@/utils/posthog/capture'
@@ -24,23 +25,17 @@ const getListFilters = (queryKey: readonly unknown[]): TaskListFilters | undefin
   return queryKey[2] as TaskListFilters | undefined
 }
 
+// The invalidation after each mutation settles is the authority; this only
+// keeps optimistic writes out of lists the server would not put them in.
 const matchesFilters = (task: Task, filters?: TaskListFilters) => {
-  if (!filters) return true
+  // A list with no filters is a My tasks list (scope=mine by default).
+  if (!filters) return belongsInMyTasks(task, undefined, useAuthStore.getState().user?.id)
   if (filters.statuses && filters.statuses.length > 0 && !filters.statuses.includes(task.status)) return false
   if (filters.status && task.status !== filters.status) return false
   if (filters.goalId && task.goalId !== filters.goalId) return false
   // Project board lists hold only that project's tasks.
-  if (filters.projectId) return task.projectId === filters.projectId
-  if (task.projectId) {
-    // My tasks: Personal only never shows project tasks; Mine + assigned shows
-    // them when assigned to me or unassigned (server rule). The invalidation
-    // after the mutation settles is the authority; this only avoids a flicker.
-    if (filters.scope === 'personal') return false
-    const assignee = task.assigneeId ?? task.assignee?.id ?? null
-    const meId = useAuthStore.getState().user?.id
-    if (assignee && meId && assignee !== meId) return false
-  }
-  return true
+  if (filters.projectId) return projectIdOf(task) === filters.projectId
+  return belongsInMyTasks(task, filters.scope, useAuthStore.getState().user?.id)
 }
 
 const syncTaskInCache = (
@@ -250,7 +245,13 @@ export function useRestoreTaskMutation() {
       rollbackCache(queryClient, context?.previous)
       toast.error('Failed to restore task')
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: taskQueries.all }),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: taskQueries.all })
+      // Restore removes the completer's COMPLETION time entry (even when a
+      // different project member restores it), so time and goal totals move.
+      queryClient.invalidateQueries({ queryKey: ['time-tracker'] })
+      queryClient.invalidateQueries({ queryKey: ['goals'] })
+    },
   })
 }
 
