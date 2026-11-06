@@ -36,12 +36,42 @@ export interface ProjectInvite {
 
 /** GET /projects/invites/:token */
 export interface ProjectInvitePreview {
+  projectId: string
   projectName: string
   color: string
   inviterName: string
   role: ProjectRole
+  /** True when expired, revoked, or an email invite that was already used. */
   expired: boolean
+  revoked: boolean
   alreadyMember: boolean
+  /** Always true for link invites. */
+  emailMatches: boolean
+  /** Masked invited address (hi***@example.com); null for link invites. */
+  email: string | null
+}
+
+/** POST /projects/invites/:token/accept (idempotent). */
+export interface ProjectInviteAcceptResult {
+  projectId: string
+  role: ProjectRole
+  alreadyMember: boolean
+}
+
+/** POST /projects/:id/invites */
+export interface SendInvitesResult {
+  invited: Array<{ id: string; email: string; role: ProjectRole; expiresAt: string; emailSent: boolean }>
+  skipped: Array<{ email: string; reason: 'already_member' | 'pending_refreshed' }>
+}
+
+/** POST /projects/:id/invite-link */
+export interface ProjectInviteLink {
+  id: string
+  token: string
+  role: ProjectRole
+  expiresAt: string
+  /** Relative path to the accept page, e.g. /projects/invite?token=... */
+  inviteLink: string
 }
 
 export interface TaskProjectRef {

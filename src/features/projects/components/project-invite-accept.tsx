@@ -12,8 +12,20 @@ import { Button } from '@/components/ui/button'
 import { GoalSlotBrand, GoalSlotSpinner } from '@/components/goalslot-logo'
 
 import { projectQueries } from '../hooks/use-projects'
-import { inviteProblemFromError, projectIdFromAcceptResponse, type InviteAcceptProblem } from '../utils/invite-accept'
-import { ROLE_DESCRIPTIONS, ROLE_LABELS, type ProjectInvitePreview } from '../utils/types'
+import {
+  inviteProblemFromError,
+  inviteView,
+  projectIdFromAcceptResponse,
+  type InviteAcceptProblem,
+} from '../utils/invite-accept'
+import {
+  ROLE_DESCRIPTIONS,
+  ROLE_LABELS,
+  type ProjectInviteAcceptResult,
+  type ProjectInvitePreview,
+} from '../utils/types'
+
+const projectHref = (projectId: string) => `/dashboard/tasks?project=${encodeURIComponent(projectId)}`
 import { ProjectSwatch } from './member-avatar'
 
 function Shell({ children }: { children: ReactNode }) {
@@ -63,14 +75,16 @@ export function ProjectInviteAccept() {
     queryKey: projectQueries.invitePreview(token ?? ''),
     queryFn: async () => (await projectsApi.previewInvite(token as string)).data as ProjectInvitePreview,
     enabled: session === 'in' && !!token,
+    // Invite state changes (accepted, revoked) matter more than a warm cache.
+    staleTime: 0,
   })
 
   const accept = useMutation({
-    mutationFn: async () => (await projectsApi.acceptInvite(token as string)).data as unknown,
+    mutationFn: async () => (await projectsApi.acceptInvite(token as string)).data as ProjectInviteAcceptResult,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: projectQueries.all })
       const projectId = projectIdFromAcceptResponse(data)
-      router.push(projectId ? `/dashboard/tasks?project=${encodeURIComponent(projectId)}` : '/dashboard/tasks')
+      router.push(projectId ? projectHref(projectId) : '/dashboard/tasks')
     },
     onError: (error) => setProblem(inviteProblemFromError(error)),
   })
@@ -134,20 +148,30 @@ export function ProjectInviteAccept() {
     )
   }
 
-  const shown = problem ?? (previewQuery.error ? inviteProblemFromError(previewQuery.error) : null)
   const preview = previewQuery.data
+  const view = inviteView(preview, problem ?? (previewQuery.error ? inviteProblemFromError(previewQuery.error) : null))
   const signedInAs = profileQuery.data?.email
 
-  if (shown?.kind === 'wrong-email') {
+  if (view.kind === 'wrong-email') {
     return (
       <Shell>
         <Notice title="This invite is for a different email">
-          <p>{shown.message}</p>
-          {signedInAs ? (
-            <p>
-              You are signed in as <strong className="font-semibold text-zinc-900">{signedInAs}</strong>.
-            </p>
-          ) : null}
+          <p>
+            {view.email ? (
+              <>
+                It was sent to <strong className="font-semibold text-zinc-900">{view.email}</strong>.
+                {signedInAs ? (
+                  <>
+                    {' '}
+                    You are signed in as <strong className="font-semibold text-zinc-900">{signedInAs}</strong>.
+                  </>
+                ) : null}{' '}
+                Sign in with the invited address to join, or ask for an invite to this one.
+              </>
+            ) : (
+              (view.message ?? 'Sign in with the address the invite was sent to.')
+            )}
+          </p>
           <div className="flex flex-wrap gap-2">
             <Button type="button" onClick={switchAccount}>
               Sign in with another account
@@ -161,12 +185,12 @@ export function ProjectInviteAccept() {
     )
   }
 
-  if (shown?.kind === 'expired' || preview?.expired) {
+  if (view.kind === 'expired') {
     return (
       <Shell>
-        <Notice title="This invite has expired">
+        <Notice title={view.revoked ? 'This invite was withdrawn' : 'This invite is no longer valid'}>
           <p>
-            Invites last 7 days.{' '}
+            {view.revoked ? 'The project admin turned this invite off.' : 'It has expired or has already been used.'}{' '}
             {preview?.inviterName ? `Ask ${preview.inviterName} to send you a new one.` : 'Ask for a new one.'}
           </p>
           <Button asChild variant="secondary">
@@ -177,13 +201,26 @@ export function ProjectInviteAccept() {
     )
   }
 
-  if (shown || !preview) {
+  if (view.kind === 'already-member') {
     return (
       <Shell>
-        <Notice title={shown?.kind === 'not-found' ? 'Invite not found' : 'Something went wrong'}>
-          <p>{shown?.message ?? 'We could not load this invite. Please try again.'}</p>
+        <Notice title={`You are already in ${preview?.projectName ?? 'this project'}`}>
+          <p>Nothing to accept. Open the project to see its tasks.</p>
+          <Button asChild>
+            <Link href={projectHref(view.projectId)}>Open project</Link>
+          </Button>
+        </Notice>
+      </Shell>
+    )
+  }
+
+  if (view.kind !== 'ready' || !preview) {
+    return (
+      <Shell>
+        <Notice title={view.kind === 'not-found' ? 'Invite not found' : 'Something went wrong'}>
+          <p>{view.kind === 'not-found' || view.kind === 'other' ? view.message : 'Please try again.'}</p>
           <div className="flex flex-wrap gap-2">
-            {shown?.kind === 'other' ? (
+            {view.kind === 'other' ? (
               <Button
                 type="button"
                 onClick={() => {
@@ -198,19 +235,6 @@ export function ProjectInviteAccept() {
               <Link href="/dashboard/tasks">Go to my tasks</Link>
             </Button>
           </div>
-        </Notice>
-      </Shell>
-    )
-  }
-
-  if (preview.alreadyMember) {
-    return (
-      <Shell>
-        <Notice title={`You are already in ${preview.projectName}`}>
-          <p>Pick it from the switcher at the top of Tasks.</p>
-          <Button asChild>
-            <Link href="/dashboard/tasks">Open Tasks</Link>
-          </Button>
         </Notice>
       </Shell>
     )

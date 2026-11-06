@@ -28,7 +28,38 @@ export function inviteProblemFromError(error: unknown): InviteAcceptProblem {
   return { kind: 'other', message: serverMessage ?? DEFAULT_MESSAGES.other }
 }
 
-/** The accept response is not pinned down beyond "creates membership"; read the project id if present. */
+export type InviteView =
+  | { kind: 'ready' }
+  | { kind: 'already-member'; projectId: string }
+  | { kind: 'expired'; revoked: boolean }
+  | { kind: 'wrong-email'; email: string | null; message: string | null }
+  | { kind: 'not-found' | 'other'; message: string }
+
+/**
+ * Which screen the accept page shows. An accept failure wins over the
+ * preview; then membership (you are already in, whatever the invite's state),
+ * then expiry, then the email match so a wrong account is told before it
+ * clicks Accept.
+ */
+export function inviteView(
+  preview:
+    | { projectId: string; expired: boolean; revoked: boolean; alreadyMember: boolean; emailMatches: boolean; email: string | null }
+    | undefined,
+  problem: InviteAcceptProblem | null,
+): InviteView {
+  if (problem) {
+    if (problem.kind === 'wrong-email') return { kind: 'wrong-email', email: preview?.email ?? null, message: problem.message }
+    if (problem.kind === 'expired') return { kind: 'expired', revoked: !!preview?.revoked }
+    return { kind: problem.kind, message: problem.message }
+  }
+  if (!preview) return { kind: 'other', message: 'We could not load this invite. Please try again.' }
+  if (preview.alreadyMember) return { kind: 'already-member', projectId: preview.projectId }
+  if (preview.expired) return { kind: 'expired', revoked: preview.revoked }
+  if (!preview.emailMatches) return { kind: 'wrong-email', email: preview.email, message: null }
+  return { kind: 'ready' }
+}
+
+/** POST accept returns { projectId, role, alreadyMember }; read the id defensively. */
 export function projectIdFromAcceptResponse(data: unknown): string | null {
   if (!data || typeof data !== 'object') return null
   const d = data as { projectId?: unknown; project?: { id?: unknown } }
