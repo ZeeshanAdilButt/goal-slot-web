@@ -26,7 +26,18 @@ function isVolatileQuery(query: Query): boolean {
   return key[0] === 'coach' && (key[1] === 'chat' || key[1] === 'narrative')
 }
 
+// Other people's data from projects: member names and emails, pending invite
+// addresses and tokens, invite previews. Never written to IndexedDB, so it
+// cannot outlive the session or be restored into another account's session.
+// The project list itself (my own memberships) persists like tasks do.
+function isOtherPeoplesProjectData(key: readonly unknown[]): boolean {
+  if (key[0] === 'project-invite') return true
+  return key[0] === 'projects' && key.length > 1
+}
+
 export function shouldDehydrateQuery(query: Query): boolean {
+  const key = query.queryKey
+  if (Array.isArray(key) && isOtherPeoplesProjectData(key)) return false
   return query.state.status === 'success' && !isVolatileQuery(query)
 }
 
