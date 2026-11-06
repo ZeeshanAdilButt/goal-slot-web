@@ -1,4 +1,6 @@
-export type TaskStatus = 'BACKLOG' | 'TODO' | 'DOING' | 'DONE'
+import type { TaskAssigneeRef, TaskProjectRef } from '@/features/projects/utils/types'
+
+export type TaskStatus ='BACKLOG' | 'TODO' | 'DOING' | 'DONE'
 
 export interface Goal {
   id: string
@@ -36,6 +38,14 @@ export interface Task {
   scheduleBlock?: ScheduleBlock
   order?: number
   notes?: string
+  /** Creator. On a project task this is who made it, not who owns the board. */
+  userId?: string
+  projectId?: string | null
+  project?: TaskProjectRef | null
+  assigneeId?: string | null
+  assignee?: TaskAssigneeRef | null
+  /** Server-computed write access for the requester. */
+  canEdit?: boolean
 }
 
 export interface CreateTaskForm {
@@ -47,6 +57,10 @@ export interface CreateTaskForm {
   scheduleBlockId: string
   dueDate: string
   notes?: string
+  /** Omitted = unchanged. null moves a task back to My tasks (edit only). */
+  projectId?: string | null
+  /** Omitted = unchanged. null unassigns (edit only). */
+  assigneeId?: string | null
 }
 
 export type GroupBy = 'status' | 'day' | 'schedule'
