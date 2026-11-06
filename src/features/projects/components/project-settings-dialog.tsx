@@ -88,6 +88,8 @@ export function ProjectSettingsDialog({ open, onOpenChange, project, meId, onGon
     if (!removing) return
     try {
       await removeMember.mutateAsync({ userId: removing.userId })
+    } catch {
+      // toast shown by the mutation
     } finally {
       setRemoving(null)
     }

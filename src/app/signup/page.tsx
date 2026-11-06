@@ -12,6 +12,7 @@ import { ArrowLeft, ArrowRight, Dice6, Eye, EyeOff, Lock, Mail, User } from 'luc
 import { toast } from 'react-hot-toast'
 
 import { authApi, stripeApi } from '@/lib/api'
+import { rememberPostLoginRedirect } from '@/lib/post-login-redirect'
 import { useAuthStore } from '@/lib/store'
 import { GoogleIcon } from '@/components/ui/google-icon'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
@@ -127,6 +128,9 @@ function SignupForm() {
   }
 
   const handleGoogleSignup = () => {
+    // Same as login: ?redirect (e.g. a project invite) cannot survive the
+    // Google round trip in the URL, so park it for /auth/callback.
+    rememberPostLoginRedirect(redirect)
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`
   }
 

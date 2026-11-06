@@ -21,6 +21,7 @@ import {
 } from '../hooks/use-projects'
 import {
   addEmails,
+  failedInviteEmails,
   inviteButtonLabel,
   inviteLinkUrl,
   MAX_INVITE_EMAILS,
@@ -133,8 +134,16 @@ export function InviteDialog({ open, onOpenChange, project }: InviteDialogProps)
     try {
       const result = await sendInvites.mutateAsync({ emails: list, role })
       toast.success(summarizeInviteResult(result ?? {}))
-      setEmails([])
-      setDraft('')
+      // The invite exists either way; keep the addresses whose email did not
+      // go out so Send can retry them (the API refreshes and re-sends a
+      // pending invite). Invalid text stays in the draft for correction.
+      const notEmailed = failedInviteEmails(result ?? {})
+      setEmails(notEmailed)
+      if (notEmailed.length) {
+        setProblem(
+          `Could not email ${notEmailed.join(', ')}. Send again to retry, or share the invite link with them.`,
+        )
+      }
     } catch {
       // toast shown by the mutation
     }

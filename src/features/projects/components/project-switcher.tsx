@@ -122,7 +122,12 @@ export function ProjectSwitcher({
             </button>
           </PopoverTrigger>
         </h1>
-        <PopoverContent align="start" sideOffset={8} className="w-[min(340px,calc(100vw-2rem))] p-2">
+        <PopoverContent
+          align="start"
+          sideOffset={8}
+          collisionPadding={8}
+          className="max-h-[var(--radix-popover-content-available-height)] w-[min(340px,calc(100vw-2rem))] overflow-y-auto p-2"
+        >
           <label className="flex h-10 items-center gap-2 rounded-md bg-zinc-100 px-2.5">
             <Search className="h-3.5 w-3.5 text-zinc-500" aria-hidden />
             <span className="sr-only">Find a project</span>

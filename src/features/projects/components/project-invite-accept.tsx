@@ -11,6 +11,8 @@ import { useAuthStore } from '@/lib/store'
 import { Button } from '@/components/ui/button'
 import { GoalSlotBrand, GoalSlotSpinner } from '@/components/goalslot-logo'
 
+import { taskQueries } from '@/features/tasks/utils/queries'
+
 import { projectQueries } from '../hooks/use-projects'
 import {
   inviteProblemFromError,
@@ -83,6 +85,9 @@ export function ProjectInviteAccept() {
     mutationFn: async () => (await projectsApi.acceptInvite(token as string)).data as ProjectInviteAcceptResult,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: projectQueries.all })
+      // Rejoining can bring back tasks assigned to me; do not reuse a fresh
+      // My tasks cache that predates the membership.
+      queryClient.invalidateQueries({ queryKey: taskQueries.all })
       const projectId = projectIdFromAcceptResponse(data)
       router.push(projectId ? projectHref(projectId) : '/dashboard/tasks')
     },
@@ -221,15 +226,22 @@ export function ProjectInviteAccept() {
           <p>{view.kind === 'not-found' || view.kind === 'other' ? view.message : 'Please try again.'}</p>
           <div className="flex flex-wrap gap-2">
             {view.kind === 'other' ? (
-              <Button
-                type="button"
-                onClick={() => {
-                  setProblem(null)
-                  previewQuery.refetch()
-                }}
-              >
-                Try again
-              </Button>
+              <>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setProblem(null)
+                    previewQuery.refetch()
+                  }}
+                >
+                  Try again
+                </Button>
+                {/* An expired session whose refresh failed lands here too;
+                    signing in again keeps the invite link. */}
+                <Button asChild variant="secondary">
+                  <Link href={`/login?redirect=${encodeURIComponent(returnTo)}`}>Sign in again</Link>
+                </Button>
+              </>
             ) : null}
             <Button asChild variant="secondary">
               <Link href="/dashboard/tasks">Go to my tasks</Link>

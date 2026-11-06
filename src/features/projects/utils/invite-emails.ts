@@ -15,9 +15,15 @@ export function isValidEmail(value: string): boolean {
  * put on the clipboard.
  */
 export function splitEmailInput(raw: string): string[] {
+  // Entries are separated by commas, semicolons or newlines. Within one entry
+  // an angle-bracket address wins and the display name around it is dropped;
+  // otherwise the entry may still hold several space-separated addresses.
   return raw
-    .replace(/[^<>]*<([^<>]+)>/g, ' $1 ')
-    .split(/[\s,;]+/)
+    .split(/[,;\n\r]+/)
+    .flatMap((entry) => {
+      const bracketed = entry.match(/<([^<>]+)>/)
+      return bracketed ? [bracketed[1]] : entry.split(/\s+/)
+    })
     .map((part) => part.trim().replace(/^mailto:/i, '').toLowerCase())
     .filter(Boolean)
 }
@@ -74,6 +80,15 @@ export function summarizeInviteResult(result: {
   if (resent) parts.push(`${resent} re-sent`)
   if (notEmailed) parts.push(`${notEmailed} could not be emailed, share the link instead`)
   return parts.join(', ')
+}
+
+/** Addresses that were invited but whose email did not go out. */
+export function failedInviteEmails(result: {
+  invited?: ReadonlyArray<{ email?: string; emailSent?: boolean }>
+}): string[] {
+  return (result.invited ?? [])
+    .filter((i) => i.emailSent === false && !!i.email)
+    .map((i) => i.email as string)
 }
 
 /** The copy URL for an invite link: origin + the relative path the API returns. */

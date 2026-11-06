@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   addEmails,
+  failedInviteEmails,
   inviteButtonLabel,
   inviteLinkUrl,
   isValidEmail,
@@ -26,6 +27,27 @@ describe('invite email parsing', () => {
       'hira@devweekends.com',
       'usman@x.com',
     ])
+  })
+
+  it('keeps a standalone address that comes before a display-name address', () => {
+    expect(splitEmailInput('alice@example.com, Bob <bob@example.com>')).toEqual(['alice@example.com', 'bob@example.com'])
+    expect(splitEmailInput('Bob <bob@example.com>; carol@example.com dave@example.com')).toEqual([
+      'bob@example.com',
+      'carol@example.com',
+      'dave@example.com',
+    ])
+  })
+
+  it('lists invited addresses whose email did not go out', () => {
+    expect(
+      failedInviteEmails({
+        invited: [
+          { email: 'a@x.com', emailSent: true },
+          { email: 'b@x.com', emailSent: false },
+        ],
+      }),
+    ).toEqual(['b@x.com'])
+    expect(failedInviteEmails({})).toEqual([])
   })
 
   it('validates addresses loosely', () => {
