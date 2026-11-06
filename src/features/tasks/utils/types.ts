@@ -32,10 +32,11 @@ export interface Task {
   dueDate?: string
   completedAt?: string
   createdAt?: string
-  goalId?: string
-  goal?: Goal
-  scheduleBlockId?: string
-  scheduleBlock?: ScheduleBlock
+  /** null for anyone but the creator: goals and schedule blocks are personal. */
+  goalId?: string | null
+  goal?: Goal | null
+  scheduleBlockId?: string | null
+  scheduleBlock?: ScheduleBlock | null
   order?: number
   notes?: string
   /** Creator. On a project task this is who made it, not who owns the board. */

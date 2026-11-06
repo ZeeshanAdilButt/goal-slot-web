@@ -1,4 +1,4 @@
-import type { TaskListParams } from '@/lib/api'
+import type { TaskListParams } from '@/lib/task-list-params'
 
 /**
  * Which tasks space the Tasks page shows. It lives in the URL

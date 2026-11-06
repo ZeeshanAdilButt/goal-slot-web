@@ -1,5 +1,9 @@
 import axios from 'axios'
 
+import { sanitizeTaskListParams, type TaskListParams } from '@/lib/task-list-params'
+
+export type { TaskListParams } from '@/lib/task-list-params'
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 export const api = axios.create({
@@ -416,25 +420,9 @@ export interface ExportReportParams extends ReportFilters {
 }
 
 // Tasks API
-// GET /tasks list params. With no projectId the server defaults to
-// scope=mine (personal tasks, plus project tasks assigned to me or created by
-// me and unassigned). scope=personal is only my own non-project tasks.
-// projectId lists a whole project board (membership checked server side),
-// optionally narrowed by assignee.
-export interface TaskListParams {
-  status?: string
-  statuses?: string[]
-  goalId?: string
-  scheduleBlockId?: string
-  dayOfWeek?: number
-  scope?: 'mine' | 'personal'
-  projectId?: string
-  assignee?: 'me' | 'unassigned' | (string & {})
-}
-
 export const tasksApi = {
   create: (data: any) => api.post('/tasks', data),
-  list: (params?: TaskListParams) => api.get('/tasks', { params }),
+  list: (params?: TaskListParams) => api.get('/tasks', { params: sanitizeTaskListParams(params) }),
   getOne: (id: string) => api.get(`/tasks/${id}`),
   update: (id: string, data: any) => api.put(`/tasks/${id}`, data),
   delete: (id: string) => api.delete(`/tasks/${id}`),
@@ -452,7 +440,8 @@ export const projectsApi = {
   list: () => api.get('/projects'),
   create: (data: { name: string; color?: string; description?: string }) => api.post('/projects', data),
   get: (id: string) => api.get(`/projects/${id}`),
-  update: (id: string, data: { name?: string; color?: string; description?: string }) =>
+  // archived: true hides it from GET /projects and scope=mine (still readable by id).
+  update: (id: string, data: { name?: string; color?: string; description?: string; archived?: boolean }) =>
     api.patch(`/projects/${id}`, data),
   delete: (id: string) => api.delete(`/projects/${id}`),
   members: (id: string) => api.get(`/projects/${id}/members`),

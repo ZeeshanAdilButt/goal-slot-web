@@ -131,6 +131,26 @@ describe('task permissions on the board', () => {
     expect(taskPermissions(others, { meId: 'me', role: 'ADMIN' })).toEqual({ canEdit: true, canDelete: true })
   })
 
+  it('canEdit from the server wins over the role', () => {
+    // A Member seeing canEdit:false gets nothing; a task with canEdit:true is
+    // editable even if the role map has not loaded yet.
+    expect(taskPermissions(task({ projectId: 'p', userId: 'other', canEdit: true }), { meId: 'me' })).toEqual({
+      canEdit: true,
+      canDelete: false,
+    })
+    expect(taskPermissions(task({ projectId: 'p', userId: 'me', canEdit: true }), { meId: 'me', role: 'GUEST' })).toEqual({
+      canEdit: true,
+      canDelete: true,
+    })
+    expect(taskPermissions(task({ canEdit: false }), { meId: 'me' })).toEqual({ canEdit: false, canDelete: false })
+  })
+
+  it('a non-creator task with goal and scheduleBlock null is still handled', () => {
+    const t = task({ projectId: 'p', userId: 'other', goal: null, goalId: null, scheduleBlock: null, scheduleBlockId: null })
+    expect(taskPermissions(t, { meId: 'me', role: 'MEMBER' })).toEqual({ canEdit: true, canDelete: false })
+    expect(canSetTaskGoal(t, 'me')).toBe(false)
+  })
+
   it('respects the server canEdit flag', () => {
     expect(taskPermissions(task({ projectId: 'p', canEdit: false, userId: 'me' }), { meId: 'me', role: 'MEMBER' })).toEqual({
       canEdit: false,

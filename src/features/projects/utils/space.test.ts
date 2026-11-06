@@ -1,3 +1,4 @@
+import { sanitizeTaskListParams } from '@/lib/task-list-params'
 import { describe, expect, it } from 'vitest'
 
 import { buildSpaceHref, readProjectParam, spaceFromParams, taskListParamsFor } from './space'
@@ -48,6 +49,23 @@ describe('scope mapping', () => {
 
   it('My tasks, Personal only maps to scope=personal', () => {
     expect(taskListParamsFor({ kind: 'mine' }, 'personal')).toEqual({ scope: 'personal' })
+  })
+
+  it('never sends assignee (filtered client side; the API 400s it outside project mode)', () => {
+    for (const p of [
+      taskListParamsFor({ kind: 'mine' }, 'mine'),
+      taskListParamsFor({ kind: 'mine' }, 'personal'),
+      taskListParamsFor({ kind: 'project', projectId: 'p1' }, 'mine'),
+    ]) {
+      expect(p).not.toHaveProperty('assignee')
+    }
+  })
+
+  it('the API client drops assignee when there is no projectId', () => {
+    expect(sanitizeTaskListParams({ assignee: 'me' })).toEqual({})
+    expect(sanitizeTaskListParams({ scope: 'personal', assignee: 'unassigned' })).toEqual({ scope: 'personal' })
+    expect(sanitizeTaskListParams({ projectId: 'p1', assignee: 'me' })).toEqual({ projectId: 'p1', assignee: 'me' })
+    expect(sanitizeTaskListParams(undefined)).toBeUndefined()
   })
 
   it('project mode sends projectId and ignores the My tasks scope toggle', () => {

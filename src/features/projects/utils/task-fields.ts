@@ -96,15 +96,18 @@ export interface TaskPermissions {
 const FULL_ACCESS: TaskPermissions = { canEdit: true, canDelete: true }
 
 /**
- * What the board offers for one task. Mirrors the server table so we do not
- * show buttons that would 403; the server stays the authority.
+ * What the board offers for one task. The server's canEdit decides editing;
+ * the role only fills in when an older response has no canEdit, and decides
+ * delete (Admins any task, Members only their own). The server stays the
+ * authority either way.
  */
 export function taskPermissions(
   task: Task,
   ctx: { meId?: string | null; role?: ProjectRole | null },
 ): TaskPermissions {
+  if (task.canEdit === false) return { canEdit: false, canDelete: false }
   if (!task.projectId) return FULL_ACCESS
-  if (ctx.role === 'GUEST') return { canEdit: false, canDelete: false }
+  if (task.canEdit === undefined && ctx.role === 'GUEST') return { canEdit: false, canDelete: false }
   const canEdit = task.canEdit ?? true
   const ownsTask = !!ctx.meId && task.userId === ctx.meId
   return {
