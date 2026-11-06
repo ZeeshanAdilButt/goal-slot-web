@@ -28,7 +28,7 @@ import { VoiceDictationButton } from '@/components/voice-dictation-button'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { EmptyState } from '@/components/ui/empty-state'
 import { GlassCard } from '@/components/ui/glass-card'
-import { Input } from '@/components/ui/input'
+import { ChatComposerInput } from './chat-composer-input'
 import { PageHeader } from '@/components/ui/page-header'
 import { PageShell } from '@/components/ui/page-shell'
 import { SectionHeader } from '@/components/ui/section-header'
@@ -509,7 +509,7 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
   const [confirmClear, setConfirmClear] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
   const scrollRef = useRef<HTMLDivElement | null>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
   // Filter chat-relevant messages (exclude narratives so the chat thread is clean).
   const persistedMessages = useMemo<ChatMessageView[]>(() => {
@@ -791,7 +791,7 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
           </button>
         </div>
       )}
-      <form onSubmit={onSubmit} className="flex flex-row items-center gap-2">
+      <form onSubmit={onSubmit} className="flex flex-row items-end gap-2">
         {(persistedMessages.length > 0 || optimistic.length > 0) && (
           <Button
             type="button"
@@ -806,7 +806,7 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
             <RotateCcw className="h-4 w-4" />
           </Button>
         )}
-        <Input
+        <ChatComposerInput
           ref={inputRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -815,7 +815,8 @@ function ChatSection({ scopeKey }: ChatSectionProps) {
           // min-w-0 lets the field shrink inside the flex row on narrow phones;
           // text-base (16px) on mobile stops iOS Safari from auto-zooming the
           // page when the field is focused. Back to text-sm from sm: up.
-          className="min-w-0 flex-1 text-base sm:text-sm"
+          aria-label="Message the Coach"
+          className="min-h-10 min-w-0 flex-1 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-base leading-6 transition-colors placeholder:text-zinc-400 focus-visible:border-[#f2cc0d] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#f2cc0d] disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm sm:leading-5"
         />
         <VoiceDictationButton
           disabled={streaming}
