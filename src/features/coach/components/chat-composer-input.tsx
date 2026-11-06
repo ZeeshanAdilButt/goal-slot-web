@@ -18,6 +18,8 @@ export function isSubmitKey(e: { key: string; shiftKey: boolean; isComposing?: b
 }
 
 const MAX_HEIGHT_PX = 160
+/** Never taller than this share of the viewport. */
+const MAX_VIEWPORT_FRACTION = 0.3
 
 type Props = Omit<React.ComponentProps<'textarea'>, 'rows'>
 
@@ -32,12 +34,19 @@ export const ChatComposerInput = React.forwardRef<HTMLTextAreaElement, Props>(fu
     else if (ref) ref.current = el
   }
 
-  // Grow to fit what was typed or pasted, then scroll past the cap.
+  // Grow to fit what was typed or pasted, then scroll past the cap. The cap
+  // also shrinks on short viewports (landscape phones, a small floating
+  // panel) so the history and the Send button stay visible. scrollHeight
+  // excludes borders while the assigned height includes them, so add them
+  // back or a one-line message shows a scrollbar.
   useLayoutEffect(() => {
     const el = local.current
     if (!el) return
+    const cs = window.getComputedStyle(el)
+    const borders = (parseFloat(cs.borderTopWidth) || 0) + (parseFloat(cs.borderBottomWidth) || 0)
+    const cap = Math.min(MAX_HEIGHT_PX, Math.round(window.innerHeight * MAX_VIEWPORT_FRACTION))
     el.style.height = 'auto'
-    el.style.height = `${Math.min(el.scrollHeight, MAX_HEIGHT_PX)}px`
+    el.style.height = `${Math.min(el.scrollHeight + borders, cap)}px`
   }, [value])
 
   return (
@@ -46,7 +55,7 @@ export const ChatComposerInput = React.forwardRef<HTMLTextAreaElement, Props>(fu
       ref={setRefs}
       rows={1}
       value={value}
-      style={{ resize: 'none', maxHeight: MAX_HEIGHT_PX, ...style }}
+      style={{ resize: 'none', maxHeight: `min(${MAX_HEIGHT_PX}px, ${MAX_VIEWPORT_FRACTION * 100}vh)`, ...style }}
       onKeyDown={(e) => {
         onKeyDown?.(e)
         if (e.defaultPrevented) return
