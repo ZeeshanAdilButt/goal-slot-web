@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
-import { addEmails, inviteButtonLabel, isValidEmail, MAX_INVITE_EMAILS, splitEmailInput } from './invite-emails'
+import {
+  addEmails,
+  inviteButtonLabel,
+  inviteLinkUrl,
+  isValidEmail,
+  MAX_INVITE_EMAILS,
+  splitEmailInput,
+  summarizeInviteResult,
+} from './invite-emails'
 
 describe('invite email parsing', () => {
   it('splits on commas, semicolons, spaces and newlines and lowercases', () => {
@@ -46,6 +54,37 @@ describe('invite email parsing', () => {
 
   it('empty input changes nothing', () => {
     expect(addEmails(['a@b.co'], '  ,, ')).toEqual({ emails: ['a@b.co'], invalid: [], overflow: [] })
+  })
+
+  it('summarizes the send result: sent, already members, re-sent', () => {
+    const invited = (n: number, emailSent = true) =>
+      Array.from({ length: n }, (_, i) => ({ id: `${i}`, email: `${i}@x.com`, emailSent }))
+    expect(
+      summarizeInviteResult({
+        invited: invited(2),
+        skipped: [
+          { email: 'a@x.com', reason: 'already_member' },
+          { email: 'b@x.com', reason: 'already_member' },
+          { email: 'c@x.com', reason: 'pending_refreshed' },
+        ],
+      }),
+    ).toBe('2 sent, 2 already members, 1 re-sent')
+    expect(summarizeInviteResult({ invited: invited(1), skipped: [] })).toBe('1 sent')
+    expect(summarizeInviteResult({ invited: [], skipped: [{ email: 'a@x.com', reason: 'already_member' }] })).toBe(
+      '0 sent, 1 already a member',
+    )
+    expect(summarizeInviteResult({ invited: invited(1, false), skipped: [] })).toBe(
+      '1 sent, 1 could not be emailed, share the link instead',
+    )
+  })
+
+  it('builds the copy URL from the origin and the relative inviteLink', () => {
+    expect(inviteLinkUrl('https://goalslot.io', '/projects/invite?token=abc')).toBe(
+      'https://goalslot.io/projects/invite?token=abc',
+    )
+    expect(inviteLinkUrl('http://localhost:3010/', 'projects/invite?token=abc')).toBe(
+      'http://localhost:3010/projects/invite?token=abc',
+    )
   })
 
   it('labels the send button by count', () => {

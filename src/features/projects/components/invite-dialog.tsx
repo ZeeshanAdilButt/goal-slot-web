@@ -19,7 +19,13 @@ import {
   useRevokeInviteMutation,
   useSendInvitesMutation,
 } from '../hooks/use-projects'
-import { addEmails, inviteButtonLabel, MAX_INVITE_EMAILS } from '../utils/invite-emails'
+import {
+  addEmails,
+  inviteButtonLabel,
+  inviteLinkUrl,
+  MAX_INVITE_EMAILS,
+  summarizeInviteResult,
+} from '../utils/invite-emails'
 import { ROLE_DESCRIPTIONS, ROLE_LABELS, type ProjectRole, type ProjectSummary } from '../utils/types'
 
 interface InviteDialogProps {
@@ -29,10 +35,6 @@ interface InviteDialogProps {
 }
 
 const ROLES: ProjectRole[] = ['ADMIN', 'MEMBER', 'GUEST']
-
-export function buildInviteUrl(origin: string, token: string): string {
-  return `${origin}/projects/invite?token=${encodeURIComponent(token)}`
-}
 
 function sentAgo(iso: string): string {
   const date = new Date(iso)
@@ -129,8 +131,8 @@ export function InviteDialog({ open, onOpenChange, project }: InviteDialogProps)
       return
     }
     try {
-      await sendInvites.mutateAsync({ emails: list, role })
-      toast.success(list.length === 1 ? 'Invite sent' : `${list.length} invites sent`)
+      const result = await sendInvites.mutateAsync({ emails: list, role })
+      toast.success(summarizeInviteResult(result ?? {}))
       setEmails([])
       setDraft('')
     } catch {
@@ -138,14 +140,23 @@ export function InviteDialog({ open, onOpenChange, project }: InviteDialogProps)
     }
   }
 
+  // Changing the role of a live link updates it in place (same token), so do
+  // it right away rather than waiting for the next Copy.
+  const changeLinkRole = (next: 'MEMBER' | 'GUEST') => {
+    setLinkRole(next)
+    if (activeLink && activeLink.role !== next) {
+      inviteLink.mutate(next, { onSuccess: () => toast.success(`Link now joins as ${ROLE_LABELS[next]}`) })
+    }
+  }
+
   const copyLink = async () => {
     try {
       const invite = await inviteLink.mutateAsync(linkRole)
-      if (!invite?.token) {
+      if (!invite?.inviteLink) {
         toast.error('The link could not be created')
         return
       }
-      const url = buildInviteUrl(window.location.origin, invite.token)
+      const url = inviteLinkUrl(window.location.origin, invite.inviteLink)
       try {
         await navigator.clipboard.writeText(url)
         toast.success('Invite link copied')
@@ -257,7 +268,7 @@ export function InviteDialog({ open, onOpenChange, project }: InviteDialogProps)
                 Anyone with the link joins as {ROLE_LABELS[linkRole]}, expires in 7 days
               </span>
             </span>
-            <Select value={linkRole} onValueChange={(v) => setLinkRole(v as 'MEMBER' | 'GUEST')}>
+            <Select value={linkRole} onValueChange={(v) => changeLinkRole(v as 'MEMBER' | 'GUEST')}>
               <SelectTrigger className="h-9 w-28 bg-white text-xs" aria-label="Role for people joining by link">
                 <SelectValue />
               </SelectTrigger>

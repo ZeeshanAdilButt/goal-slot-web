@@ -48,6 +48,7 @@ export function ProjectSettingsDialog({ open, onOpenChange, project, meId, onGon
   const [name, setName] = useState(project.name)
   const [color, setColor] = useState(project.color)
   const [confirmLeave, setConfirmLeave] = useState(false)
+  const [confirmArchive, setConfirmArchive] = useState(false)
   const [removing, setRemoving] = useState<ProjectMember | null>(null)
   const [deleteText, setDeleteText] = useState('')
 
@@ -89,6 +90,17 @@ export function ProjectSettingsDialog({ open, onOpenChange, project, meId, onGon
       await removeMember.mutateAsync({ userId: removing.userId })
     } finally {
       setRemoving(null)
+    }
+  }
+
+  const archive = async () => {
+    try {
+      await updateProject.mutateAsync({ archived: true })
+      setConfirmArchive(false)
+      onOpenChange(false)
+      onGone()
+    } catch {
+      setConfirmArchive(false)
     }
   }
 
@@ -237,6 +249,27 @@ export function ProjectSettingsDialog({ open, onOpenChange, project, meId, onGon
             </section>
 
             {isAdmin ? (
+              <section aria-labelledby="project-archive-heading" className="rounded-lg border border-zinc-200 p-3">
+                <h2 id="project-archive-heading" className="text-sm font-semibold text-zinc-900">
+                  Archive project
+                </h2>
+                <p className="mt-1 text-xs text-zinc-600">
+                  Hides it from the switcher and from everyone&apos;s My tasks. Nothing is deleted.
+                </p>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => setConfirmArchive(true)}
+                  disabled={updateProject.isPending}
+                >
+                  Archive project
+                </Button>
+              </section>
+            ) : null}
+
+            {isAdmin ? (
               <section aria-labelledby="project-delete-heading" className="rounded-lg border border-rose-200 p-3">
                 <h2 id="project-delete-heading" className="text-sm font-semibold text-rose-800">
                   Delete project
@@ -281,6 +314,16 @@ export function ProjectSettingsDialog({ open, onOpenChange, project, meId, onGon
         confirmButtonText="Leave"
         variant="destructive"
         isLoading={removeMember.isPending}
+      />
+
+      <ConfirmDialog
+        open={confirmArchive}
+        onOpenChange={setConfirmArchive}
+        title={`Archive ${project.name}?`}
+        description="It drops out of the switcher and out of everyone's My tasks. Its tasks and logged time are kept."
+        onConfirm={archive}
+        confirmButtonText="Archive"
+        isLoading={updateProject.isPending}
       />
 
       <ConfirmDialog

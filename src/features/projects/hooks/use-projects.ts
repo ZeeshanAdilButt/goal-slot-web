@@ -4,7 +4,13 @@ import { toast } from 'react-hot-toast'
 
 import { projectsApi, type ProjectRoleValue } from '@/lib/api'
 
-import type { ProjectInvite, ProjectMember, ProjectSummary } from '../utils/types'
+import type {
+  ProjectInvite,
+  ProjectInviteLink,
+  ProjectMember,
+  ProjectSummary,
+  SendInvitesResult,
+} from '../utils/types'
 
 export const projectQueries = {
   all: ['projects'] as const,
@@ -74,9 +80,9 @@ export function useCreateProjectMutation() {
 export function useUpdateProjectMutation(projectId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: { name?: string; color?: string }) => projectsApi.update(projectId, data),
-    onSuccess: () => {
-      toast.success('Project updated')
+    mutationFn: (data: { name?: string; color?: string; archived?: boolean }) => projectsApi.update(projectId, data),
+    onSuccess: (_data, vars) => {
+      toast.success(vars.archived ? 'Project archived' : 'Project updated')
       // Task cards carry the project name and color.
       queryClient.invalidateQueries({ queryKey: taskQueries.all })
     },
@@ -133,7 +139,7 @@ export function useSendInvitesMutation(projectId: string) {
   return useMutation({
     mutationFn: async (data: { emails: string[]; role: ProjectRoleValue }) => {
       const res = await projectsApi.invite(projectId, data)
-      return res.data as unknown
+      return res.data as SendInvitesResult
     },
     onError: (error) => toast.error(errorMessage(error, 'Could not send the invites')),
     onSettled: () => queryClient.invalidateQueries({ queryKey: projectQueries.invites(projectId) }),
@@ -145,7 +151,7 @@ export function useInviteLinkMutation(projectId: string) {
   return useMutation({
     mutationFn: async (role: 'MEMBER' | 'GUEST') => {
       const res = await projectsApi.inviteLink(projectId, role)
-      return res.data as ProjectInvite
+      return res.data as ProjectInviteLink
     },
     onError: (error) => toast.error(errorMessage(error, 'Could not create the invite link')),
     onSettled: () => queryClient.invalidateQueries({ queryKey: projectQueries.invites(projectId) }),

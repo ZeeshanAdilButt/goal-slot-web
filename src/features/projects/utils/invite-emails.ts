@@ -54,6 +54,34 @@ export function addEmails(existing: string[], raw: string): AddEmailsResult {
   return { emails, invalid, overflow }
 }
 
+/**
+ * "2 sent, 1 already member, 1 re-sent" from POST /projects/:id/invites.
+ * Re-sent = a pending invite whose token and expiry were refreshed and emailed again.
+ */
+export function summarizeInviteResult(result: {
+  invited?: ReadonlyArray<{ email?: string; emailSent?: boolean }>
+  skipped?: ReadonlyArray<{ email?: string; reason: string }>
+}): string {
+  const invited = result.invited ?? []
+  const skipped = result.skipped ?? []
+  const sent = invited.length
+  const members = skipped.filter((s) => s.reason === 'already_member').length
+  const resent = skipped.filter((s) => s.reason === 'pending_refreshed').length
+  const notEmailed = invited.filter((i) => i.emailSent === false).length
+
+  const parts = [`${sent} sent`]
+  if (members) parts.push(`${members} already ${members === 1 ? 'a member' : 'members'}`)
+  if (resent) parts.push(`${resent} re-sent`)
+  if (notEmailed) parts.push(`${notEmailed} could not be emailed, share the link instead`)
+  return parts.join(', ')
+}
+
+/** The copy URL for an invite link: origin + the relative path the API returns. */
+export function inviteLinkUrl(origin: string, inviteLink: string): string {
+  const path = inviteLink.startsWith('/') ? inviteLink : `/${inviteLink}`
+  return `${origin.replace(/\/+$/, '')}${path}`
+}
+
 export function inviteButtonLabel(count: number): string {
   if (count <= 0) return 'Send invites'
   return count === 1 ? 'Send 1 invite' : `Send ${count} invites`
