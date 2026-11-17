@@ -1,5 +1,7 @@
 import axios from 'axios'
 
+import type { ScheduleSetDaysResult } from '@/features/schedule/utils/types'
+
 import { sanitizeTaskListParams, type TaskListParams } from '@/lib/task-list-params'
 
 export type { TaskListParams } from '@/lib/task-list-params'
@@ -362,6 +364,10 @@ export const scheduleApi = {
   update: (id: string, data: any) => api.put(`/schedule/${id}`, data),
   delete: (id: string) => api.delete(`/schedule/${id}`),
   clearAll: () => api.delete<{ deleted: number }>('/schedule'),
+  // Makes the block's series cover exactly `days` (its own day must be in the
+  // list): copies the block onto added days and deletes removed days' blocks,
+  // all or nothing. Mints a seriesId when the block had none.
+  setDays: (id: string, days: number[]) => api.post<ScheduleSetDaysResult>(`/schedule/${id}/days`, { days }),
 }
 
 // Reports API

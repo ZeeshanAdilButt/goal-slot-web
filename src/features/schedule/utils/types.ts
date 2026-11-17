@@ -34,6 +34,13 @@ export type ScheduleUpdatePayload = Partial<Omit<SchedulePayload, 'seriesId'>> &
   updateScope?: ScheduleUpdateScope
 }
 
+// Response of POST /schedule/:id/days.
+export type ScheduleSetDaysResult = {
+  blocks: ScheduleBlock[]
+  added: number[]
+  removed: number[]
+}
+
 export type DraftSelection = {
   dayOfWeek: number
   start: number

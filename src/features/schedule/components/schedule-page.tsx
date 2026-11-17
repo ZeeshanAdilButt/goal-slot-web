@@ -46,12 +46,6 @@ export function SchedulePage() {
   const { data: categories = [] } = useCategoriesQuery()
   const { mutateAsync: deleteBlock } = useDeleteScheduleBlock()
 
-  const seriesBlockCount = useMemo(() => {
-    if (!editingBlock) return 0
-    const allBlocks = Object.values(weekSchedule || {}).flat()
-    return allBlocks.filter((block) => block.seriesId === editingBlock.seriesId).length
-  }, [editingBlock, weekSchedule])
-
   // Stable across renders (useCallback) so ScheduleGrid/DraggableBlock — which are memoized —
   // don't re-render just because SchedulePage re-rendered for an unrelated reason.
   const handleEdit = useCallback((block: ScheduleBlock) => {
@@ -169,7 +163,7 @@ export function SchedulePage() {
         block={editingBlock}
         dayOfWeek={selectedDay}
         presetTimes={presetTimes}
-        seriesBlockCount={seriesBlockCount}
+        weekSchedule={weekSchedule}
       />
 
       <ScheduleBlockDetailDialog
