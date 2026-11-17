@@ -1,8 +1,9 @@
 import { scheduleQueries } from '@/features/schedule/utils/queries'
 import { SchedulePayload, ScheduleUpdatePayload, WeekSchedule } from '@/features/schedule/utils/types'
-import { useQueryClient } from '@tanstack/react-query'
+import { onlineManager, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { useOfflineMutation } from '@/hooks/use-offline-mutation'
+import { scheduleApi } from '@/lib/api'
 import { genId } from '@/lib/offline/id'
 import { timeToMinutes } from '@/lib/utils'
 
@@ -13,7 +14,7 @@ import '@/features/schedule/utils/offline-operations'
 // failure. Surface that text instead of always showing the same fixed
 // toast. Same pattern as serverErrorMessage in features/notes/hooks/use-notes.ts
 // and isPlanLimitError in features/time-tracker/hooks/use-time-tracker-mutations.ts.
-function serverErrorMessage(err: unknown): string | undefined {
+export function serverErrorMessage(err: unknown): string | undefined {
   const message = (err as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message
   if (Array.isArray(message)) return message[0]
   return typeof message === 'string' ? message : undefined
@@ -144,3 +145,34 @@ export function useDeleteScheduleBlock() {
     invalidateKeys: [weeklyKey],
   })
 }
+
+export const SET_DAYS_OFFLINE_MESSAGE = 'Changing the days of a block needs an internet connection. Reconnect and try again.'
+
+/**
+ * Makes a block's series cover exactly `days` (POST /schedule/:id/days).
+ *
+ * Online only, unlike the other mutations here. The server does the whole
+ * change atomically and can reject it (a conflict names the clashing block),
+ * and the caller usually runs it right after a queued-able field update, so
+ * queueing it would leave the user unsure which half landed. Offline it fails
+ * up front with SET_DAYS_OFFLINE_MESSAGE.
+ *
+ * No error toast here: the caller owns the wording because it depends on what
+ * the earlier steps of the same save already did.
+ */
+export function useSetScheduleBlockDays() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    networkMode: 'always',
+    mutationFn: async ({ id, days }: { id: string; days: number[] }) => {
+      if (!onlineManager.isOnline()) throw new Error(SET_DAYS_OFFLINE_MESSAGE)
+      const res = await scheduleApi.setDays(id, days)
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: weeklyKey })
+    },
+  })
+}
+
