@@ -1,23 +1,60 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { SearchableSelect } from '@/components/ui/searchable-select'
 
 import { useCategoriesQuery } from '@/features/categories'
 import { useGoalsQuery } from '@/features/goals/hooks/use-goals-queries'
-import { useCreateScheduleBlocks, useUpdateScheduleBlock } from '@/features/schedule/hooks/use-schedule-mutations'
+import {
+  SET_DAYS_OFFLINE_MESSAGE,
+  serverErrorMessage,
+  useCreateScheduleBlocks,
+  useSetScheduleBlockDays,
+  useUpdateScheduleBlock,
+} from '@/features/schedule/hooks/use-schedule-mutations'
+import { hasFieldChanges } from '@/features/schedule/utils/block-edit'
+import { describeConflict, findConflicts } from '@/features/schedule/utils/conflicts'
+import {
+  diffDays,
+  formatDayList,
+  getSeriesBlocks,
+  replaceDay,
+  seriesDays,
+  summarizeDayDiff,
+} from '@/features/schedule/utils/day-set'
+import {
+  addMinutesToTime,
+  DURATION_CHIPS,
+  durationMinutes,
+  formatDuration,
+  isEndAfterStart,
+  shiftEndWithStart,
+} from '@/features/schedule/utils/time-input'
 import {
   ScheduleBlock,
   SchedulePayload,
   ScheduleUpdatePayload,
   ScheduleUpdateScope,
+  WeekSchedule,
 } from '@/features/schedule/utils/types'
+import { onlineManager } from '@tanstack/react-query'
+import { AlertTriangle } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
-import { cn, DAYS_OF_WEEK_FULL, timeOptionsIncluding } from '@/lib/utils'
+import { cn, DAYS_OF_WEEK, DAYS_OF_WEEK_FULL } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
+import { TimeField } from './time-field'
 
 const generateSeriesId = () => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -26,13 +63,18 @@ const generateSeriesId = () => {
   return Math.random().toString(36).slice(2, 10)
 }
 
+const MAX_CONFLICT_LINES = 4
+
+type SeriesSnapshot = { ids: string[]; days: number[] }
+
 type ScheduleBlockModalProps = {
   isOpen: boolean
   onClose: () => void
   block: ScheduleBlock | null
   dayOfWeek: number | null
   presetTimes?: { startTime: string; endTime: string } | null
-  seriesBlockCount?: number
+  /** The weekly schedule the page already loaded; used for the series and the overlap preview. */
+  weekSchedule?: WeekSchedule
 }
 
 export function ScheduleBlockModal({
@@ -41,29 +83,34 @@ export function ScheduleBlockModal({
   block,
   dayOfWeek,
   presetTimes,
-  seriesBlockCount = 0,
+  weekSchedule = {},
 }: ScheduleBlockModalProps) {
   const [title, setTitle] = useState('')
   const [startTime, setStartTime] = useState('09:00')
   const [endTime, setEndTime] = useState('10:00')
+  // Once the user sets the end themselves, moving the start no longer drags it along.
+  const [endEdited, setEndEdited] = useState(false)
   const [category, setCategory] = useState('')
   const [selectedDays, setSelectedDays] = useState<number[]>([1])
+  // Edit only: the day this block sits on (it can be moved), and the series as it was when the dialog opened.
+  const [ownDay, setOwnDay] = useState(0)
+  const [series, setSeries] = useState<SeriesSnapshot>({ ids: [], days: [] })
+  const [showMove, setShowMove] = useState(false)
   const [goalId, setGoalId] = useState('')
   const [color, setColor] = useState('#FFD700')
   const [isPrivate, setIsPrivate] = useState(false)
-  const [updateScope, setUpdateScope] = useState<ScheduleUpdateScope>('single')
+  const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false)
+  const [scopePromptOpen, setScopePromptOpen] = useState(false)
+  const [scopeChoice, setScopeChoice] = useState<ScheduleUpdateScope>('single')
+  const [isRunning, setIsRunning] = useState(false)
+  const chipsLabelId = useId()
+  const durationId = useId()
+  const timeErrorId = useId()
   const { mutateAsync: createBlocks, isPending: isCreating } = useCreateScheduleBlocks()
   const { mutateAsync: updateBlock, isPending: isUpdating } = useUpdateScheduleBlock()
+  const { mutateAsync: setBlockDays, isPending: isSettingDays } = useSetScheduleBlockDays()
   const { data: goals = [], isPending: isGoalsPending } = useGoalsQuery({ status: 'ACTIVE' })
   const { data: categories = [] } = useCategoriesQuery()
-
-  // Fold whatever time is actually set into the dropdown. Stored times are not
-  // restricted to the 15-minute grid TIME_OPTIONS builds (the Coach proposes
-  // real-world times, and production has blocks at 04:20, 09:25 and 13:05), and
-  // a Select whose value matches no item silently renders its placeholder, so
-  // those blocks opened showing an empty time with no way to read it back.
-  const startTimeOptions = useMemo(() => timeOptionsIncluding(startTime), [startTime])
-  const endTimeOptions = useMemo(() => timeOptionsIncluding(endTime), [endTime])
 
   const categoryOptions = useMemo(() => {
     return categories.map((cat) => ({
@@ -82,8 +129,7 @@ export function ScheduleBlockModal({
     }))
   ], [goals])
 
-  const isSaving = isCreating || isUpdating
-  const isSeriesEdit = Boolean(block && seriesBlockCount > 1)
+  const isSaving = isCreating || isUpdating || isSettingDays || isRunning
 
   const resetForm = () => {
     setTitle('')
@@ -97,17 +143,28 @@ export function ScheduleBlockModal({
   }
 
   useEffect(() => {
-    setUpdateScope('single')
+    setEndEdited(false)
+    setShowMove(false)
+    setConfirmRemoveOpen(false)
+    setScopePromptOpen(false)
+    setScopeChoice('single')
     if (block) {
+      const siblings = getSeriesBlocks(weekSchedule, block)
+      const days = seriesDays(siblings)
+      setSeries({ ids: siblings.map((b) => b.id), days })
+      setOwnDay(block.dayOfWeek)
       setTitle(block.title)
       setStartTime(block.startTime)
       setEndTime(block.endTime)
       setCategory(block.category)
-      setSelectedDays([block.dayOfWeek])
+      // Edit starts from the block's whole series, so ticking and unticking
+      // days reads as "where does this block repeat".
+      setSelectedDays(days)
       setGoalId(block.goalId || '')
       setColor(block.color)
       setIsPrivate(Boolean(block.isPrivate))
     } else {
+      setSeries({ ids: [], days: [] })
       resetForm()
       if (dayOfWeek !== null) setSelectedDays([dayOfWeek])
       if (presetTimes) {
@@ -125,20 +182,24 @@ export function ScheduleBlockModal({
     }
   }, [categories, category])
 
-  useEffect(() => {
-    if (goalId && goals.length > 0) {
-      const selectedGoal = goals.find((g) => g.id === goalId)
-      if (selectedGoal?.category) {
-        setCategory(selectedGoal.category)
-        const cat = categories.find((c) => c.value === selectedGoal.category)
-        if (cat) {
-          setColor(cat.color)
-        }
-      }
+  const handleGoalChange = (value: string) => {
+    const nextGoalId = value === 'no_goal' ? '' : value
+    setGoalId(nextGoalId)
+    // Picking a goal adopts that goal's category and colour. This used to be an
+    // effect on goalId, which also fired when an existing block was opened and
+    // made an untouched block look edited.
+    const selectedGoal = goals.find((g) => g.id === nextGoalId)
+    if (selectedGoal?.category) {
+      setCategory(selectedGoal.category)
+      const cat = categories.find((c) => c.value === selectedGoal.category)
+      if (cat) setColor(cat.color)
     }
-  }, [goalId, goals, categories])
+  }
 
   const toggleDay = (dayIndex: number) => {
+    // The block's own day is what the API keeps the series anchored to, so it
+    // stays ticked; moving the block to another day is a separate control.
+    if (block && dayIndex === ownDay) return
     setSelectedDays((prev) => {
       if (prev.includes(dayIndex)) {
         if (prev.length === 1) return prev
@@ -148,71 +209,230 @@ export function ScheduleBlockModal({
     })
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const moveBlockToDay = (nextDay: number) => {
+    setSelectedDays((prev) => replaceDay(prev, ownDay, nextDay))
+    setOwnDay(nextDay)
+  }
 
-    try {
-      const payloadBase: Omit<SchedulePayload, 'dayOfWeek'> = {
-        title,
-        startTime,
-        endTime,
-        category,
-        color,
-        goalId: goalId || undefined,
-        isPrivate,
-      }
+  const handleStartCommit = (next: string) => {
+    if (!endEdited) {
+      const shifted = shiftEndWithStart(startTime, endTime, next)
+      if (shifted) setEndTime(shifted)
+    }
+    setStartTime(next)
+  }
 
-      if (block) {
-        const scopeToApply: ScheduleUpdateScope = isSeriesEdit ? updateScope : 'single'
-        const updatePayload: ScheduleUpdatePayload = {
+  const handleEndCommit = (next: string) => {
+    setEndTime(next)
+    setEndEdited(true)
+  }
+
+  const handleDurationChip = (minutes: number) => {
+    const next = addMinutesToTime(startTime, minutes)
+    if (!next) return
+    setEndTime(next)
+    setEndEdited(false)
+  }
+
+  const minutes = durationMinutes(startTime, endTime)
+  const isTimeValid = isEndAfterStart(startTime, endTime)
+  const timeError = isTimeValid ? '' : 'End time must be after the start time, on the same day.'
+
+  // Edit-only bookkeeping: what Save would do to the day set.
+  const siblingCount = series.ids.length
+  const originalOwnDay = block?.dayOfWeek ?? ownDay
+  const moved = Boolean(block) && ownDay !== originalOwnDay
+  const baseDays = useMemo(
+    () => (block ? replaceDay(series.days, originalOwnDay, ownDay) : []),
+    [block, series.days, originalOwnDay, ownDay],
+  )
+  const dayDiff = useMemo(
+    () => (block ? diffDays(baseDays, selectedDays) : { added: [], removed: [] }),
+    [block, baseDays, selectedDays],
+  )
+  const daysChanged = dayDiff.added.length > 0 || dayDiff.removed.length > 0
+  const siblingDays = series.days.filter((d) => d !== originalOwnDay)
+  const daySummary = block
+    ? [moved ? `Moves this block from ${DAYS_OF_WEEK[originalOwnDay]} to ${DAYS_OF_WEEK[ownDay]}.` : '', summarizeDayDiff(dayDiff)]
+        .filter(Boolean)
+        .join(' ')
+    : ''
+
+  const conflictLines = useMemo(() => {
+    if (!isTimeValid) return []
+    let days = selectedDays
+    let exclude = new Set<string>()
+    if (block) {
+      // Days that already hold a copy of this series only change when the
+      // time does. Series members are excluded because an all-blocks save
+      // replaces them and an only-this-block save leaves them untouched.
+      const timesChanged = startTime !== block.startTime || endTime !== block.endTime
+      days = selectedDays.filter((d) => d === ownDay || !baseDays.includes(d) || timesChanged)
+      exclude = new Set([block.id, ...series.ids])
+    }
+    return findConflicts(weekSchedule, days, startTime, endTime, exclude).map((c) =>
+      describeConflict(c, startTime, endTime),
+    )
+  }, [isTimeValid, selectedDays, block, startTime, endTime, ownDay, baseDays, series.ids, weekSchedule])
+
+  const formFields = { title, startTime, endTime, category, color, goalId, isPrivate }
+
+  const runCreate = async () => {
+    const payloadBase: Omit<SchedulePayload, 'dayOfWeek'> = {
+      title,
+      startTime,
+      endTime,
+      category,
+      color,
+      goalId: goalId || undefined,
+      isPrivate,
+    }
+    const sharedSeriesId = selectedDays.length > 1 ? generateSeriesId() : undefined
+    const payloads = selectedDays.map(
+      (day) =>
+        ({
           ...payloadBase,
-          updateScope: scopeToApply,
-        }
-
-        if (scopeToApply === 'single') {
-          updatePayload.dayOfWeek = selectedDays[0]
-        }
-
-        await updateBlock({
-          id: block.id,
-          data: updatePayload,
-        })
-
-        const linkedCount = seriesBlockCount > 0 ? seriesBlockCount : 1
-        toast.success(
-          scopeToApply === 'series'
-            ? `Updated ${linkedCount} linked block${linkedCount > 1 ? 's' : ''}`
-            : 'Block updated',
-        )
-      } else {
-        const sharedSeriesId = selectedDays.length > 1 ? generateSeriesId() : undefined
-        const payloads = selectedDays.map(
-          (day) =>
-            ({
-              ...payloadBase,
-              dayOfWeek: day,
-              ...(sharedSeriesId ? { seriesId: sharedSeriesId } : {}),
-            }) satisfies SchedulePayload,
-        )
-        await createBlocks(payloads)
-        toast.success(
-          `Block${selectedDays.length > 1 ? 's' : ''} created for ${selectedDays.length} day${selectedDays.length > 1 ? 's' : ''}`,
-        )
-      }
-
+          dayOfWeek: day,
+          ...(sharedSeriesId ? { seriesId: sharedSeriesId } : {}),
+        }) satisfies SchedulePayload,
+    )
+    try {
+      await createBlocks(payloads)
+      toast.success(
+        `Block${selectedDays.length > 1 ? 's' : ''} created for ${selectedDays.length} day${selectedDays.length > 1 ? 's' : ''}`,
+      )
       onClose()
-    } catch (error: any) {
-      // useCreateScheduleBlocks (use-schedule-mutations.ts) now passes its
-      // own messages.error to useOfflineMutation, so a multi-/single-day
-      // create failure already shows one specific toast (e.g. which day
-      // conflicted) from the hook itself. Toasting again here would double
-      // it. useUpdateScheduleBlock doesn't set messages.error, so the update
-      // path still needs its own toast.
-      if (block) {
-        toast.error(error.response?.data?.message || 'Failed to save')
-      }
+    } catch {
+      // useCreateScheduleBlocks already shows one specific toast (e.g. which
+      // day conflicted), so toasting again here would double it.
     }
   }
+
+  // Applies an edit in the order the server needs: field changes first (with the
+  // chosen scope), then the day set in one atomic call. If the first part lands
+  // and the second does not, say exactly what did and did not change.
+  const runEdit = async (scope: ScheduleUpdateScope) => {
+    if (!block) return
+    const fieldsChanged = hasFieldChanges(block, formFields)
+    const allBlocks = scope === 'series' && fieldsChanged
+    let fieldsDone = false
+
+    setIsRunning(true)
+    try {
+      if (fieldsChanged || moved) {
+        const fields = {
+          title,
+          startTime,
+          endTime,
+          category,
+          color,
+          goalId: goalId || undefined,
+          isPrivate,
+        }
+        if (allBlocks) {
+          await updateBlock({ id: block.id, data: { ...fields, updateScope: 'series' } satisfies ScheduleUpdatePayload })
+          fieldsDone = true
+          if (moved) {
+            await updateBlock({ id: block.id, data: { dayOfWeek: ownDay, updateScope: 'single' } })
+          }
+        } else {
+          await updateBlock({
+            id: block.id,
+            data: { ...fields, dayOfWeek: ownDay, updateScope: 'single' } satisfies ScheduleUpdatePayload,
+          })
+        }
+        fieldsDone = true
+      }
+    } catch (error) {
+      const reason = serverErrorMessage(error) || 'Failed to save.'
+      if (fieldsDone) {
+        // Only reachable for an all-blocks save whose follow-up move failed.
+        toast.error(
+          `Updated all ${siblingCount} blocks, but moving this block to ${DAYS_OF_WEEK_FULL[ownDay]} failed (${reason}). The days were not changed.`,
+          { duration: 9000 },
+        )
+        setIsRunning(false)
+        onClose()
+      } else {
+        toast.error(`${reason} Nothing was changed.`)
+        setIsRunning(false)
+      }
+      return
+    }
+
+    const fieldsPart = allBlocks
+      ? `Updated all ${siblingCount} blocks`
+      : moved && !fieldsChanged
+        ? `Moved to ${DAYS_OF_WEEK_FULL[ownDay]}`
+        : 'Block updated'
+
+    if (daysChanged) {
+      try {
+        await setBlockDays({ id: block.id, days: selectedDays })
+      } catch (error) {
+        const reason = serverErrorMessage(error) || (error as Error)?.message || 'Unknown error.'
+        if (fieldsDone) {
+          toast.error(
+            `${fieldsPart} was saved, but the days were not changed (${reason}). ` +
+              `Open the block again to retry the day changes.`,
+            { duration: 9000 },
+          )
+          setIsRunning(false)
+          onClose()
+        } else {
+          toast.error(`The days were not changed and nothing was saved. ${reason}`, { duration: 7000 })
+          setIsRunning(false)
+        }
+        return
+      }
+      toast.success(fieldsDone ? `${fieldsPart}. ${summarizeDayDiff(dayDiff)}` : `Days updated. ${summarizeDayDiff(dayDiff)}`)
+    } else if (fieldsDone) {
+      toast.success(fieldsPart)
+    }
+
+    setIsRunning(false)
+    onClose()
+  }
+
+  // Past confirmation of any removal: ask "only this block, or all of them"
+  // when other blocks of the series will still exist and a field changed.
+  const continueEdit = () => {
+    if (!block) return
+    const keptSiblings = selectedDays.filter((d) => d !== ownDay && baseDays.includes(d)).length
+    const asksScope = hasFieldChanges(block, formFields) && siblingCount > 1 && keptSiblings > 0
+    if (asksScope) {
+      setScopeChoice('single')
+      setScopePromptOpen(true)
+    } else {
+      void runEdit('single')
+    }
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (isSaving || !isTimeValid) return
+
+    if (!block) {
+      void runCreate()
+      return
+    }
+
+    if (!hasFieldChanges(block, formFields) && !moved && !daysChanged) {
+      onClose()
+      return
+    }
+    if (daysChanged && !onlineManager.isOnline()) {
+      toast.error(SET_DAYS_OFFLINE_MESSAGE)
+      return
+    }
+    if (dayDiff.removed.length > 0) {
+      setConfirmRemoveOpen(true)
+      return
+    }
+    continueEdit()
+  }
+
+  const removedList = formatDayList(dayDiff.removed)
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -223,93 +443,95 @@ export function ScheduleBlockModal({
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <Label className="mb-1.5 block text-[10px] tracking-wider">
+            <Label htmlFor="schedule-block-title" className="mb-1.5 block text-[10px] tracking-wider">
               Title <span className="text-[#f2cc0d]">*</span>
             </Label>
             <Input
+              id="schedule-block-title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Deep Work"
               required
+              className="h-11"
             />
           </div>
 
           <div>
-            <Label className="mb-1.5 block text-[10px] tracking-wider">{block ? 'Day' : 'Days (select multiple)'}</Label>
-            {block ? (
-              <Select
-                value={selectedDays[0].toString()}
-                onValueChange={(value) => setSelectedDays([parseInt(value)])}
-                disabled={isSeriesEdit && updateScope === 'series'}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select day" />
-                </SelectTrigger>
-                <SelectContent>
-                  {DAYS_OF_WEEK_FULL.map((d, i) => (
-                    <SelectItem key={d} value={i.toString()}>
-                      {d}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {DAYS_OF_WEEK_FULL.map((d, i) => (
+            <Label id={chipsLabelId} className="mb-1.5 block text-[10px] tracking-wider">
+              {block ? 'Repeats on' : 'Days (select multiple)'}
+            </Label>
+            <div role="group" aria-labelledby={chipsLabelId} className="flex flex-wrap gap-2">
+              {DAYS_OF_WEEK_FULL.map((d, i) => {
+                const pressed = selectedDays.includes(i)
+                const isOwn = Boolean(block) && i === ownDay
+                return (
                   <button
                     key={d}
                     type="button"
                     onClick={() => toggleDay(i)}
+                    aria-pressed={pressed}
+                    aria-label={d}
+                    aria-disabled={isOwn || undefined}
+                    title={isOwn ? 'This block’s own day. Use “Move to a different day” to change it.' : undefined}
                     className={cn(
-                      'rounded-lg border px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-all',
-                      selectedDays.includes(i)
+                      'min-h-11 min-w-11 rounded-lg border px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f2cc0d] focus-visible:ring-offset-1',
+                      pressed
                         ? 'bg-[#f2cc0d] border-yellow-400 text-zinc-900'
                         : 'bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50',
+                      isOwn && 'ring-2 ring-zinc-900/70 ring-offset-1',
                     )}
                   >
                     {d.slice(0, 3)}
+                    {isOwn && <span className="sr-only"> (this block, cannot be unticked)</span>}
                   </button>
-                ))}
+                )
+              })}
+            </div>
+            {block && (
+              <div className="mt-1.5 space-y-1.5" aria-live="polite">
+                <p className="text-[11px] text-zinc-600">
+                  {daySummary ||
+                    (siblingCount > 1
+                      ? `This block repeats on ${formatDayList(series.days)}. Tick or untick days to add or remove copies.`
+                      : 'Tick more days to add copies of this block there.')}
+                </p>
+              </div>
+            )}
+            {block && (
+              <div className="mt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowMove((v) => !v)}
+                  aria-expanded={showMove}
+                  className="min-h-11 text-[11px] font-semibold text-zinc-700 underline underline-offset-2 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f2cc0d]"
+                >
+                  Move to a different day
+                </button>
+                {showMove && (
+                  <div className="mt-1">
+                    <Label htmlFor="schedule-block-move" className="mb-1.5 block text-[10px] tracking-wider">
+                      Move this block to
+                    </Label>
+                    <Select value={ownDay.toString()} onValueChange={(value) => moveBlockToDay(parseInt(value))}>
+                      <SelectTrigger id="schedule-block-move" className="h-11">
+                        <SelectValue placeholder="Select day" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {DAYS_OF_WEEK_FULL.map((d, i) => (
+                          <SelectItem key={d} value={i.toString()} disabled={siblingDays.includes(i)}>
+                            {d}
+                            {siblingDays.includes(i) ? ' (already has a copy)' : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="mt-1 text-[11px] text-zinc-500">Only this block moves. Its other copies stay put.</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
-
-          {isSeriesEdit && (
-            <div>
-              <Label className="mb-1.5 block text-[10px] tracking-wider">Apply changes to</Label>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                {(
-                  [
-                    { label: 'This block only', value: 'single' as ScheduleUpdateScope },
-                    {
-                      label: `All ${seriesBlockCount} linked block${seriesBlockCount > 1 ? 's' : ''}`,
-                      value: 'series' as ScheduleUpdateScope,
-                    },
-                  ] as const
-                ).map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => setUpdateScope(option.value)}
-                    className={cn(
-                      'flex-1 rounded-lg border px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-all',
-                      updateScope === option.value
-                        ? 'bg-[#f2cc0d] border-yellow-400 text-zinc-900'
-                        : 'bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50',
-                    )}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-              <p className="mt-1 text-[11px] text-zinc-500">
-                {updateScope === 'series'
-                  ? 'Day assignments stay the same; other changes update across every linked block.'
-                  : 'Only this specific block will be updated.'}
-              </p>
-            </div>
-          )}
 
           <div>
             <Label className="mb-1.5 block text-[10px] tracking-wider">Category</Label>
@@ -327,44 +549,84 @@ export function ScheduleBlockModal({
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div>
-              <Label className="mb-1.5 block text-[10px] tracking-wider">Start Time</Label>
-              <Select value={startTime} onValueChange={setStartTime}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Start time" />
-                </SelectTrigger>
-                <SelectContent>
-                  {startTimeOptions.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div>
+            <div className="grid grid-cols-2 gap-3">
+              <TimeField
+                label="Start time"
+                value={startTime}
+                onCommit={handleStartCommit}
+                invalid={!isTimeValid}
+                describedBy={!isTimeValid ? timeErrorId : undefined}
+              />
+              <TimeField
+                label="End time"
+                value={endTime}
+                onCommit={handleEndCommit}
+                disableUpTo={startTime}
+                invalid={!isTimeValid}
+                describedBy={!isTimeValid ? timeErrorId : undefined}
+              />
             </div>
-            <div>
-              <Label className="mb-1.5 block text-[10px] tracking-wider">End Time</Label>
-              <Select value={endTime} onValueChange={setEndTime}>
-                <SelectTrigger>
-                  <SelectValue placeholder="End time" />
-                </SelectTrigger>
-                <SelectContent>
-                  {endTimeOptions.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <p id={durationId} className="mt-1.5 text-xs text-zinc-600" aria-live="polite">
+              Duration:{' '}
+              <span className="font-semibold text-zinc-900">
+                {isTimeValid && minutes !== null ? formatDuration(minutes) : '-'}
+              </span>
+            </p>
+            <div role="group" aria-label="Set duration" className="mt-1.5 flex flex-wrap gap-1.5">
+              {DURATION_CHIPS.map((chip) => {
+                const fits = addMinutesToTime(startTime, chip.minutes) !== null
+                const pressed = isTimeValid && minutes === chip.minutes
+                return (
+                  <button
+                    key={chip.minutes}
+                    type="button"
+                    disabled={!fits}
+                    aria-pressed={pressed}
+                    aria-label={`${chip.label} (${formatDuration(chip.minutes)})`}
+                    onClick={() => handleDurationChip(chip.minutes)}
+                    className={cn(
+                      'min-h-11 min-w-11 rounded-lg border px-3 text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f2cc0d] focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-40',
+                      pressed
+                        ? 'bg-[#f2cc0d] border-yellow-400 text-zinc-900'
+                        : 'bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50',
+                    )}
+                  >
+                    {chip.label}
+                  </button>
+                )
+              })}
             </div>
+            {timeError && (
+              <p id={timeErrorId} role="alert" className="mt-1.5 text-[11px] font-medium text-rose-600">
+                {timeError}
+              </p>
+            )}
           </div>
+
+          {conflictLines.length > 0 && (
+            <div
+              role="status"
+              className="flex gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-[11px] text-amber-900"
+            >
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              <div className="min-w-0 space-y-0.5">
+                {conflictLines.slice(0, MAX_CONFLICT_LINES).map((line) => (
+                  <p key={line}>{line}</p>
+                ))}
+                {conflictLines.length > MAX_CONFLICT_LINES && (
+                  <p>and {conflictLines.length - MAX_CONFLICT_LINES} more.</p>
+                )}
+                <p className="text-amber-800/80">You can still save. The server makes the final call.</p>
+              </div>
+            </div>
+          )}
 
           <div>
             <Label className="mb-1.5 block text-[10px] tracking-wider">Link to Goal (Optional)</Label>
             <SearchableSelect
               value={goalId || 'no_goal'}
-              onChange={(value) => setGoalId(value === 'no_goal' ? '' : value)}
+              onChange={handleGoalChange}
               disabled={isGoalsPending}
               options={goalOptions}
               placeholder="Select goal"
@@ -396,11 +658,73 @@ export function ScheduleBlockModal({
             <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
               Cancel
             </Button>
-            <Button type="submit" variant="brand" disabled={isSaving} className="flex-1">
+            <Button type="submit" variant="brand" disabled={isSaving || !isTimeValid} className="flex-1">
               {isSaving ? 'Saving...' : block ? 'Update' : 'Create'}
             </Button>
           </DialogFooter>
         </form>
+
+        <ConfirmDialog
+          open={confirmRemoveOpen}
+          onOpenChange={setConfirmRemoveOpen}
+          title="Remove blocks?"
+          description={`This deletes this block's copy on ${removedList}. The other days stay as they are.`}
+          confirmButtonText="Remove"
+          variant="destructive"
+          onConfirm={continueEdit}
+        />
+
+        <Dialog open={scopePromptOpen} onOpenChange={setScopePromptOpen}>
+          <DialogContent showCloseButton={false} className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Update which blocks?</DialogTitle>
+              <DialogDescription>This block repeats on {formatDayList(series.days)}.</DialogDescription>
+            </DialogHeader>
+            <fieldset className="mt-4 space-y-2">
+              <legend className="sr-only">Update</legend>
+              {(
+                [
+                  { value: 'single', label: `Only this block (${DAYS_OF_WEEK[ownDay]})` },
+                  { value: 'series', label: `All ${siblingCount} blocks` },
+                ] as const
+              ).map((option) => (
+                <label
+                  key={option.value}
+                  className={cn(
+                    'flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-sm text-zinc-900',
+                    scopeChoice === option.value ? 'border-yellow-400 bg-[#fffbea]' : 'border-zinc-200 bg-white',
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="schedule-update-scope"
+                    value={option.value}
+                    checked={scopeChoice === option.value}
+                    onChange={() => setScopeChoice(option.value)}
+                    className="h-4 w-4 accent-[#f2cc0d]"
+                  />
+                  {option.label}
+                </label>
+              ))}
+            </fieldset>
+            <DialogFooter className="mt-5 flex-row gap-3">
+              <Button type="button" variant="secondary" className="flex-1" onClick={() => setScopePromptOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="brand"
+                className="flex-1"
+                onClick={() => {
+                  setScopePromptOpen(false)
+                  void runEdit(scopeChoice)
+                }}
+              >
+                Save
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </DialogContent>
     </Dialog>
   )
