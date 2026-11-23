@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ReleaseNoteBanner } from '@/features/release-notes/components/release-note-banner'
 import { motion } from 'framer-motion'
 
+import { rememberLastDashboardPath } from '@/lib/last-dashboard-path'
 import { useAuthStore } from '@/lib/store'
  
 import { useApplyTheme as _useApplyTheme } from '@/lib/use-theme'
@@ -57,6 +58,11 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     loadUser()
   }, [loadUser])
+
+  // Remember where the user is so /app can bring them back to this page.
+  useEffect(() => {
+    if (isAuthenticated) rememberLastDashboardPath(returnTo)
+  }, [isAuthenticated, returnTo])
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
