@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 
@@ -10,7 +10,7 @@ import { ArrowRight, Eye, EyeOff, Lock, Mail } from 'lucide-react'
 import { GoalSlotBrand } from '@/components/goalslot-logo'
 import { toast } from 'react-hot-toast'
 
-import { rememberPostLoginRedirect } from '@/lib/post-login-redirect'
+import { isSafeInternalPath, rememberPostLoginRedirect } from '@/lib/post-login-redirect'
 import { useAuthStore } from '@/lib/store'
 import { GoogleIcon } from '@/components/ui/google-icon'
 import { Loading } from '@/components/ui/loading'
@@ -25,6 +25,19 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const login = useAuthStore((state) => state.login)
+  const loadUser = useAuthStore((state) => state.loadUser)
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const isSessionLoading = useAuthStore((state) => state.isLoading)
+  // Same-origin paths only: router.push to an absolute URL would leave the site.
+  const destination = isSafeInternalPath(redirect) ? redirect : '/app'
+
+  // Already signed in: there is nothing to do here, go where they were headed.
+  useEffect(() => {
+    loadUser()
+  }, [loadUser])
+  useEffect(() => {
+    if (!isSessionLoading && isAuthenticated) router.replace(destination)
+  }, [isSessionLoading, isAuthenticated, destination, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,7 +48,7 @@ function LoginForm() {
       toast.success('Welcome back!')
       // Redirect to the specified URL or default to dashboard
       // If we are already on login page and not coming from anywhere specific, go to dashboard
-      router.push(redirect || '/dashboard')
+      router.push(destination)
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Invalid credentials')
     } finally {

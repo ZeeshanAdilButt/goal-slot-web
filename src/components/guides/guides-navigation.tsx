@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { LogOut, Settings } from 'lucide-react'
 
 import { useAuthStore } from '@/lib/store'
+import { DashboardNavLink } from '@/components/dashboard-nav-link'
 import { GoalSlotBrand } from '@/components/goalslot-logo'
 import { cn } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -46,6 +47,8 @@ export function GuidesNavigation() {
 
         <div className="flex items-center gap-4">
           {!isLoading && isAuthenticated && user ? (
+            <>
+            <DashboardNavLink />
             <Popover>
               <PopoverTrigger asChild>
                 <button className="flex items-center gap-3 border border-zinc-200 bg-white px-3 py-2 shadow-sm transition-all hover:shadow-sm">
@@ -100,7 +103,7 @@ export function GuidesNavigation() {
                 {/* Buttons Section */}
                 <div className="flex items-center gap-2">
                   <Link
-                    href="/dashboard"
+                    href="/app"
                     className="flex inline-flex items-center justify-center gap-1.5 gap-2 rounded-lg bg-zinc-900 px-2.5 px-4 py-1.5 py-2 text-sm text-xs font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50"
                   >
                     Dashboard
@@ -124,15 +127,16 @@ export function GuidesNavigation() {
                 </div>
               </PopoverContent>
             </Popover>
+            </>
           ) : (
-            <>
+            <div className={cn('flex items-center gap-4', isLoading && 'invisible')}>
               <Link href="/login" className="inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-900 transition-colors hover:bg-zinc-50 disabled:opacity-50">
                 Login
               </Link>
               <Link href="/signup" className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:opacity-50">
                 Start Free
               </Link>
-            </>
+            </div>
           )}
         </div>
       </div>
