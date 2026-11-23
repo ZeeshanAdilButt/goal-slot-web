@@ -123,9 +123,10 @@ interface AuthState {
 /**
  * One profile request at a time. The landing nav, the dashboard layout and the
  * callback page can each ask on the same page load; they should share a single
- * round trip rather than race.
+ * round trip rather than race. Keyed by token: a request begun under the
+ * previous session must never answer for a session installed after it.
  */
-let loadUserInFlight: Promise<void> | null = null
+let loadUserInFlight: { token: string | null; promise: Promise<void> } | null = null
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -199,13 +200,15 @@ export const useAuthStore = create<AuthState>()(
       },
 
       loadUser: () => {
-        if (loadUserInFlight) return loadUserInFlight
-        loadUserInFlight = get()
+        const token = localStorage.getItem('accessToken')
+        if (loadUserInFlight?.token === token) return loadUserInFlight.promise
+        const promise: Promise<void> = get()
           .fetchProfile()
           .finally(() => {
-            loadUserInFlight = null
+            if (loadUserInFlight?.promise === promise) loadUserInFlight = null
           })
-        return loadUserInFlight
+        loadUserInFlight = { token, promise }
+        return promise
       },
 
       fetchProfile: async () => {
@@ -227,6 +230,9 @@ export const useAuthStore = create<AuthState>()(
 
         try {
           const { data } = await authApi.getProfile()
+          // A different session was stored while this request was out (a login
+          // finished, or we signed out): its answer is about the old token.
+          if (localStorage.getItem('accessToken') !== token) return
           // The OAuth callback lands here holding the *previous* user in the
           // rehydrated store while `data` is the newly signed-in one. This is
           // the point at which the switch becomes knowable, and it runs before
@@ -234,6 +240,7 @@ export const useAuthStore = create<AuthState>()(
           resetIfIdentityChanged(get().user?.id, data?.id)
           set({ user: data, isAuthenticated: true, isLoading: false })
         } catch (error) {
+          if (localStorage.getItem('accessToken') !== token) return
           if (isAuthFailure(error)) {
             get().logout()
             set({ isLoading: false })
