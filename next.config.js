@@ -1,7 +1,13 @@
+const crypto = require('node:crypto')
+
 /** @type {import('next').NextConfig} */
 const withSerwist = require('@serwist/next').default({
   swSrc: 'src/app/sw.ts',
   swDest: 'public/sw.js',
+  // The installed app starts at /app (see manifest.json). Precache it so a
+  // cold launch with no signal still gets the redirect shell rather than the
+  // browser's offline page; every other page is cached when first visited.
+  additionalPrecacheEntries: [{ url: '/app', revision: crypto.randomUUID() }],
   // Set DISABLE_PWA=true to skip the service worker (e.g. faster Turbopack dev).
   disable: process.env.DISABLE_PWA === 'true',
 })
