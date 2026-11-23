@@ -2,7 +2,7 @@
   "name": "GoalSlot.io",
   "short_name": "GoalSlot",
   "description": "Track your hours, see real progress, and level up.",
-  "start_url": "/",
+  "start_url": "/app",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",

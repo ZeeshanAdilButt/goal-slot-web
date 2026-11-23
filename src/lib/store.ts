@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 import { authApi } from '@/lib/api'
+import { clearLastDashboardPath } from '@/lib/last-dashboard-path'
 import { clearOutbox } from '@/lib/offline/outbox'
 import { queryClient } from '@/lib/query-client'
 import { clearPersistedQueryCache } from '@/lib/query-persister'
@@ -20,7 +21,9 @@ import { useTimerStore } from '@/lib/use-timer-store'
  *  - the offline outbox, whose entries carry no owner and would replay the
  *    previous account's queued writes against the new account's token;
  *  - the timer store, which pins a task/goal/schedule-block id from the
- *    previous account.
+ *    previous account;
+ *  - the remembered last dashboard page, which may point at the previous
+ *    account's own data.
  *
  * Note this also covers the messaging JWT: it lives in the React Query cache
  * (`messagingQueries.token()`), stays fresh for four minutes, and is what
@@ -29,6 +32,7 @@ import { useTimerStore } from '@/lib/use-timer-store'
  * from cache.
  */
 function resetClientState() {
+  clearLastDashboardPath()
   try {
     queryClient.clear()
   } catch {
@@ -112,7 +116,17 @@ interface AuthState {
   ssoLogin: (token: string, email: string, name?: string) => Promise<void>
   logout: () => void
   loadUser: () => Promise<void>
+  /** Internal: the actual profile request behind loadUser. */
+  fetchProfile: () => Promise<void>
 }
+
+/**
+ * One profile request at a time. The landing nav, the dashboard layout and the
+ * callback page can each ask on the same page load; they should share a single
+ * round trip rather than race. Keyed by token: a request begun under the
+ * previous session must never answer for a session installed after it.
+ */
+let loadUserInFlight: { token: string | null; promise: Promise<void> } | null = null
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -185,15 +199,40 @@ export const useAuthStore = create<AuthState>()(
         })
       },
 
-      loadUser: async () => {
+      loadUser: () => {
+        const token = localStorage.getItem('accessToken')
+        if (loadUserInFlight?.token === token) return loadUserInFlight.promise
+        const promise: Promise<void> = get()
+          .fetchProfile()
+          .finally(() => {
+            if (loadUserInFlight?.promise === promise) loadUserInFlight = null
+          })
+        loadUserInFlight = { token, promise }
+        return promise
+      },
+
+      fetchProfile: async () => {
         const token = localStorage.getItem('accessToken')
         if (!token) {
           set({ isLoading: false, isAuthenticated: false })
           return
         }
 
+        // A token plus the user we persisted last time is enough to show the
+        // signed-in UI right now. Waiting for /auth/profile first made every
+        // page load sit on a spinner (or a logged-out nav) for as long as the
+        // API took, which on a cold start is seconds. The request below still
+        // runs: it refreshes the user, and a rejected token signs us out.
+        const cachedUser = get().user
+        if (cachedUser) {
+          set({ isAuthenticated: true, isLoading: false })
+        }
+
         try {
           const { data } = await authApi.getProfile()
+          // A different session was stored while this request was out (a login
+          // finished, or we signed out): its answer is about the old token.
+          if (localStorage.getItem('accessToken') !== token) return
           // The OAuth callback lands here holding the *previous* user in the
           // rehydrated store while `data` is the newly signed-in one. This is
           // the point at which the switch becomes knowable, and it runs before
@@ -201,6 +240,7 @@ export const useAuthStore = create<AuthState>()(
           resetIfIdentityChanged(get().user?.id, data?.id)
           set({ user: data, isAuthenticated: true, isLoading: false })
         } catch (error) {
+          if (localStorage.getItem('accessToken') !== token) return
           if (isAuthFailure(error)) {
             get().logout()
             set({ isLoading: false })

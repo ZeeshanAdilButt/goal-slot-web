@@ -9,6 +9,7 @@ import { LogOut, Settings } from 'lucide-react'
 
 import { useAuthStore } from '@/lib/store'
 import { cn } from '@/lib/utils'
+import { DashboardNavLink } from '@/components/dashboard-nav-link'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 interface NavigationProps {
@@ -72,6 +73,8 @@ export function Navigation({ showSectionLinks = true }: NavigationProps) {
 
         <div className="flex items-center gap-3">
           {!isLoading && isAuthenticated && user ? (
+            <>
+            <DashboardNavLink />
             <Popover>
               <PopoverTrigger asChild>
                 <button className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-1.5 transition-colors hover:bg-gray-50">
@@ -118,7 +121,7 @@ export function Navigation({ showSectionLinks = true }: NavigationProps) {
                 <div className="my-3 border-t border-gray-200" />
                 <div className="flex items-center gap-2">
                   <Link
-                    href="/dashboard"
+                    href="/app"
                     className="flex-1 rounded bg-[#f2cc0d] px-3 py-2 text-center text-xs font-semibold text-gray-900 transition hover:bg-[#e0bd0a]"
                   >
                     Dashboard
@@ -140,9 +143,12 @@ export function Navigation({ showSectionLinks = true }: NavigationProps) {
                 </div>
               </PopoverContent>
             </Popover>
+            </>
           ) : (
-            <>
-              <Link href="/login?redirect=/dashboard" className="hidden text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 md:block">
+            // Hidden (not removed) until the local session check finishes, so a
+            // signed-in visitor never sees Log in / Start Free flash by.
+            <div className={cn('flex items-center gap-3', isLoading && 'invisible')}>
+              <Link href="/login?redirect=/app" className="hidden text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 md:block">
                 Log in
               </Link>
               <Link
@@ -151,7 +157,7 @@ export function Navigation({ showSectionLinks = true }: NavigationProps) {
               >
                 Start Free
               </Link>
-            </>
+            </div>
           )}
         </div>
       </div>

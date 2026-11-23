@@ -59,7 +59,7 @@ function AuthCallbackInner() {
     // Google, or passed straight through if the provider ever forwards it.
     // Only same-origin relative paths are honoured, so this cannot be turned
     // into an open redirect laundered through our own callback.
-    const destination = (isSafeInternalPath(passedThrough) ? passedThrough : null) ?? stored ?? '/dashboard'
+    const destination = (isSafeInternalPath(passedThrough) ? passedThrough : null) ?? stored ?? '/app'
 
     ;(async () => {
       try {
